@@ -11,11 +11,12 @@ from traits.api import on_trait_change, Property, Instance
 from .example_panes import PythonScriptBrowserPane
 from .python_editor import PythonEditor
 
+
 class ExampleTask(Task):
     """ A simple task for editing Python code.
     """
 
-    #### Task interface #######################################################
+    # Task interface #######################################################
 
     id = 'example.example_task'
     name = 'Multi-Tab Editor'
@@ -35,16 +36,16 @@ class ExampleTask(Task):
                         SMenu(DockPaneToggleGroup(),
                               id='View', name='&View'))
 
-    tool_bars = [ SToolBar(TaskAction(method='new',
-                                      tooltip='New file',
-                                      image=ImageResource('document_new')),
-                           TaskAction(method='open',
-                                      tooltip='Open a file',
-                                      image=ImageResource('document_open')),
-                           TaskAction(method='save',
-                                      tooltip='Save the current file',
-                                      image=ImageResource('document_save')),
-                           image_size = (32, 32), show_tool_names=False), ]
+    tool_bars = [SToolBar(TaskAction(method='new',
+                                     tooltip='New file',
+                                     image=ImageResource('document_new')),
+                          TaskAction(method='open',
+                                     tooltip='Open a file',
+                                     image=ImageResource('document_open')),
+                          TaskAction(method='save',
+                                     tooltip='Save the current file',
+                                     image=ImageResource('document_save')),
+                          image_size=(32, 32), show_tool_names=False), ]
 
     ###########################################################################
     # 'Task' interface.
@@ -71,9 +72,12 @@ class ExampleTask(Task):
         """ Create the file browser and connect to its double click event.
         """
         browser = PythonScriptBrowserPane()
-        handler = lambda: self._open_file(browser.selected_file)
+
+        def handler():
+            return self._open_file(browser.selected_file)
+
         browser.on_trait_change(handler, 'activated')
-        return [ browser ]
+        return [browser]
 
     ###########################################################################
     # 'ExampleTask' interface.
@@ -145,7 +149,7 @@ class ExampleTask(Task):
                 editor.save(editor.path)
         return True
 
-    #### Trait change handlers ################################################
+    # Trait change handlers ################################################
 
     @on_trait_change('window:closing')
     def _prompt_on_close(self, event):
@@ -154,7 +158,7 @@ class ExampleTask(Task):
         close = self._prompt_for_save()
         event.veto = not close
 
-    #### Trait property getter/setters ########################################
+    # Trait property getter/setters ########################################
 
     def _get_active_editor(self):
         if self.editor_area is not None:
