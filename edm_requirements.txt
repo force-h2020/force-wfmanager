@@ -1,0 +1,8 @@
+distribute_remove  1.0.0-4
+pip                9.0.1-1
+pyqt               4.11.4-7
+qt                 4.8.7-7
+setuptools         23.1.0-2
+sip                4.17-4
+pyface             5.1.0
+traitsui           5.1.0
