@@ -25,7 +25,7 @@ sphinx.environment.BuildEnvironment.warn_node = _warn_node
 def mock_modules():
     import sys
 
-    from mock import MagicMock
+    from unittest.mock import MagicMock
 
     try:
         import tables
