@@ -22,4 +22,5 @@ script:
     - sh -e /etc/init.d/xvfb start
     - python -m unittest discover
     - pip install -r requirements/doc_requirements.txt
+    - python -c "import sip; print(sip)"
     - cd doc && make html
