@@ -14,10 +14,20 @@
 
 import sphinx.environment
 from docutils.utils import get_source_line
+import sys
+import os
 
 def _warn_node(self, msg, node, **kwargs):
     if not msg.startswith('nonlocal image URI found:'):
         self._warnfunc(msg, '%s:%s' % get_source_line(node), **kwargs)
+
+sys.path.insert(
+    0,
+    os.path.join(
+        os.path.abspath(__file__),
+        "..",
+        "..",
+    ))
 
 
 sphinx.environment.BuildEnvironment.warn_node = _warn_node
@@ -54,7 +64,7 @@ def mock_modules():
 # -- General configuration ------------------------------------------------
 
 # check and mock missing modules
-mock_modules()
+# mock_modules()
 
 # If your documentation needs a minimal Sphinx version, state it here.
 # needs_sphinx = '1.2.3'
