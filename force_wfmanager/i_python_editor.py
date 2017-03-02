@@ -1,4 +1,3 @@
-#------------------------------------------------------------------------------
 # Copyright (c) 2005, Enthought, Inc.
 # All rights reserved.
 #
@@ -10,12 +9,12 @@
 #
 # Author: Enthought, Inc.
 # Description: <Enthought pyface package component>
-#------------------------------------------------------------------------------
+
 """ A widget for editing Python code. """
 
 
 # Enthought library imports.
-from traits.api import Bool, Event, Instance, File, Interface, Unicode
+from traits.api import Bool, Event, Instance, File, Unicode
 from pyface.tasks.i_editor import IEditor
 
 # Local imports.
@@ -25,7 +24,7 @@ from pyface.key_pressed_event import KeyPressedEvent
 class IPythonEditor(IEditor):
     """ A widget for editing Python code. """
 
-    #### 'IPythonEditor' interface ############################################
+    # 'IPythonEditor' interface ############################################
 
     # Object being editor is a file
     obj = Instance(File)
@@ -36,7 +35,7 @@ class IPythonEditor(IEditor):
     # Should line numbers be shown in the margin?
     show_line_numbers = Bool(True)
 
-    #### Events ####
+    # Events ####
 
     # The contents of the editor has changed.
     changed = Event
