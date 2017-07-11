@@ -15,14 +15,12 @@ class WfManager(Task):
 
     def create_dock_panes(self):
         """ Creates the dock panes which contains the MCO, KPIs and Constraints
-        management
-        """
+        management """
         plugin_manager = PluginManager()
         return [plugin_manager]
 
     def _default_layout_default(self):
-        """ Defines the default layout of the task window
-        """
+        """ Defines the default layout of the task window """
         return TaskLayout(
             left=PaneItem('wfmanager.plugin_manager')
         )
