@@ -2,7 +2,7 @@ from pyface.api import GUI
 from pyface.tasks.api import TaskWindow
 
 # Local imports.
-from .example_task import ExampleTask
+from example_task import ExampleTask
 
 
 def main():
