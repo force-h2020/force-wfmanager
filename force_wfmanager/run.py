@@ -2,7 +2,7 @@ from pyface.api import GUI
 from pyface.tasks.api import TaskWindow
 
 # Local imports.
-from wfmanager import WfManager
+from force_wfmanager.wfmanager import WfManager
 
 
 def main():

@@ -1,6 +1,6 @@
 from pyface.tasks.api import Task, TaskLayout, PaneItem
-from central_pane import CentralPane
-from plugin_manager import PluginManager
+from force_wfmanager.central_pane.central_pane import CentralPane
+from force_wfmanager.left_side_pane.plugin_manager import PluginManager
 
 
 class WfManager(Task):
