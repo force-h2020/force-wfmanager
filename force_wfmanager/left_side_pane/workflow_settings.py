@@ -1,33 +1,45 @@
 from pyface.tasks.api import TraitsDockPane
-from traitsui.api import View, Item, Tabbed, SetEditor, ListStrEditor
-from traits.api import List
+from traitsui.api import (View, Item, VGroup, Tabbed, SetEditor, EnumEditor,
+                          Handler)
+from traits.api import Enum, List, Str
+
+
+class KpiHandler(Handler):
+    kpis = List(Str)
+
+    def object_kpis_changed(self, info):
+        self.kpis = info.object.kpis
+        info.object.selected_kpi = '' if not len(self.kpis) else self.kpis[0]
 
 
 class WorkflowSettings(TraitsDockPane):
     id = 'wfmanager.workflow_settings'
     name = 'Plugins'
 
-    multi_criteria_optimizers_editor = ListStrEditor(
-        editable=False,
-        multi_select=False
-    )
+    # Those values will come from the plugins
+    mcos = Enum(
+        ['Dakota', 'MCO2', 'MCO3', 'MCO4'])
 
-    multi_criteria_optimizers = List(
-        ['Dakota', 'MCO2', 'MCO3', 'MCO4'],
-        editor=multi_criteria_optimizers_editor)
-
+    # Those values are created by the user on the UI, the user will be
+    # able to set the constraint name and parameters
     constraints = List(
-        ['Constraint1', 'Constraint2', 'Constraint3'],
-        editor=multi_criteria_optimizers_editor)
+        ['Constraint1', 'Constraint2', 'Constraint3'])
 
-    key_perfomance_indicators = List(editor=SetEditor(
+    # Those values will come from the plugins
+    kpis = List(editor=SetEditor(
         values=['Viscosity', 'Cost', 'Incomes'],
         can_move_all=True,
         left_column_title='Available KPIs',
         right_column_title='KPIs'))
 
+    selected_kpi = Str
+
     view = View(Tabbed(
-        Item('multi_criteria_optimizers', label='MCO'),
+        Item('mcos', label='MCO'),
         Item('constraints', label='Constraints'),
-        Item('key_perfomance_indicators', label='KPIs')
-    ))
+        VGroup(
+            Item('kpis'),
+            Item('selected_kpi',
+                 editor=EnumEditor(name='handler.kpis')),
+            label='KPIs')),
+        handler=KpiHandler)
