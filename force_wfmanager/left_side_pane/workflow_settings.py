@@ -3,8 +3,8 @@ from traitsui.api import View, Item, VGroup, SetEditor, ListStrEditor
 from traits.api import List
 
 
-class PluginManager(TraitsDockPane):
-    id = 'wfmanager.plugin_manager'
+class WorkflowSettings(TraitsDockPane):
+    id = 'wfmanager.workflow_settings'
     name = 'Plugins'
 
     multi_criteria_optimizers_editor = ListStrEditor(

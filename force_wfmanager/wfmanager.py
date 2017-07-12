@@ -1,6 +1,6 @@
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from force_wfmanager.central_pane.central_pane import CentralPane
-from force_wfmanager.left_side_pane.plugin_manager import PluginManager
+from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
 
 
 class WfManager(Task):
@@ -16,11 +16,11 @@ class WfManager(Task):
     def create_dock_panes(self):
         """ Creates the dock panes which contains the MCO, KPIs and Constraints
         management """
-        plugin_manager = PluginManager()
-        return [plugin_manager]
+        workflow_settings = WorkflowSettings()
+        return [workflow_settings]
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
         return TaskLayout(
-            left=PaneItem('wfmanager.plugin_manager')
+            left=PaneItem('wfmanager.workflow_settings')
         )
