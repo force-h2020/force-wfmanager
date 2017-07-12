@@ -3,7 +3,7 @@ from traitsui.api import View
 
 
 class Analysis(TraitsTaskPane):
-    id = 'wfmanager.analysis'
+    id = 'force_wfmanager.analysis'
     name = 'Analysis'
 
     view = View()

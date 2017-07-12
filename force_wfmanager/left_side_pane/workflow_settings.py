@@ -13,7 +13,7 @@ class KpiHandler(Handler):
 
 
 class WorkflowSettings(TraitsDockPane):
-    id = 'wfmanager.workflow_settings'
+    id = 'force_wfmanager.workflow_settings'
     name = 'Plugins'
 
     # Those values will come from the plugins

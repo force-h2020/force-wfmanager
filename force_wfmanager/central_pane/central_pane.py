@@ -6,7 +6,7 @@ from analysis import Analysis
 
 
 class CentralPane(TraitsTaskPane):
-    id = 'wfmanager.central_pane'
+    id = 'force_wfmanager.central_pane'
     name = 'Central Pane'
 
     analysis = Instance(Analysis, ())
