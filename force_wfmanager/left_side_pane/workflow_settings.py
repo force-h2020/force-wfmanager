@@ -8,7 +8,7 @@ class WorkflowSettings(TraitsDockPane):
     name = 'Plugins'
 
     available_mcos = List()
-    available_kpis = List()
+    available_data_sources = List()
 
     # Those values are created by the user on the UI, the user will be
     # able to set the constraint name and parameters
@@ -16,16 +16,17 @@ class WorkflowSettings(TraitsDockPane):
 
     # Those values will come from the plugins
     mcos = List()
-    kpis = List()
+    data_sources = List()
 
     view = View(Tabbed(
         Item('mcos', label='MCO'),
         Item('constraints', label='Constraints'),
-        Item('kpis'),
+        Item('data_sources'),
         ))
 
     def _mcos_default(self):
         return [mco.name for mco in self.available_mcos]
 
-    def _kpis_default(self):
-        return [kpi.computes for kpi in self.available_kpis]
+    def _data_sources_default(self):
+        return [data_source.computes
+                for data_source in self.available_data_sources]
