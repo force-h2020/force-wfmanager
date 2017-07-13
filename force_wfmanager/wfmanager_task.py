@@ -12,7 +12,7 @@ class WfManagerTask(Task):
 
     mcos = List
 
-    kpis = List
+    data_sources = List
 
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part
@@ -21,10 +21,10 @@ class WfManagerTask(Task):
         return CentralPane()
 
     def create_dock_panes(self):
-        """ Creates the dock panes which contains the MCO, KPIs and Constraints
-        management """
+        """ Creates the dock panes which contains the MCO, datasources and
+        Constraints management """
         workflow_settings = WorkflowSettings(
-            available_mcos=self.mcos, available_kpis=self.kpis)
+            available_mcos=self.mcos, available_data_sources=self.data_sources)
         return [workflow_settings]
 
     def _default_layout_default(self):

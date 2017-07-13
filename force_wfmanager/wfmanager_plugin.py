@@ -9,7 +9,7 @@ class WfManagerPlugin(Plugin):
     TASKS = 'envisage.ui.tasks.tasks'
 
     MCOS = 'force_bdss.multi_criteria_optimizers'
-    KPIS = 'force_bdss.key_performance_calculators'
+    DATA_SOURCES = 'force_bdss.data_sources'
 
     id = 'force_wfmanager.wfmanager_plugin'
     name = 'Workflow Manager'
@@ -25,10 +25,10 @@ class WfManagerPlugin(Plugin):
         """
     )
 
-    kpis = ExtensionPoint(
-        List(Instance('force_bdss.kpi.i_key_performance_calculator.' +
-                      'IKeyPerformanceCalculator')),
-        id=KPIS,
+    data_sources = ExtensionPoint(
+        List(Instance('force_bdss.kpi.i_data_sources.' +
+                      'IDataSources')),
+        id=DATA_SOURCES,
         desc="""
         Available KPIs for the Workflow Manager
         """
@@ -42,4 +42,4 @@ class WfManagerPlugin(Plugin):
     def _create_task(self):
         from force_wfmanager.wfmanager_task import WfManagerTask
 
-        return WfManagerTask(mcos=self.mcos, kpis=self.kpis)
+        return WfManagerTask(mcos=self.mcos, data_sources=self.data_sources)
