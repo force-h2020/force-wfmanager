@@ -8,9 +8,8 @@ class WfManagerPlugin(Plugin):
 
     TASKS = 'envisage.ui.tasks.tasks'
 
-    MCOS = 'force_wfmanager.mcos'
-    KPIS = 'force_wfmanager.kpis'
-    CONSTRAINTS = 'force_wfmanager.constraints'
+    MCOS = 'force_bdss.multi_criteria_optimizers'
+    KPIS = 'force_bdss.key_performance_calculators'
 
     id = 'force_wfmanager.wfmanager_plugin'
     name = 'Workflow Manager'
@@ -18,7 +17,8 @@ class WfManagerPlugin(Plugin):
     tasks = List(contributes_to=TASKS)
 
     mcos = ExtensionPoint(
-        List(Instance('force_wfmanager.spec.mco.IMCO')),
+        List(Instance('force_bdss.mco.i_multi_criteria_optimizers.' +
+                      'IMultiCriteriaOptimizer')),
         id=MCOS,
         desc="""
         Available MCOs for the Workflow Manager
@@ -26,24 +26,20 @@ class WfManagerPlugin(Plugin):
     )
 
     kpis = ExtensionPoint(
-        List(Instance('force_wfmanager.spec.kpi.IKPI')),
+        List(Instance('force_bdss.kpi.i_key_performance_calculator.' +
+                      'IKeyPerformanceCalculator')),
         id=KPIS,
         desc="""
         Available KPIs for the Workflow Manager
         """
     )
 
-    constraints = ExtensionPoint(
-        List(Instance('force_wfmanager.spec.constraint.IConstraint')),
-        id=KPIS,
-        desc="""
-        Defined constraints for the Workflow Manager
-        """
-    )
-
     def _tasks_default(self):
-        from force_wfmanager.wfmanager_task import WfManagerTask
-
         return [TaskFactory(id='force_wfmanager.wfmanager_task',
                             name='Workflow Manager',
-                            factory=WfManagerTask)]
+                            factory=self._create_task)]
+
+    def _create_task(self):
+        from force_wfmanager.wfmanager_task import WfManagerTask
+
+        return WfManagerTask(mcos=self.mcos, kpis=self.kpis)
