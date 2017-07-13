@@ -26,11 +26,11 @@ class WfManagerPlugin(Plugin):
     )
 
     data_sources = ExtensionPoint(
-        List(Instance('force_bdss.kpi.i_data_sources.' +
-                      'IDataSources')),
+        List(Instance('force_bdss.data_sources.i_data_source.' +
+                      'IDataSource')),
         id=DATA_SOURCES,
         desc="""
-        Available KPIs for the Workflow Manager
+        Available Datasources for the Workflow Manager
         """
     )
 

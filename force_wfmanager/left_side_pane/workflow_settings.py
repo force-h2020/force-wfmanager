@@ -21,7 +21,7 @@ class WorkflowSettings(TraitsDockPane):
     view = View(Tabbed(
         Item('mcos', label='MCO'),
         Item('constraints', label='Constraints'),
-        Item('kpis'),
+        Item('data_sources'),
         ))
 
     def _mcos_default(self):
