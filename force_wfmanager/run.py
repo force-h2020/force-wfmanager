@@ -1,16 +1,18 @@
-from pyface.api import GUI
-from pyface.tasks.api import TaskWindow
+from envisage.core_plugin import CorePlugin
+from envisage.ui.tasks.tasks_plugin import TasksPlugin
 
-# Local imports.
-from .example_task import ExampleTask
+from force_bdss.kpi.key_performance_calculators_plugin import (
+    KeyPerformanceCalculatorsPlugin)
+from force_bdss.mco.multi_criteria_optimizers_plugin import (
+    MultiCriteriaOptimizersPlugin)
+
+from force_wfmanager.wfmanager import WfManager
+from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 
 def main():
-    gui = GUI()
-
-    task = ExampleTask()
-    window = TaskWindow(size=(800, 600))
-    window.add_task(task)
-    window.open()
-
-    gui.start_event_loop()
+    plugins = [CorePlugin(), TasksPlugin(), WfManagerPlugin(),
+               KeyPerformanceCalculatorsPlugin(),
+               MultiCriteriaOptimizersPlugin()]
+    wfmanager = WfManager(plugins=plugins)
+    wfmanager.run()
