@@ -1,0 +1,2 @@
+envisage >= 4.6.0
+stevedore >= 1.24.0
