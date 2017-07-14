@@ -38,12 +38,6 @@ setup(
     entry_points={
         'gui_scripts': [
             ('force-wfmanager = force_wfmanager.run:main')
-        ],
-        "force.bdss.extensions": [
-            "mco = force_bdss.mco.multi_criteria_optimizers_plugin:"
-            "MultiCriteriaOptimizersPlugin",
-            "data_source = force_bdss.data_sources.data_sources_plugin:"
-            "DataSourcesPlugin",
         ]
     },
 )
