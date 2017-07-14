@@ -8,27 +8,27 @@ class WfManagerPlugin(Plugin):
 
     TASKS = 'envisage.ui.tasks.tasks'
 
-    MCOS = 'force_bdss.multi_criteria_optimizers'
-    DATA_SOURCES = 'force_bdss.data_sources'
+    MCOS_BUNDLES = 'force.bdss.mco.bundles'
+    DATA_SOURCES_BUNDLES = 'force.bdss.data_sources.bundles'
 
     id = 'force_wfmanager.wfmanager_plugin'
     name = 'Workflow Manager'
 
     tasks = List(contributes_to=TASKS)
 
-    mcos = ExtensionPoint(
-        List(Instance('force_bdss.mco.i_multi_criteria_optimizers.' +
-                      'IMultiCriteriaOptimizer')),
-        id=MCOS,
+    mco_bundles = ExtensionPoint(
+        List(Instance('force_bdss.mco.i_multi_criteria_optimizer_bundle.'
+                      'IMultiCriteriaOptimizerBundle')),
+        id=MCOS_BUNDLES,
         desc="""
         Available MCOs for the Workflow Manager
         """
     )
 
-    data_sources = ExtensionPoint(
-        List(Instance('force_bdss.data_sources.i_data_source.' +
-                      'IDataSource')),
-        id=DATA_SOURCES,
+    data_source_bundles = ExtensionPoint(
+        List(Instance('force_bdss.data_sources.i_data_source_bundle.'
+                      'IDataSourceBundle')),
+        id=DATA_SOURCES_BUNDLES,
         desc="""
         Available Datasources for the Workflow Manager
         """
@@ -42,4 +42,5 @@ class WfManagerPlugin(Plugin):
     def _create_task(self):
         from force_wfmanager.wfmanager_task import WfManagerTask
 
-        return WfManagerTask(mcos=self.mcos, data_sources=self.data_sources)
+        return WfManagerTask(mco_bundles=self.mco_bundles,
+                             data_source_bundles=self.data_source_bundles)

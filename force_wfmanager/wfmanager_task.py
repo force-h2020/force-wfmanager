@@ -10,9 +10,8 @@ class WfManagerTask(Task):
     id = 'force_wfmanager.wfmanager_task'
     name = 'Workflow Manager'
 
-    mcos = List
-
-    data_sources = List
+    mco_bundles = List
+    data_source_bundles = List
 
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part
@@ -24,7 +23,8 @@ class WfManagerTask(Task):
         """ Creates the dock panes which contains the MCO, datasources and
         Constraints management """
         workflow_settings = WorkflowSettings(
-            available_mcos=self.mcos, available_data_sources=self.data_sources)
+            available_mcos=self.mco_bundles,
+            available_data_sources=self.data_source_bundles)
         return [workflow_settings]
 
     def _default_layout_default(self):
