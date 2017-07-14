@@ -31,13 +31,19 @@ setup(
     description='Workflow manager',
     long_description=README_TEXT,
     install_requires=[
-        'traitsui~=5.1',
-        'pyface~=5.1',
+        "envisage >= 4.6.0",
+        "stevedore >= 1.24.0"
         ],
     packages=find_packages(),
     entry_points={
         'gui_scripts': [
             ('force-wfmanager = force_wfmanager.run:main')
+        ],
+        "force.bdss.extensions": [
+            "mco = force_bdss.mco.multi_criteria_optimizers_plugin:"
+            "MultiCriteriaOptimizersPlugin",
+            "data_source = force_bdss.data_sources.data_sources_plugin:"
+            "DataSourcesPlugin",
         ]
     },
 )
