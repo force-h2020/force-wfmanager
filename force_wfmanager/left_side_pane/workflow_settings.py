@@ -28,5 +28,5 @@ class WorkflowSettings(TraitsDockPane):
         return [mco.name for mco in self.available_mcos]
 
     def _data_sources_default(self):
-        return [data_source.computes
+        return [data_source.name
                 for data_source in self.available_data_sources]
