@@ -32,7 +32,6 @@ setup(
     long_description=README_TEXT,
     install_requires=[
         "envisage >= 4.6.0",
-        "click >= 6.7",
         "stevedore >= 1.24.0"
         ],
     packages=find_packages(),
