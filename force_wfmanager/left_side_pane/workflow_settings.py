@@ -1,6 +1,12 @@
 from pyface.tasks.api import TraitsDockPane
-from traitsui.api import View, Item, Tabbed
-from traits.api import List
+from traitsui.api import ListStrEditor, Tabbed, UItem, View
+from traitsui.list_str_adapter import ListStrAdapter
+from traits.api import Any, List
+
+
+class ListAdapter(ListStrAdapter):
+    def get_text(self, object, trait, index):
+        return self.item.name
 
 
 class WorkflowSettings(TraitsDockPane):
@@ -10,23 +16,22 @@ class WorkflowSettings(TraitsDockPane):
     available_mcos = List()
     available_data_sources = List()
 
-    # Those values are created by the user on the UI, the user will be
-    # able to set the constraint name and parameters
-    constraints = List(['Constraint1', 'Constraint2', 'Constraint3'])
-
-    # Those values will come from the plugins
-    mcos = List()
-    data_sources = List()
+    selected_mco = Any
+    selected_data_source = Any
 
     view = View(Tabbed(
-        Item('mcos', label='MCO'),
-        Item('constraints', label='Constraints'),
-        Item('data_sources'),
-        ))
-
-    def _mcos_default(self):
-        return [mco.name for mco in self.available_mcos]
-
-    def _data_sources_default(self):
-        return [data_source.name
-                for data_source in self.available_data_sources]
+        UItem(
+            "available_mcos",
+            editor=ListStrEditor(
+                adapter=ListAdapter(),
+                selected="selected_mco"),
+            label='MCOs',
+        ),
+        UItem(
+            'available_data_sources',
+            editor=ListStrEditor(
+                adapter=ListAdapter(),
+                selected="selected_data_source"),
+            label='Data Sources'
+        )
+    ))
