@@ -15,9 +15,11 @@ class WorkflowSettings(TraitsDockPane):
 
     available_mcos = List()
     available_data_sources = List()
+    available_kpi_calculators = List()
 
     selected_mco = Any
     selected_data_source = Any
+    selected_kpi_calculator = Any
 
     view = View(Tabbed(
         UItem(
@@ -33,5 +35,12 @@ class WorkflowSettings(TraitsDockPane):
                 adapter=ListAdapter(),
                 selected="selected_data_source"),
             label='Data Sources'
-        )
+        ),
+        UItem(
+            'available_kpi_calculators',
+            editor=ListStrEditor(
+                adapter=ListAdapter(),
+                selected="selected_kpi_calculator"),
+            label='KPI Calculators'
+        ),
     ))

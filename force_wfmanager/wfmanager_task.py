@@ -12,6 +12,7 @@ class WfManagerTask(Task):
 
     mco_bundles = List
     data_source_bundles = List
+    kpi_calculator_bundles = List
 
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part
@@ -24,7 +25,8 @@ class WfManagerTask(Task):
         Constraints management """
         workflow_settings = WorkflowSettings(
             available_mcos=self.mco_bundles,
-            available_data_sources=self.data_source_bundles)
+            available_data_sources=self.data_source_bundles,
+            available_kpi_calculators=self.kpi_calculator_bundles)
         return [workflow_settings]
 
     def _default_layout_default(self):

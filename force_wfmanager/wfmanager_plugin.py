@@ -8,8 +8,9 @@ class WfManagerPlugin(Plugin):
 
     TASKS = 'envisage.ui.tasks.tasks'
 
-    MCOS_BUNDLES = 'force.bdss.mco.bundles'
-    DATA_SOURCES_BUNDLES = 'force.bdss.data_sources.bundles'
+    MCO_BUNDLES = 'force.bdss.mco.bundles'
+    DATA_SOURCE_BUNDLES = 'force.bdss.data_sources.bundles'
+    KPI_CALCULATOR_BUNDLES = 'force.bdss.kpi_calculators.bundles'
 
     id = 'force_wfmanager.wfmanager_plugin'
     name = 'Workflow Manager'
@@ -19,7 +20,7 @@ class WfManagerPlugin(Plugin):
     mco_bundles = ExtensionPoint(
         List(Instance('force_bdss.mco.i_multi_criteria_optimizer_bundle.'
                       'IMultiCriteriaOptimizerBundle')),
-        id=MCOS_BUNDLES,
+        id=MCO_BUNDLES,
         desc="""
         Available MCOs for the Workflow Manager
         """
@@ -28,9 +29,18 @@ class WfManagerPlugin(Plugin):
     data_source_bundles = ExtensionPoint(
         List(Instance('force_bdss.data_sources.i_data_source_bundle.'
                       'IDataSourceBundle')),
-        id=DATA_SOURCES_BUNDLES,
+        id=DATA_SOURCE_BUNDLES,
         desc="""
         Available Datasources for the Workflow Manager
+        """
+    )
+
+    kpi_calculator_bundles = ExtensionPoint(
+        List(Instance('force_bdss.kpi.i_kpi_calculator_bundle.'
+                      'IKPICalculatorBundle')),
+        id=KPI_CALCULATOR_BUNDLES,
+        desc="""
+        Available KPI calculators for the Workflow Manager
         """
     )
 
@@ -42,5 +52,7 @@ class WfManagerPlugin(Plugin):
     def _create_task(self):
         from force_wfmanager.wfmanager_task import WfManagerTask
 
-        return WfManagerTask(mco_bundles=self.mco_bundles,
-                             data_source_bundles=self.data_source_bundles)
+        return WfManagerTask(
+            mco_bundles=self.mco_bundles,
+            data_source_bundles=self.data_source_bundles,
+            kpi_calculator_bundles=self.kpi_calculator_bundles)
