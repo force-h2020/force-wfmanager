@@ -1,6 +1,6 @@
 from pyface.tasks.api import TraitsDockPane
-from traitsui.api import (ListStrEditor, Tabbed, UItem, View, TreeNode,
-                          ITreeNodeAdapter, ITreeNode)
+from traitsui.api import (ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed,
+                          TreeEditor, TreeNode, UItem, VGroup, View)
 from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import Any, adapts, Instance, List, HasTraits
 
@@ -47,9 +47,42 @@ class KpiCalculatorAdapter(ITreeNodeAdapter):
 class Workflow(HasTraits):
     """ Definition of the workflow
     """
-    mco = Instance(IMultiCriteriaOptimizerBundle)
+    mco = List(Instance(IMultiCriteriaOptimizerBundle))
     data_sources = List(Instance(IDataSourceBundle))
     kpi_calculators = List(Instance(IKPICalculatorBundle))
+
+
+# Create an empty view for objects that have no data to display:
+no_view = View()
+
+tree_editor = TreeEditor(
+    nodes=[
+        TreeNode(node_for=[Workflow],
+                 auto_open=True,
+                 children='',
+                 label='=Workflow',
+                 view=no_view
+                 ),
+        TreeNode(node_for=[Workflow],
+                 auto_open=True,
+                 children='mco',
+                 label='=MCO',
+                 view=no_view,
+                 ),
+        TreeNode(node_for=[Workflow],
+                 auto_open=True,
+                 children='data_sources',
+                 label='=Data sources',
+                 view=no_view
+                 ),
+        TreeNode(node_for=[Workflow],
+                 auto_open=True,
+                 children='kpi_calculators',
+                 label='=KPI calculators',
+                 view=no_view
+                 ),
+    ]
+)
 
 
 class WorkflowSettings(TraitsDockPane):
@@ -67,26 +100,40 @@ class WorkflowSettings(TraitsDockPane):
     selected_data_source = Any
     selected_kpi_calculator = Any
 
-    view = View(Tabbed(
-        UItem(
-            "available_mcos",
-            editor=ListStrEditor(
-                adapter=ListAdapter(),
-                selected="selected_mco"),
-            label='MCOs',
+    workflow = Instance(Workflow)
+
+    view = View(VGroup(
+        UItem(name='workflow',
+              editor=tree_editor,
+              show_label=False),
+        Tabbed(
+            UItem(
+                "available_mcos",
+                editor=ListStrEditor(
+                    adapter=ListAdapter(),
+                    selected="selected_mco"),
+                label='MCOs',
+            ),
+            UItem(
+                'available_data_sources',
+                editor=ListStrEditor(
+                    adapter=ListAdapter(),
+                    selected="selected_data_source"),
+                label='Data Sources'
+            ),
+            UItem(
+                'available_kpi_calculators',
+                editor=ListStrEditor(
+                    adapter=ListAdapter(),
+                    selected="selected_kpi_calculator"),
+                label='KPI Calculators'
+            ))
         ),
-        UItem(
-            'available_data_sources',
-            editor=ListStrEditor(
-                adapter=ListAdapter(),
-                selected="selected_data_source"),
-            label='Data Sources'
-        ),
-        UItem(
-            'available_kpi_calculators',
-            editor=ListStrEditor(
-                adapter=ListAdapter(),
-                selected="selected_kpi_calculator"),
-            label='KPI Calculators'
-        ),
-    ))
+        width=800,
+        height=600,
+        resizable=True)
+
+    def _workflow_default(self):
+        return Workflow(mco=self.available_mcos,
+                        data_sources=self.available_data_sources,
+                        kpi_calculators=self.available_kpi_calculators)
