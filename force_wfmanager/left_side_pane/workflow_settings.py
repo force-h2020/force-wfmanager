@@ -8,6 +8,11 @@ from force_bdss.mco.base_mco_model import BaseMCOModel
 from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
 from force_bdss.kpi.base_kpi_calculator_model import BaseKPICalculatorModel
 
+from force_bdss.mco.i_multi_criteria_optimizer_bundle import (
+    IMultiCriteriaOptimizerBundle)
+from force_bdss.data_sources.i_data_source_bundle import IDataSourceBundle
+from force_bdss.kpi.i_kpi_calculator_bundle import IKPICalculatorBundle
+
 
 class ListAdapter(ListStrAdapter):
     """ Adapter for the list of available MCOs/Data sources/KPI calculators
@@ -95,13 +100,9 @@ class WorkflowSettings(TraitsDockPane):
     available_data_sources = List()
     available_kpi_calculators = List()
 
-    selected_mco = Instance('force_bdss.mco.i_multi_criteria_optimizer_bundle.'
-                            'IMultiCriteriaOptimizerBundle')
-    selected_data_source = Instance('force_bdss.data_sources.'
-                                    'i_data_source_bundle.IDataSourceBundle')
-    selected_kpi_calculator = Instance('force_bdss.kpi.'
-                                       'i_kpi_calculator_bundle.'
-                                       'IKPICalculatorBundle')
+    selected_mco = Instance(IMultiCriteriaOptimizerBundle)
+    selected_data_source = Instance(IDataSourceBundle)
+    selected_kpi_calculator = Instance(IKPICalculatorBundle)
 
     workflow = Instance(Workflow)
 
