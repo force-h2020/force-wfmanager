@@ -11,11 +11,15 @@ from force_bdss.kpi.i_kpi_calculator_bundle import IKPICalculatorBundle
 
 
 class ListAdapter(ListStrAdapter):
+    """ Adapter for the list of available MCOs/Data sources/KPI calculators
+    """
     def get_text(self, object, trait, index):
         return self.item.name
 
 
 class McoAdapter(ITreeNodeAdapter):
+    """ Adapts the MCO bundles to be displayed in the tree
+    """
     adapts(IMultiCriteriaOptimizerBundle, ITreeNode)
 
     def get_label(self):
@@ -23,6 +27,8 @@ class McoAdapter(ITreeNodeAdapter):
 
 
 class DataSourceAdapter(ITreeNodeAdapter):
+    """ Adapts the Data source bundles to be displayed in the tree
+    """
     adapts(IDataSourceBundle, ITreeNode)
 
     def get_label(self):
@@ -30,6 +36,8 @@ class DataSourceAdapter(ITreeNodeAdapter):
 
 
 class KpiCalculatorAdapter(ITreeNodeAdapter):
+    """ Adapts the KPI calculators bundles to be displayed in the tree
+    """
     adapts(IKPICalculatorBundle, ITreeNode)
 
     def get_label(self):
@@ -37,12 +45,17 @@ class KpiCalculatorAdapter(ITreeNodeAdapter):
 
 
 class Workflow(HasTraits):
+    """ Definition of the workflow
+    """
     mco = Instance(IMultiCriteriaOptimizerBundle)
     data_sources = List(Instance(IDataSourceBundle))
     kpi_calculators = List(Instance(IKPICalculatorBundle))
 
 
 class WorkflowSettings(TraitsDockPane):
+    """ Side pane which contains the list of available MCOs/Data sources/ KPI
+    calculators and the tree editor displaying the Workflow
+    """
     id = 'force_wfmanager.workflow_settings'
     name = 'Plugins'
 
