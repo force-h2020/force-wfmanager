@@ -6,6 +6,7 @@ from traits.api import List, Instance
 from force_bdss.mco.i_multi_criteria_optimizer_bundle import (
     IMultiCriteriaOptimizerBundle)
 from force_bdss.data_sources.i_data_source_bundle import IDataSourceBundle
+from force_bdss.kpi.i_kpi_calculator_bundle import IKPICalculatorBundle
 
 
 class ListAdapter(ListStrAdapter):
@@ -19,9 +20,11 @@ class WorkflowSettings(TraitsDockPane):
 
     available_mcos = List()
     available_data_sources = List()
+    available_kpi_calculators = List()
 
     selected_mco = Instance(IMultiCriteriaOptimizerBundle)
     selected_data_source = Instance(IDataSourceBundle)
+    selected_kpi_calculator = Instance(IKPICalculatorBundle)
 
     view = View(Tabbed(
         UItem(
@@ -37,5 +40,12 @@ class WorkflowSettings(TraitsDockPane):
                 adapter=ListAdapter(),
                 selected="selected_data_source"),
             label='Data Sources'
-        )
+        ),
+        UItem(
+            'available_kpi_calculators',
+            editor=ListStrEditor(
+                adapter=ListAdapter(),
+                selected="selected_kpi_calculator"),
+            label='KPI Calculators'
+        ),
     ))
