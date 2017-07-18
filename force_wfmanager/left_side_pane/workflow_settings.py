@@ -2,7 +2,7 @@ from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed,
                           TreeEditor, TreeNode, UItem, VGroup, View)
 from traitsui.list_str_adapter import ListStrAdapter
-from traits.api import Any, adapts, Instance, List, HasTraits
+from traits.api import adapts, Instance, List, HasTraits
 
 from force_bdss.mco.i_multi_criteria_optimizer_bundle import (
     IMultiCriteriaOptimizerBundle)
@@ -96,9 +96,9 @@ class WorkflowSettings(TraitsDockPane):
     available_data_sources = List()
     available_kpi_calculators = List()
 
-    selected_mco = Any
-    selected_data_source = Any
-    selected_kpi_calculator = Any
+    selected_mco = Instance(IMultiCriteriaOptimizerBundle)
+    selected_data_source = Instance(IDataSourceBundle)
+    selected_kpi_calculator = Instance(IKPICalculatorBundle)
 
     workflow = Instance(Workflow)
 
