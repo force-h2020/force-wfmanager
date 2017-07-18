@@ -4,10 +4,9 @@ from traitsui.api import (ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed,
 from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import adapts, Instance, List, HasTraits
 
-from force_bdss.mco.i_multi_criteria_optimizer_bundle import (
-    IMultiCriteriaOptimizerBundle)
-from force_bdss.data_sources.i_data_source_bundle import IDataSourceBundle
-from force_bdss.kpi.i_kpi_calculator_bundle import IKPICalculatorBundle
+from force_bdss.mco.base_mco_model import BaseMCOModel
+from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
+from force_bdss.kpi.base_kpi_calculator_model import BaseKPICalculatorModel
 
 
 class ListAdapter(ListStrAdapter):
@@ -18,27 +17,27 @@ class ListAdapter(ListStrAdapter):
 
 
 class McoAdapter(ITreeNodeAdapter):
-    """ Adapts the MCO bundles to be displayed in the tree
+    """ Adapts the MCO model to be displayed in the tree
     """
-    adapts(IMultiCriteriaOptimizerBundle, ITreeNode)
+    adapts(BaseMCOModel, ITreeNode)
 
     def get_label(self):
         return self.adaptee.name
 
 
 class DataSourceAdapter(ITreeNodeAdapter):
-    """ Adapts the Data source bundles to be displayed in the tree
+    """ Adapts the Data source model to be displayed in the tree
     """
-    adapts(IDataSourceBundle, ITreeNode)
+    adapts(BaseDataSourceModel, ITreeNode)
 
     def get_label(self):
         return self.adaptee.name
 
 
 class KpiCalculatorAdapter(ITreeNodeAdapter):
-    """ Adapts the KPI calculators bundles to be displayed in the tree
+    """ Adapts the KPI calculator model to be displayed in the tree
     """
-    adapts(IKPICalculatorBundle, ITreeNode)
+    adapts(BaseKPICalculatorModel, ITreeNode)
 
     def get_label(self):
         return self.adaptee.name
@@ -47,9 +46,9 @@ class KpiCalculatorAdapter(ITreeNodeAdapter):
 class Workflow(HasTraits):
     """ Definition of the workflow
     """
-    mco = List(Instance(IMultiCriteriaOptimizerBundle))
-    data_sources = List(Instance(IDataSourceBundle))
-    kpi_calculators = List(Instance(IKPICalculatorBundle))
+    mco = List(Instance(BaseMCOModel))
+    data_sources = List(Instance(BaseDataSourceModel))
+    kpi_calculators = List(Instance(BaseKPICalculatorModel))
 
 
 # Create an empty view for objects that have no data to display:
@@ -96,9 +95,13 @@ class WorkflowSettings(TraitsDockPane):
     available_data_sources = List()
     available_kpi_calculators = List()
 
-    selected_mco = Instance(IMultiCriteriaOptimizerBundle)
-    selected_data_source = Instance(IDataSourceBundle)
-    selected_kpi_calculator = Instance(IKPICalculatorBundle)
+    selected_mco = Instance('force_bdss.mco.i_multi_criteria_optimizer_bundle.'
+                            'IMultiCriteriaOptimizerBundle')
+    selected_data_source = Instance('force_bdss.data_sources.'
+                                    'i_data_source_bundle.IDataSourceBundle')
+    selected_kpi_calculator = Instance('force_bdss.kpi.'
+                                       'i_kpi_calculator_bundle.'
+                                       'IKPICalculatorBundle')
 
     workflow = Instance(Workflow)
 
@@ -134,6 +137,4 @@ class WorkflowSettings(TraitsDockPane):
         resizable=True)
 
     def _workflow_default(self):
-        return Workflow(mco=self.available_mcos,
-                        data_sources=self.available_data_sources,
-                        kpi_calculators=self.available_kpi_calculators)
+        return Workflow()
