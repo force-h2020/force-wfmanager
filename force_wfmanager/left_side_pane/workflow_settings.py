@@ -3,12 +3,14 @@ from traitsui.api import (ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed,
                           TreeEditor, TreeNode, UItem, VGroup, View, ModelView)
 from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import (adapts, Button, Instance, List,
-                        on_trait_change, HasTraits)
+                        on_trait_change)
 
 from force_bdss.api import (
     BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
     IMultiCriteriaOptimizerBundle, IDataSourceBundle, IKPICalculatorBundle
 )
+
+from force_bdss.workspecs.workflow import Workflow
 
 
 class ListAdapter(ListStrAdapter):
@@ -71,13 +73,6 @@ class KpiCalculatorAdapter(ITreeNodeAdapter):
         return self.adaptee.default_trait_view()
 
 
-class Workflow(HasTraits):
-    """ Definition of the workflow """
-    mco = List(Instance(MCOModelView))
-    data_sources = List(Instance(DataSourceModelView))
-    kpi_calculators = List(Instance(KPICModelView))
-
-
 # Create an empty view for objects that have no data to display:
 no_view = View()
 
@@ -88,11 +83,6 @@ tree_editor = TreeEditor(
                  children='',
                  label='=Workflow',
                  view=no_view
-                 ),
-        TreeNode(node_for=[Workflow],
-                 auto_open=True,
-                 children='mco',
-                 label='=MCO',
                  ),
         TreeNode(node_for=[Workflow],
                  auto_open=True,
@@ -112,17 +102,26 @@ tree_editor = TreeEditor(
 
 class WorkflowSettings(TraitsDockPane):
     """ Side pane which contains the list of available MCOs/Data sources/ KPI
-    calculators and the tree editor displaying the Workflow
-    """
+    calculators bundles and the tree editor displaying the Workflow """
     id = 'force_wfmanager.workflow_settings'
-    name = 'Plugins'
+    name = 'Workflow Settings'
 
+    #: Available MCO bundles
     available_mcos = List()
+
+    #: Available data source bundles
     available_data_sources = List()
+
+    #: Available KPI calculator bundles
     available_kpi_calculators = List()
 
+    #: Selected MCO bundle in the list of MCOs
     selected_mco = Instance(IMultiCriteriaOptimizerBundle)
+
+    #: Selected data source bundles in the list of data sources
     selected_data_source = Instance(IDataSourceBundle)
+
+    #: Selected KPI calculator bundle in the list of KPI calculators
     selected_kpi_calculator = Instance(IKPICalculatorBundle)
 
     add_mco_button = Button("Add")
