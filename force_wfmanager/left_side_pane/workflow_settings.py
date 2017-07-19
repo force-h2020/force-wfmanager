@@ -3,7 +3,7 @@ from traitsui.api import (ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed,
                           TreeEditor, TreeNode, UItem, VGroup, View, ModelView)
 from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import (adapts, Button, Instance, List,
-                        on_trait_change, HasTraits, Str)
+                        on_trait_change, HasTraits)
 
 from force_bdss.mco.base_mco_model import BaseMCOModel
 from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
@@ -17,80 +17,66 @@ from force_bdss.kpi.i_kpi_calculator_bundle import IKPICalculatorBundle
 
 class ListAdapter(ListStrAdapter):
     """ Adapter for the list of available MCOs/Data sources/KPI calculators
-    """
+    bundles """
     def get_text(self, object, trait, index):
         return self.item.name
 
 
 class MCOModelView(ModelView):
-    name = Str()
-
     model = Instance(BaseMCOModel)
 
-    view = View(
-        UItem('model', style='custom')
-    )
+    view = View(UItem('model', style='custom'))
 
 
 class DataSourceModelView(ModelView):
-    name = Str()
-
     model = Instance(BaseDataSourceModel)
 
-    view = View(
-        UItem('model', style='custom')
-    )
+    view = View(UItem('model', style='custom'))
 
 
 class KPICModelView(ModelView):
-    name = Str()
-
     model = Instance(BaseKPICalculatorModel)
 
-    view = View(
-        UItem('model', style='custom')
-    )
+    view = View(UItem('model', style='custom'))
 
 
 class McoAdapter(ITreeNodeAdapter):
-    """ Adapts the MCO model view to be displayed in the tree
-    """
+    """ Adapts the MCO model view to be displayed in the tree editor """
     adapts(MCOModelView, ITreeNode)
 
     def get_label(self):
-        return self.adaptee.name
+        return self.adaptee.bundle.name
 
     def get_view(self):
         return self.adaptee.default_trait_view()
 
 
 class DataSourceAdapter(ITreeNodeAdapter):
-    """ Adapts the Data source model view to be displayed in the tree
+    """ Adapts the Data source model view to be displayed in the tree editor
     """
     adapts(DataSourceModelView, ITreeNode)
 
     def get_label(self):
-        return self.adaptee.name
+        return self.adaptee.bundle.name
 
     def get_view(self):
         return self.adaptee.default_trait_view()
 
 
 class KpiCalculatorAdapter(ITreeNodeAdapter):
-    """ Adapts the KPI calculator model to be displayed in the tree
+    """ Adapts the KPI calculator model to be displayed in the tree editor
     """
     adapts(KPICModelView, ITreeNode)
 
     def get_label(self):
-        return self.adaptee.name
+        return self.adaptee.bundle.name
 
     def get_view(self):
         return self.adaptee.default_trait_view()
 
 
 class Workflow(HasTraits):
-    """ Definition of the workflow
-    """
+    """ Definition of the workflow """
     mco = List(Instance(MCOModelView))
     data_sources = List(Instance(DataSourceModelView))
     kpi_calculators = List(Instance(KPICModelView))
