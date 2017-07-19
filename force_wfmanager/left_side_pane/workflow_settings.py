@@ -61,7 +61,7 @@ class McoAdapter(ITreeNodeAdapter):
         return self.adaptee.name
 
     def get_view(self):
-        return self.adaptee.trait_view()
+        return self.adaptee.default_trait_view()
 
 
 class DataSourceAdapter(ITreeNodeAdapter):
@@ -73,7 +73,7 @@ class DataSourceAdapter(ITreeNodeAdapter):
         return self.adaptee.name
 
     def get_view(self):
-        return self.adaptee.trait_view()
+        return self.adaptee.default_trait_view()
 
 
 class KpiCalculatorAdapter(ITreeNodeAdapter):
@@ -85,7 +85,7 @@ class KpiCalculatorAdapter(ITreeNodeAdapter):
         return self.adaptee.name
 
     def get_view(self):
-        return self.adaptee.trait_view()
+        return self.adaptee.default_trait_view()
 
 
 class Workflow(HasTraits):
