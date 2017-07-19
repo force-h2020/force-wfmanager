@@ -5,14 +5,10 @@ from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import (adapts, Button, Instance, List,
                         on_trait_change, HasTraits)
 
-from force_bdss.mco.base_mco_model import BaseMCOModel
-from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
-from force_bdss.kpi.base_kpi_calculator_model import BaseKPICalculatorModel
-
-from force_bdss.mco.i_multi_criteria_optimizer_bundle import (
-    IMultiCriteriaOptimizerBundle)
-from force_bdss.data_sources.i_data_source_bundle import IDataSourceBundle
-from force_bdss.kpi.i_kpi_calculator_bundle import IKPICalculatorBundle
+from force_bdss.api import (
+    BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
+    IMultiCriteriaOptimizerBundle, IDataSourceBundle, IKPICalculatorBundle
+)
 
 
 class ListAdapter(ListStrAdapter):
