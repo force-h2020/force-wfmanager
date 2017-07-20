@@ -8,8 +8,7 @@ from traits.api import (adapts, Button, Instance, List,
 
 from force_bdss.api import (
     BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
-    IMultiCriteriaOptimizerBundle, IDataSourceBundle, IKPICalculatorBundle
-)
+    IMultiCriteriaOptimizerBundle, IDataSourceBundle, IKPICalculatorBundle)
 
 from force_bdss.workspecs.workflow import Workflow
 
