@@ -2,7 +2,7 @@ from pyface.tasks.api import TraitsTaskPane
 from traitsui.api import View, UItem
 from traits.api import Instance
 
-from analysis import Analysis
+from .analysis import Analysis
 
 
 class CentralPane(TraitsTaskPane):

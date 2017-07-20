@@ -1,2 +1,3 @@
 envisage >= 4.6.0
 stevedore >= 1.24.0
+git+git://github.com/force-h2020/force-bdss.git
