@@ -36,6 +36,11 @@ class McoAdapter(ITreeNodeAdapter):
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
 
+    def get_view(self):
+        view = self.adaptee.trait_view()
+        view.kind = "subpanel"
+        return view
+
 
 class DataSourceAdapter(ITreeNodeAdapter):
     """ Adapts the Data source model view to be displayed in the tree editor
@@ -45,6 +50,11 @@ class DataSourceAdapter(ITreeNodeAdapter):
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
 
+    def get_view(self):
+        view = self.adaptee.trait_view()
+        view.kind = "subpanel"
+        return view
+
 
 class KpiCalculatorAdapter(ITreeNodeAdapter):
     """ Adapts the KPI calculator model to be displayed in the tree editor
@@ -53,6 +63,11 @@ class KpiCalculatorAdapter(ITreeNodeAdapter):
 
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
+
+    def get_view(self):
+        view = self.adaptee.trait_view()
+        view.kind = "subpanel"
+        return view
 
 
 class WorkflowModelView(ModelView):
