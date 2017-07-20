@@ -122,13 +122,13 @@ class WorkflowSettings(TraitsDockPane):
     name = 'Workflow Settings'
 
     #: Available MCO bundles
-    available_mcos = List()
+    available_mcos = List(Instance(IMultiCriteriaOptimizerBundle))
 
     #: Available data source bundles
-    available_data_sources = List()
+    available_data_sources = List(Instance(IDataSourceBundle))
 
     #: Available KPI calculator bundles
-    available_kpi_calculators = List()
+    available_kpi_calculators = List(Instance(IKPICalculatorBundle))
 
     #: Selected MCO bundle in the list of MCOs
     selected_mco = Instance(IMultiCriteriaOptimizerBundle)
