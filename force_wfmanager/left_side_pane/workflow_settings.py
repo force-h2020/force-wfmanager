@@ -17,7 +17,11 @@ class ListAdapter(ListStrAdapter):
     """ Adapter for the list of available MCOs/Data sources/KPI calculators
     bundles """
     def get_text(self, object, trait, index):
-        return self.item.name
+        try:
+            text = self.item.name
+        except AttributeError:
+            text = self.item.id
+        return text
 
 
 class MCOModelView(ModelView):
