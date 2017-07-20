@@ -1,6 +1,6 @@
 from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed,
-                          TreeEditor, TreeNode, UItem, VGroup, View, ModelView)
+                          TreeEditor, TreeNode, UItem, VGroup, View)
 from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import (adapts, Button, Instance, List,
                         on_trait_change)
@@ -13,68 +13,45 @@ from force_bdss.api import (
 from force_bdss.workspecs.workflow import Workflow
 
 
+def get_bundle_name(bundle):
+    try:
+        text = bundle.name
+    except AttributeError:
+        text = bundle.id
+    return text
+
+
 class ListAdapter(ListStrAdapter):
     """ Adapter for the list of available MCOs/Data sources/KPI calculators
     bundles """
     def get_text(self, object, trait, index):
-        try:
-            text = self.item.name
-        except AttributeError:
-            text = self.item.id
-        return text
-
-
-class MCOModelView(ModelView):
-    model = Instance(BaseMCOModel)
-
-    view = View(UItem('model', style='custom'))
-
-
-class DataSourceModelView(ModelView):
-    model = Instance(BaseDataSourceModel)
-
-    view = View(UItem('model', style='custom'))
-
-
-class KPICModelView(ModelView):
-    model = Instance(BaseKPICalculatorModel)
-
-    view = View(UItem('model', style='custom'))
+        return get_bundle_name(self.item)
 
 
 class McoAdapter(ITreeNodeAdapter):
     """ Adapts the MCO model view to be displayed in the tree editor """
-    adapts(MCOModelView, ITreeNode)
+    adapts(BaseMCOModel, ITreeNode)
 
     def get_label(self):
-        return self.adaptee.bundle.name
-
-    def get_view(self):
-        return self.adaptee.default_trait_view()
+        return get_bundle_name(self.adaptee.bundle)
 
 
 class DataSourceAdapter(ITreeNodeAdapter):
     """ Adapts the Data source model view to be displayed in the tree editor
     """
-    adapts(DataSourceModelView, ITreeNode)
+    adapts(BaseDataSourceModel, ITreeNode)
 
     def get_label(self):
-        return self.adaptee.bundle.name
-
-    def get_view(self):
-        return self.adaptee.default_trait_view()
+        return get_bundle_name(self.adaptee.bundle)
 
 
 class KpiCalculatorAdapter(ITreeNodeAdapter):
     """ Adapts the KPI calculator model to be displayed in the tree editor
     """
-    adapts(KPICModelView, ITreeNode)
+    adapts(BaseKPICalculatorModel, ITreeNode)
 
     def get_label(self):
-        return self.adaptee.bundle.name
-
-    def get_view(self):
-        return self.adaptee.default_trait_view()
+        return get_bundle_name(self.adaptee.bundle)
 
 
 # Create an empty view for objects that have no data to display:
@@ -185,20 +162,17 @@ class WorkflowSettings(TraitsDockPane):
 
     @on_trait_change('add_mco_button')
     def add_mco(self):
-        self.workflow.mco[0] = MCOModelView(
-            name=self.selected_mco.name,
-            model=self.selected_mco.create_model()),
+        self.workflow.multi_criteria_optimizer = \
+            self.selected_mco.create_model()
 
     @on_trait_change('add_data_source_button')
     def add_data_source(self):
-        self.workflow.data_sources.append(DataSourceModelView(
-            name=self.selected_data_source.name,
-            model=self.selected_data_source.create_model(),
-        ))
+        self.workflow.data_sources.append(
+            self.selected_data_source.create_model()
+        )
 
     @on_trait_change('add_kpi_calculator_button')
     def add_kpi_calculator(self):
-        self.workflow.kpi_calculators.append(KPICModelView(
-            name=self.selected_kpi_calculator.name,
-            model=self.selected_kpi_calculator.create_model(),
-        ))
+        self.workflow.kpi_calculators.append(
+            self.selected_kpi_calculator.create_model()
+        )
