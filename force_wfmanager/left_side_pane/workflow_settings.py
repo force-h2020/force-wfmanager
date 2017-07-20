@@ -3,7 +3,7 @@ from traitsui.api import (ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed,
                           TreeEditor, TreeNode, UItem, VGroup, View, ModelView,
                           VSplit)
 from traitsui.list_str_adapter import ListStrAdapter
-from traits.api import (adapts, Button, Instance, List,
+from traits.api import (Button, Instance, List, provides, register_factory,
                         on_trait_change, Property, property_depends_on)
 
 from force_bdss.api import (
@@ -31,10 +31,9 @@ class ListAdapter(ListStrAdapter):
         return get_bundle_name(self.item)
 
 
+@provides(ITreeNode)
 class McoAdapter(ITreeNodeAdapter):
     """ Adapts the MCO model view to be displayed in the tree editor """
-    adapts(BaseMCOModel, ITreeNode)
-
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
 
@@ -42,13 +41,13 @@ class McoAdapter(ITreeNodeAdapter):
         view = self.adaptee.trait_view()
         view.kind = "subpanel"
         return view
+register_factory(McoAdapter, BaseMCOModel, ITreeNode)
 
 
+@provides(ITreeNode)
 class DataSourceAdapter(ITreeNodeAdapter):
     """ Adapts the Data source model view to be displayed in the tree editor
     """
-    adapts(BaseDataSourceModel, ITreeNode)
-
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
 
@@ -56,13 +55,13 @@ class DataSourceAdapter(ITreeNodeAdapter):
         view = self.adaptee.trait_view()
         view.kind = "subpanel"
         return view
+register_factory(DataSourceAdapter, BaseDataSourceModel, ITreeNode)
 
 
+@provides(ITreeNode)
 class KpiCalculatorAdapter(ITreeNodeAdapter):
     """ Adapts the KPI calculator model to be displayed in the tree editor
     """
-    adapts(BaseKPICalculatorModel, ITreeNode)
-
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
 
@@ -70,6 +69,7 @@ class KpiCalculatorAdapter(ITreeNodeAdapter):
         view = self.adaptee.trait_view()
         view.kind = "subpanel"
         return view
+register_factory(KpiCalculatorAdapter, BaseKPICalculatorModel, ITreeNode)
 
 
 class WorkflowModelView(ModelView):
