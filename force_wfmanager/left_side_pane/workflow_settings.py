@@ -1,6 +1,7 @@
 from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed,
-                          TreeEditor, TreeNode, UItem, VGroup, View, ModelView)
+                          TreeEditor, TreeNode, UItem, VGroup, View, ModelView,
+                          VSplit)
 from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import (adapts, Button, Instance, List,
                         on_trait_change, Property, property_depends_on)
@@ -145,7 +146,7 @@ class WorkflowSettings(TraitsDockPane):
 
     workflow = Instance(WorkflowModelView)
 
-    view = View(VGroup(
+    view = View(VSplit(
         UItem(name='workflow',
               editor=tree_editor,
               show_label=False),
