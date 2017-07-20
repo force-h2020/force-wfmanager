@@ -4,14 +4,6 @@ force_wfmanager.left_side_pane package
 Submodules
 ----------
 
-force_wfmanager.left_side_pane.embedded_view module
----------------------------------------------------
-
-.. automodule:: force_wfmanager.left_side_pane.embedded_view
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 force_wfmanager.left_side_pane.workflow_settings module
 -------------------------------------------------------
 
