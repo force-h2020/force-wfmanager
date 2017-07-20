@@ -31,6 +31,12 @@ class TestWorkflowSettings(unittest.TestCase):
         self.assertEqual(len(self.workflow.data_sources), 0)
         self.assertEqual(len(self.workflow.kpi_calculators), 0)
 
+        self.assertEqual(len(self.settings.workflow.mco_representation), 0)
+        self.assertEqual(
+            len(self.settings.workflow.data_sources_representation), 0)
+        self.assertEqual(
+            len(self.settings.workflow.kpi_calculators_representation), 0)
+
     def test_add_multi_criteria(self):
         # Simulate pressing add mco button (should do nothing)
         self.settings.add_mco()
@@ -52,6 +58,8 @@ class TestWorkflowSettings(unittest.TestCase):
             self.workflow.multi_criteria_optimizer,
             old_mco)
 
+        self.assertEqual(len(self.settings.workflow.mco_representation), 1)
+
     def test_add_data_source(self):
         # Simulate pressing add data_source button (should do nothing)
         self.settings.add_data_source()
@@ -67,6 +75,9 @@ class TestWorkflowSettings(unittest.TestCase):
             self.workflow.data_sources[0],
             BaseDataSourceModel)
 
+        self.assertEqual(
+            len(self.settings.workflow.data_sources_representation), 1)
+
         # Simulate pressing add data_source button again
         self.settings.add_data_source()
         self.assertIsInstance(
@@ -75,6 +86,9 @@ class TestWorkflowSettings(unittest.TestCase):
         self.assertNotEqual(
             self.workflow.data_sources[0],
             self.workflow.data_sources[1])
+
+        self.assertEqual(
+            len(self.settings.workflow.data_sources_representation), 2)
 
     def test_add_kpi_calculator(self):
         # Simulate pressing add kpi_calculator button (should do nothing)
@@ -91,6 +105,9 @@ class TestWorkflowSettings(unittest.TestCase):
             self.workflow.kpi_calculators[0],
             BaseKPICalculatorModel)
 
+        self.assertEqual(
+            len(self.settings.workflow.kpi_calculators_representation), 1)
+
         # Simulate pressing add kpi_calculator button again
         self.settings.add_kpi_calculator()
         self.assertIsInstance(
@@ -99,3 +116,6 @@ class TestWorkflowSettings(unittest.TestCase):
         self.assertNotEqual(
             self.workflow.kpi_calculators[0],
             self.workflow.kpi_calculators[1])
+
+        self.assertEqual(
+            len(self.settings.workflow.kpi_calculators_representation), 2)
