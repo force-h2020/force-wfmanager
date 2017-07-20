@@ -41,7 +41,6 @@ class McoAdapter(ITreeNodeAdapter):
         view = self.adaptee.trait_view()
         view.kind = "subpanel"
         return view
-register_factory(McoAdapter, BaseMCOModel, ITreeNode)
 
 
 @provides(ITreeNode)
@@ -55,7 +54,6 @@ class DataSourceAdapter(ITreeNodeAdapter):
         view = self.adaptee.trait_view()
         view.kind = "subpanel"
         return view
-register_factory(DataSourceAdapter, BaseDataSourceModel, ITreeNode)
 
 
 @provides(ITreeNode)
@@ -69,6 +67,10 @@ class KpiCalculatorAdapter(ITreeNodeAdapter):
         view = self.adaptee.trait_view()
         view.kind = "subpanel"
         return view
+
+
+register_factory(McoAdapter, BaseMCOModel, ITreeNode)
+register_factory(DataSourceAdapter, BaseDataSourceModel, ITreeNode)
 register_factory(KpiCalculatorAdapter, BaseKPICalculatorModel, ITreeNode)
 
 
