@@ -1,48 +1,16 @@
 force_wfmanager package
 =======================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    force_wfmanager.central_pane
+    force_wfmanager.left_side_pane
+
 Submodules
 ----------
-
-force_wfmanager.example_panes module
-------------------------------------
-
-.. automodule:: force_wfmanager.example_panes
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-force_wfmanager.example_task module
------------------------------------
-
-.. automodule:: force_wfmanager.example_task
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-force_wfmanager.i_python_editor module
---------------------------------------
-
-.. automodule:: force_wfmanager.i_python_editor
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-force_wfmanager.python_editor module
-------------------------------------
-
-.. automodule:: force_wfmanager.python_editor
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-force_wfmanager.python_editor_qt4 module
-----------------------------------------
-
-.. automodule:: force_wfmanager.python_editor_qt4
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 force_wfmanager.run module
 --------------------------
@@ -56,6 +24,30 @@ force_wfmanager.version module
 ------------------------------
 
 .. automodule:: force_wfmanager.version
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force_wfmanager.wfmanager module
+--------------------------------
+
+.. automodule:: force_wfmanager.wfmanager
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force_wfmanager.wfmanager_plugin module
+---------------------------------------
+
+.. automodule:: force_wfmanager.wfmanager_plugin
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force_wfmanager.wfmanager_task module
+-------------------------------------
+
+.. automodule:: force_wfmanager.wfmanager_task
     :members:
     :undoc-members:
     :show-inheritance:
