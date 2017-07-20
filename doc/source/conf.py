@@ -21,13 +21,9 @@ def _warn_node(self, msg, node, **kwargs):
     if not msg.startswith('nonlocal image URI found:'):
         self._warnfunc(msg, '%s:%s' % get_source_line(node), **kwargs)
 
-sys.path.insert(
-    0,
-    os.path.join(
-        os.path.abspath(__file__),
-        "..",
-        "..",
-    ))
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "..")
+    )
 
 
 sphinx.environment.BuildEnvironment.warn_node = _warn_node
