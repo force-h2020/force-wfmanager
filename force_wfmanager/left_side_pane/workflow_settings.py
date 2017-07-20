@@ -15,6 +15,9 @@ from force_bdss.workspecs.workflow import Workflow
 
 
 def get_bundle_name(bundle):
+    """ Returns a bundle name, given the bundle. This ensure that something
+    will be displayed (id or name of the bundle) even if no name has been
+    specified for the bundle """
     try:
         text = bundle.name
     except AttributeError:
