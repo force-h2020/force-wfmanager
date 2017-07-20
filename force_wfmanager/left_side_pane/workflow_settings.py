@@ -8,7 +8,8 @@ from traits.api import (Button, Instance, List, provides, register_factory,
 
 from force_bdss.api import (
     BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
-    IMultiCriteriaOptimizerBundle, IDataSourceBundle, IKPICalculatorBundle)
+    BaseMultiCriteriaOptimizerBundle, BaseDataSourceBundle,
+    BaseKPICalculatorBundle)
 
 from force_bdss.workspecs.workflow import Workflow
 
@@ -142,22 +143,22 @@ class WorkflowSettings(TraitsDockPane):
     name = 'Workflow Settings'
 
     #: Available MCO bundles
-    available_mcos = List(Instance(IMultiCriteriaOptimizerBundle))
+    available_mcos = List(Instance(BaseMultiCriteriaOptimizerBundle))
 
     #: Available data source bundles
-    available_data_sources = List(Instance(IDataSourceBundle))
+    available_data_sources = List(Instance(BaseDataSourceBundle))
 
     #: Available KPI calculator bundles
-    available_kpi_calculators = List(Instance(IKPICalculatorBundle))
+    available_kpi_calculators = List(Instance(BaseKPICalculatorBundle))
 
     #: Selected MCO bundle in the list of MCOs
-    selected_mco = Instance(IMultiCriteriaOptimizerBundle)
+    selected_mco = Instance(BaseMultiCriteriaOptimizerBundle)
 
     #: Selected data source bundles in the list of data sources
-    selected_data_source = Instance(IDataSourceBundle)
+    selected_data_source = Instance(BaseDataSourceBundle)
 
     #: Selected KPI calculator bundle in the list of KPI calculators
-    selected_kpi_calculator = Instance(IKPICalculatorBundle)
+    selected_kpi_calculator = Instance(BaseKPICalculatorBundle)
 
     add_mco_button = Button("Add")
     add_data_source_button = Button("Add")
