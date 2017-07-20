@@ -152,7 +152,8 @@ class WorkflowSettings(TraitsDockPane):
         Tabbed(
             VGroup(
                 UItem(
-                    name='add_mco_button'
+                    name='add_mco_button',
+                    enabled_when="selected_mco is not None"
                 ),
                 UItem(
                     "available_mcos",
@@ -164,7 +165,8 @@ class WorkflowSettings(TraitsDockPane):
             ),
             VGroup(
                 UItem(
-                    name='add_data_source_button'
+                    name='add_data_source_button',
+                    enabled_when="selected_data_source is not None"
                 ),
                 UItem(
                     "available_data_sources",
@@ -176,7 +178,8 @@ class WorkflowSettings(TraitsDockPane):
             ),
             VGroup(
                 UItem(
-                    name='add_kpi_calculator_button'
+                    name='add_kpi_calculator_button',
+                    enabled_when="selected_kpi_calculator is not None"
                 ),
                 UItem(
                     'available_kpi_calculators',
@@ -196,17 +199,20 @@ class WorkflowSettings(TraitsDockPane):
 
     @on_trait_change('add_mco_button')
     def add_mco(self):
-        self.workflow.model.multi_criteria_optimizer = \
-            self.selected_mco.create_model()
+        if self.selected_mco is not None:
+            self.workflow.model.multi_criteria_optimizer = \
+                self.selected_mco.create_model()
 
     @on_trait_change('add_data_source_button')
     def add_data_source(self):
-        self.workflow.model.data_sources.append(
-            self.selected_data_source.create_model()
-        )
+        if self.selected_data_source is not None:
+            self.workflow.model.data_sources.append(
+                self.selected_data_source.create_model()
+            )
 
     @on_trait_change('add_kpi_calculator_button')
     def add_kpi_calculator(self):
-        self.workflow.model.kpi_calculators.append(
-            self.selected_kpi_calculator.create_model()
-        )
+        if self.selected_kpi_calculator is not None:
+            self.workflow.model.kpi_calculators.append(
+                self.selected_kpi_calculator.create_model()
+            )
