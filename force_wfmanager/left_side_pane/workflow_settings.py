@@ -154,7 +154,7 @@ class WorkflowSettings(TraitsDockPane):
     #: Selected MCO bundle in the list of MCOs
     selected_mco = Instance(BaseMultiCriteriaOptimizerBundle)
 
-    #: Selected data source bundles in the list of data sources
+    #: Selected data source bundle in the list of data sources
     selected_data_source = Instance(BaseDataSourceBundle)
 
     #: Selected KPI calculator bundle in the list of KPI calculators

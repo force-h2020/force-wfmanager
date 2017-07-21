@@ -63,7 +63,7 @@ class TestWorkflowSettings(unittest.TestCase):
         self.assertEqual(
             len(self.settings.workflow.kpi_calculators_representation), 0)
 
-    def test_add_multi_criteria(self):
+    def test_add_multi_criteria_optimizer(self):
         # Simulate pressing add mco button (should do nothing)
         self.settings.add_mco()
         self.assertIsNone(self.workflow.multi_criteria_optimizer)
@@ -91,7 +91,7 @@ class TestWorkflowSettings(unittest.TestCase):
         self.settings.add_data_source()
         self.assertEqual(len(self.workflow.data_sources), 0)
 
-        # Simulate selecting an data_source bundle in the list
+        # Simulate selecting a data_source bundle in the list
         self.settings.selected_data_source = \
             self.settings.available_data_sources[0]
 
@@ -121,7 +121,7 @@ class TestWorkflowSettings(unittest.TestCase):
         self.settings.add_kpi_calculator()
         self.assertEqual(len(self.workflow.kpi_calculators), 0)
 
-        # Simulate selecting an kpi_calculator bundle in the list
+        # Simulate selecting a kpi_calculator bundle in the list
         self.settings.selected_kpi_calculator = \
             self.settings.available_kpi_calculators[0]
 
