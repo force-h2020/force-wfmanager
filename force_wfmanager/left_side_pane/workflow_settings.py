@@ -139,6 +139,7 @@ tree_editor = TreeEditor(
 class WorkflowSettings(TraitsDockPane):
     """ Side pane which contains the list of available MCOs/Data sources/ KPI
     calculators bundles and the tree editor displaying the Workflow """
+
     id = 'force_wfmanager.workflow_settings'
     name = 'Workflow Settings'
 
