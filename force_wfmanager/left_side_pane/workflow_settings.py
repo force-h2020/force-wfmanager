@@ -3,8 +3,8 @@ from traitsui.api import (
     ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed, TreeEditor, TreeNode,
     UItem, VGroup, View, ModelView, VSplit)
 from traitsui.list_str_adapter import ListStrAdapter
-from traits.api import (Button, Instance, List, provides, register_factory,
-                        on_trait_change, Property, property_depends_on)
+from traits.api import (Button, Instance, List, ListInstance, provides,
+                        register_factory, on_trait_change, Property)
 
 from force_bdss.api import (
     BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
@@ -33,7 +33,7 @@ class ListAdapter(ListStrAdapter):
 
 
 @provides(ITreeNode)
-class McoAdapter(ITreeNodeAdapter):
+class MCOAdapter(ITreeNodeAdapter):
     """ Adapts the MCO model view to be displayed in the tree editor """
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
@@ -58,7 +58,7 @@ class DataSourceAdapter(ITreeNodeAdapter):
 
 
 @provides(ITreeNode)
-class KpiCalculatorAdapter(ITreeNodeAdapter):
+class KPICalculatorAdapter(ITreeNodeAdapter):
     """ Adapts the KPI calculator model to be displayed in the tree editor
     """
     def get_label(self):
@@ -70,32 +70,33 @@ class KpiCalculatorAdapter(ITreeNodeAdapter):
         return view
 
 
-register_factory(McoAdapter, BaseMCOModel, ITreeNode)
+register_factory(MCOAdapter, BaseMCOModel, ITreeNode)
 register_factory(DataSourceAdapter, BaseDataSourceModel, ITreeNode)
-register_factory(KpiCalculatorAdapter, BaseKPICalculatorModel, ITreeNode)
+register_factory(KPICalculatorAdapter, BaseKPICalculatorModel, ITreeNode)
 
 
 class WorkflowModelView(ModelView):
     model = Instance(Workflow)
 
-    mco_representation = Property(List(Instance(BaseMCOModel)))
-    data_sources_representation = Property(List(Instance(
-        BaseDataSourceModel)))
-    kpi_calculators_representation = Property(List(Instance(
-        BaseKPICalculatorModel)))
+    mco_representation = Property(
+        List(BaseMCOModel),
+        depends_on='model.multi_criteria_optimizer')
+    data_sources_representation = Property(
+        List(BaseDataSourceModel),
+        depends_on='model.data_sources')
+    kpi_calculators_representation = Property(
+        List(BaseKPICalculatorModel),
+        depends_on='model.kpi_calculators')
 
-    @property_depends_on('model.multi_criteria_optimizer', settable=False)
     def _get_mco_representation(self):
         if self.model.multi_criteria_optimizer is not None:
             return [self.model.multi_criteria_optimizer]
         else:
             return []
 
-    @property_depends_on('model.data_sources', settable=False)
     def _get_data_sources_representation(self):
         return self.model.data_sources
 
-    @property_depends_on('model.kpi_calculators', settable=False)
     def _get_kpi_calculators_representation(self):
         return self.model.kpi_calculators
 
@@ -144,13 +145,13 @@ class WorkflowSettings(TraitsDockPane):
     name = 'Workflow Settings'
 
     #: Available MCO bundles
-    available_mcos = List(Instance(BaseMultiCriteriaOptimizerBundle))
+    available_mcos = List(BaseMultiCriteriaOptimizerBundle)
 
     #: Available data source bundles
-    available_data_sources = List(Instance(BaseDataSourceBundle))
+    available_data_sources = List(BaseDataSourceBundle)
 
     #: Available KPI calculator bundles
-    available_kpi_calculators = List(Instance(BaseKPICalculatorBundle))
+    available_kpi_calculators = List(BaseKPICalculatorBundle)
 
     #: Selected MCO bundle in the list of MCOs
     selected_mco = Instance(BaseMultiCriteriaOptimizerBundle)
