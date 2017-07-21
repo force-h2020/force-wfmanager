@@ -3,7 +3,7 @@ from traitsui.api import (
     ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed, TreeEditor, TreeNode,
     UItem, VGroup, View, ModelView, VSplit)
 from traitsui.list_str_adapter import ListStrAdapter
-from traits.api import (Button, Instance, List, ListInstance, provides,
+from traits.api import (Button, Instance, List, provides,
                         register_factory, on_trait_change, Property)
 
 from force_bdss.api import (
