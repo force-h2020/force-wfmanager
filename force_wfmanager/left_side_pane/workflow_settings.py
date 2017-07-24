@@ -168,54 +168,10 @@ class WorkflowSettings(TraitsDockPane):
 
     workflow = Instance(WorkflowModelView)
 
-    view = View(VSplit(
+    view = View(
         UItem(name='workflow',
               editor=tree_editor,
-              show_label=False),
-        Tabbed(
-            VGroup(
-                UItem(
-                    name='add_mco_button',
-                    enabled_when="selected_mco is not None"
-                ),
-                UItem(
-                    "available_mcos",
-                    editor=ListStrEditor(
-                        adapter=ListAdapter(),
-                        selected="selected_mco"),
-                ),
-                label='MCOs',
-            ),
-            VGroup(
-                UItem(
-                    name='add_data_source_button',
-                    enabled_when="selected_data_source is not None"
-                ),
-                UItem(
-                    "available_data_sources",
-                    editor=ListStrEditor(
-                        adapter=ListAdapter(),
-                        selected="selected_data_source"),
-                ),
-                label='Data Sources',
-            ),
-            VGroup(
-                UItem(
-                    name='add_kpi_calculator_button',
-                    enabled_when="selected_kpi_calculator is not None"
-                ),
-                UItem(
-                    'available_kpi_calculators',
-                    editor=ListStrEditor(
-                        adapter=ListAdapter(),
-                        selected="selected_kpi_calculator")
-                ),
-                label='KPI Calculators'
-            ),
-        )),
-        width=800,
-        height=600,
-        resizable=True)
+              show_label=False))
 
     def _workflow_default(self):
         return WorkflowModelView()
