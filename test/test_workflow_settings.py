@@ -1,19 +1,23 @@
 import unittest
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 
-from traits.api import String
+from traits.api import String, Instance, HasTraits
 
 from force_bdss.core_plugins.dummy_mco.dakota.dakota_bundle import DakotaBundle
 from force_bdss.core_plugins.csv_extractor.csv_extractor.csv_extractor_bundle \
     import CSVExtractorBundle
 from force_bdss.core_plugins.dummy_kpi.kpi_adder.kpi_adder_bundle import (
     KPIAdderBundle)
-
 from force_bdss.api import (
     BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
     BaseDataSourceBundle)
+from force_bdss.workspecs.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_settings import (
-    WorkflowSettings, get_bundle_name)
+    WorkflowSettings, get_bundle_name, TreeEditorHandler, WorkflowModelView)
 
 
 class NamedBundle(BaseDataSourceBundle):
@@ -37,13 +41,41 @@ class UnnamedBundle(BaseDataSourceBundle):
         pass
 
 
+class WorkflowSettingsEditor(HasTraits):
+    object = Instance(WorkflowSettings)
+
+
+def get_workflow_settings():
+    return WorkflowSettings(
+        available_mcos=[DakotaBundle()],
+        available_data_sources=[CSVExtractorBundle()],
+        available_kpi_calculators=[KPIAdderBundle()]
+    )
+
+
+def get_workflow_model_view():
+    return WorkflowModelView(
+        model=Workflow(
+            multi_criteria_optimizer=mock.Mock(spec=BaseMCOModel),
+            data_sources=[mock.Mock(spec=BaseDataSourceModel),
+                          mock.Mock(spec=BaseDataSourceModel)],
+            kpi_calculators=[mock.Mock(spec=BaseKPICalculatorModel),
+                             mock.Mock(spec=BaseKPICalculatorModel),
+                             mock.Mock(spec=BaseKPICalculatorModel)])
+    )
+
+
+def get_workflow_settings_editor(workflow):
+    return WorkflowSettingsEditor(
+        object=WorkflowSettings(
+            workflow=workflow
+        )
+    )
+
+
 class TestWorkflowSettings(unittest.TestCase):
     def setUp(self):
-        self.workflow_settings = WorkflowSettings(
-            available_mcos=[DakotaBundle()],
-            available_data_sources=[CSVExtractorBundle()],
-            available_kpi_calculators=[KPIAdderBundle()]
-        )
+        self.workflow_settings = get_workflow_settings()
 
         self.settings = self.workflow_settings
         self.workflow = self.settings.workflow.model
@@ -154,3 +186,54 @@ class TestWorkflowSettings(unittest.TestCase):
         unnamed_bundle = UnnamedBundle()
         self.assertEqual(
             get_bundle_name(unnamed_bundle), 'enthought.test.bundle.unnamed')
+
+
+class TestTreeEditorHandler(unittest.TestCase):
+    def setUp(self):
+        self.handler = TreeEditorHandler()
+
+        self.workflow = get_workflow_model_view()
+
+        self.workflow_settings_editor = get_workflow_settings_editor(
+            self.workflow)
+
+    def test_delete_mco(self):
+        self.assertIsNotNone(
+            self.workflow.model.multi_criteria_optimizer)
+
+        self.handler.delete_mco_handler(
+            self.workflow_settings_editor,
+            self.workflow.model.multi_criteria_optimizer)
+
+        self.assertIsNone(
+            self.workflow.model.multi_criteria_optimizer)
+
+    def test_delete_data_source(self):
+        first_data_source = self.workflow.model.data_sources[0]
+        first_data_source_id = id(first_data_source)
+
+        self.assertEqual(len(self.workflow.model.data_sources), 2)
+
+        self.handler.delete_data_source_handler(
+            self.workflow_settings_editor,
+            first_data_source)
+
+        self.assertEqual(len(self.workflow.model.data_sources), 1)
+        self.assertNotEqual(
+            first_data_source_id,
+            id(self.workflow.model.data_sources[0]))
+
+    def test_delete_kpi_calculator(self):
+        first_kpi_calculator = self.workflow.model.kpi_calculators[0]
+        first_kpi_calculator_id = id(first_kpi_calculator)
+
+        self.assertEqual(len(self.workflow.model.kpi_calculators), 3)
+
+        self.handler.delete_kpi_calculator_handler(
+            self.workflow_settings_editor,
+            first_kpi_calculator)
+
+        self.assertEqual(len(self.workflow.model.kpi_calculators), 2)
+        self.assertNotEqual(
+            first_kpi_calculator_id,
+            id(self.workflow.model.kpi_calculators[0]))

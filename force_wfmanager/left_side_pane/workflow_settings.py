@@ -1,7 +1,7 @@
 from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (
-    ListStrEditor, ITreeNodeAdapter, ITreeNode, Tabbed, TreeEditor, TreeNode,
-    UItem, VGroup, View, ModelView, VSplit)
+    ITreeNodeAdapter, ITreeNode, TreeEditor, TreeNode, ListStrEditor, VSplit,
+    UItem, View, ModelView, Menu, Action, Handler, VGroup, Tabbed)
 from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import (Button, Instance, List, provides,
                         register_factory, on_trait_change, Property)
@@ -12,6 +12,10 @@ from force_bdss.api import (
     BaseKPICalculatorBundle)
 
 from force_bdss.workspecs.workflow import Workflow
+
+# Create an empty view and menu for objects that have no data to display:
+no_view = View()
+no_menu = Menu()
 
 
 def get_bundle_name(bundle):
@@ -32,6 +36,54 @@ class ListAdapter(ListStrAdapter):
         return get_bundle_name(self.item)
 
 
+class TreeEditorHandler(Handler):
+    def new_mco_handler(self, editor, object):
+        """ Opens a dialog for creating the MCO """
+
+    def new_data_source_handler(self, editor, object):
+        """ Opens a dialog for creating the Data Source """
+
+    def new_kpi_calculator_handler(self, editor, object):
+        """ Opens a dialog for creating the KPI Calculator """
+
+    def delete_mco_handler(self, editor, object):
+        editor.object.workflow.model.multi_criteria_optimizer = None
+
+    def delete_data_source_handler(self, editor, object):
+        editor.object.workflow.model.data_sources.remove(object)
+
+    def delete_kpi_calculator_handler(self, editor, object):
+        editor.object.workflow.model.kpi_calculators.remove(object)
+
+
+new_mco_action = Action(
+    name='New MCO...',
+    action='handler.new_mco_handler(editor, object)')
+
+new_data_source_action = Action(
+    name='New DataSource...',
+    action='handler.new_data_source_handler(editor, object)')
+
+new_kpi_calculator_action = Action(
+    name='New KPI Calculator...',
+    action='handler.new_kpi_calculator_handler(editor, object)')
+
+delete_mco_action = Action(
+    name='Delete',
+    action='handler.delete_mco_handler(editor, object)'
+)
+
+delete_data_source_action = Action(
+    name='Delete',
+    action='handler.delete_data_source_handler(editor, object)'
+)
+
+delete_kpi_calculator_action = Action(
+    name='Delete',
+    action='handler.delete_kpi_calculator_handler(editor, object)'
+)
+
+
 @provides(ITreeNode)
 class MCOAdapter(ITreeNodeAdapter):
     """ Adapts the MCO model view to be displayed in the tree editor """
@@ -42,6 +94,9 @@ class MCOAdapter(ITreeNodeAdapter):
         view = self.adaptee.trait_view()
         view.kind = "subpanel"
         return view
+
+    def get_menu(self):
+        return Menu(delete_mco_action)
 
 
 @provides(ITreeNode)
@@ -56,6 +111,9 @@ class DataSourceAdapter(ITreeNodeAdapter):
         view.kind = "subpanel"
         return view
 
+    def get_menu(self):
+        return Menu(delete_data_source_action)
+
 
 @provides(ITreeNode)
 class KPICalculatorAdapter(ITreeNodeAdapter):
@@ -68,6 +126,9 @@ class KPICalculatorAdapter(ITreeNodeAdapter):
         view = self.adaptee.trait_view()
         view.kind = "subpanel"
         return view
+
+    def get_menu(self):
+        return Menu(delete_kpi_calculator_action)
 
 
 register_factory(MCOAdapter, BaseMCOModel, ITreeNode)
@@ -104,34 +165,35 @@ class WorkflowModelView(ModelView):
         return Workflow()
 
 
-# Create an empty view for objects that have no data to display:
-no_view = View()
-
 tree_editor = TreeEditor(
     nodes=[
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='',
                  label='=Workflow',
-                 view=no_view
+                 view=no_view,
+                 menu=no_menu,
                  ),
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='mco_representation',
                  label='=MCO',
-                 view=no_view
+                 view=no_view,
+                 menu=Menu(new_mco_action),
                  ),
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='data_sources_representation',
                  label='=Data sources',
-                 view=no_view
+                 view=no_view,
+                 menu=Menu(new_data_source_action),
                  ),
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='kpi_calculators_representation',
                  label='=KPI calculators',
-                 view=no_view
+                 view=no_view,
+                 menu=Menu(new_kpi_calculator_action),
                  ),
     ]
 )
@@ -215,7 +277,8 @@ class WorkflowSettings(TraitsDockPane):
         )),
         width=800,
         height=600,
-        resizable=True)
+        resizable=True,
+        handler=TreeEditorHandler())
 
     def _workflow_default(self):
         return WorkflowModelView()
