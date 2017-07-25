@@ -106,6 +106,9 @@ class MCOAdapter(ITreeNodeAdapter):
         view.kind = "subpanel"
         return view
 
+    def get_menu(self):
+        return no_menu()
+
 
 @provides(ITreeNode)
 class DataSourceAdapter(ITreeNodeAdapter):
@@ -119,6 +122,9 @@ class DataSourceAdapter(ITreeNodeAdapter):
         view.kind = "subpanel"
         return view
 
+    def get_menu(self):
+        return no_menu()
+
 
 @provides(ITreeNode)
 class KPICalculatorAdapter(ITreeNodeAdapter):
@@ -131,6 +137,9 @@ class KPICalculatorAdapter(ITreeNodeAdapter):
         view = self.adaptee.trait_view()
         view.kind = "subpanel"
         return view
+
+    def get_menu(self):
+        return no_menu()
 
 
 register_factory(MCOAdapter, BaseMCOModel, ITreeNode)
