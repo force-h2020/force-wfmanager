@@ -1,7 +1,7 @@
 from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (
     ITreeNodeAdapter, ITreeNode, TreeEditor, TreeNode, ListStrEditor, VSplit,
-    UItem, View, ModelView, Menu, Action, Handler, VGroup, Tabbed, Separator)
+    UItem, View, ModelView, Menu, Action, Handler, VGroup, Tabbed)
 from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import (Button, Instance, List, provides,
                         register_factory, on_trait_change, Property)
