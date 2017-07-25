@@ -1,7 +1,7 @@
 from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (
     ITreeNodeAdapter, ITreeNode, TreeEditor, TreeNode, ListStrEditor, VSplit,
-    UItem, View, ModelView, Menu, Action, Handler, VGroup, Tabbed)
+    UItem, View, ModelView, Menu, Action, Handler, VGroup, Tabbed, Separator)
 from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import (Button, Instance, List, provides,
                         register_factory, on_trait_change, Property)
@@ -42,6 +42,15 @@ class TreeEditorHandler(Handler):
     def new_kpi_calculator_handler(self, editor, object):
         print "New kpi calculator !"
 
+    def delete_mco_handler(self, editor, object):
+        print "Delete MCO !"
+
+    def delete_data_sources_handler(self, editor, object):
+        print "Delete DataSources !"
+
+    def delete_kpi_calculators_handler(self, editor, object):
+        print "Delete KPI Calculators !"
+
 new_mco_action = Action(
     name='New MCO',
     action='handler.new_mco_handler(editor, object)')
@@ -53,6 +62,21 @@ new_data_source_action = Action(
 new_kpi_calculator_action = Action(
     name='New KPI Calculator',
     action='handler.new_kpi_calculator_handler(editor, object)')
+
+delete_mco_action = Action(
+    name='Delete MCO',
+    action='handler.delete_mco_handler(editor, object)'
+)
+
+delete_data_sources_action = Action(
+    name='Delete DataSources',
+    action='handler.delete_data_sources_handler(editor, object)'
+)
+
+delete_kpi_calculators_action = Action(
+    name='Delete KPI Calculators',
+    action='handler.delete_kpi_calculators_handler(editor, object)'
+)
 
 
 @provides(ITreeNode)
@@ -145,21 +169,27 @@ tree_editor = TreeEditor(
                  children='mco_representation',
                  label='=MCO',
                  view=no_view,
-                 menu=Menu(new_mco_action),
+                 menu=Menu(new_mco_action,
+                           Separator(),
+                           delete_mco_action),
                  ),
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='data_sources_representation',
                  label='=Data sources',
                  view=no_view,
-                 menu=Menu(new_data_source_action),
+                 menu=Menu(new_data_source_action,
+                           Separator(),
+                           delete_data_sources_action),
                  ),
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='kpi_calculators_representation',
                  label='=KPI calculators',
                  view=no_view,
-                 menu=Menu(new_kpi_calculator_action),
+                 menu=Menu(new_kpi_calculator_action,
+                           Separator(),
+                           delete_kpi_calculators_action),
                  ),
     ]
 )
