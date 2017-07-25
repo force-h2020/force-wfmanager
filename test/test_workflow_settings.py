@@ -8,9 +8,7 @@ from force_bdss.core_plugins.csv_extractor.csv_extractor.csv_extractor_bundle \
 from force_bdss.core_plugins.dummy_kpi.kpi_adder.kpi_adder_bundle import (
     KPIAdderBundle)
 
-from force_bdss.api import (
-    BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
-    BaseDataSourceBundle)
+from force_bdss.api import BaseDataSourceBundle
 
 from force_wfmanager.left_side_pane.workflow_settings import (
     WorkflowSettings, get_bundle_name)
