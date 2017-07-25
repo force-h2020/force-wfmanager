@@ -2,9 +2,8 @@ from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (
     ITreeNodeAdapter, ITreeNode, TreeEditor, TreeNode,
     UItem, View, ModelView, Menu, Action, Handler, Separator)
-from traitsui.list_str_adapter import ListStrAdapter
-from traits.api import (Button, Instance, List, provides,
-                        register_factory, on_trait_change, Property)
+from traits.api import (Instance, List, provides,
+                        register_factory, Property)
 
 from force_bdss.api import (
     BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
@@ -23,13 +22,6 @@ def get_bundle_name(bundle):
         return name
     else:
         return bundle.id
-
-
-class ListAdapter(ListStrAdapter):
-    """ Adapter for the list of available MCOs/Data sources/KPI calculators
-    bundles """
-    def get_text(self, object, trait, index):
-        return get_bundle_name(self.item)
 
 
 class TreeEditorHandler(Handler):
@@ -211,19 +203,6 @@ class WorkflowSettings(TraitsDockPane):
     #: Available KPI calculator bundles
     available_kpi_calculators = List(BaseKPICalculatorBundle)
 
-    #: Selected MCO bundle in the list of MCOs
-    selected_mco = Instance(BaseMultiCriteriaOptimizerBundle)
-
-    #: Selected data source bundle in the list of data sources
-    selected_data_source = Instance(BaseDataSourceBundle)
-
-    #: Selected KPI calculator bundle in the list of KPI calculators
-    selected_kpi_calculator = Instance(BaseKPICalculatorBundle)
-
-    add_mco_button = Button("Add")
-    add_data_source_button = Button("Add")
-    add_kpi_calculator_button = Button("Add")
-
     workflow = Instance(WorkflowModelView)
 
     view = View(
@@ -234,23 +213,3 @@ class WorkflowSettings(TraitsDockPane):
 
     def _workflow_default(self):
         return WorkflowModelView()
-
-    @on_trait_change('add_mco_button')
-    def add_mco(self):
-        if self.selected_mco is not None:
-            self.workflow.model.multi_criteria_optimizer = \
-                self.selected_mco.create_model()
-
-    @on_trait_change('add_data_source_button')
-    def add_data_source(self):
-        if self.selected_data_source is not None:
-            self.workflow.model.data_sources.append(
-                self.selected_data_source.create_model()
-            )
-
-    @on_trait_change('add_kpi_calculator_button')
-    def add_kpi_calculator(self):
-        if self.selected_kpi_calculator is not None:
-            self.workflow.model.kpi_calculators.append(
-                self.selected_kpi_calculator.create_model()
-            )
