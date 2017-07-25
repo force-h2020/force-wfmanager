@@ -64,6 +64,7 @@ class TreeEditorHandler(Handler):
     def delete_kpi_calculators_is_enabled(self, editor, object):
         return len(object.model.kpi_calculators) != 0
 
+
 new_mco_action = Action(
     name='New MCO',
     action='handler.new_mco_handler(editor, object)')
@@ -174,6 +175,7 @@ class WorkflowModelView(ModelView):
 
     def _model_default(self):
         return Workflow()
+
 
 tree_editor = TreeEditor(
     nodes=[
