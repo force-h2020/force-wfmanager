@@ -201,34 +201,6 @@ class TestTreeEditorHandler(unittest.TestCase):
     def setUp(self):
         self.handler = TreeEditorHandler()
 
-    def test_delete_data_sources_is_disabled(self):
-        emptyWorkflow = get_empty_workflow_model_view()
-        self.assertFalse(
-            self.handler.delete_data_sources_is_enabled(
-                None, emptyWorkflow)
-        )
-
-    def test_delete_data_sources_is_enabled(self):
-        filledWorkflow = get_filled_workflow_model_view()
-        self.assertTrue(
-            self.handler.delete_data_sources_is_enabled(
-                None, filledWorkflow)
-        )
-
-    def test_delete_kpi_calculators_is_disabled(self):
-        emptyWorkflow = get_empty_workflow_model_view()
-        self.assertFalse(
-            self.handler.delete_kpi_calculators_is_enabled(
-                None, emptyWorkflow)
-        )
-
-    def test_delete_kpi_calculators_is_enabled(self):
-        filledWorkflow = get_filled_workflow_model_view()
-        self.assertTrue(
-            self.handler.delete_kpi_calculators_is_enabled(
-                None, filledWorkflow)
-        )
-
     def test_delete_mco(self):
         filledWorkflow = get_filled_workflow_model_view()
         self.assertIsNotNone(
@@ -240,20 +212,6 @@ class TestTreeEditorHandler(unittest.TestCase):
 
         self.assertIsNone(
             filledWorkflow.model.multi_criteria_optimizer)
-
-    def test_delete_data_sources(self):
-        filledWorkflow = get_filled_workflow_model_view()
-
-        old_data_sources_id = id(filledWorkflow.model.data_sources)
-        self.assertNotEqual(
-            len(filledWorkflow.model.data_sources), 0)
-
-        self.handler.delete_data_sources_handler(None, filledWorkflow)
-
-        self.assertEqual(old_data_sources_id,
-                         id(filledWorkflow.model.data_sources))
-        self.assertEqual(
-            len(filledWorkflow.model.data_sources), 0)
 
     def test_delete_data_source(self):
         filledWorkflow = get_filled_workflow_model_view()
@@ -271,20 +229,6 @@ class TestTreeEditorHandler(unittest.TestCase):
         self.assertNotEqual(
             first_data_source_id,
             id(filledWorkflow.model.data_sources[0]))
-
-    def test_delete_kpi_calculators(self):
-        filledWorkflow = get_filled_workflow_model_view()
-
-        old_kpi_calculators_id = id(filledWorkflow.model.kpi_calculators)
-        self.assertNotEqual(
-            len(filledWorkflow.model.kpi_calculators), 0)
-
-        self.handler.delete_kpi_calculators_handler(None, filledWorkflow)
-
-        self.assertEqual(old_kpi_calculators_id,
-                         id(filledWorkflow.model.kpi_calculators))
-        self.assertEqual(
-            len(filledWorkflow.model.kpi_calculators), 0)
 
     def test_delete_kpi_calculator(self):
         filledWorkflow = get_filled_workflow_model_view()

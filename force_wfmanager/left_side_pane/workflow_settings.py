@@ -49,20 +49,8 @@ class TreeEditorHandler(Handler):
     def delete_mco_handler(self, editor, object):
         editor.object.workflow.model.multi_criteria_optimizer = None
 
-    def delete_data_sources_handler(self, editor, object):
-        object.model.data_sources[:] = []
-
-    def delete_data_sources_is_enabled(self, editor, object):
-        return len(object.model.data_sources) != 0
-
     def delete_data_source_handler(self, editor, object):
         editor.object.workflow.model.data_sources.remove(object)
-
-    def delete_kpi_calculators_handler(self, editor, object):
-        object.model.kpi_calculators[:] = []
-
-    def delete_kpi_calculators_is_enabled(self, editor, object):
-        return len(object.model.kpi_calculators) != 0
 
     def delete_kpi_calculator_handler(self, editor, object):
         editor.object.workflow.model.kpi_calculators.remove(object)
@@ -85,21 +73,9 @@ delete_mco_action = Action(
     action='handler.delete_mco_handler(editor, object)'
 )
 
-delete_data_sources_action = Action(
-    name='Delete DataSources',
-    action='handler.delete_data_sources_handler(editor, object)',
-    enabled_when='handler.delete_data_sources_is_enabled(editor, object)'
-)
-
 delete_data_source_action = Action(
     name='Delete',
     action='handler.delete_data_source_handler(editor, object)'
-)
-
-delete_kpi_calculators_action = Action(
-    name='Delete KPI Calculators',
-    action='handler.delete_kpi_calculators_handler(editor, object)',
-    enabled_when='handler.delete_kpi_calculators_is_enabled(editor, object)'
 )
 
 delete_kpi_calculator_action = Action(
@@ -210,16 +186,14 @@ tree_editor = TreeEditor(
                  children='data_sources_representation',
                  label='=Data sources',
                  view=no_view,
-                 menu=Menu(new_data_source_action,
-                           delete_data_sources_action),
+                 menu=Menu(new_data_source_action),
                  ),
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='kpi_calculators_representation',
                  label='=KPI calculators',
                  view=no_view,
-                 menu=Menu(new_kpi_calculator_action,
-                           delete_kpi_calculators_action),
+                 menu=Menu(new_kpi_calculator_action),
                  ),
     ]
 )
