@@ -38,13 +38,13 @@ class ListAdapter(ListStrAdapter):
 
 class TreeEditorHandler(Handler):
     def new_mco_handler(self, editor, object):
-        print "New multi criteria optimizer !"
+        """ Opens a dialog for creating the MCO """
 
     def new_data_source_handler(self, editor, object):
-        print "New data source !"
+        """ Opens a dialog for creating the Data Source """
 
     def new_kpi_calculator_handler(self, editor, object):
-        print "New kpi calculator !"
+        """ Opens a dialog for creating the KPI Calculator """
 
     def delete_mco_handler(self, editor, object):
         object.model.multi_criteria_optimizer = None
