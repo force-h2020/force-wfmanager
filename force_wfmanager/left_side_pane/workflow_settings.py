@@ -192,7 +192,6 @@ tree_editor = TreeEditor(
                  label='=MCO',
                  view=no_view,
                  menu=Menu(new_mco_action,
-                           Separator(),
                            delete_mco_action),
                  ),
         TreeNode(node_for=[WorkflowModelView],
@@ -201,7 +200,6 @@ tree_editor = TreeEditor(
                  label='=Data sources',
                  view=no_view,
                  menu=Menu(new_data_source_action,
-                           Separator(),
                            delete_data_sources_action),
                  ),
         TreeNode(node_for=[WorkflowModelView],
@@ -210,7 +208,6 @@ tree_editor = TreeEditor(
                  label='=KPI calculators',
                  view=no_view,
                  menu=Menu(new_kpi_calculator_action,
-                           Separator(),
                            delete_kpi_calculators_action),
                  ),
     ]
