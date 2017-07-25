@@ -45,13 +45,46 @@ class WorkflowSettingsEditor(HasTraits):
     object = Instance(WorkflowSettings)
 
 
+def get_filled_workflow_settings():
+    return WorkflowSettings(
+        available_mcos=[DakotaBundle()],
+        available_data_sources=[CSVExtractorBundle()],
+        available_kpi_calculators=[KPIAdderBundle()]
+    )
+
+
+def get_empty_workflow_model_view():
+    return WorkflowModelView(
+        model=Workflow(
+            multi_criteria_optimizer=None,
+            data_sources=[],
+            kpi_calculators=[])
+    )
+
+
+def get_filled_workflow_model_view():
+    return WorkflowModelView(
+        model=Workflow(
+            multi_criteria_optimizer=mock.Mock(spec=BaseMCOModel),
+            data_sources=[mock.Mock(spec=BaseDataSourceModel),
+                          mock.Mock(spec=BaseDataSourceModel)],
+            kpi_calculators=[mock.Mock(spec=BaseKPICalculatorModel),
+                             mock.Mock(spec=BaseKPICalculatorModel),
+                             mock.Mock(spec=BaseKPICalculatorModel)])
+    )
+
+
+def get_workflow_settings_editor(workflow):
+    return WorkflowSettingsEditor(
+        object=WorkflowSettings(
+            workflow=workflow
+        )
+    )
+
+
 class TestWorkflowSettings(unittest.TestCase):
     def setUp(self):
-        self.workflow_settings = WorkflowSettings(
-            available_mcos=[DakotaBundle()],
-            available_data_sources=[CSVExtractorBundle()],
-            available_kpi_calculators=[KPIAdderBundle()]
-        )
+        self.workflow_settings = get_filled_workflow_settings()
 
         self.settings = self.workflow_settings
         self.workflow = self.settings.workflow.model
@@ -168,114 +201,104 @@ class TestTreeEditorHandler(unittest.TestCase):
     def setUp(self):
         self.handler = TreeEditorHandler()
 
-        self.emptyWorkflow = WorkflowModelView(
-            model=Workflow(
-                multi_criteria_optimizer=None,
-                data_sources=[],
-                kpi_calculators=[])
-        )
-
-        self.filledWorkflow = WorkflowModelView(
-            model=Workflow(
-                multi_criteria_optimizer=mock.Mock(spec=BaseMCOModel),
-                data_sources=[mock.Mock(spec=BaseDataSourceModel),
-                              mock.Mock(spec=BaseDataSourceModel)],
-                kpi_calculators=[mock.Mock(spec=BaseKPICalculatorModel),
-                                 mock.Mock(spec=BaseKPICalculatorModel),
-                                 mock.Mock(spec=BaseKPICalculatorModel)])
-        )
-
-        self.workflow_settings_editor = WorkflowSettingsEditor(
-            object=WorkflowSettings(
-                workflow=self.filledWorkflow
-            )
-        )
-
     def test_delete_data_sources_is_disabled(self):
+        emptyWorkflow = get_empty_workflow_model_view()
         self.assertFalse(
             self.handler.delete_data_sources_is_enabled(
-                None, self.emptyWorkflow)
+                None, emptyWorkflow)
         )
 
     def test_delete_data_sources_is_enabled(self):
+        filledWorkflow = get_filled_workflow_model_view()
         self.assertTrue(
             self.handler.delete_data_sources_is_enabled(
-                None, self.filledWorkflow)
+                None, filledWorkflow)
         )
 
     def test_delete_kpi_calculators_is_disabled(self):
+        emptyWorkflow = get_empty_workflow_model_view()
         self.assertFalse(
             self.handler.delete_kpi_calculators_is_enabled(
-                None, self.emptyWorkflow)
+                None, emptyWorkflow)
         )
 
     def test_delete_kpi_calculators_is_enabled(self):
+        filledWorkflow = get_filled_workflow_model_view()
         self.assertTrue(
             self.handler.delete_kpi_calculators_is_enabled(
-                None, self.filledWorkflow)
+                None, filledWorkflow)
         )
 
     def test_delete_mco(self):
+        filledWorkflow = get_filled_workflow_model_view()
         self.assertIsNotNone(
-            self.filledWorkflow.model.multi_criteria_optimizer)
+            filledWorkflow.model.multi_criteria_optimizer)
 
         self.handler.delete_mco_handler(
-            self.workflow_settings_editor,
-            self.filledWorkflow.model.multi_criteria_optimizer)
+            get_workflow_settings_editor(filledWorkflow),
+            filledWorkflow.model.multi_criteria_optimizer)
 
         self.assertIsNone(
-            self.filledWorkflow.model.multi_criteria_optimizer)
+            filledWorkflow.model.multi_criteria_optimizer)
 
     def test_delete_data_sources(self):
-        old_data_sources_id = id(self.filledWorkflow.model.data_sources)
-        self.assertNotEqual(
-            len(self.filledWorkflow.model.data_sources), 0)
+        filledWorkflow = get_filled_workflow_model_view()
 
-        self.handler.delete_data_sources_handler(None, self.filledWorkflow)
+        old_data_sources_id = id(filledWorkflow.model.data_sources)
+        self.assertNotEqual(
+            len(filledWorkflow.model.data_sources), 0)
+
+        self.handler.delete_data_sources_handler(None, filledWorkflow)
 
         self.assertEqual(old_data_sources_id,
-                         id(self.filledWorkflow.model.data_sources))
+                         id(filledWorkflow.model.data_sources))
         self.assertEqual(
-            len(self.filledWorkflow.model.data_sources), 0)
+            len(filledWorkflow.model.data_sources), 0)
 
     def test_delete_data_source(self):
-        first_data_source = self.filledWorkflow.model.data_sources[0]
+        filledWorkflow = get_filled_workflow_model_view()
+
+        first_data_source = filledWorkflow.model.data_sources[0]
         first_data_source_id = id(first_data_source)
 
-        self.assertEqual(len(self.filledWorkflow.model.data_sources), 2)
+        self.assertEqual(len(filledWorkflow.model.data_sources), 2)
 
         self.handler.delete_data_source_handler(
-            self.workflow_settings_editor,
+            get_workflow_settings_editor(filledWorkflow),
             first_data_source)
 
-        self.assertEqual(len(self.filledWorkflow.model.data_sources), 1)
+        self.assertEqual(len(filledWorkflow.model.data_sources), 1)
         self.assertNotEqual(
             first_data_source_id,
-            id(self.filledWorkflow.model.data_sources[0]))
+            id(filledWorkflow.model.data_sources[0]))
 
     def test_delete_kpi_calculators(self):
-        old_kpi_calculators_id = id(self.filledWorkflow.model.kpi_calculators)
-        self.assertNotEqual(
-            len(self.filledWorkflow.model.kpi_calculators), 0)
+        filledWorkflow = get_filled_workflow_model_view()
 
-        self.handler.delete_kpi_calculators_handler(None, self.filledWorkflow)
+        old_kpi_calculators_id = id(filledWorkflow.model.kpi_calculators)
+        self.assertNotEqual(
+            len(filledWorkflow.model.kpi_calculators), 0)
+
+        self.handler.delete_kpi_calculators_handler(None, filledWorkflow)
 
         self.assertEqual(old_kpi_calculators_id,
-                         id(self.filledWorkflow.model.kpi_calculators))
+                         id(filledWorkflow.model.kpi_calculators))
         self.assertEqual(
-            len(self.filledWorkflow.model.kpi_calculators), 0)
+            len(filledWorkflow.model.kpi_calculators), 0)
 
     def test_delete_kpi_calculator(self):
-        first_kpi_calculator = self.filledWorkflow.model.kpi_calculators[0]
+        filledWorkflow = get_filled_workflow_model_view()
+
+        first_kpi_calculator = filledWorkflow.model.kpi_calculators[0]
         first_kpi_calculator_id = id(first_kpi_calculator)
 
-        self.assertEqual(len(self.filledWorkflow.model.kpi_calculators), 3)
+        self.assertEqual(len(filledWorkflow.model.kpi_calculators), 3)
 
         self.handler.delete_kpi_calculator_handler(
-            self.workflow_settings_editor,
+            get_workflow_settings_editor(filledWorkflow),
             first_kpi_calculator)
 
-        self.assertEqual(len(self.filledWorkflow.model.kpi_calculators), 2)
+        self.assertEqual(len(filledWorkflow.model.kpi_calculators), 2)
         self.assertNotEqual(
             first_kpi_calculator_id,
-            id(self.filledWorkflow.model.kpi_calculators[0]))
+            id(filledWorkflow.model.kpi_calculators[0]))
