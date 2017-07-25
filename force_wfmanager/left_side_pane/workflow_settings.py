@@ -47,10 +47,7 @@ class TreeEditorHandler(Handler):
         """ Opens a dialog for creating the KPI Calculator """
 
     def delete_mco_handler(self, editor, object):
-        object.model.multi_criteria_optimizer = None
-
-    def delete_mco_is_enabled(self, editor, object):
-        return object.model.multi_criteria_optimizer is not None
+        editor.object.workflow.model.multi_criteria_optimizer = None
 
     def delete_data_sources_handler(self, editor, object):
         object.model.data_sources[:] = []
@@ -58,11 +55,17 @@ class TreeEditorHandler(Handler):
     def delete_data_sources_is_enabled(self, editor, object):
         return len(object.model.data_sources) != 0
 
+    def delete_data_source_handler(self, editor, object):
+        editor.object.workflow.model.data_sources.remove(object)
+
     def delete_kpi_calculators_handler(self, editor, object):
         object.model.kpi_calculators[:] = []
 
     def delete_kpi_calculators_is_enabled(self, editor, object):
         return len(object.model.kpi_calculators) != 0
+
+    def delete_kpi_calculator_handler(self, editor, object):
+        editor.object.workflow.model.kpi_calculators.remove(object)
 
 
 new_mco_action = Action(
@@ -78,9 +81,8 @@ new_kpi_calculator_action = Action(
     action='handler.new_kpi_calculator_handler(editor, object)')
 
 delete_mco_action = Action(
-    name='Delete MCO',
-    action='handler.delete_mco_handler(editor, object)',
-    enabled_when='handler.delete_mco_is_enabled(editor, object)'
+    name='Delete',
+    action='handler.delete_mco_handler(editor, object)'
 )
 
 delete_data_sources_action = Action(
@@ -89,10 +91,20 @@ delete_data_sources_action = Action(
     enabled_when='handler.delete_data_sources_is_enabled(editor, object)'
 )
 
+delete_data_source_action = Action(
+    name='Delete',
+    action='handler.delete_data_source_handler(editor, object)'
+)
+
 delete_kpi_calculators_action = Action(
     name='Delete KPI Calculators',
     action='handler.delete_kpi_calculators_handler(editor, object)',
     enabled_when='handler.delete_kpi_calculators_is_enabled(editor, object)'
+)
+
+delete_kpi_calculator_action = Action(
+    name='Delete',
+    action='handler.delete_kpi_calculator_handler(editor, object)'
 )
 
 
@@ -108,7 +120,7 @@ class MCOAdapter(ITreeNodeAdapter):
         return view
 
     def get_menu(self):
-        return no_menu()
+        return Menu(delete_mco_action)
 
 
 @provides(ITreeNode)
@@ -124,7 +136,7 @@ class DataSourceAdapter(ITreeNodeAdapter):
         return view
 
     def get_menu(self):
-        return no_menu()
+        return Menu(delete_data_source_action)
 
 
 @provides(ITreeNode)
@@ -140,7 +152,7 @@ class KPICalculatorAdapter(ITreeNodeAdapter):
         return view
 
     def get_menu(self):
-        return no_menu()
+        return Menu(delete_kpi_calculator_action)
 
 
 register_factory(MCOAdapter, BaseMCOModel, ITreeNode)
@@ -191,8 +203,7 @@ tree_editor = TreeEditor(
                  children='mco_representation',
                  label='=MCO',
                  view=no_view,
-                 menu=Menu(new_mco_action,
-                           delete_mco_action),
+                 menu=Menu(new_mco_action),
                  ),
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,

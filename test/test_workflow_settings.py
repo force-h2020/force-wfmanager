@@ -4,7 +4,7 @@ try:
 except ImportError:
     from unittest import mock
 
-from traits.api import String
+from traits.api import String, Instance, HasTraits
 
 from force_bdss.core_plugins.dummy_mco.dakota.dakota_bundle import DakotaBundle
 from force_bdss.core_plugins.csv_extractor.csv_extractor.csv_extractor_bundle \
@@ -39,6 +39,10 @@ class UnnamedBundle(BaseDataSourceBundle):
 
     def create_model(self, model_data=None):
         pass
+
+
+class WorkflowSettingsEditor(HasTraits):
+    object = Instance(WorkflowSettings)
 
 
 class TestWorkflowSettings(unittest.TestCase):
@@ -176,17 +180,15 @@ class TestTreeEditorHandler(unittest.TestCase):
                 multi_criteria_optimizer=mock.Mock(spec=BaseMCOModel),
                 data_sources=[mock.Mock(spec=BaseDataSourceModel),
                               mock.Mock(spec=BaseDataSourceModel)],
-                kpi_calculators=[mock.Mock(spec=BaseKPICalculatorModel)])
+                kpi_calculators=[mock.Mock(spec=BaseKPICalculatorModel),
+                                 mock.Mock(spec=BaseKPICalculatorModel),
+                                 mock.Mock(spec=BaseKPICalculatorModel)])
         )
 
-    def test_delete_mco_is_disabled(self):
-        self.assertFalse(
-            self.handler.delete_mco_is_enabled(None, self.emptyWorkflow)
-        )
-
-    def test_delete_mco_is_enabled(self):
-        self.assertTrue(
-            self.handler.delete_mco_is_enabled(None, self.filledWorkflow)
+        self.workflow_settings_editor = WorkflowSettingsEditor(
+            object=WorkflowSettings(
+                workflow=self.filledWorkflow
+            )
         )
 
     def test_delete_data_sources_is_disabled(self):
@@ -216,7 +218,11 @@ class TestTreeEditorHandler(unittest.TestCase):
     def test_delete_mco(self):
         self.assertIsNotNone(
             self.filledWorkflow.model.multi_criteria_optimizer)
-        self.handler.delete_mco_handler(None, self.filledWorkflow)
+
+        self.handler.delete_mco_handler(
+            self.workflow_settings_editor,
+            self.filledWorkflow.model.multi_criteria_optimizer)
+
         self.assertIsNone(
             self.filledWorkflow.model.multi_criteria_optimizer)
 
@@ -232,6 +238,21 @@ class TestTreeEditorHandler(unittest.TestCase):
         self.assertEqual(
             len(self.filledWorkflow.model.data_sources), 0)
 
+    def test_delete_data_source(self):
+        first_data_source = self.filledWorkflow.model.data_sources[0]
+        first_data_source_id = id(first_data_source)
+
+        self.assertEqual(len(self.filledWorkflow.model.data_sources), 2)
+
+        self.handler.delete_data_source_handler(
+            self.workflow_settings_editor,
+            first_data_source)
+
+        self.assertEqual(len(self.filledWorkflow.model.data_sources), 1)
+        self.assertNotEqual(
+            first_data_source_id,
+            id(self.filledWorkflow.model.data_sources[0]))
+
     def test_delete_kpi_calculators(self):
         old_kpi_calculators_id = id(self.filledWorkflow.model.kpi_calculators)
         self.assertNotEqual(
@@ -243,3 +264,18 @@ class TestTreeEditorHandler(unittest.TestCase):
                          id(self.filledWorkflow.model.kpi_calculators))
         self.assertEqual(
             len(self.filledWorkflow.model.kpi_calculators), 0)
+
+    def test_delete_kpi_calculator(self):
+        first_kpi_calculator = self.filledWorkflow.model.kpi_calculators[0]
+        first_kpi_calculator_id = id(first_kpi_calculator)
+
+        self.assertEqual(len(self.filledWorkflow.model.kpi_calculators), 3)
+
+        self.handler.delete_kpi_calculator_handler(
+            self.workflow_settings_editor,
+            first_kpi_calculator)
+
+        self.assertEqual(len(self.filledWorkflow.model.kpi_calculators), 2)
+        self.assertNotEqual(
+            first_kpi_calculator_id,
+            id(self.filledWorkflow.model.kpi_calculators[0]))
