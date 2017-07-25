@@ -212,3 +212,24 @@ class TestTreeEditorHandler(unittest.TestCase):
             self.handler.delete_kpi_calculators_is_enabled(
                 None, self.filledWorkflow)
         )
+
+    def test_delete_mco(self):
+        self.assertIsNotNone(
+            self.filledWorkflow.model.multi_criteria_optimizer)
+        self.handler.delete_mco_handler(None, self.filledWorkflow)
+        self.assertIsNone(
+            self.filledWorkflow.model.multi_criteria_optimizer)
+
+    def test_delete_data_sources(self):
+        self.assertNotEqual(
+            len(self.filledWorkflow.model.data_sources), 0)
+        self.handler.delete_data_sources_handler(None, self.filledWorkflow)
+        self.assertEqual(
+            len(self.filledWorkflow.model.data_sources), 0)
+
+    def test_delete_kpi_calculators(self):
+        self.assertNotEqual(
+            len(self.filledWorkflow.model.kpi_calculators), 0)
+        self.handler.delete_kpi_calculators_handler(None, self.filledWorkflow)
+        self.assertEqual(
+            len(self.filledWorkflow.model.kpi_calculators), 0)
