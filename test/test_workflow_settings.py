@@ -1,4 +1,8 @@
 import unittest
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 
 from traits.api import String
 
@@ -7,13 +11,13 @@ from force_bdss.core_plugins.csv_extractor.csv_extractor.csv_extractor_bundle \
     import CSVExtractorBundle
 from force_bdss.core_plugins.dummy_kpi.kpi_adder.kpi_adder_bundle import (
     KPIAdderBundle)
-
 from force_bdss.api import (
     BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
     BaseDataSourceBundle)
+from force_bdss.workspecs.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_settings import (
-    WorkflowSettings, get_bundle_name)
+    WorkflowSettings, get_bundle_name, TreeEditorHandler, WorkflowModelView)
 
 
 class NamedBundle(BaseDataSourceBundle):
@@ -154,3 +158,57 @@ class TestWorkflowSettings(unittest.TestCase):
         unnamed_bundle = UnnamedBundle()
         self.assertEqual(
             get_bundle_name(unnamed_bundle), 'enthought.test.bundle.unnamed')
+
+
+class TestTreeEditorHandler(unittest.TestCase):
+    def setUp(self):
+        self.handler = TreeEditorHandler()
+
+        self.emptyWorkflow = WorkflowModelView(
+            model=Workflow(
+                multi_criteria_optimizer=None,
+                data_sources=[],
+                kpi_calculators=[])
+        )
+
+        self.filledWorkflow = WorkflowModelView(
+            model=Workflow(
+                multi_criteria_optimizer=mock.Mock(spec=BaseMCOModel),
+                data_sources=[mock.Mock(spec=BaseDataSourceModel),
+                              mock.Mock(spec=BaseDataSourceModel)],
+                kpi_calculators=[mock.Mock(spec=BaseKPICalculatorModel)])
+        )
+
+    def test_delete_mco_is_disabled(self):
+        self.assertFalse(
+            self.handler.delete_mco_is_enabled(None, self.emptyWorkflow)
+        )
+
+    def test_delete_mco_is_enabled(self):
+        self.assertTrue(
+            self.handler.delete_mco_is_enabled(None, self.filledWorkflow)
+        )
+
+    def test_delete_data_sources_is_disabled(self):
+        self.assertFalse(
+            self.handler.delete_data_sources_is_enabled(
+                None, self.emptyWorkflow)
+        )
+
+    def test_delete_data_sources_is_enabled(self):
+        self.assertTrue(
+            self.handler.delete_data_sources_is_enabled(
+                None, self.filledWorkflow)
+        )
+
+    def test_delete_kpi_calculators_is_disabled(self):
+        self.assertFalse(
+            self.handler.delete_kpi_calculators_is_enabled(
+                None, self.emptyWorkflow)
+        )
+
+    def test_delete_kpi_calculators_is_enabled(self):
+        self.assertTrue(
+            self.handler.delete_kpi_calculators_is_enabled(
+                None, self.filledWorkflow)
+        )
