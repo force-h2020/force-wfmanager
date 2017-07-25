@@ -53,13 +53,13 @@ class TreeEditorHandler(Handler):
         return object.model.multi_criteria_optimizer is not None
 
     def delete_data_sources_handler(self, editor, object):
-        object.model.data_sources = []
+        object.model.data_sources[:] = []
 
     def delete_data_sources_is_enabled(self, editor, object):
         return len(object.model.data_sources) != 0
 
     def delete_kpi_calculators_handler(self, editor, object):
-        object.model.kpi_calculators = []
+        object.model.kpi_calculators[:] = []
 
     def delete_kpi_calculators_is_enabled(self, editor, object):
         return len(object.model.kpi_calculators) != 0
