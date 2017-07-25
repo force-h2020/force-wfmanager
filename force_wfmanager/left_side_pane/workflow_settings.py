@@ -13,6 +13,10 @@ from force_bdss.api import (
 
 from force_bdss.workspecs.workflow import Workflow
 
+# Create an empty view and menu for objects that have no data to display:
+no_view = View()
+no_menu = Menu()
+
 
 def get_bundle_name(bundle):
     """ Returns a bundle name, given the bundle. This ensure that something
@@ -43,13 +47,22 @@ class TreeEditorHandler(Handler):
         print "New kpi calculator !"
 
     def delete_mco_handler(self, editor, object):
-        print "Delete MCO !"
+        object.model.multi_criteria_optimizer = None
+
+    def delete_mco_is_enabled(self, editor, object):
+        return object.model.multi_criteria_optimizer is not None
 
     def delete_data_sources_handler(self, editor, object):
-        print "Delete DataSources !"
+        object.model.data_sources = []
+
+    def delete_data_sources_is_enabled(self, editor, object):
+        return len(object.model.data_sources) != 0
 
     def delete_kpi_calculators_handler(self, editor, object):
-        print "Delete KPI Calculators !"
+        object.model.kpi_calculators = []
+
+    def delete_kpi_calculators_is_enabled(self, editor, object):
+        return len(object.model.kpi_calculators) != 0
 
 new_mco_action = Action(
     name='New MCO',
@@ -65,17 +78,20 @@ new_kpi_calculator_action = Action(
 
 delete_mco_action = Action(
     name='Delete MCO',
-    action='handler.delete_mco_handler(editor, object)'
+    action='handler.delete_mco_handler(editor, object)',
+    enabled_when='handler.delete_mco_is_enabled(editor, object)'
 )
 
 delete_data_sources_action = Action(
     name='Delete DataSources',
-    action='handler.delete_data_sources_handler(editor, object)'
+    action='handler.delete_data_sources_handler(editor, object)',
+    enabled_when='handler.delete_data_sources_is_enabled(editor, object)'
 )
 
 delete_kpi_calculators_action = Action(
     name='Delete KPI Calculators',
-    action='handler.delete_kpi_calculators_handler(editor, object)'
+    action='handler.delete_kpi_calculators_handler(editor, object)',
+    enabled_when='handler.delete_kpi_calculators_is_enabled(editor, object)'
 )
 
 
@@ -149,11 +165,6 @@ class WorkflowModelView(ModelView):
 
     def _model_default(self):
         return Workflow()
-
-
-# Create an empty view and menu for objects that have no data to display:
-no_view = View()
-no_menu = Menu()
 
 tree_editor = TreeEditor(
     nodes=[
