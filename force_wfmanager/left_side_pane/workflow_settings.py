@@ -66,15 +66,15 @@ class TreeEditorHandler(Handler):
 
 
 new_mco_action = Action(
-    name='New MCO',
+    name='New MCO...',
     action='handler.new_mco_handler(editor, object)')
 
 new_data_source_action = Action(
-    name='New DataSource',
+    name='New DataSource...',
     action='handler.new_data_source_handler(editor, object)')
 
 new_kpi_calculator_action = Action(
-    name='New KPI Calculator',
+    name='New KPI Calculator...',
     action='handler.new_kpi_calculator_handler(editor, object)')
 
 delete_mco_action = Action(
