@@ -2,13 +2,21 @@ from traits.api import (HasStrictTraits, Instance, List, Button, Either,
                         on_trait_change, Dict)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
                           HGroup, ListStrEditor, InstanceEditor)
+from traitsui.list_str_adapter import ListStrAdapter
 
 from force_bdss.api import (BaseMCOModel, BaseMultiCriteriaOptimizerBundle,
                             BaseDataSourceModel, BaseDataSourceBundle,
                             BaseKPICalculatorModel, BaseKPICalculatorBundle)
 
 from .workflow_model_view import WorkflowModelView
-from .view_utils import ListAdapter
+from .view_utils import get_bundle_name
+
+
+class ListAdapter(ListStrAdapter):
+    """ Adapter for the list of available MCOs/Data sources/KPI calculators
+    bundles """
+    def get_text(self, object, trait, index):
+        return get_bundle_name(self.item)
 
 
 class ModalHandler(Handler):
