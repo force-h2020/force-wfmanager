@@ -13,6 +13,7 @@ from force_bdss.api import (
 from force_bdss.workspecs.workflow import Workflow
 
 from .view_utils import get_bundle_name, ListAdapter
+from .new_mco_modal import NewMCOModal
 from .new_data_source_modal import NewDataSourceModal
 from .new_kpi_calculator_modal import NewKPICalculatorModal
 
@@ -22,12 +23,14 @@ no_menu = Menu()
 
 
 class WorkflowHandler(Handler):
+    new_mco_modal = Instance(NewMCOModal)
     new_data_source_modal = Instance(NewDataSourceModal)
     new_kpi_calculator_modal = Instance(NewKPICalculatorModal)
 
     # Menu actions in the TreeEditor
     def new_mco_handler(self, editor, object):
         """ Opens a dialog for creating a MCO """
+        self.new_mco_modal.configure_traits()
 
     def new_data_source_handler(self, editor, object):
         """ Opens a dialog for creating a Data Source """
@@ -48,8 +51,12 @@ class WorkflowHandler(Handler):
 
     # On trait changed listeners
     def object_workflow_changed(self, info):
+        self.new_mco_modal.workflow = info.object.workflow.model
         self.new_data_source_modal.workflow = info.object.workflow.model
         self.new_kpi_calculator_modal.workflow = info.object.workflow.model
+
+    def object_available_mcos_changed(self, info):
+        self.new_mco_modal.available_mcos = info.object.available_mcos
 
     def object_available_data_sources_changed(self, info):
         self.new_data_source_modal.available_data_sources = \
@@ -58,6 +65,9 @@ class WorkflowHandler(Handler):
     def object_available_kpi_calculators_changed(self, info):
         self.new_kpi_calculator_modal.available_kpi_calculators = \
             info.object.available_kpi_calculators
+
+    def _new_mco_modal_default(self):
+        return NewMCOModal()
 
     def _new_data_source_modal_default(self):
         return NewDataSourceModal()
