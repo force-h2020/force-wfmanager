@@ -2,7 +2,6 @@ from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (
     ITreeNodeAdapter, ITreeNode, TreeEditor, TreeNode, ListStrEditor, VSplit,
     UItem, View, ModelView, Menu, Action, Handler, VGroup, Tabbed)
-from traitsui.list_str_adapter import ListStrAdapter
 from traits.api import (Button, Instance, List, provides,
                         register_factory, on_trait_change, Property)
 
@@ -13,29 +12,12 @@ from force_bdss.api import (
 
 from force_bdss.workspecs.workflow import Workflow
 
+from .view_utils import get_bundle_name, ListAdapter
 from .new_data_source_modal import NewDataSourceModal
 
 # Create an empty view and menu for objects that have no data to display:
 no_view = View()
 no_menu = Menu()
-
-
-def get_bundle_name(bundle):
-    """ Returns a bundle name, given the bundle. This ensure that something
-    will be displayed (id or name of the bundle) even if no name has been
-    specified for the bundle """
-    name = bundle.name.strip()
-    if len(name) != 0:
-        return name
-    else:
-        return bundle.id
-
-
-class ListAdapter(ListStrAdapter):
-    """ Adapter for the list of available MCOs/Data sources/KPI calculators
-    bundles """
-    def get_text(self, object, trait, index):
-        return get_bundle_name(self.item)
 
 
 class WorkflowHandler(Handler):
