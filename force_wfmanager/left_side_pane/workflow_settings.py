@@ -55,6 +55,7 @@ class WorkflowHandler(Handler):
     def _new_entity_modal_default(self):
         return NewEntityModal()
 
+
 new_mco_action = Action(
     name='New MCO...',
     action='handler.new_mco_handler(editor, object)')
