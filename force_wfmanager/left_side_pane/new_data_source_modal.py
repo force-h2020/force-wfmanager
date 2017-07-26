@@ -16,9 +16,11 @@ class ModalHandler(Handler):
                 info.object.current_model
             )
         info.ui.dispose(True)
+        info.object.clear_model()
 
     def object_cancel_button_changed(self, info):
         info.ui.dispose(False)
+        info.object.clear_model()
 
 
 class NewDataSourceModal(HasStrictTraits):
@@ -62,8 +64,15 @@ class NewDataSourceModal(HasStrictTraits):
         kind="livemodal"
     )
 
+    def clear_model(self):
+        self.selected_data_source = None
+        self.current_model = None
+        self._models = {}
+
     @on_trait_change("selected_data_source")
     def update_current_model(self):
+        if self.selected_data_source is None:
+            return
         selected_data_source_id = id(self.selected_data_source)
         if self._models.get(selected_data_source_id) is None:
             model = self.selected_data_source.create_model()

@@ -16,9 +16,11 @@ class ModalHandler(Handler):
                 info.object.current_model
             )
         info.ui.dispose(True)
+        info.object.clear_model()
 
     def object_cancel_button_changed(self, info):
         info.ui.dispose(False)
+        info.object.clear_model()
 
 
 class NewKPICalculatorModal(HasStrictTraits):
@@ -62,8 +64,15 @@ class NewKPICalculatorModal(HasStrictTraits):
         kind="livemodal"
     )
 
+    def clear_model(self):
+        self.selected_kpi_calculator = None
+        self.current_model = None
+        self._models = {}
+
     @on_trait_change("selected_kpi_calculator")
     def update_current_model(self):
+        if self.selected_kpi_calculator is None:
+            return
         selected_kpi_calculator_id = id(self.selected_kpi_calculator)
         if self._models.get(selected_kpi_calculator_id) is None:
             model = self.selected_kpi_calculator.create_model()
