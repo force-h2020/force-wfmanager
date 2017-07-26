@@ -52,7 +52,10 @@ class NewMCOModal(HasStrictTraits):
                 UItem('current_model', style='custom')
             ),
             HGroup(
-                UItem('add_mco_button'),
+                UItem(
+                    'add_mco_button',
+                    enabled_when="selected_mco is not None"
+                ),
                 UItem('cancel_button')
             )
         ),

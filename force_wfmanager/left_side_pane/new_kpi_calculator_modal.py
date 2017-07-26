@@ -53,7 +53,10 @@ class NewKPICalculatorModal(HasStrictTraits):
                 UItem('current_model', style='custom')
             ),
             HGroup(
-                UItem('add_kpi_calculator_button'),
+                UItem(
+                    'add_kpi_calculator_button',
+                    enabled_when="selected_kpi_calculator is not None"
+                ),
                 UItem('cancel_button')
             )
         ),

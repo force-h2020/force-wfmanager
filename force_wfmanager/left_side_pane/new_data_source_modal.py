@@ -53,7 +53,10 @@ class NewDataSourceModal(HasStrictTraits):
                 UItem('current_model', style='custom')
             ),
             HGroup(
-                UItem('add_data_source_button'),
+                UItem(
+                    'add_data_source_button',
+                    enabled_when="selected_data_source is not None"
+                ),
                 UItem('cancel_button')
             )
         ),
