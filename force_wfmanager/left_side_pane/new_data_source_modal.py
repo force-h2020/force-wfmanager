@@ -57,6 +57,8 @@ class NewDataSourceModal(HasStrictTraits):
         ),
         title='New Data Source',
         handler=ModalHandler(),
+        width=800,
+        height=600,
         kind="livemodal"
     )
 
