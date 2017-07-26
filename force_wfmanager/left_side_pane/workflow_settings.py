@@ -13,6 +13,8 @@ from force_bdss.api import (
 
 from force_bdss.workspecs.workflow import Workflow
 
+from .new_data_source_modal import NewDataSourceModal
+
 # Create an empty view and menu for objects that have no data to display:
 no_view = View()
 no_menu = Menu()
@@ -36,12 +38,16 @@ class ListAdapter(ListStrAdapter):
         return get_bundle_name(self.item)
 
 
-class TreeEditorHandler(Handler):
+class WorkflowHandler(Handler):
+    new_data_source_modal = Instance(NewDataSourceModal)
+
+    # Menu actions in the TreeEditor
     def new_mco_handler(self, editor, object):
         """ Opens a dialog for creating the MCO """
 
     def new_data_source_handler(self, editor, object):
         """ Opens a dialog for creating the Data Source """
+        self.new_data_source_modal.configure_traits()
 
     def new_kpi_calculator_handler(self, editor, object):
         """ Opens a dialog for creating the KPI Calculator """
@@ -55,6 +61,16 @@ class TreeEditorHandler(Handler):
     def delete_kpi_calculator_handler(self, editor, object):
         editor.object.workflow.model.kpi_calculators.remove(object)
 
+    # On trait changed listeners
+    def object_workflow_changed(self, info):
+        self.new_data_source_modal.workflow = info.object.workflow.model
+
+    def object_available_data_sources_changed(self, info):
+        self.new_data_source_modal.available_data_sources = \
+            info.object.available_data_sources
+
+    def _new_data_source_modal_default(self):
+        return NewDataSourceModal()
 
 new_mco_action = Action(
     name='New MCO...',
@@ -218,19 +234,15 @@ class WorkflowSettings(TraitsDockPane):
     #: Selected MCO bundle in the list of MCOs
     selected_mco = Instance(BaseMultiCriteriaOptimizerBundle)
 
-    #: Selected data source bundle in the list of data sources
-    selected_data_source = Instance(BaseDataSourceBundle)
-
     #: Selected KPI calculator bundle in the list of KPI calculators
     selected_kpi_calculator = Instance(BaseKPICalculatorBundle)
 
     add_mco_button = Button("Add")
-    add_data_source_button = Button("Add")
     add_kpi_calculator_button = Button("Add")
 
     workflow = Instance(WorkflowModelView)
 
-    view = View(VSplit(
+    traits_view = View(VSplit(
         UItem(name='workflow',
               editor=tree_editor,
               show_label=False),
@@ -250,19 +262,6 @@ class WorkflowSettings(TraitsDockPane):
             ),
             VGroup(
                 UItem(
-                    name='add_data_source_button',
-                    enabled_when="selected_data_source is not None"
-                ),
-                UItem(
-                    "available_data_sources",
-                    editor=ListStrEditor(
-                        adapter=ListAdapter(),
-                        selected="selected_data_source"),
-                ),
-                label='Data Sources',
-            ),
-            VGroup(
-                UItem(
                     name='add_kpi_calculator_button',
                     enabled_when="selected_kpi_calculator is not None"
                 ),
@@ -278,7 +277,7 @@ class WorkflowSettings(TraitsDockPane):
         width=800,
         height=600,
         resizable=True,
-        handler=TreeEditorHandler())
+        handler=WorkflowHandler())
 
     def _workflow_default(self):
         return WorkflowModelView()
@@ -288,13 +287,6 @@ class WorkflowSettings(TraitsDockPane):
         if self.selected_mco is not None:
             self.workflow.model.multi_criteria_optimizer = \
                 self.selected_mco.create_model()
-
-    @on_trait_change('add_data_source_button')
-    def add_data_source(self):
-        if self.selected_data_source is not None:
-            self.workflow.model.data_sources.append(
-                self.selected_data_source.create_model()
-            )
 
     @on_trait_change('add_kpi_calculator_button')
     def add_kpi_calculator(self):
