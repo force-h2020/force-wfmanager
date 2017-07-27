@@ -5,8 +5,11 @@ from traitsui.api import (
 from traits.api import Instance, List, provides, register_factory
 
 from force_bdss.api import (
-    BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
-    BaseMCOBundle, BaseDataSourceBundle, BaseKPICalculatorBundle)
+    BaseMCOModel, BaseMCOBundle,
+    BaseDataSourceModel, BaseDataSourceBundle,
+    BaseKPICalculatorModel, BaseKPICalculatorBundle,
+    BaseMCOParameter, BaseMCOParameterFactory)
+from force_bdss.mco.parameters.core_mco_parameters import all_core_factories
 
 from .view_utils import get_bundle_name
 from .new_entity_modal import NewEntityModal
@@ -24,6 +27,13 @@ class WorkflowHandler(Handler):
         modal = NewEntityModal(
             workflow=editor.object.workflow,
             available_bundles=editor.object.available_mcos)
+        modal.configure_traits()
+
+    def new_parameter_handler(self, editor, object):
+        """ Opens a dialog for creating a parameter """
+        modal = NewEntityModal(
+            workflow=editor.object.workflow,
+            available_bundles=editor.object.available_parameters)
         modal.configure_traits()
 
     def new_data_source_handler(self, editor, object):
@@ -53,6 +63,10 @@ class WorkflowHandler(Handler):
 new_mco_action = Action(
     name='New MCO...',
     action='handler.new_mco_handler(editor, object)')
+
+new_parameter_action = Action(
+    name='New parameter...',
+    action='handler.new_parameter_handler(editor, object)')
 
 new_data_source_action = Action(
     name='New DataSource...',
@@ -90,7 +104,19 @@ class MCOAdapter(ITreeNodeAdapter):
         return view
 
     def get_menu(self):
-        return Menu(delete_mco_action)
+        return Menu(delete_mco_action, new_parameter_action)
+
+    def allows_children(self):
+        return True
+
+    def has_children(self):
+        return True
+
+    def get_children(self):
+        return self.adaptee.parameters
+
+    def can_auto_open(self):
+        return True
 
 
 @provides(ITreeNode)
@@ -173,6 +199,9 @@ class WorkflowSettings(TraitsDockPane):
     #: Available MCO bundles
     available_mcos = List(BaseMCOBundle)
 
+    #: Available parameters factories
+    available_parameters = List(Instance(BaseMCOParameterFactory))
+
     #: Available data source bundles
     available_data_sources = List(BaseDataSourceBundle)
 
@@ -195,3 +224,6 @@ class WorkflowSettings(TraitsDockPane):
 
     def _workflow_default(self):
         return WorkflowModelView()
+
+    def _available_parameters_default(self):
+        return all_core_factories()

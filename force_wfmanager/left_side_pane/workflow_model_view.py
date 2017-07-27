@@ -2,8 +2,8 @@ from traits.api import Instance, List, Property
 from traitsui.api import ModelView
 
 from force_bdss.workspecs.workflow import Workflow
-from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
-                            BaseKPICalculatorModel)
+from force_bdss.api import (BaseMCOModel, BaseMCOParameter,
+                            BaseDataSourceModel, BaseKPICalculatorModel)
 
 
 class WorkflowModelView(ModelView):
@@ -22,6 +22,12 @@ class WorkflowModelView(ModelView):
     def add_entity(self, entity):
         if isinstance(entity, BaseMCOModel):
             self.model.mco = entity
+        elif isinstance(entity, BaseMCOParameter):
+            if self.model.mco is None:
+                raise("Cannot add a parameter to the workflow if no "
+                      "MCO defined")
+
+            self.model.mco.parameters.append(entity)
         elif isinstance(entity, BaseDataSourceModel):
             self.model.data_sources.append(entity)
         elif isinstance(entity, BaseKPICalculatorModel):

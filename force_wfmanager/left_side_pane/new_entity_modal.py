@@ -4,9 +4,11 @@ from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
                           HGroup, ListStrEditor, InstanceEditor)
 from traitsui.list_str_adapter import ListStrAdapter
 
-from force_bdss.api import (BaseMCOModel, BaseMCOBundle,
-                            BaseDataSourceModel, BaseDataSourceBundle,
-                            BaseKPICalculatorModel, BaseKPICalculatorBundle)
+from force_bdss.api import (
+    BaseMCOModel, BaseMCOBundle,
+    BaseDataSourceModel, BaseDataSourceBundle,
+    BaseKPICalculatorModel, BaseKPICalculatorBundle,
+    BaseMCOParameter, BaseMCOParameterFactory)
 
 from .workflow_model_view import WorkflowModelView
 from .view_utils import get_bundle_name
@@ -38,6 +40,7 @@ class NewEntityModal(HasStrictTraits):
     #: which implement the create_model method
     available_bundles = Either(
         List(Instance(BaseMCOBundle)),
+        List(Instance(BaseMCOParameterFactory)),
         List(Instance(BaseDataSourceBundle)),
         List(Instance(BaseKPICalculatorBundle)),
     )
@@ -45,6 +48,7 @@ class NewEntityModal(HasStrictTraits):
     #: Selected bundle in the list
     selected_bundle = Either(
         Instance(BaseMCOBundle),
+        Instance(BaseMCOParameterFactory),
         Instance(BaseDataSourceBundle),
         Instance(BaseKPICalculatorBundle)
     )
@@ -55,6 +59,7 @@ class NewEntityModal(HasStrictTraits):
     #: Currently editable model
     current_model = Either(
         Instance(BaseMCOModel),
+        Instance(BaseMCOParameter),
         Instance(BaseDataSourceModel),
         Instance(BaseKPICalculatorModel)
     )
