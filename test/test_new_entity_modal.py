@@ -64,13 +64,13 @@ class NewEntityModalTest(unittest.TestCase):
         )
         return modal, ModalInfoDummy(object=modal)
 
-    def test_add_multi_criteria_optimizer(self):
+    def test_add_mco(self):
         modal, modal_info = self._get_new_mco_dialog()
 
         # Simulate pressing add mco button (should do nothing, because no mco
         # is selected)
         self.handler.object_add_button_changed(modal_info)
-        self.assertIsNone(self.workflow.model.multi_criteria_optimizer)
+        self.assertIsNone(self.workflow.model.mco)
 
         # Simulate selecting an mco bundle in the list
         modal, modal_info = self._get_new_mco_dialog()
@@ -78,10 +78,8 @@ class NewEntityModalTest(unittest.TestCase):
 
         # Simulate pressing add mco button
         self.handler.object_add_button_changed(modal_info)
-        self.assertIsInstance(
-            self.workflow.model.multi_criteria_optimizer,
-            BaseMCOModel)
-        old_mco = self.workflow.model.multi_criteria_optimizer
+        self.assertIsInstance(self.workflow.model.mco, BaseMCOModel)
+        old_mco = self.workflow.model.mco
 
         # Simulate selecting an mco bundle in the list
         modal, modal_info = self._get_new_mco_dialog()
@@ -89,9 +87,7 @@ class NewEntityModalTest(unittest.TestCase):
 
         # Simulate pressing add mco button again to create a new mco model
         self.handler.object_add_button_changed(modal_info)
-        self.assertNotEqual(
-            self.workflow.model.multi_criteria_optimizer,
-            old_mco)
+        self.assertNotEqual(self.workflow.model.mco, old_mco)
 
         self.assertEqual(len(self.workflow.mco_representation), 1)
 

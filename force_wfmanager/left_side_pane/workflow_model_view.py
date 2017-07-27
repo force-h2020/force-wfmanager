@@ -11,7 +11,7 @@ class WorkflowModelView(ModelView):
 
     mco_representation = Property(
         List(BaseMCOModel),
-        depends_on='model.multi_criteria_optimizer')
+        depends_on='model.mco')
     data_sources_representation = Property(
         List(BaseDataSourceModel),
         depends_on='model.data_sources')
@@ -21,7 +21,7 @@ class WorkflowModelView(ModelView):
 
     def add_entity(self, entity):
         if isinstance(entity, BaseMCOModel):
-            self.model.multi_criteria_optimizer = entity
+            self.model.mco = entity
         elif isinstance(entity, BaseDataSourceModel):
             self.model.data_sources.append(entity)
         elif isinstance(entity, BaseKPICalculatorModel):
@@ -34,8 +34,8 @@ class WorkflowModelView(ModelView):
             )
 
     def _get_mco_representation(self):
-        if self.model.multi_criteria_optimizer is not None:
-            return [self.model.multi_criteria_optimizer]
+        if self.model.mco is not None:
+            return [self.model.mco]
         else:
             return []
 

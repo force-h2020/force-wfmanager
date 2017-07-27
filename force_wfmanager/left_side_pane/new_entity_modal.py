@@ -4,7 +4,7 @@ from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
                           HGroup, ListStrEditor, InstanceEditor)
 from traitsui.list_str_adapter import ListStrAdapter
 
-from force_bdss.api import (BaseMCOModel, BaseMultiCriteriaOptimizerBundle,
+from force_bdss.api import (BaseMCOModel, BaseMCOBundle,
                             BaseDataSourceModel, BaseDataSourceBundle,
                             BaseKPICalculatorModel, BaseKPICalculatorBundle)
 
@@ -37,14 +37,14 @@ class NewEntityModal(HasStrictTraits):
     #: Available bundles, this class is generic and can contain any bundle
     #: which implement the create_model method
     available_bundles = Either(
-        List(Instance(BaseMultiCriteriaOptimizerBundle)),
+        List(Instance(BaseMCOBundle)),
         List(Instance(BaseDataSourceBundle)),
         List(Instance(BaseKPICalculatorBundle)),
     )
 
     #: Selected bundle in the list
     selected_bundle = Either(
-        Instance(BaseMultiCriteriaOptimizerBundle),
+        Instance(BaseMCOBundle),
         Instance(BaseDataSourceBundle),
         Instance(BaseKPICalculatorBundle)
     )

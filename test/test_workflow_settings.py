@@ -35,7 +35,7 @@ def get_workflow_settings():
 def get_workflow_model_view():
     return WorkflowModelView(
         model=Workflow(
-            multi_criteria_optimizer=mock.Mock(spec=BaseMCOModel),
+            mco=mock.Mock(spec=BaseMCOModel),
             data_sources=[mock.Mock(spec=BaseDataSourceModel),
                           mock.Mock(spec=BaseDataSourceModel)],
             kpi_calculators=[mock.Mock(spec=BaseKPICalculatorModel),
@@ -60,7 +60,7 @@ class TestWorkflowSettings(unittest.TestCase):
         self.workflow = self.settings.workflow.model
 
     def test_ui_initialization(self):
-        self.assertIsNone(self.workflow.multi_criteria_optimizer)
+        self.assertIsNone(self.workflow.mco)
         self.assertEqual(len(self.workflow.data_sources), 0)
         self.assertEqual(len(self.workflow.kpi_calculators), 0)
 
@@ -82,14 +82,14 @@ class TestTreeEditorHandler(unittest.TestCase):
 
     def test_delete_mco(self):
         self.assertIsNotNone(
-            self.workflow.model.multi_criteria_optimizer)
+            self.workflow.model.mco)
 
         self.handler.delete_mco_handler(
             self.workflow_settings_editor,
-            self.workflow.model.multi_criteria_optimizer)
+            self.workflow.model.mco)
 
         self.assertIsNone(
-            self.workflow.model.multi_criteria_optimizer)
+            self.workflow.model.mco)
 
     def test_delete_data_source(self):
         first_data_source = self.workflow.model.data_sources[0]
