@@ -36,7 +36,8 @@ class NewEntityModal(HasStrictTraits):
     calculator to the workflow """
     workflow = Instance(WorkflowModelView)
 
-    #: Available bundles
+    #: Available bundles, this class is generic and can contain any bundle
+    #: which implement the create_model method
     available_bundles = Either(
         List(Instance(BaseMultiCriteriaOptimizerBundle)),
         List(Instance(BaseDataSourceBundle)),
@@ -60,6 +61,9 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseKPICalculatorModel)
     )
 
+    #: Cache for created models, models are created when selecting a new bundle
+    #: and cached so that when selected_bundle change the created models are
+    #: saved
     _models = Dict()
 
     traits_view = View(
