@@ -32,8 +32,6 @@ class ModalInfoDummy(HasTraits):
 
 class NewEntityModalTest(unittest.TestCase):
     def setUp(self):
-        self.modal = NewEntityModal()
-
         self.available_mcos = [DakotaBundle()]
         self.available_data_sources = [CSVExtractorBundle()]
         self.available_kpi_calculators = [KPIAdderBundle()]
@@ -42,35 +40,54 @@ class NewEntityModalTest(unittest.TestCase):
             model=Workflow()
         )
 
-        self.modal.workflow = self.workflow
-
-        self.modal_info = ModalInfoDummy(object=self.modal)
-
         self.handler = ModalHandler()
 
+    def _get_new_mco_dialog(self):
+        modal = NewEntityModal(
+            workflow=self.workflow,
+            available_bundles=self.available_mcos
+        )
+        return modal, ModalInfoDummy(object=modal)
+
+    def _get_new_data_source_dialog(self):
+        modal = NewEntityModal(
+            workflow=self.workflow,
+            available_bundles=self.available_data_sources
+        )
+        return modal, ModalInfoDummy(object=modal)
+
+    def _get_new_kpi_calculator_dialog(self):
+        modal = NewEntityModal(
+            workflow=self.workflow,
+            available_bundles=self.available_kpi_calculators
+        )
+        return modal, ModalInfoDummy(object=modal)
+
     def test_add_multi_criteria_optimizer(self):
-        self.modal.available_bundles = self.available_mcos
+        modal, modal_info = self._get_new_mco_dialog()
 
         # Simulate pressing add mco button (should do nothing, because no mco
         # is selected)
-        self.handler.object_add_button_changed(self.modal_info)
+        self.handler.object_add_button_changed(modal_info)
         self.assertIsNone(self.workflow.model.multi_criteria_optimizer)
 
         # Simulate selecting an mco bundle in the list
-        self.modal.selected_bundle = self.modal.available_bundles[0]
+        modal, modal_info = self._get_new_mco_dialog()
+        modal.selected_bundle = modal.available_bundles[0]
 
         # Simulate pressing add mco button
-        self.handler.object_add_button_changed(self.modal_info)
+        self.handler.object_add_button_changed(modal_info)
         self.assertIsInstance(
             self.workflow.model.multi_criteria_optimizer,
             BaseMCOModel)
         old_mco = self.workflow.model.multi_criteria_optimizer
 
         # Simulate selecting an mco bundle in the list
-        self.modal.selected_bundle = self.modal.available_bundles[0]
+        modal, modal_info = self._get_new_mco_dialog()
+        modal.selected_bundle = modal.available_bundles[0]
 
         # Simulate pressing add mco button again to create a new mco model
-        self.handler.object_add_button_changed(self.modal_info)
+        self.handler.object_add_button_changed(modal_info)
         self.assertNotEqual(
             self.workflow.model.multi_criteria_optimizer,
             old_mco)
@@ -78,17 +95,18 @@ class NewEntityModalTest(unittest.TestCase):
         self.assertEqual(len(self.workflow.mco_representation), 1)
 
     def test_add_data_source(self):
-        self.modal.available_bundles = self.available_data_sources
+        modal, modal_info = self._get_new_data_source_dialog()
 
         # Simulate pressing add data_source button (should do nothing)
-        self.handler.object_add_button_changed(self.modal_info)
+        self.handler.object_add_button_changed(modal_info)
         self.assertEqual(len(self.workflow.model.data_sources), 0)
 
         # Simulate selecting a data_source bundle in the list
-        self.modal.selected_bundle = self.modal.available_bundles[0]
+        modal, modal_info = self._get_new_data_source_dialog()
+        modal.selected_bundle = modal.available_bundles[0]
 
         # Simulate pressing add data_source button
-        self.handler.object_add_button_changed(self.modal_info)
+        self.handler.object_add_button_changed(modal_info)
         self.assertIsInstance(
             self.workflow.model.data_sources[0],
             BaseDataSourceModel)
@@ -96,10 +114,11 @@ class NewEntityModalTest(unittest.TestCase):
         self.assertEqual(len(self.workflow.data_sources_representation), 1)
 
         # Simulate selecting a data_source bundle in the list
-        self.modal.selected_bundle = self.modal.available_bundles[0]
+        modal, modal_info = self._get_new_data_source_dialog()
+        modal.selected_bundle = modal.available_bundles[0]
 
         # Simulate pressing add data_source button again
-        self.handler.object_add_button_changed(self.modal_info)
+        self.handler.object_add_button_changed(modal_info)
         self.assertIsInstance(
             self.workflow.model.data_sources[1],
             BaseDataSourceModel)
@@ -110,17 +129,18 @@ class NewEntityModalTest(unittest.TestCase):
         self.assertEqual(len(self.workflow.data_sources_representation), 2)
 
     def test_add_kpi_calculator(self):
-        self.modal.available_bundles = self.available_kpi_calculators
+        modal, modal_info = self._get_new_kpi_calculator_dialog()
 
         # Simulate pressing add kpi_calculator button (should do nothing)
-        self.handler.object_add_button_changed(self.modal_info)
+        self.handler.object_add_button_changed(modal_info)
         self.assertEqual(len(self.workflow.model.kpi_calculators), 0)
 
         # Simulate selecting a kpi_calculator bundle in the list
-        self.modal.selected_bundle = self.modal.available_bundles[0]
+        modal, modal_info = self._get_new_kpi_calculator_dialog()
+        modal.selected_bundle = modal.available_bundles[0]
 
         # Simulate pressing add kpi_calculator button
-        self.handler.object_add_button_changed(self.modal_info)
+        self.handler.object_add_button_changed(modal_info)
         self.assertIsInstance(
             self.workflow.model.kpi_calculators[0],
             BaseKPICalculatorModel)
@@ -128,10 +148,11 @@ class NewEntityModalTest(unittest.TestCase):
         self.assertEqual(len(self.workflow.kpi_calculators_representation), 1)
 
         # Simulate selecting a kpi_calculator bundle in the list
-        self.modal.selected_bundle = self.modal.available_bundles[0]
+        modal, modal_info = self._get_new_kpi_calculator_dialog()
+        modal.selected_bundle = modal.available_bundles[0]
 
         # Simulate pressing add kpi_calculator button again
-        self.handler.object_add_button_changed(self.modal_info)
+        self.handler.object_add_button_changed(modal_info)
         self.assertIsInstance(
             self.workflow.model.kpi_calculators[1],
             BaseKPICalculatorModel)
@@ -142,14 +163,10 @@ class NewEntityModalTest(unittest.TestCase):
         self.assertEqual(len(self.workflow.kpi_calculators_representation), 2)
 
     def test_cancel_button(self):
-        self.modal.available_bundles = self.available_kpi_calculators
+        modal, modal_info = self._get_new_mco_dialog()
 
         # Simulate selecting a kpi_calculator bundle in the list
-        self.modal.selected_bundle = self.modal.available_bundles[0]
+        modal.selected_bundle = modal.available_bundles[0]
 
         # Simulate pressing cancel button
-        self.handler.object_cancel_button_changed(self.modal_info)
-
-        self.assertEqual(self.modal._models, {})
-        self.assertIsNone(self.modal.current_model)
-        self.assertIsNone(self.modal.selected_bundle)
+        self.handler.object_cancel_button_changed(modal_info)
