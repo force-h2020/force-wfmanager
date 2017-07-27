@@ -62,7 +62,7 @@ class NewEntityModal(HasStrictTraits):
     #: Cache for created models, models are created when selecting a new bundle
     #: and cached so that when selected_bundle change the created models are
     #: saved
-    _models = Dict()
+    _cached_models = Dict()
 
     traits_view = View(
         VGroup(
@@ -95,10 +95,11 @@ class NewEntityModal(HasStrictTraits):
         if self.selected_bundle is None:
             self.current_model = None
             return
-        selected_bundle_id = id(self.selected_bundle)
-        if self._models.get(selected_bundle_id) is None:
-            model = self.selected_bundle.create_model()
-            self._models[selected_bundle_id] = model
-            self.current_model = model
-        else:
-            self.current_model = self._models.get(selected_bundle_id)
+
+        cached_model = self._cached_models.get(self.selected_bundle)
+
+        if cached_model is None:
+            cached_model = self.selected_bundle.create_model()
+            self._cached_models[self.selected_bundle] = cached_model
+
+        self.current_model = cached_model
