@@ -14,6 +14,7 @@ from force_bdss.mco.parameters.core_mco_parameters import all_core_factories
 from .view_utils import get_bundle_name
 from .new_entity_modal import NewEntityModal
 from .workflow_model_view import WorkflowModelView
+from .mco_model_view import MCOModelView
 
 # Create an empty view and menu for objects that have no data to display:
 no_view = View()
@@ -93,10 +94,11 @@ delete_kpi_calculator_action = Action(
 
 
 @provides(ITreeNode)
-class MCOAdapter(ITreeNodeAdapter):
-    """ Adapts the MCO model view to be displayed in the tree editor """
+class MCOParameterAdapter(ITreeNodeAdapter):
+    """ Adapts the MCO parameter model view to be displayed in the tree editor
+    """
     def get_label(self):
-        return get_bundle_name(self.adaptee.bundle)
+        return get_bundle_name(self.adaptee.factory)
 
     def get_view(self):
         view = self.adaptee.trait_view()
@@ -104,19 +106,7 @@ class MCOAdapter(ITreeNodeAdapter):
         return view
 
     def get_menu(self):
-        return Menu(delete_mco_action, new_parameter_action)
-
-    def allows_children(self):
-        return True
-
-    def has_children(self):
-        return True
-
-    def get_children(self):
-        return self.adaptee.parameters
-
-    def can_auto_open(self):
-        return True
+        return Menu()
 
 
 @provides(ITreeNode)
@@ -151,7 +141,7 @@ class KPICalculatorAdapter(ITreeNodeAdapter):
         return Menu(delete_kpi_calculator_action)
 
 
-register_factory(MCOAdapter, BaseMCOModel, ITreeNode)
+register_factory(MCOParameterAdapter, BaseMCOParameter, ITreeNode)
 register_factory(DataSourceAdapter, BaseDataSourceModel, ITreeNode)
 register_factory(KPICalculatorAdapter, BaseKPICalculatorModel, ITreeNode)
 
@@ -170,6 +160,20 @@ tree_editor = TreeEditor(
                  label='=MCO',
                  view=no_view,
                  menu=Menu(new_mco_action),
+                 ),
+        TreeNode(node_for=[MCOModelView],
+                 auto_open=True,
+                 children='',
+                 label='label',
+                 view=View(UItem('model', style="custom"), kind="subpanel"),
+                 menu=Menu(delete_mco_action),
+                 ),
+        TreeNode(node_for=[MCOModelView],
+                 auto_open=True,
+                 children='mco_parameters_representation',
+                 label='=Parameters',
+                 view=no_view,
+                 menu=Menu(new_parameter_action),
                  ),
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,

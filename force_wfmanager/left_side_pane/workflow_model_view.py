@@ -5,12 +5,14 @@ from force_bdss.workspecs.workflow import Workflow
 from force_bdss.api import (BaseMCOModel, BaseMCOParameter,
                             BaseDataSourceModel, BaseKPICalculatorModel)
 
+from .mco_model_view import MCOModelView
+
 
 class WorkflowModelView(ModelView):
     model = Instance(Workflow)
 
     mco_representation = Property(
-        List(BaseMCOModel),
+        List(MCOModelView),
         depends_on='model.mco')
     data_sources_representation = Property(
         List(BaseDataSourceModel),
@@ -41,7 +43,7 @@ class WorkflowModelView(ModelView):
 
     def _get_mco_representation(self):
         if self.model.mco is not None:
-            return [self.model.mco]
+            return [MCOModelView(model=self.model.mco)]
         else:
             return []
 
