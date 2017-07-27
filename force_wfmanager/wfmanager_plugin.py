@@ -16,8 +16,7 @@ class WfManagerPlugin(Plugin):
     tasks = List(contributes_to=TASKS)
 
     mco_bundles = ExtensionPoint(
-        List(Instance('force_bdss.mco.i_multi_criteria_optimizer_bundle.'
-                      'IMultiCriteriaOptimizerBundle')),
+        List(Instance('force_bdss.mco.i_mco_bundle.IMCOBundle')),
         id=ExtensionPointID.MCO_BUNDLES,
         desc="""
         Available MCOs for the Workflow Manager
