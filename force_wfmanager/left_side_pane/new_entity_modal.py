@@ -93,6 +93,7 @@ class NewEntityModal(HasStrictTraits):
     @on_trait_change("selected_bundle")
     def update_current_model(self):
         if self.selected_bundle is None:
+            self.current_model = None
             return
         selected_bundle_id = id(self.selected_bundle)
         if self._models.get(selected_bundle_id) is None:
