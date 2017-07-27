@@ -24,11 +24,9 @@ class ModalHandler(Handler):
         if info.object.current_model is not None:
             info.object.workflow.add_entity(info.object.current_model)
         info.ui.dispose(True)
-        info.object.clear_model()
 
     def object_cancel_button_changed(self, info):
         info.ui.dispose(False)
-        info.object.clear_model()
 
 
 class NewEntityModal(HasStrictTraits):
@@ -91,11 +89,6 @@ class NewEntityModal(HasStrictTraits):
         height=600,
         kind="livemodal"
     )
-
-    def clear_model(self):
-        self.selected_bundle = None
-        self.current_model = None
-        self._models = {}
 
     @on_trait_change("selected_bundle")
     def update_current_model(self):

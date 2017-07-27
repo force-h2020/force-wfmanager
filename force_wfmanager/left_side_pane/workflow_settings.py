@@ -19,25 +19,27 @@ no_menu = Menu()
 
 
 class WorkflowHandler(Handler):
-    new_entity_modal = Instance(NewEntityModal)
-
     # Menu actions in the TreeEditor
     def new_mco_handler(self, editor, object):
         """ Opens a dialog for creating a MCO """
-        self.new_entity_modal.available_bundles = editor.object.available_mcos
-        self.new_entity_modal.configure_traits()
+        modal = NewEntityModal(
+            workflow=editor.object.workflow,
+            available_bundles=editor.object.available_mcos)
+        modal.configure_traits()
 
     def new_data_source_handler(self, editor, object):
         """ Opens a dialog for creating a Data Source """
-        self.new_entity_modal.available_bundles = \
-            editor.object.available_data_sources
-        self.new_entity_modal.configure_traits()
+        modal = NewEntityModal(
+            workflow=editor.object.workflow,
+            available_bundles=editor.object.available_data_sources)
+        modal.configure_traits()
 
     def new_kpi_calculator_handler(self, editor, object):
         """ Opens a dialog for creating a KPI Calculator """
-        self.new_entity_modal.available_bundles = \
-            editor.object.available_kpi_calculators
-        self.new_entity_modal.configure_traits()
+        modal = NewEntityModal(
+            workflow=editor.object.workflow,
+            available_bundles=editor.object.available_kpi_calculators)
+        modal.configure_traits()
 
     def delete_mco_handler(self, editor, object):
         editor.object.workflow.model.multi_criteria_optimizer = None
@@ -47,13 +49,6 @@ class WorkflowHandler(Handler):
 
     def delete_kpi_calculator_handler(self, editor, object):
         editor.object.workflow.model.kpi_calculators.remove(object)
-
-    # On trait changed listeners
-    def object_workflow_changed(self, info):
-        self.new_entity_modal.workflow = info.object.workflow
-
-    def _new_entity_modal_default(self):
-        return NewEntityModal()
 
 
 new_mco_action = Action(
