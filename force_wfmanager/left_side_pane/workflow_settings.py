@@ -6,8 +6,7 @@ from traits.api import Instance, List, provides, register_factory
 
 from force_bdss.api import (
     BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
-    BaseMultiCriteriaOptimizerBundle, BaseDataSourceBundle,
-    BaseKPICalculatorBundle)
+    BaseMCOBundle, BaseDataSourceBundle, BaseKPICalculatorBundle)
 
 from .view_utils import get_bundle_name
 from .new_entity_modal import NewEntityModal
@@ -42,7 +41,7 @@ class WorkflowHandler(Handler):
         modal.configure_traits()
 
     def delete_mco_handler(self, editor, object):
-        editor.object.workflow.model.multi_criteria_optimizer = None
+        editor.object.workflow.model.mco = None
 
     def delete_data_source_handler(self, editor, object):
         editor.object.workflow.model.data_sources.remove(object)
@@ -172,7 +171,7 @@ class WorkflowSettings(TraitsDockPane):
     name = 'Workflow Settings'
 
     #: Available MCO bundles
-    available_mcos = List(BaseMultiCriteriaOptimizerBundle)
+    available_mcos = List(BaseMCOBundle)
 
     #: Available data source bundles
     available_data_sources = List(BaseDataSourceBundle)
@@ -181,7 +180,7 @@ class WorkflowSettings(TraitsDockPane):
     available_kpi_calculators = List(BaseKPICalculatorBundle)
 
     #: Selected MCO bundle in the list of MCOs
-    selected_mco = Instance(BaseMultiCriteriaOptimizerBundle)
+    selected_mco = Instance(BaseMCOBundle)
 
     workflow = Instance(WorkflowModelView)
 
