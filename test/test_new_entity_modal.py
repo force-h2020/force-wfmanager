@@ -2,10 +2,11 @@ import unittest
 
 from traits.api import HasTraits, Instance
 
-from force_bdss.core_plugins.dummy_mco.dakota.dakota_bundle import DakotaBundle
-from force_bdss.core_plugins.csv_extractor.csv_extractor.csv_extractor_bundle \
-    import CSVExtractorBundle
-from force_bdss.core_plugins.dummy_kpi.kpi_adder.kpi_adder_bundle import (
+from force_bdss.core_plugins.dummy.dummy_dakota.dakota_bundle import (
+    DummyDakotaBundle)
+from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_bundle import (
+    CSVExtractorBundle)
+from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_bundle import (
     KPIAdderBundle)
 from force_bdss.workspecs.workflow import Workflow
 from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
@@ -32,7 +33,7 @@ class ModalInfoDummy(HasTraits):
 
 class NewEntityModalTest(unittest.TestCase):
     def setUp(self):
-        self.available_mcos = [DakotaBundle()]
+        self.available_mcos = [DummyDakotaBundle()]
         self.available_data_sources = [CSVExtractorBundle()]
         self.available_kpi_calculators = [KPIAdderBundle()]
 

@@ -6,10 +6,11 @@ except ImportError:
 
 from traits.api import Instance, HasTraits
 
-from force_bdss.core_plugins.dummy_mco.dakota.dakota_bundle import DakotaBundle
-from force_bdss.core_plugins.csv_extractor.csv_extractor.csv_extractor_bundle \
-    import CSVExtractorBundle
-from force_bdss.core_plugins.dummy_kpi.kpi_adder.kpi_adder_bundle import (
+from force_bdss.core_plugins.dummy.dummy_dakota.dakota_bundle import (
+    DummyDakotaBundle)
+from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_bundle import (
+    CSVExtractorBundle)
+from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_bundle import (
     KPIAdderBundle)
 from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
                             BaseKPICalculatorModel)
@@ -25,7 +26,7 @@ class WorkflowSettingsEditor(HasTraits):
 
 def get_workflow_settings():
     return WorkflowSettings(
-        available_mcos=[DakotaBundle()],
+        available_mcos=[DummyDakotaBundle()],
         available_data_sources=[CSVExtractorBundle()],
         available_kpi_calculators=[KPIAdderBundle()]
     )
