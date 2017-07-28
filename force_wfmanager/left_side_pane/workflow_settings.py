@@ -54,11 +54,17 @@ class WorkflowHandler(Handler):
     def delete_mco_handler(self, editor, object):
         editor.object.workflow.model.mco = None
 
+    def delete_mco_parameter_handler(self, editor, object):
+        workflow = editor.object.workflow.model
+        workflow.mco.parameters.remove(object)
+
     def delete_data_source_handler(self, editor, object):
-        editor.object.workflow.model.data_sources.remove(object)
+        workflow = editor.object.workflow.model
+        workflow.data_sources.remove(object)
 
     def delete_kpi_calculator_handler(self, editor, object):
-        editor.object.workflow.model.kpi_calculators.remove(object)
+        workflow = editor.object.workflow.model
+        workflow.kpi_calculators.remove(object)
 
 
 new_mco_action = Action(
@@ -80,6 +86,11 @@ new_kpi_calculator_action = Action(
 delete_mco_action = Action(
     name='Delete',
     action='handler.delete_mco_handler(editor, object)'
+)
+
+delete_mco_parameter_action = Action(
+    name='Delete',
+    action='handler.delete_mco_parameter_handler(editor, object)'
 )
 
 delete_data_source_action = Action(
@@ -106,7 +117,7 @@ class MCOParameterAdapter(ITreeNodeAdapter):
         return view
 
     def get_menu(self):
-        return Menu()
+        return Menu(delete_mco_parameter_action)
 
 
 @provides(ITreeNode)
