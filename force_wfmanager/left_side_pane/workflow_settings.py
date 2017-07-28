@@ -4,7 +4,7 @@ from traitsui.api import (
     ITreeNodeAdapter, ITreeNode, TreeEditor, TreeNode, UItem, View, Menu,
     Action, Handler, VGroup)
 from traits.api import (Instance, List, provides, register_factory, Button,
-                        Bool, on_trait_change)
+                        on_trait_change)
 
 from force_bdss.api import (
     BaseMCOBundle,
@@ -243,14 +243,12 @@ class WorkflowSettings(TraitsDockPane):
 
     save_button = Button("Save")
 
-    workflow_valid = Bool(False)
-
     traits_view = View(
         VGroup(
             UItem(name='workflow',
                   editor=tree_editor,
                   show_label=False),
-            UItem(name='save_button', enabled_when='workflow_valid'),
+            UItem(name='save_button'),
         ),
         width=800,
         height=600,
@@ -262,10 +260,6 @@ class WorkflowSettings(TraitsDockPane):
 
     def _available_mco_parameter_factories_default(self):
         return all_core_factories()
-
-    @on_trait_change("workflow:model:mco")
-    def update_workflow_validity(self):
-        self.workflow_valid = self.workflow.model.mco is not None
 
     @on_trait_change("save_button")
     def save_workflow(self):
