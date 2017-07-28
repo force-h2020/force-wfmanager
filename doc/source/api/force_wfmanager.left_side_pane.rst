@@ -4,6 +4,14 @@ force_wfmanager.left_side_pane package
 Submodules
 ----------
 
+force_wfmanager.left_side_pane.mco_model_view module
+----------------------------------------------------
+
+.. automodule:: force_wfmanager.left_side_pane.mco_model_view
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 force_wfmanager.left_side_pane.new_entity_modal module
 ------------------------------------------------------
 

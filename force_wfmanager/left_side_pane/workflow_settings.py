@@ -5,12 +5,16 @@ from traitsui.api import (
 from traits.api import Instance, List, provides, register_factory
 
 from force_bdss.api import (
-    BaseMCOModel, BaseDataSourceModel, BaseKPICalculatorModel,
-    BaseMCOBundle, BaseDataSourceBundle, BaseKPICalculatorBundle)
+    BaseMCOBundle,
+    BaseDataSourceModel, BaseDataSourceBundle,
+    BaseKPICalculatorModel, BaseKPICalculatorBundle,
+    BaseMCOParameter, BaseMCOParameterFactory)
+from force_bdss.mco.parameters.core_mco_parameters import all_core_factories
 
 from .view_utils import get_bundle_name
 from .new_entity_modal import NewEntityModal
 from .workflow_model_view import WorkflowModelView
+from .mco_model_view import MCOModelView
 
 # Create an empty view and menu for objects that have no data to display:
 no_view = View()
@@ -18,41 +22,65 @@ no_menu = Menu()
 
 
 class WorkflowHandler(Handler):
-    # Menu actions in the TreeEditor
+    """ Handler for the Workflow editor, this handler will take care of events
+    on the tree editor (e.g. right click on a tree element) """
     def new_mco_handler(self, editor, object):
         """ Opens a dialog for creating a MCO """
         modal = NewEntityModal(
             workflow=editor.object.workflow,
-            available_bundles=editor.object.available_mcos)
+            available_factories=editor.object.available_mco_factories)
+        modal.configure_traits()
+
+    def new_parameter_handler(self, editor, object):
+        """ Opens a dialog for creating a parameter """
+        modal = NewEntityModal(
+            workflow=editor.object.workflow,
+            available_factories=editor.object.available_mco_parameter_factories
+        )
         modal.configure_traits()
 
     def new_data_source_handler(self, editor, object):
         """ Opens a dialog for creating a Data Source """
         modal = NewEntityModal(
             workflow=editor.object.workflow,
-            available_bundles=editor.object.available_data_sources)
+            available_factories=editor.object.available_data_source_factories)
         modal.configure_traits()
 
     def new_kpi_calculator_handler(self, editor, object):
         """ Opens a dialog for creating a KPI Calculator """
+        obj = editor.object
         modal = NewEntityModal(
-            workflow=editor.object.workflow,
-            available_bundles=editor.object.available_kpi_calculators)
+            workflow=obj.workflow,
+            available_factories=obj.available_kpi_calculator_factories)
         modal.configure_traits()
 
     def delete_mco_handler(self, editor, object):
+        """ Delete the MCO from the workflow """
         editor.object.workflow.model.mco = None
 
+    def delete_mco_parameter_handler(self, editor, object):
+        """ Delete one parameter from the MCO """
+        workflow = editor.object.workflow.model
+        workflow.mco.parameters.remove(object)
+
     def delete_data_source_handler(self, editor, object):
-        editor.object.workflow.model.data_sources.remove(object)
+        """ Delete a DataSource from the workflow """
+        workflow = editor.object.workflow.model
+        workflow.data_sources.remove(object)
 
     def delete_kpi_calculator_handler(self, editor, object):
-        editor.object.workflow.model.kpi_calculators.remove(object)
+        """ Delete a KPI Calculator from the workflow """
+        workflow = editor.object.workflow.model
+        workflow.kpi_calculators.remove(object)
 
 
 new_mco_action = Action(
     name='New MCO...',
     action='handler.new_mco_handler(editor, object)')
+
+new_parameter_action = Action(
+    name='New parameter...',
+    action='handler.new_parameter_handler(editor, object)')
 
 new_data_source_action = Action(
     name='New DataSource...',
@@ -67,6 +95,11 @@ delete_mco_action = Action(
     action='handler.delete_mco_handler(editor, object)'
 )
 
+delete_mco_parameter_action = Action(
+    name='Delete',
+    action='handler.delete_mco_parameter_handler(editor, object)'
+)
+
 delete_data_source_action = Action(
     name='Delete',
     action='handler.delete_data_source_handler(editor, object)'
@@ -79,10 +112,10 @@ delete_kpi_calculator_action = Action(
 
 
 @provides(ITreeNode)
-class MCOAdapter(ITreeNodeAdapter):
-    """ Adapts the MCO model view to be displayed in the tree editor """
+class MCOParameterAdapter(ITreeNodeAdapter):
+    """ Adapts the MCO parameter model to be displayed in the tree editor """
     def get_label(self):
-        return get_bundle_name(self.adaptee.bundle)
+        return get_bundle_name(self.adaptee.factory)
 
     def get_view(self):
         view = self.adaptee.trait_view()
@@ -90,13 +123,12 @@ class MCOAdapter(ITreeNodeAdapter):
         return view
 
     def get_menu(self):
-        return Menu(delete_mco_action)
+        return Menu(delete_mco_parameter_action)
 
 
 @provides(ITreeNode)
 class DataSourceAdapter(ITreeNodeAdapter):
-    """ Adapts the Data source model view to be displayed in the tree editor
-    """
+    """ Adapts the Data source model to be displayed in the tree editor """
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
 
@@ -111,8 +143,7 @@ class DataSourceAdapter(ITreeNodeAdapter):
 
 @provides(ITreeNode)
 class KPICalculatorAdapter(ITreeNodeAdapter):
-    """ Adapts the KPI calculator model to be displayed in the tree editor
-    """
+    """ Adapts the KPI calculator model to be displayed in the tree editor """
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
 
@@ -125,12 +156,13 @@ class KPICalculatorAdapter(ITreeNodeAdapter):
         return Menu(delete_kpi_calculator_action)
 
 
-register_factory(MCOAdapter, BaseMCOModel, ITreeNode)
+register_factory(MCOParameterAdapter, BaseMCOParameter, ITreeNode)
 register_factory(DataSourceAdapter, BaseDataSourceModel, ITreeNode)
 register_factory(KPICalculatorAdapter, BaseKPICalculatorModel, ITreeNode)
 
 tree_editor = TreeEditor(
     nodes=[
+        # Root node "Workflow"
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='',
@@ -138,6 +170,7 @@ tree_editor = TreeEditor(
                  view=no_view,
                  menu=no_menu,
                  ),
+        # Folder node "MCO" containing the MCO
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='mco_representation',
@@ -145,6 +178,23 @@ tree_editor = TreeEditor(
                  view=no_view,
                  menu=Menu(new_mco_action),
                  ),
+        # Node representing the MCO
+        TreeNode(node_for=[MCOModelView],
+                 auto_open=True,
+                 children='',
+                 label='label',
+                 view=View(UItem('model', style="custom"), kind="subpanel"),
+                 menu=Menu(delete_mco_action),
+                 ),
+        # Folder node "Parameters" containing the MCO parameters
+        TreeNode(node_for=[MCOModelView],
+                 auto_open=True,
+                 children='mco_parameters_representation',
+                 label='=Parameters',
+                 view=no_view,
+                 menu=Menu(new_parameter_action),
+                 ),
+        # Folder node "Data Sources" containing the DataSources
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='data_sources_representation',
@@ -152,6 +202,7 @@ tree_editor = TreeEditor(
                  view=no_view,
                  menu=Menu(new_data_source_action),
                  ),
+        # Folder node "KPI Calculators" containing the KPI Calculators
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='kpi_calculators_representation',
@@ -164,20 +215,22 @@ tree_editor = TreeEditor(
 
 
 class WorkflowSettings(TraitsDockPane):
-    """ Side pane which contains the list of available MCOs/Data sources/ KPI
-    calculators bundles and the tree editor displaying the Workflow """
+    """ Side pane which contains the tree editor displaying the Workflow """
 
     id = 'force_wfmanager.workflow_settings'
     name = 'Workflow Settings'
 
     #: Available MCO bundles
-    available_mcos = List(BaseMCOBundle)
+    available_mco_factories = List(BaseMCOBundle)
+
+    #: Available parameters factories
+    available_mco_parameter_factories = List(Instance(BaseMCOParameterFactory))
 
     #: Available data source bundles
-    available_data_sources = List(BaseDataSourceBundle)
+    available_data_source_factories = List(BaseDataSourceBundle)
 
     #: Available KPI calculator bundles
-    available_kpi_calculators = List(BaseKPICalculatorBundle)
+    available_kpi_calculator_factories = List(BaseKPICalculatorBundle)
 
     #: Selected MCO bundle in the list of MCOs
     selected_mco = Instance(BaseMCOBundle)
@@ -195,3 +248,6 @@ class WorkflowSettings(TraitsDockPane):
 
     def _workflow_default(self):
         return WorkflowModelView()
+
+    def _available_mco_parameter_factories_default(self):
+        return all_core_factories()

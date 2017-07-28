@@ -1,4 +1,10 @@
 import unittest
+try:
+    import mock
+except:
+    from unittest import mock
+
+from envisage.plugin import Plugin
 
 from traits.api import String
 
@@ -30,10 +36,12 @@ class UnnamedBundle(BaseDataSourceBundle):
 
 class BundleNameTest(unittest.TestCase):
     def test_get_bundle_name(self):
-        named_bundle = NamedBundle()
+        plugin = mock.Mock(spec=Plugin)
+
+        named_bundle = NamedBundle(plugin)
         self.assertEqual(
             get_bundle_name(named_bundle), 'Really cool bundle')
 
-        unnamed_bundle = UnnamedBundle()
+        unnamed_bundle = UnnamedBundle(plugin)
         self.assertEqual(
             get_bundle_name(unnamed_bundle), 'enthought.test.bundle.unnamed')
