@@ -13,6 +13,8 @@ User Manual
 .. toctree::
    :maxdepth: 1
 
+   Introduction <introduction>
+   Concept <concept/index>
    License <license>
 
 API Reference
