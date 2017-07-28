@@ -14,17 +14,17 @@ class WorkflowModelView(ModelView):
 
     #: List of MCO to be displayed in the TreeEditor
     mco_representation = Property(
-        List(MCOModelView),
+        List(Instance(MCOModelView)),
         depends_on='model.mco')
 
     #: List of DataSources to be displayed in the TreeEditor
     data_sources_representation = Property(
-        List(BaseDataSourceModel),
+        List(Instance(BaseDataSourceModel)),
         depends_on='model.data_sources')
 
     #: List of KPI Calculators to be displayed in the TreeEditor
     kpi_calculators_representation = Property(
-        List(BaseKPICalculatorModel),
+        List(Instance(BaseKPICalculatorModel)),
         depends_on='model.kpi_calculators')
 
     def add_entity(self, entity):

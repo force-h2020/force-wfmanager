@@ -1,4 +1,4 @@
-from traits.api import List
+from traits.api import List, Instance
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 
@@ -10,9 +10,13 @@ class WfManagerTask(Task):
     id = 'force_wfmanager.wfmanager_task'
     name = 'Workflow Manager'
 
-    mco_bundles = List
-    data_source_bundles = List
-    kpi_calculator_bundles = List
+    mco_bundles = List(Instance('force_bdss.mco.i_mco_bundle.IMCOBundle'))
+    data_source_bundles = List(Instance('force_bdss.data_sources.'
+                                        'i_data_source_bundle.'
+                                        'IDataSourceBundle'))
+    kpi_calculator_bundles = List(Instance('force_bdss.kpi.'
+                                           'i_kpi_calculator_bundle.'
+                                           'IKPICalculatorBundle'))
 
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part

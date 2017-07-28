@@ -221,16 +221,17 @@ class WorkflowSettings(TraitsDockPane):
     name = 'Workflow Settings'
 
     #: Available MCO bundles
-    available_mco_factories = List(BaseMCOBundle)
+    available_mco_factories = List(Instance(BaseMCOBundle))
 
     #: Available parameters factories
     available_mco_parameter_factories = List(Instance(BaseMCOParameterFactory))
 
     #: Available data source bundles
-    available_data_source_factories = List(BaseDataSourceBundle)
+    available_data_source_factories = List(Instance(BaseDataSourceBundle))
 
     #: Available KPI calculator bundles
-    available_kpi_calculator_factories = List(BaseKPICalculatorBundle)
+    available_kpi_calculator_factories = List(Instance(
+        BaseKPICalculatorBundle))
 
     #: Selected MCO bundle in the list of MCOs
     selected_mco = Instance(BaseMCOBundle)
