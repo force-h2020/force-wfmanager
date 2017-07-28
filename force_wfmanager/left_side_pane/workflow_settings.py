@@ -5,7 +5,7 @@ from traitsui.api import (
 from traits.api import Instance, List, provides, register_factory
 
 from force_bdss.api import (
-    BaseMCOModel, BaseMCOBundle,
+    BaseMCOBundle,
     BaseDataSourceModel, BaseDataSourceBundle,
     BaseKPICalculatorModel, BaseKPICalculatorBundle,
     BaseMCOParameter, BaseMCOParameterFactory)
