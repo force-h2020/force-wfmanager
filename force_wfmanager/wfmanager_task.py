@@ -24,9 +24,9 @@ class WfManagerTask(Task):
         """ Creates the dock panes which contains the MCO, datasources and
         Constraints management """
         workflow_settings = WorkflowSettings(
-            available_mcos=self.mco_bundles,
-            available_data_sources=self.data_source_bundles,
-            available_kpi_calculators=self.kpi_calculator_bundles)
+            available_mco_factories=self.mco_bundles,
+            available_data_source_factories=self.data_source_bundles,
+            available_kpi_calculator_factories=self.kpi_calculator_bundles)
         return [workflow_settings]
 
     def _default_layout_default(self):

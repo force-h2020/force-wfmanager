@@ -28,28 +28,30 @@ class WorkflowHandler(Handler):
         """ Opens a dialog for creating a MCO """
         modal = NewEntityModal(
             workflow=editor.object.workflow,
-            available_bundles=editor.object.available_mcos)
+            available_factories=editor.object.available_mco_factories)
         modal.configure_traits()
 
     def new_parameter_handler(self, editor, object):
         """ Opens a dialog for creating a parameter """
         modal = NewEntityModal(
             workflow=editor.object.workflow,
-            available_bundles=editor.object.available_parameters)
+            available_factories=editor.object.available_mco_parameter_factories
+        )
         modal.configure_traits()
 
     def new_data_source_handler(self, editor, object):
         """ Opens a dialog for creating a Data Source """
         modal = NewEntityModal(
             workflow=editor.object.workflow,
-            available_bundles=editor.object.available_data_sources)
+            available_factories=editor.object.available_data_source_factories)
         modal.configure_traits()
 
     def new_kpi_calculator_handler(self, editor, object):
         """ Opens a dialog for creating a KPI Calculator """
         modal = NewEntityModal(
             workflow=editor.object.workflow,
-            available_bundles=editor.object.available_kpi_calculators)
+            available_factories=
+            editor.object.available_kpi_calculator_factories)
         modal.configure_traits()
 
     def delete_mco_handler(self, editor, object):
@@ -219,16 +221,16 @@ class WorkflowSettings(TraitsDockPane):
     name = 'Workflow Settings'
 
     #: Available MCO bundles
-    available_mcos = List(BaseMCOBundle)
+    available_mco_factories = List(BaseMCOBundle)
 
     #: Available parameters factories
-    available_parameters = List(Instance(BaseMCOParameterFactory))
+    available_mco_parameter_factories = List(Instance(BaseMCOParameterFactory))
 
     #: Available data source bundles
-    available_data_sources = List(BaseDataSourceBundle)
+    available_data_source_factories = List(BaseDataSourceBundle)
 
     #: Available KPI calculator bundles
-    available_kpi_calculators = List(BaseKPICalculatorBundle)
+    available_kpi_calculator_factories = List(BaseKPICalculatorBundle)
 
     #: Selected MCO bundle in the list of MCOs
     selected_mco = Instance(BaseMCOBundle)
@@ -247,5 +249,5 @@ class WorkflowSettings(TraitsDockPane):
     def _workflow_default(self):
         return WorkflowModelView()
 
-    def _available_parameters_default(self):
+    def _available_mco_parameter_factories_default(self):
         return all_core_factories()

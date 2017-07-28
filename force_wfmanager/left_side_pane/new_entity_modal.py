@@ -38,17 +38,17 @@ class NewEntityModal(HasStrictTraits):
     calculator to the workflow """
     workflow = Instance(WorkflowModelView)
 
-    #: Available bundles, this class is generic and can contain any bundle
+    #: Available factories, this class is generic and can contain any factory
     #: which implement the create_model method
-    available_bundles = Either(
+    available_factories = Either(
         List(Instance(BaseMCOBundle)),
         List(Instance(BaseMCOParameterFactory)),
         List(Instance(BaseDataSourceBundle)),
         List(Instance(BaseKPICalculatorBundle)),
     )
 
-    #: Selected bundle in the list
-    selected_bundle = Either(
+    #: Selected factory in the list
+    selected_factory = Either(
         Instance(BaseMCOBundle),
         Instance(BaseMCOParameterFactory),
         Instance(BaseDataSourceBundle),
@@ -66,26 +66,26 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseKPICalculatorModel)
     )
 
-    #: Cache for created models, models are created when selecting a new bundle
-    #: and cached so that when selected_bundle change the created models are
-    #: saved
+    #: Cache for created models, models are created when selecting a new
+    #: factory and cached so that when selected_factory change the created
+    #: models are saved
     _cached_models = Dict()
 
     traits_view = View(
         VGroup(
             HSplit(
                 UItem(
-                    "available_bundles",
+                    "available_factories",
                     editor=ListStrEditor(
                         adapter=ListAdapter(),
-                        selected="selected_bundle"),
+                        selected="selected_factory"),
                 ),
                 UItem('current_model', style='custom', editor=InstanceEditor())
             ),
             HGroup(
                 UItem(
                     'add_button',
-                    enabled_when="selected_bundle is not None"
+                    enabled_when="selected_factory is not None"
                 ),
                 UItem('cancel_button')
             )
@@ -97,19 +97,19 @@ class NewEntityModal(HasStrictTraits):
         kind="livemodal"
     )
 
-    @on_trait_change("selected_bundle")
+    @on_trait_change("selected_factory")
     def update_current_model(self):
-        """ Update the current editable model when the selected bundle has
+        """ Update the current editable model when the selected factory has
         changed. The current model will be created on the fly or extracted from
         the cache if it was already created before """
-        if self.selected_bundle is None:
+        if self.selected_factory is None:
             self.current_model = None
             return
 
-        cached_model = self._cached_models.get(self.selected_bundle)
+        cached_model = self._cached_models.get(self.selected_factory)
 
         if cached_model is None:
-            cached_model = self.selected_bundle.create_model()
-            self._cached_models[self.selected_bundle] = cached_model
+            cached_model = self.selected_factory.create_model()
+            self._cached_models[self.selected_factory] = cached_model
 
         self.current_model = cached_model
