@@ -48,10 +48,10 @@ class WorkflowHandler(Handler):
 
     def new_kpi_calculator_handler(self, editor, object):
         """ Opens a dialog for creating a KPI Calculator """
+        obj = editor.object
         modal = NewEntityModal(
-            workflow=editor.object.workflow,
-            available_factories=
-            editor.object.available_kpi_calculator_factories)
+            workflow=obj.workflow,
+            available_factories=obj.available_kpi_calculator_factories)
         modal.configure_traits()
 
     def delete_mco_handler(self, editor, object):
