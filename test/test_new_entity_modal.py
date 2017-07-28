@@ -1,4 +1,11 @@
 import unittest
+try:
+    import mock
+except:
+    from unittest import mock
+
+from envisage.plugin import Plugin
+
 
 from traits.api import HasTraits, Instance
 
@@ -33,9 +40,11 @@ class ModalInfoDummy(HasTraits):
 
 class NewEntityModalTest(unittest.TestCase):
     def setUp(self):
-        self.available_mcos = [DummyDakotaBundle()]
-        self.available_data_sources = [CSVExtractorBundle()]
-        self.available_kpi_calculators = [KPIAdderBundle()]
+        plugin = mock.Mock(spec=Plugin)
+
+        self.available_mcos = [DummyDakotaBundle(plugin)]
+        self.available_data_sources = [CSVExtractorBundle(plugin)]
+        self.available_kpi_calculators = [KPIAdderBundle(plugin)]
 
         self.workflow = WorkflowModelView(
             model=Workflow()

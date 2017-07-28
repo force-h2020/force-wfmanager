@@ -4,6 +4,8 @@ try:
 except ImportError:
     from unittest import mock
 
+from envisage.plugin import Plugin
+
 from traits.api import Instance, HasTraits
 
 from force_bdss.core_plugins.dummy.dummy_dakota.dakota_bundle import (
@@ -25,10 +27,11 @@ class WorkflowSettingsEditor(HasTraits):
 
 
 def get_workflow_settings():
+    plugin = mock.Mock(spec=Plugin)
     return WorkflowSettings(
-        available_mcos=[DummyDakotaBundle()],
-        available_data_sources=[CSVExtractorBundle()],
-        available_kpi_calculators=[KPIAdderBundle()]
+        available_mcos=[DummyDakotaBundle(plugin)],
+        available_data_sources=[CSVExtractorBundle(plugin)],
+        available_kpi_calculators=[KPIAdderBundle(plugin)]
     )
 
 
