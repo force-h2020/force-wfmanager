@@ -8,10 +8,6 @@ from force_bdss.api import (BaseMCOModel, BaseMCOParameter,
 from .mco_model_view import MCOModelView
 
 
-class WorkflowValidityError(Exception):
-    pass
-
-
 class WorkflowModelView(ModelView):
     #: Workflow model
     model = Instance(Workflow)
@@ -42,9 +38,9 @@ class WorkflowModelView(ModelView):
 
         Raises
         ------
-        WorkflowValidityError:
+        RuntimeError:
             If the entity is an MCO parameter but no MCO is defined for the
-            Workflow
+            Workflow.
         TypeError:
             If the type of the entity is not supported by the Workflow
         """
@@ -52,7 +48,7 @@ class WorkflowModelView(ModelView):
             self.model.mco = entity
         elif isinstance(entity, BaseMCOParameter):
             if self.model.mco is None:
-                raise(WorkflowValidityError("Cannot add a parameter to the "
+                raise(RuntimeError("Cannot add a parameter to the "
                       "workflow if no MCO defined"))
 
             self.model.mco.parameters.append(entity)
