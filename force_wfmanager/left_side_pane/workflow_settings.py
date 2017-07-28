@@ -22,7 +22,8 @@ no_menu = Menu()
 
 
 class WorkflowHandler(Handler):
-    # Menu actions in the TreeEditor
+    """ Handler for the Workflow editor, this handler will take care of events
+    on the tree editor (e.g. right click on a tree element) """
     def new_mco_handler(self, editor, object):
         """ Opens a dialog for creating a MCO """
         modal = NewEntityModal(
@@ -52,17 +53,21 @@ class WorkflowHandler(Handler):
         modal.configure_traits()
 
     def delete_mco_handler(self, editor, object):
+        """ Delete the MCO from the workflow """
         editor.object.workflow.model.mco = None
 
     def delete_mco_parameter_handler(self, editor, object):
+        """ Delete one parameter from the MCO """
         workflow = editor.object.workflow.model
         workflow.mco.parameters.remove(object)
 
     def delete_data_source_handler(self, editor, object):
+        """ Delete a DataSource from the workflow """
         workflow = editor.object.workflow.model
         workflow.data_sources.remove(object)
 
     def delete_kpi_calculator_handler(self, editor, object):
+        """ Delete a KPI Calculator from the workflow """
         workflow = editor.object.workflow.model
         workflow.kpi_calculators.remove(object)
 
@@ -106,8 +111,7 @@ delete_kpi_calculator_action = Action(
 
 @provides(ITreeNode)
 class MCOParameterAdapter(ITreeNodeAdapter):
-    """ Adapts the MCO parameter model view to be displayed in the tree editor
-    """
+    """ Adapts the MCO parameter model to be displayed in the tree editor """
     def get_label(self):
         return get_bundle_name(self.adaptee.factory)
 
@@ -122,8 +126,7 @@ class MCOParameterAdapter(ITreeNodeAdapter):
 
 @provides(ITreeNode)
 class DataSourceAdapter(ITreeNodeAdapter):
-    """ Adapts the Data source model view to be displayed in the tree editor
-    """
+    """ Adapts the Data source model to be displayed in the tree editor """
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
 
@@ -138,8 +141,7 @@ class DataSourceAdapter(ITreeNodeAdapter):
 
 @provides(ITreeNode)
 class KPICalculatorAdapter(ITreeNodeAdapter):
-    """ Adapts the KPI calculator model to be displayed in the tree editor
-    """
+    """ Adapts the KPI calculator model to be displayed in the tree editor """
     def get_label(self):
         return get_bundle_name(self.adaptee.bundle)
 
@@ -158,6 +160,7 @@ register_factory(KPICalculatorAdapter, BaseKPICalculatorModel, ITreeNode)
 
 tree_editor = TreeEditor(
     nodes=[
+        # Root node "Workflow"
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='',
@@ -165,6 +168,7 @@ tree_editor = TreeEditor(
                  view=no_view,
                  menu=no_menu,
                  ),
+        # Folder node "MCO" containing the MCO
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='mco_representation',
@@ -172,6 +176,7 @@ tree_editor = TreeEditor(
                  view=no_view,
                  menu=Menu(new_mco_action),
                  ),
+        # Node representing the MCO
         TreeNode(node_for=[MCOModelView],
                  auto_open=True,
                  children='',
@@ -179,6 +184,7 @@ tree_editor = TreeEditor(
                  view=View(UItem('model', style="custom"), kind="subpanel"),
                  menu=Menu(delete_mco_action),
                  ),
+        # Folder node "Parameters" containing the MCO parameters
         TreeNode(node_for=[MCOModelView],
                  auto_open=True,
                  children='mco_parameters_representation',
@@ -186,6 +192,7 @@ tree_editor = TreeEditor(
                  view=no_view,
                  menu=Menu(new_parameter_action),
                  ),
+        # Folder node "Data Sources" containing the DataSources
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='data_sources_representation',
@@ -193,6 +200,7 @@ tree_editor = TreeEditor(
                  view=no_view,
                  menu=Menu(new_data_source_action),
                  ),
+        # Folder node "KPI Calculators" containing the KPI Calculators
         TreeNode(node_for=[WorkflowModelView],
                  auto_open=True,
                  children='kpi_calculators_representation',
@@ -205,8 +213,7 @@ tree_editor = TreeEditor(
 
 
 class WorkflowSettings(TraitsDockPane):
-    """ Side pane which contains the list of available MCOs/Data sources/ KPI
-    calculators bundles and the tree editor displaying the Workflow """
+    """ Side pane which contains the tree editor displaying the Workflow """
 
     id = 'force_wfmanager.workflow_settings'
     name = 'Workflow Settings'

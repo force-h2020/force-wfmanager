@@ -23,11 +23,13 @@ class ListAdapter(ListStrAdapter):
 
 class ModalHandler(Handler):
     def object_add_button_changed(self, info):
+        """ Action triggered when clicking on "Add" button in the modal """
         if info.object.current_model is not None:
             info.object.workflow.add_entity(info.object.current_model)
         info.ui.dispose(True)
 
     def object_cancel_button_changed(self, info):
+        """ Action triggered when clicking on "Cancel" button in the modal """
         info.ui.dispose(False)
 
 
@@ -97,6 +99,9 @@ class NewEntityModal(HasStrictTraits):
 
     @on_trait_change("selected_bundle")
     def update_current_model(self):
+        """ Update the current editable model when the selected bundle has
+        changed. The current model will be created on the fly or extracted from
+        the cache if it was already created before """
         if self.selected_bundle is None:
             self.current_model = None
             return
