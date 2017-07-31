@@ -29,14 +29,14 @@ class WorkflowHandler(Handler):
     def new_mco_handler(self, editor, object):
         """ Opens a dialog for creating a MCO """
         modal = NewEntityModal(
-            workflow_model_view=editor.object.workflow_model_view,
+            workflow=editor.object.workflow,
             available_factories=editor.object.available_mco_factories)
         modal.configure_traits()
 
     def new_parameter_handler(self, editor, object):
         """ Opens a dialog for creating a parameter """
         modal = NewEntityModal(
-            workflow_model_view=editor.object.workflow_model_view,
+            workflow=editor.object.workflow,
             available_factories=editor.object.available_mco_parameter_factories
         )
         modal.configure_traits()
@@ -44,7 +44,7 @@ class WorkflowHandler(Handler):
     def new_data_source_handler(self, editor, object):
         """ Opens a dialog for creating a Data Source """
         modal = NewEntityModal(
-            workflow_model_view=editor.object.workflow_model_view,
+            workflow=editor.object.workflow,
             available_factories=editor.object.available_data_source_factories)
         modal.configure_traits()
 
@@ -52,7 +52,7 @@ class WorkflowHandler(Handler):
         """ Opens a dialog for creating a KPI Calculator """
         obj = editor.object
         modal = NewEntityModal(
-            workflow_model_view=obj.workflow_model_view,
+            workflow=obj.workflow,
             available_factories=obj.available_kpi_calculator_factories)
         modal.configure_traits()
 
@@ -240,12 +240,12 @@ class WorkflowSettings(TraitsDockPane):
     #: Selected MCO bundle in the list of MCOs
     selected_mco = Instance(BaseMCOBundle)
 
-    workflow_model_view = Instance(WorkflowModelView)
+    workflow = Instance(WorkflowModelView)
 
     workflow_model = Instance(Workflow)
 
     traits_view = View(
-        UItem(name='workflow_model_view',
+        UItem(name='workflow',
               editor=tree_editor,
               show_label=False),
         width=800,
@@ -253,14 +253,14 @@ class WorkflowSettings(TraitsDockPane):
         resizable=True,
         handler=WorkflowHandler())
 
-    def _workflow_model_view_default(self):
+    def _workflow_default(self):
         return WorkflowModelView(
             model=self.workflow_model
         )
 
     @on_trait_change('workflow_model')
     def update_model_view(self):
-        self.workflow_model_view.model = self.workflow_model
+        self.workflow.model = self.workflow_model
 
     def _get_available_mco_parameter_factories(self):
         mco_bundle = self.workflow_model.mco.bundle
