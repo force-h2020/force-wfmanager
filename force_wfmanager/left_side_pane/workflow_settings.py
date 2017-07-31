@@ -1,10 +1,9 @@
 from pyface.tasks.api import TraitsDockPane
-from pyface.api import FileDialog, OK
+
 from traitsui.api import (
     ITreeNodeAdapter, ITreeNode, TreeEditor, TreeNode, UItem, View, Menu,
-    Action, Handler, VGroup)
-from traits.api import (Instance, List, provides, register_factory, Button,
-                        on_trait_change)
+    Action, Handler)
+from traits.api import Instance, List, provides, register_factory
 
 from force_bdss.api import (
     BaseMCOBundle,
@@ -12,7 +11,7 @@ from force_bdss.api import (
     BaseKPICalculatorModel, BaseKPICalculatorBundle,
     BaseMCOParameter, BaseMCOParameterFactory)
 from force_bdss.mco.parameters.core_mco_parameters import all_core_factories
-from force_bdss.io.workflow_writer import WorkflowWriter
+from force_bdss.workspecs.workflow import Workflow
 
 from .view_utils import get_bundle_name
 from .new_entity_modal import NewEntityModal
@@ -241,32 +240,21 @@ class WorkflowSettings(TraitsDockPane):
 
     workflow = Instance(WorkflowModelView)
 
-    save_button = Button("Save")
+    workflow_model = Instance(Workflow)
 
     traits_view = View(
-        VGroup(
-            UItem(name='workflow',
-                  editor=tree_editor,
-                  show_label=False),
-            UItem(name='save_button'),
-        ),
+        UItem(name='workflow',
+              editor=tree_editor,
+              show_label=False),
         width=800,
         height=600,
         resizable=True,
         handler=WorkflowHandler())
 
     def _workflow_default(self):
-        return WorkflowModelView()
+        return WorkflowModelView(
+            model=self.workflow_model
+        )
 
     def _available_mco_parameter_factories_default(self):
         return all_core_factories()
-
-    @on_trait_change("save_button")
-    def save_workflow(self):
-        dialog = FileDialog(action="save as", default_filename="workflow.json")
-        result = dialog.open()
-
-        if result is OK:
-            writer = WorkflowWriter()
-            with open(dialog.path, 'wr') as output:
-                writer.write(self.workflow.model, output)
