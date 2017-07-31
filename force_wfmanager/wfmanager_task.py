@@ -7,6 +7,7 @@ from pyface.api import FileDialog, OK
 from force_bdss.api import IMCOBundle, IDataSourceBundle, IKPICalculatorBundle
 from force_bdss.workspecs.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
+from force_bdss.io.workflow_reader import WorkflowReader
 
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
@@ -27,6 +28,11 @@ class WfManagerTask(Task):
             name='Save Workflow...',
             method='save_workflow',
             accelerator='Ctrl+S',
+        ),
+        TaskAction(
+            name='Load Workflow...',
+            method='load_workflow',
+            accelerator='Ctrl+O',
         ), id='File', name='&File'
     ))
 
@@ -55,6 +61,16 @@ class WfManagerTask(Task):
             writer = WorkflowWriter()
             with open(dialog.path, 'wr') as output:
                 writer.write(self.workflow, output)
+
+    def load_workflow(self):
+        """ Shows a dialog to load a workflow file """
+        dialog = FileDialog(action="open")
+        result = dialog.open()
+
+        if result is OK:
+            reader = WorkflowReader()
+            with open(dialog.path, 'r') as fobj:
+                self.workflow = reader.read(fobj)
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
