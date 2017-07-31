@@ -3,13 +3,13 @@ from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (
     ITreeNodeAdapter, ITreeNode, TreeEditor, TreeNode, UItem, View, Menu,
     Action, Handler)
-from traits.api import Instance, List, provides, register_factory
+from traits.api import Instance, List, provides, register_factory, Property
 
 from force_bdss.api import (
     BaseMCOBundle,
     BaseDataSourceModel, BaseDataSourceBundle,
     BaseKPICalculatorModel, BaseKPICalculatorBundle,
-    BaseMCOParameter)
+    BaseMCOParameter, BaseMCOParameterFactory)
 from force_bdss.workspecs.workflow import Workflow
 
 from .view_utils import get_bundle_name
@@ -34,11 +34,9 @@ class WorkflowHandler(Handler):
 
     def new_parameter_handler(self, editor, object):
         """ Opens a dialog for creating a parameter """
-        available_factories = \
-            editor.object.workflow_model.mco.bundle.parameter_factories()
         modal = NewEntityModal(
             workflow_model_view=editor.object.workflow_model_view,
-            available_factories=available_factories
+            available_factories=editor.object.available_mco_parameter_factories
         )
         modal.configure_traits()
 
@@ -226,6 +224,11 @@ class WorkflowSettings(TraitsDockPane):
     #: Available MCO bundles
     available_mco_factories = List(Instance(BaseMCOBundle))
 
+    #: Available parameters factories
+    available_mco_parameter_factories = Property(
+        List(Instance(BaseMCOParameterFactory)),
+        depends_on='workflow_model.mco')
+
     #: Available data source bundles
     available_data_source_factories = List(Instance(BaseDataSourceBundle))
 
@@ -253,3 +256,7 @@ class WorkflowSettings(TraitsDockPane):
         return WorkflowModelView(
             model=self.workflow_model
         )
+
+    def _get_available_mco_parameter_factories(self):
+        mco_bundle = self.workflow_model.mco.bundle
+        return mco_bundle.parameter_factories()
