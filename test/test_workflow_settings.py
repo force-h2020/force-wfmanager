@@ -48,11 +48,11 @@ def get_workflow_model_view():
     )
 
 
-def get_workflow_settings_editor(workflow):
+def get_workflow_settings_editor(workflow_model_view):
     return WorkflowSettingsEditor(
         object=WorkflowSettings(
-            workflow=workflow,
-            workflow_model=workflow.model
+            workflow=workflow_model_view,
+            workflow_model=workflow_model_view.model
         )
     )
 
