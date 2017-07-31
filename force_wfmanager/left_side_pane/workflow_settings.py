@@ -28,7 +28,7 @@ class WorkflowHandler(Handler):
     def new_mco_handler(self, editor, object):
         """ Opens a dialog for creating a MCO """
         modal = NewEntityModal(
-            workflow=editor.object.workflow,
+            workflow_model_view=editor.object.workflow_model_view,
             available_factories=editor.object.available_mco_factories)
         modal.configure_traits()
 
@@ -37,7 +37,7 @@ class WorkflowHandler(Handler):
         available_factories = \
             editor.object.workflow_model.mco.bundle.parameter_factories()
         modal = NewEntityModal(
-            workflow=editor.object.workflow,
+            workflow_model_view=editor.object.workflow_model_view,
             available_factories=available_factories
         )
         modal.configure_traits()
@@ -45,7 +45,7 @@ class WorkflowHandler(Handler):
     def new_data_source_handler(self, editor, object):
         """ Opens a dialog for creating a Data Source """
         modal = NewEntityModal(
-            workflow=editor.object.workflow,
+            workflow_model_view=editor.object.workflow_model_view,
             available_factories=editor.object.available_data_source_factories)
         modal.configure_traits()
 
@@ -53,27 +53,27 @@ class WorkflowHandler(Handler):
         """ Opens a dialog for creating a KPI Calculator """
         obj = editor.object
         modal = NewEntityModal(
-            workflow=obj.workflow,
+            workflow_model_view=obj.workflow_model_view,
             available_factories=obj.available_kpi_calculator_factories)
         modal.configure_traits()
 
     def delete_mco_handler(self, editor, object):
         """ Delete the MCO from the workflow """
-        editor.object.workflow.model.mco = None
+        editor.object.workflow_model.mco = None
 
     def delete_mco_parameter_handler(self, editor, object):
         """ Delete one parameter from the MCO """
-        workflow = editor.object.workflow.model
+        workflow = editor.object.workflow_model
         workflow.mco.parameters.remove(object)
 
     def delete_data_source_handler(self, editor, object):
         """ Delete a DataSource from the workflow """
-        workflow = editor.object.workflow.model
+        workflow = editor.object.workflow_model
         workflow.data_sources.remove(object)
 
     def delete_kpi_calculator_handler(self, editor, object):
         """ Delete a KPI Calculator from the workflow """
-        workflow = editor.object.workflow.model
+        workflow = editor.object.workflow_model
         workflow.kpi_calculators.remove(object)
 
 
@@ -236,12 +236,12 @@ class WorkflowSettings(TraitsDockPane):
     #: Selected MCO bundle in the list of MCOs
     selected_mco = Instance(BaseMCOBundle)
 
-    workflow = Instance(WorkflowModelView)
+    workflow_model_view = Instance(WorkflowModelView)
 
     workflow_model = Instance(Workflow)
 
     traits_view = View(
-        UItem(name='workflow',
+        UItem(name='workflow_model_view',
               editor=tree_editor,
               show_label=False),
         width=800,
@@ -249,7 +249,7 @@ class WorkflowSettings(TraitsDockPane):
         resizable=True,
         handler=WorkflowHandler())
 
-    def _workflow_default(self):
+    def _workflow_model_view_default(self):
         return WorkflowModelView(
             model=self.workflow_model
         )
