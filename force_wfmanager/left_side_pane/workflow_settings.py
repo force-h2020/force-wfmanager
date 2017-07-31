@@ -9,8 +9,7 @@ from force_bdss.api import (
     BaseMCOBundle,
     BaseDataSourceModel, BaseDataSourceBundle,
     BaseKPICalculatorModel, BaseKPICalculatorBundle,
-    BaseMCOParameter, BaseMCOParameterFactory)
-from force_bdss.mco.parameters.core_mco_parameters import all_core_factories
+    BaseMCOParameter)
 from force_bdss.workspecs.workflow import Workflow
 
 from .view_utils import get_bundle_name
@@ -35,9 +34,11 @@ class WorkflowHandler(Handler):
 
     def new_parameter_handler(self, editor, object):
         """ Opens a dialog for creating a parameter """
+        available_factories = \
+            editor.object.workflow_model.mco.bundle.parameter_factories()
         modal = NewEntityModal(
             workflow=editor.object.workflow,
-            available_factories=editor.object.available_mco_parameter_factories
+            available_factories=available_factories
         )
         modal.configure_traits()
 
@@ -225,9 +226,6 @@ class WorkflowSettings(TraitsDockPane):
     #: Available MCO bundles
     available_mco_factories = List(Instance(BaseMCOBundle))
 
-    #: Available parameters factories
-    available_mco_parameter_factories = List(Instance(BaseMCOParameterFactory))
-
     #: Available data source bundles
     available_data_source_factories = List(Instance(BaseDataSourceBundle))
 
@@ -255,6 +253,3 @@ class WorkflowSettings(TraitsDockPane):
         return WorkflowModelView(
             model=self.workflow_model
         )
-
-    def _available_mco_parameter_factories_default(self):
-        return all_core_factories()
