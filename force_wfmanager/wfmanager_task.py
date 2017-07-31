@@ -1,4 +1,4 @@
-from traits.api import List, Instance
+from traits.api import List, Instance, on_trait_change
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
@@ -23,6 +23,8 @@ class WfManagerTask(Task):
     data_source_bundles = List(Instance(IDataSourceBundle))
     kpi_calculator_bundles = List(Instance(IKPICalculatorBundle))
 
+    workflow_settings = Instance(WorkflowSettings)
+
     menu_bar = SMenuBar(SMenu(
         TaskAction(
             name='Save Workflow...',
@@ -45,12 +47,7 @@ class WfManagerTask(Task):
     def create_dock_panes(self):
         """ Creates the dock panes which contains the MCO, datasources and
         Constraints management """
-        workflow_settings = WorkflowSettings(
-            available_mco_factories=self.mco_bundles,
-            available_data_source_factories=self.data_source_bundles,
-            available_kpi_calculator_factories=self.kpi_calculator_bundles,
-            workflow_model=self.workflow)
-        return [workflow_settings]
+        return [self.workflow_settings]
 
     def save_workflow(self):
         """ Shows a dialog to save the workflow into a JSON file """
@@ -80,3 +77,14 @@ class WfManagerTask(Task):
 
     def _workflow_default(self):
         return Workflow()
+
+    def _workflow_settings_default(self):
+        return WorkflowSettings(
+            available_mco_factories=self.mco_bundles,
+            available_data_source_factories=self.data_source_bundles,
+            available_kpi_calculator_factories=self.kpi_calculator_bundles,
+            workflow_model=self.workflow)
+
+    @on_trait_change('workflow')
+    def update_workflow_settings(self):
+        self.workflow_settings.workflow_model = self.workflow

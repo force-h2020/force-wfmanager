@@ -3,7 +3,8 @@ from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (
     ITreeNodeAdapter, ITreeNode, TreeEditor, TreeNode, UItem, View, Menu,
     Action, Handler)
-from traits.api import Instance, List, provides, register_factory, Property
+from traits.api import (Instance, List, provides, register_factory, Property,
+                        on_trait_change)
 
 from force_bdss.api import (
     BaseMCOBundle,
@@ -256,6 +257,10 @@ class WorkflowSettings(TraitsDockPane):
         return WorkflowModelView(
             model=self.workflow_model
         )
+
+    @on_trait_change('workflow_model')
+    def update_model_view(self):
+        self.workflow_model_view.model = self.workflow_model
 
     def _get_available_mco_parameter_factories(self):
         mco_bundle = self.workflow_model.mco.bundle
