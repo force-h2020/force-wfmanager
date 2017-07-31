@@ -1,4 +1,4 @@
-from traits.api import List, Instance, on_trait_change
+from traits.api import Instance, on_trait_change
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
