@@ -25,8 +25,7 @@ class ModalHandler(Handler):
     def object_add_button_changed(self, info):
         """ Action triggered when clicking on "Add" button in the modal """
         if info.object.current_model is not None:
-            info.object.workflow.add_entity(
-                info.object.current_model)
+            info.object.workflow.add_entity(info.object.current_model)
         info.ui.dispose(True)
 
     def object_cancel_button_changed(self, info):
