@@ -4,7 +4,7 @@ from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.api import FileDialog, OK
 
-from force_bdss.api import IMCOBundle, IDataSourceBundle, IKPICalculatorBundle
+from force_bdss.bundle_registry_plugin import BundleRegistryPlugin
 from force_bdss.workspecs.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader
@@ -17,14 +17,17 @@ class WfManagerTask(Task):
     id = 'force_wfmanager.wfmanager_task'
     name = 'Workflow Manager'
 
+    #: Workflow model
     workflow = Instance(Workflow)
 
-    mco_bundles = List(Instance(IMCOBundle))
-    data_source_bundles = List(Instance(IDataSourceBundle))
-    kpi_calculator_bundles = List(Instance(IKPICalculatorBundle))
-
+    #: WorkflowSettings pane, it displays the workflow in a tree editor and
+    #: allows to edit it
     workflow_settings = Instance(WorkflowSettings)
 
+    #: Registry of the available bundles
+    bundle_registry = Instance(BundleRegistryPlugin)
+
+    #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
         TaskAction(
             name='Save Workflow...',
@@ -65,7 +68,7 @@ class WfManagerTask(Task):
         result = dialog.open()
 
         if result is OK:
-            reader = WorkflowReader()
+            reader = WorkflowReader(self.bundle_registry)
             with open(dialog.path, 'r') as fobj:
                 self.workflow = reader.read(fobj)
 
@@ -79,10 +82,11 @@ class WfManagerTask(Task):
         return Workflow()
 
     def _workflow_settings_default(self):
+        registry = self.bundle_registry
         return WorkflowSettings(
-            available_mco_factories=self.mco_bundles,
-            available_data_source_factories=self.data_source_bundles,
-            available_kpi_calculator_factories=self.kpi_calculator_bundles,
+            available_mco_factories=registry.mco_bundles,
+            available_data_source_factories=registry.data_source_bundles,
+            available_kpi_calculator_factories=registry.kpi_calculator_bundles,
             workflow_model=self.workflow)
 
     @on_trait_change('workflow')
