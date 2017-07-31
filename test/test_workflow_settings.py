@@ -31,7 +31,8 @@ def get_workflow_settings():
     return WorkflowSettings(
         available_mco_factories=[DummyDakotaBundle(plugin)],
         available_data_source_factories=[CSVExtractorBundle(plugin)],
-        available_kpi_calculator_factories=[KPIAdderBundle(plugin)]
+        available_kpi_calculator_factories=[KPIAdderBundle(plugin)],
+        workflow_model=Workflow(),
     )
 
 
@@ -50,7 +51,8 @@ def get_workflow_model_view():
 def get_workflow_settings_editor(workflow):
     return WorkflowSettingsEditor(
         object=WorkflowSettings(
-            workflow=workflow
+            workflow=workflow,
+            workflow_model=workflow.model
         )
     )
 
