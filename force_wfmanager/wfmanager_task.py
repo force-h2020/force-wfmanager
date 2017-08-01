@@ -2,12 +2,12 @@ from traits.api import Instance, on_trait_change
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
-from pyface.api import FileDialog, OK
+from pyface.api import FileDialog, OK, error
 
 from force_bdss.bundle_registry_plugin import BundleRegistryPlugin
 from force_bdss.workspecs.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
-from force_bdss.io.workflow_reader import WorkflowReader
+from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
@@ -70,7 +70,15 @@ class WfManagerTask(Task):
         if result is OK:
             reader = WorkflowReader(self.bundle_registry)
             with open(dialog.path, 'r') as fobj:
-                self.workflow = reader.read(fobj)
+                try:
+                    self.workflow = reader.read(fobj)
+                except InvalidFileException as e:
+                    error(
+                        None,
+                        'Cannot read the requested file:\n\n{}'.format(
+                            e.message),
+                        'Error when reading file'
+                    )
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
