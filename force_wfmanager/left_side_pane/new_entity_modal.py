@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, Instance, List, Button, Either,
-                        on_trait_change, Dict)
+                        on_trait_change, Dict, Bool)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
                           HGroup, ListStrEditor, InstanceEditor)
 from traitsui.list_str_adapter import ListStrAdapter
@@ -17,6 +17,8 @@ from .view_utils import get_bundle_name
 class ListAdapter(ListStrAdapter):
     """ Adapter for the list of available MCOs/Data sources/KPI calculators
     bundles """
+    can_edit = Bool(False)
+
     def get_text(self, object, trait, index):
         return get_bundle_name(self.item)
 
