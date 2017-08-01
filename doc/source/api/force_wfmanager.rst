@@ -1,5 +1,5 @@
-force\_wfmanager package
-========================
+force_wfmanager package
+=======================
 
 Subpackages
 -----------
@@ -12,40 +12,40 @@ Subpackages
 Submodules
 ----------
 
-force\_wfmanager\.run module
-----------------------------
+force_wfmanager.run module
+--------------------------
 
 .. automodule:: force_wfmanager.run
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.version module
---------------------------------
+force_wfmanager.version module
+------------------------------
 
 .. automodule:: force_wfmanager.version
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.wfmanager module
-----------------------------------
+force_wfmanager.wfmanager module
+--------------------------------
 
 .. automodule:: force_wfmanager.wfmanager
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.wfmanager\_plugin module
-------------------------------------------
+force_wfmanager.wfmanager_plugin module
+---------------------------------------
 
 .. automodule:: force_wfmanager.wfmanager_plugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.wfmanager\_task module
-----------------------------------------
+force_wfmanager.wfmanager_task module
+-------------------------------------
 
 .. automodule:: force_wfmanager.wfmanager_task
     :members:
