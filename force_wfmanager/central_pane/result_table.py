@@ -13,19 +13,15 @@ class EvaluationStep(HasStrictTraits):
     _step = 0
 
     @staticmethod
-    def _get_step(cls):
-        cls._step += 1
-        return cls._step
-
-    @staticmethod
-    def init_step_count(cls):
-        cls._step = 0
+    def init_step_count():
+        EvaluationStep._step = 0
 
     step = Int()
     results = List(Instance(Result))
 
     def _step_default(self):
-        return self._get_step(EvaluationStep)
+        EvaluationStep._step += 1
+        return EvaluationStep._step
 
 
 class ResultColumn(ObjectColumn):
@@ -58,7 +54,7 @@ class ResultTable(HasStrictTraits):
     column_names = List(Str)
 
     #: The columns
-    columns = List(Instance(ResultColumn))
+    columns = List(Instance(ObjectColumn))
 
     traits_view = View(
         Item('evaluation_steps', editor=table_editor)
@@ -78,3 +74,15 @@ class ResultTable(HasStrictTraits):
         """ Creates a new column in the table """
         self.column_names.append(name)
         self.columns.append(ResultColumn(name=name))
+
+    def clear_table(self):
+        self.evaluation_steps = []
+        self.column_names = self._column_names_default()
+        self.columns = self._columns_default()
+        EvaluationStep.init_step_count()
+
+    def _column_names_default(self):
+        return ['step']
+
+    def _columns_default(self):
+        return [ObjectColumn(name='step')]
