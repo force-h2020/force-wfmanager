@@ -237,9 +237,6 @@ class WorkflowSettings(TraitsDockPane):
     available_kpi_calculator_factories = List(Instance(
         BaseKPICalculatorBundle))
 
-    #: Selected MCO bundle in the list of MCOs
-    selected_mco = Instance(BaseMCOBundle)
-
     workflow = Instance(WorkflowModelView)
 
     workflow_model = Instance(Workflow)
