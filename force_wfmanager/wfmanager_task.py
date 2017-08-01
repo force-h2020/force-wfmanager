@@ -1,12 +1,13 @@
-from traits.api import List, Instance
+from traits.api import Instance, on_trait_change
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
-from pyface.api import FileDialog, OK
+from pyface.api import FileDialog, OK, error
 
-from force_bdss.api import IMCOBundle, IDataSourceBundle, IKPICalculatorBundle
+from force_bdss.bundle_registry_plugin import BundleRegistryPlugin
 from force_bdss.workspecs.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
+from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
@@ -16,17 +17,27 @@ class WfManagerTask(Task):
     id = 'force_wfmanager.wfmanager_task'
     name = 'Workflow Manager'
 
+    #: Workflow model
     workflow = Instance(Workflow)
 
-    mco_bundles = List(Instance(IMCOBundle))
-    data_source_bundles = List(Instance(IDataSourceBundle))
-    kpi_calculator_bundles = List(Instance(IKPICalculatorBundle))
+    #: WorkflowSettings pane, it displays the workflow in a tree editor and
+    #: allows to edit it
+    workflow_settings = Instance(WorkflowSettings)
 
+    #: Registry of the available bundles
+    bundle_registry = Instance(BundleRegistryPlugin)
+
+    #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
         TaskAction(
             name='Save Workflow...',
             method='save_workflow',
             accelerator='Ctrl+S',
+        ),
+        TaskAction(
+            name='Load Workflow...',
+            method='load_workflow',
+            accelerator='Ctrl+O',
         ), id='File', name='&File'
     ))
 
@@ -39,12 +50,7 @@ class WfManagerTask(Task):
     def create_dock_panes(self):
         """ Creates the dock panes which contains the MCO, datasources and
         Constraints management """
-        workflow_settings = WorkflowSettings(
-            available_mco_factories=self.mco_bundles,
-            available_data_source_factories=self.data_source_bundles,
-            available_kpi_calculator_factories=self.kpi_calculator_bundles,
-            workflow_model=self.workflow)
-        return [workflow_settings]
+        return [self.workflow_settings]
 
     def save_workflow(self):
         """ Shows a dialog to save the workflow into a JSON file """
@@ -56,6 +62,24 @@ class WfManagerTask(Task):
             with open(dialog.path, 'wr') as output:
                 writer.write(self.workflow, output)
 
+    def load_workflow(self):
+        """ Shows a dialog to load a workflow file """
+        dialog = FileDialog(action="open")
+        result = dialog.open()
+
+        if result is OK:
+            reader = WorkflowReader(self.bundle_registry)
+            try:
+                with open(dialog.path, 'r') as fobj:
+                    self.workflow = reader.read(fobj)
+            except InvalidFileException as e:
+                error(
+                    None,
+                    'Cannot read the requested file:\n\n{}'.format(
+                        str(e)),
+                    'Error when reading file'
+                )
+
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
         return TaskLayout(
@@ -64,3 +88,15 @@ class WfManagerTask(Task):
 
     def _workflow_default(self):
         return Workflow()
+
+    def _workflow_settings_default(self):
+        registry = self.bundle_registry
+        return WorkflowSettings(
+            available_mco_factories=registry.mco_bundles,
+            available_data_source_factories=registry.data_source_bundles,
+            available_kpi_calculator_factories=registry.kpi_calculator_bundles,
+            workflow_model=self.workflow)
+
+    @on_trait_change('workflow')
+    def update_workflow_settings(self):
+        self.workflow_settings.workflow_model = self.workflow
