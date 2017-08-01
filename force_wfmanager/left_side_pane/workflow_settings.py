@@ -3,14 +3,13 @@ from pyface.tasks.api import TraitsDockPane
 from traitsui.api import (
     ITreeNodeAdapter, ITreeNode, TreeEditor, TreeNode, UItem, View, Menu,
     Action, Handler)
-from traits.api import Instance, List, provides, register_factory
+from traits.api import Instance, List, provides, register_factory, Property
 
 from force_bdss.api import (
     BaseMCOBundle,
     BaseDataSourceModel, BaseDataSourceBundle,
     BaseKPICalculatorModel, BaseKPICalculatorBundle,
     BaseMCOParameter, BaseMCOParameterFactory)
-from force_bdss.mco.parameters.core_mco_parameters import all_core_factories
 from force_bdss.workspecs.workflow import Workflow
 
 from .view_utils import get_bundle_name
@@ -226,7 +225,9 @@ class WorkflowSettings(TraitsDockPane):
     available_mco_factories = List(Instance(BaseMCOBundle))
 
     #: Available parameters factories
-    available_mco_parameter_factories = List(Instance(BaseMCOParameterFactory))
+    available_mco_parameter_factories = Property(
+        List(Instance(BaseMCOParameterFactory)),
+        depends_on='workflow_model.mco')
 
     #: Available data source bundles
     available_data_source_factories = List(Instance(BaseDataSourceBundle))
@@ -253,5 +254,6 @@ class WorkflowSettings(TraitsDockPane):
             model=self.workflow_model
         )
 
-    def _available_mco_parameter_factories_default(self):
-        return all_core_factories()
+    def _get_available_mco_parameter_factories(self):
+        mco_bundle = self.workflow_model.mco.bundle
+        return mco_bundle.parameter_factories()
