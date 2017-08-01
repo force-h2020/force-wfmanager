@@ -48,16 +48,16 @@ table_editor = TableEditor(
 
 
 class ResultTable(HasStrictTraits):
-    #: Each row of the table containing the results
+    #: Each row of the table containing the evaluation step
     evaluation_steps = List(Instance(EvaluationStep))
 
     #: The currently selected indices in the table
     selected_step_indices = List(Int)
 
-    #: The column labels
+    #: The column labels (result names)
     column_names = List(Str)
 
-    #: The column objects
+    #: The columns
     columns = List(Instance(ResultColumn))
 
     traits_view = View(
@@ -65,6 +65,9 @@ class ResultTable(HasStrictTraits):
     )
 
     def append_evaluation_step(self, evaluation_step):
+        """ Appends an evalutation step to the table, it automatically adds a
+        new column if needed (e.g. if there is no column 'x' but the
+        evalutation step a result named 'x', a new column will be created) """
         result_names = [result.name for result in evaluation_step.results]
         for name in result_names:
             if name not in self.column_names:
@@ -72,5 +75,6 @@ class ResultTable(HasStrictTraits):
         self.evaluation_steps.append(evaluation_step)
 
     def add_column(self, name):
+        """ Creates a new column in the table """
         self.column_names.append(name)
         self.columns.append(ResultColumn(name=name))
