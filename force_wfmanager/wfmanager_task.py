@@ -76,7 +76,7 @@ class WfManagerTask(Task):
                     error(
                         None,
                         'Cannot read the requested file:\n\n{}'.format(
-                            e.message),
+                            str(e)),
                         'Error when reading file'
                     )
 
