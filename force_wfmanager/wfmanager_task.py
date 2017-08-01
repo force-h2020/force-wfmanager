@@ -69,16 +69,16 @@ class WfManagerTask(Task):
 
         if result is OK:
             reader = WorkflowReader(self.bundle_registry)
-            with open(dialog.path, 'r') as fobj:
-                try:
+            try:
+                with open(dialog.path, 'r') as fobj:
                     self.workflow = reader.read(fobj)
-                except InvalidFileException as e:
-                    error(
-                        None,
-                        'Cannot read the requested file:\n\n{}'.format(
-                            str(e)),
-                        'Error when reading file'
-                    )
+            except InvalidFileException as e:
+                error(
+                    None,
+                    'Cannot read the requested file:\n\n{}'.format(
+                        str(e)),
+                    'Error when reading file'
+                )
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
