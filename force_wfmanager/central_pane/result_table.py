@@ -30,7 +30,7 @@ class ResultColumn(ObjectColumn):
     def get_value(self, object):
         for result in object.results:
             if result.name == self.name:
-                return result.value
+                return str(result.value)
         return None
 
 
