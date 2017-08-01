@@ -96,12 +96,12 @@ class TestWFManagerTask(unittest.TestCase):
             mock_file_open.side_effect = mock_open
             mock_reader.side_effect = mock_file_reader
 
-            old_workflow = self.wfmanager_task.workflow
+            old_workflow = self.wfmanager_task.workflow_m
 
             self.wfmanager_task.load_workflow()
 
             mock_reader.assert_called()
-            self.assertNotEqual(old_workflow, self.wfmanager_task.workflow)
+            self.assertNotEqual(old_workflow, self.wfmanager_task.workflow_m)
 
     def test_load_failure(self):
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
@@ -113,7 +113,7 @@ class TestWFManagerTask(unittest.TestCase):
             mock_error.side_effect = mock_show_error
             mock_reader.side_effect = mock_file_reader_failure
 
-            old_workflow = self.wfmanager_task.workflow
+            old_workflow = self.wfmanager_task.workflow_m
 
             self.wfmanager_task.load_workflow()
 
@@ -123,4 +123,4 @@ class TestWFManagerTask(unittest.TestCase):
                 'Cannot read the requested file:\n\nOUPS',
                 'Error when reading file'
             )
-            self.assertEqual(old_workflow, self.wfmanager_task.workflow)
+            self.assertEqual(old_workflow, self.wfmanager_task.workflow_m)
