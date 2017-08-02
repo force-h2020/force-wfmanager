@@ -37,8 +37,8 @@ class Analysis(TraitsTaskPane):
     #: Evaluation steps
     evaluation_steps = List(Instance(EvaluationStep))
 
-    #: Selected step in the result table/pareto front
-    selected_step = Int()
+    #: Selected step in the result table/pareto front, None if nothing selected
+    selected_step = Int(None)
 
     view = View(HGroup(
         VGroup(

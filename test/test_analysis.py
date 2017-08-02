@@ -1,6 +1,7 @@
 import unittest
 
-from force_wfmanager.central_pane.analysis import Result, EvaluationStep
+from force_wfmanager.central_pane.analysis import (
+    Result, EvaluationStep, Analysis)
 
 
 class AnalysisTest(unittest.TestCase):
@@ -34,6 +35,12 @@ class AnalysisTest(unittest.TestCase):
         self.assertEqual(ev1.step, 1)
         self.assertEqual(ev2.step, 2)
         self.assertEqual(ev3.step, 1)
+
+    def test_analysis_model_initialization(self):
+        analysis = Analysis()
+
+        self.assertIsNone(analysis.selected_step)
+        self.assertEqual(len(analysis.evaluation_steps), 0)
 
     def tearDown(self):
         EvaluationStep.init_step_count()
