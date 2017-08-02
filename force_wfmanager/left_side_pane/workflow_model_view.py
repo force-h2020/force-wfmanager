@@ -10,7 +10,7 @@ from .mco_model_view import MCOModelView
 
 class WorkflowModelView(ModelView):
     #: Workflow model
-    model = Instance(Workflow)
+    model = Instance(Workflow, allow_none=False)
 
     #: List of MCO to be displayed in the TreeEditor
     mco_representation = Property(

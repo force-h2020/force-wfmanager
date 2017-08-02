@@ -238,10 +238,10 @@ class WorkflowSettings(TraitsDockPane):
         BaseKPICalculatorBundle))
 
     #: The workflow model view
-    _workflow_mv = Instance(WorkflowModelView)
+    _workflow_mv = Instance(WorkflowModelView, allow_none=False)
 
     #: The workflow model
-    workflow_m = Instance(Workflow)
+    workflow_m = Instance(Workflow, allow_none=False)
 
     traits_view = View(
         UItem(name='_workflow_mv',
