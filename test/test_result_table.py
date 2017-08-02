@@ -89,6 +89,5 @@ class ResultTableTest(unittest.TestCase):
         self.assertEqual(len(self.table.evaluation_steps), 0)
         self.assertEqual(EvaluationStep._step, 0)
 
-
     def tearDown(self):
         EvaluationStep.init_step_count()
