@@ -34,10 +34,16 @@ class Analysis(TraitsTaskPane):
     id = 'force_wfmanager.analysis'
     name = 'Analysis'
 
+    #: Evaluation steps
+    evaluation_steps = List(Instance(EvaluationStep))
+
+    #: Selected step in the result table/pareto front
+    selected_step = Int()
+
     view = View(HGroup(
         VGroup(
             Spring(),
-            label='Results'
+            label='Result Table'
         ),
         VGroup(
             Spring(),
