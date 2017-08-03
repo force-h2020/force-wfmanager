@@ -11,7 +11,7 @@ from force_bdss.api import (
     BaseDataSourceModel, BaseDataSourceBundle,
     BaseKPICalculatorModel, BaseKPICalculatorBundle,
     BaseMCOParameter, BaseMCOParameterFactory)
-from force_bdss.workspecs.workflow import Workflow
+from force_bdss.core.workflow import Workflow
 
 from .view_utils import get_bundle_name
 from .new_entity_modal import NewEntityModal
