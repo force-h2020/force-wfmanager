@@ -1,44 +1,22 @@
 from pyface.tasks.api import TraitsTaskPane
 
-from traits.api import List, Instance, Int, Any, Str, HasStrictTraits
+from traits.api import List, Str, Any
 
 from traitsui.api import View, Tabbed, VGroup, Spring
-
-
-class Result(HasStrictTraits):
-    name = Str()
-    value = Any()
-
-
-class EvaluationStep(HasStrictTraits):
-    _step = 0
-
-    @classmethod
-    def init_step_count(cls):
-        cls._step = 0
-
-    @classmethod
-    def get_step(cls):
-        cls._step += 1
-        return cls._step
-
-    def __init__(self, *args, **kwargs):
-        self.step = EvaluationStep.get_step()
-        super(EvaluationStep, self).__init__(*args, **kwargs)
-
-    step = Int()
-    results = List(Instance(Result))
 
 
 class Analysis(TraitsTaskPane):
     id = 'force_wfmanager.analysis'
     name = 'Analysis'
 
-    #: Evaluation steps
-    evaluation_steps = List(Instance(EvaluationStep))
+    #: List of parameter names
+    value_names = List(Str)
 
-    #: Selected step in the result table/pareto front, None if nothing selected
-    selected_step = Int(None)
+    #: Evaluation steps, each evalutation step is a list of parameter values, ,
+    #: received from the bdss. Each value can be of any type. The order of
+    #: the parameters in each evaluation step must match the order of
+    #: value_names
+    evaluation_steps = List(List(Any))
 
     view = View(Tabbed(
         VGroup(
