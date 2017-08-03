@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, Instance, List, Button, Either,
-                        on_trait_change, Dict)
+                        on_trait_change, Dict, Bool)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
                           HGroup, ListStrEditor, InstanceEditor)
 from traitsui.list_str_adapter import ListStrAdapter
@@ -17,6 +17,8 @@ from .view_utils import get_bundle_name
 class ListAdapter(ListStrAdapter):
     """ Adapter for the list of available MCOs/Data sources/KPI calculators
     bundles """
+    can_edit = Bool(False)
+
     def get_text(self, object, trait, index):
         return get_bundle_name(self.item)
 
@@ -25,7 +27,7 @@ class ModalHandler(Handler):
     def object_add_button_changed(self, info):
         """ Action triggered when clicking on "Add" button in the modal """
         if info.object.current_model is not None:
-            info.object.workflow.add_entity(info.object.current_model)
+            info.object.workflow_mv.add_entity(info.object.current_model)
         info.ui.dispose(True)
 
     def object_cancel_button_changed(self, info):
@@ -36,7 +38,7 @@ class ModalHandler(Handler):
 class NewEntityModal(HasStrictTraits):
     """ Dialog which allows the user to add a new MCO/Data Source/KPI
     calculator to the workflow """
-    workflow = Instance(WorkflowModelView)
+    workflow_mv = Instance(WorkflowModelView)
 
     #: Available factories, this class is generic and can contain any factory
     #: which implement the create_model method

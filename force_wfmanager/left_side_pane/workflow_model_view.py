@@ -1,7 +1,7 @@
 from traits.api import Instance, List, Property
 from traitsui.api import ModelView
 
-from force_bdss.workspecs.workflow import Workflow
+from force_bdss.core.workflow import Workflow
 from force_bdss.api import (BaseMCOModel, BaseMCOParameter,
                             BaseDataSourceModel, BaseKPICalculatorModel)
 
@@ -10,7 +10,7 @@ from .mco_model_view import MCOModelView
 
 class WorkflowModelView(ModelView):
     #: Workflow model
-    model = Instance(Workflow)
+    model = Instance(Workflow, allow_none=False)
 
     #: List of MCO to be displayed in the TreeEditor
     mco_representation = Property(

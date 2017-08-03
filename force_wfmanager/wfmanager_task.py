@@ -5,7 +5,7 @@ from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.api import FileDialog, OK, error
 
 from force_bdss.bundle_registry_plugin import BundleRegistryPlugin
-from force_bdss.workspecs.workflow import Workflow
+from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
@@ -18,11 +18,11 @@ class WfManagerTask(Task):
     name = 'Workflow Manager'
 
     #: Workflow model
-    workflow = Instance(Workflow)
+    workflow_m = Instance(Workflow, allow_none=False)
 
     #: WorkflowSettings pane, it displays the workflow in a tree editor and
     #: allows to edit it
-    workflow_settings = Instance(WorkflowSettings)
+    workflow_settings = Instance(WorkflowSettings, allow_none=False)
 
     #: Registry of the available bundles
     bundle_registry = Instance(BundleRegistryPlugin)
@@ -60,7 +60,7 @@ class WfManagerTask(Task):
         if result is OK:
             writer = WorkflowWriter()
             with open(dialog.path, 'wr') as output:
-                writer.write(self.workflow, output)
+                writer.write(self.workflow_m, output)
 
     def load_workflow(self):
         """ Shows a dialog to load a workflow file """
@@ -71,7 +71,7 @@ class WfManagerTask(Task):
             reader = WorkflowReader(self.bundle_registry)
             try:
                 with open(dialog.path, 'r') as fobj:
-                    self.workflow = reader.read(fobj)
+                    self.workflow_m = reader.read(fobj)
             except InvalidFileException as e:
                 error(
                     None,
@@ -86,7 +86,7 @@ class WfManagerTask(Task):
             left=PaneItem('force_wfmanager.workflow_settings')
         )
 
-    def _workflow_default(self):
+    def _workflow_m_default(self):
         return Workflow()
 
     def _workflow_settings_default(self):
@@ -95,8 +95,8 @@ class WfManagerTask(Task):
             available_mco_factories=registry.mco_bundles,
             available_data_source_factories=registry.data_source_bundles,
             available_kpi_calculator_factories=registry.kpi_calculator_bundles,
-            workflow_model=self.workflow)
+            workflow_m=self.workflow_m)
 
-    @on_trait_change('workflow')
+    @on_trait_change('workflow_m')
     def update_workflow_settings(self):
-        self.workflow_settings.workflow_model = self.workflow
+        self.workflow_settings.workflow_m = self.workflow_m

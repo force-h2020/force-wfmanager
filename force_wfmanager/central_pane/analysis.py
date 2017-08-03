@@ -2,7 +2,7 @@ from pyface.tasks.api import TraitsTaskPane
 
 from traits.api import List, Instance, Int, Any, Str, HasStrictTraits
 
-from traitsui.api import View, HGroup, VGroup, Spring
+from traitsui.api import View, Tabbed, VGroup, Spring
 
 
 class Result(HasStrictTraits):
@@ -40,7 +40,7 @@ class Analysis(TraitsTaskPane):
     #: Selected step in the result table/pareto front, None if nothing selected
     selected_step = Int(None)
 
-    view = View(HGroup(
+    view = View(Tabbed(
         VGroup(
             Spring(),
             label='Result Table'

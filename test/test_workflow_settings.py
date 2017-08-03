@@ -16,7 +16,7 @@ from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_bundle import (
     KPIAdderBundle)
 from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
                             BaseKPICalculatorModel)
-from force_bdss.workspecs.workflow import Workflow
+from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_settings import (
     WorkflowSettings, WorkflowHandler, WorkflowModelView)
@@ -32,7 +32,7 @@ def get_workflow_settings():
         available_mco_factories=[DummyDakotaBundle(plugin)],
         available_data_source_factories=[CSVExtractorBundle(plugin)],
         available_kpi_calculator_factories=[KPIAdderBundle(plugin)],
-        workflow_model=Workflow(),
+        workflow_m=Workflow(),
     )
 
 
@@ -51,8 +51,8 @@ def get_workflow_model_view():
 def get_workflow_settings_editor(workflow_model_view):
     return WorkflowSettingsEditor(
         object=WorkflowSettings(
-            workflow=workflow_model_view,
-            workflow_model=workflow_model_view.model
+            _workflow_mv=workflow_model_view,
+            workflow_m=workflow_model_view.model
         )
     )
 
@@ -62,18 +62,17 @@ class TestWorkflowSettings(unittest.TestCase):
         self.workflow_settings = get_workflow_settings()
 
         self.settings = self.workflow_settings
-        self.workflow = self.settings.workflow.model
 
     def test_ui_initialization(self):
-        self.assertIsNone(self.workflow.mco)
-        self.assertEqual(len(self.workflow.data_sources), 0)
-        self.assertEqual(len(self.workflow.kpi_calculators), 0)
+        self.assertIsNone(self.settings.workflow_m.mco)
+        self.assertEqual(len(self.settings.workflow_m.data_sources), 0)
+        self.assertEqual(len(self.settings.workflow_m.kpi_calculators), 0)
 
-        self.assertEqual(len(self.settings.workflow.mco_representation), 0)
+        self.assertEqual(len(self.settings._workflow_mv.mco_representation), 0)
         self.assertEqual(
-            len(self.settings.workflow.data_sources_representation), 0)
+            len(self.settings._workflow_mv.data_sources_representation), 0)
         self.assertEqual(
-            len(self.settings.workflow.kpi_calculators_representation), 0)
+            len(self.settings._workflow_mv.kpi_calculators_representation), 0)
 
 
 class TestTreeEditorHandler(unittest.TestCase):
