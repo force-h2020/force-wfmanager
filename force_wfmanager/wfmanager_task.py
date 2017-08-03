@@ -5,7 +5,7 @@ from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.api import FileDialog, OK, error
 
 from force_bdss.bundle_registry_plugin import BundleRegistryPlugin
-from force_bdss.workspecs.workflow import Workflow
+from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 

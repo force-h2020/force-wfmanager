@@ -15,7 +15,7 @@ from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_bundle import (
     CSVExtractorBundle)
 from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_bundle import (
     KPIAdderBundle)
-from force_bdss.workspecs.workflow import Workflow
+from force_bdss.core.workflow import Workflow
 from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
                             BaseKPICalculatorModel)
 

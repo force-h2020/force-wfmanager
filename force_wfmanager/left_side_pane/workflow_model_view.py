@@ -1,7 +1,7 @@
 from traits.api import Instance, List, Property
 from traitsui.api import ModelView
 
-from force_bdss.workspecs.workflow import Workflow
+from force_bdss.core.workflow import Workflow
 from force_bdss.api import (BaseMCOModel, BaseMCOParameter,
                             BaseDataSourceModel, BaseKPICalculatorModel)
 
