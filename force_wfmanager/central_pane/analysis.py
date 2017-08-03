@@ -1,6 +1,6 @@
 from pyface.tasks.api import TraitsTaskPane
 
-from traits.api import List, Str, Any
+from traits.api import List, Str, Any, Int
 
 from traitsui.api import View, Tabbed, VGroup, Spring
 
@@ -17,6 +17,9 @@ class Analysis(TraitsTaskPane):
     #: the parameters in each evaluation step must match the order of
     #: value_names
     evaluation_steps = List(List(Any))
+
+    #: Selected step, used for highlighting in the table/plot
+    selected_step = Int(None)
 
     view = View(Tabbed(
         VGroup(
