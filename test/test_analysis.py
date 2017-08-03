@@ -12,6 +12,15 @@ class AnalysisTest(unittest.TestCase):
         self.assertEqual(len(self.analysis.evaluation_steps), 0)
         self.assertIsNone(self.analysis.selected_step_index)
 
+        self.assertEqual(
+            self.analysis.result_table.evaluation_steps,
+            self.analysis.evaluation_steps
+        )
+        self.assertEqual(
+            self.analysis.result_table.value_names,
+            self.analysis.value_names
+        )
+
     def test_evaluation_steps(self):
         self.analysis.evaluation_steps = [
             (2.3, 5.2, 'C0'),
