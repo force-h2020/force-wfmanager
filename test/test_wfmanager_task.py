@@ -13,7 +13,7 @@ from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_bundle import (
 from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_bundle import (
     KPIAdderBundle)
 from force_bdss.bundle_registry_plugin import BundleRegistryPlugin
-from force_bdss.workspecs.workflow import Workflow
+from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
