@@ -19,7 +19,7 @@ class Analysis(TraitsTaskPane):
     evaluation_steps = List(List(Any))
 
     #: Selected step, used for highlighting in the table/plot
-    selected_step = Int(None)
+    selected_step_index = Int(None)
 
     view = View(Tabbed(
         VGroup(
