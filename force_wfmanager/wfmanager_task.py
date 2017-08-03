@@ -18,11 +18,11 @@ class WfManagerTask(Task):
     name = 'Workflow Manager'
 
     #: Workflow model
-    workflow_m = Instance(Workflow)
+    workflow_m = Instance(Workflow, allow_none=False)
 
     #: WorkflowSettings pane, it displays the workflow in a tree editor and
     #: allows to edit it
-    workflow_settings = Instance(WorkflowSettings)
+    workflow_settings = Instance(WorkflowSettings, allow_none=False)
 
     #: Registry of the available bundles
     bundle_registry = Instance(BundleRegistryPlugin)
