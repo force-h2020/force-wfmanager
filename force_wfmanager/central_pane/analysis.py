@@ -1,8 +1,10 @@
 from pyface.tasks.api import TraitsTaskPane
 
-from traits.api import List, Str, Tuple, Int
+from traits.api import List, Str, Tuple, Int, Instance
 
-from traitsui.api import View, Tabbed, VGroup, Spring
+from traitsui.api import View, Tabbed, VGroup, Spring, UItem
+
+from .pareto_front import ParetoFront
 
 
 class Analysis(TraitsTaskPane):
@@ -21,13 +23,19 @@ class Analysis(TraitsTaskPane):
     #: Selected step, used for highlighting in the table/plot
     selected_step_index = Int(None)
 
+    #: The Pareto Front view
+    pareto_front = Instance(ParetoFront)
+
     view = View(Tabbed(
         VGroup(
             Spring(),
             label='Result Table'
         ),
         VGroup(
-            Spring(),
+            UItem('pareto_front', style='custom'),
             label='Pareto Front'
         )
     ))
+
+    def _pareto_front_default(self):
+        return ParetoFront()
