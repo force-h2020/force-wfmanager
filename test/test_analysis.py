@@ -14,7 +14,7 @@ class AnalysisTest(unittest.TestCase):
 
     def test_evaluation_steps(self):
         self.analysis.evaluation_steps = [
-            [2.3, 5.2, 'pressure'],
-            [23, 52, 'temperature'],
+            (2.3, 5.2, 'pressure'),
+            (23, 52, 'temperature'),
         ]
         self.assertEqual(len(self.analysis.evaluation_steps), 2)
