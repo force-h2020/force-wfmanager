@@ -71,6 +71,9 @@ class ParetoFront(HasStrictTraits):
         self.data_arrays = self._compute_data_arrays()
 
     def _compute_data_arrays(self):
+        if len(self.evaluation_steps) == 0:
+            return []
+
         data_dim = len(self.evaluation_steps[0])
         data_arrays = [[] for index in range(data_dim)]
         for evaluation_step in self.evaluation_steps:
