@@ -15,7 +15,6 @@ before_install:
     - . $HOME/.edm/envs/force/bin/activate
     - cat requirements/edm_requirements.txt | grep -v "^#" | while read line; do edm install -y `echo $line | awk '{print $1"=="$2}'`; done
 install:
-    - pip install numpy
     - pip install -r requirements/requirements.txt
     - python setup.py develop
 script:
