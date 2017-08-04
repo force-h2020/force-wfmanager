@@ -15,11 +15,16 @@ from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
 from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import (
     KPIAdderFactory)
 from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
-                            BaseKPICalculatorModel)
+                            BaseKPICalculatorModel, BaseMCOParameter,
+                            BaseMCOParameterFactory, BaseDataSourceFactory,
+                            BaseKPICalculatorFactory)
 from force_bdss.core.workflow import Workflow
 
+from force_wfmanager.left_side_pane.workflow_model_view import \
+    WorkflowModelView
 from force_wfmanager.left_side_pane.workflow_settings import (
-    WorkflowSettings, WorkflowHandler, WorkflowModelView)
+    WorkflowSettings, WorkflowHandler, MCOParameterAdapter, DataSourceAdapter,
+    KPICalculatorAdapter)
 
 
 class WorkflowSettingsEditor(HasTraits):
@@ -124,3 +129,39 @@ class TestTreeEditorHandler(unittest.TestCase):
         self.assertNotEqual(
             first_kpi_calculator_id,
             id(self.workflow.model.kpi_calculators[0]))
+
+    def test_mco_parameter_adapter(self):
+        model = mock.Mock(spec=BaseMCOParameter)
+        model.factory = mock.Mock(spec=BaseMCOParameterFactory)
+        model.factory.name = 'Hi'
+
+        adapter = MCOParameterAdapter(adaptee=model)
+
+        self.assertEqual(adapter.get_label(), 'Hi')
+
+        adapter.get_view()
+        model.trait_view.assert_called()
+
+    def test_data_source_adapter(self):
+        model = mock.Mock(spec=BaseDataSourceModel)
+        model.factory = mock.Mock(spec=BaseDataSourceFactory)
+        model.factory.name = 'Hi'
+
+        adapter = DataSourceAdapter(adaptee=model)
+
+        self.assertEqual(adapter.get_label(), 'Hi')
+
+        adapter.get_view()
+        model.trait_view.assert_called()
+
+    def test_kpi_calculator_adapter(self):
+        model = mock.Mock(spec=BaseKPICalculatorModel)
+        model.factory = mock.Mock(spec=BaseKPICalculatorFactory)
+        model.factory.name = 'Hi'
+
+        adapter = KPICalculatorAdapter(adaptee=model)
+
+        self.assertEqual(adapter.get_label(), 'Hi')
+
+        adapter.get_view()
+        model.trait_view.assert_called()
