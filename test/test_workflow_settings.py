@@ -8,12 +8,12 @@ from envisage.plugin import Plugin
 
 from traits.api import Instance, HasTraits
 
-from force_bdss.core_plugins.dummy.dummy_dakota.dakota_bundle import (
-    DummyDakotaBundle)
-from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_bundle import (
-    CSVExtractorBundle)
-from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_bundle import (
-    KPIAdderBundle)
+from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
+    DummyDakotaFactory)
+from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
+    CSVExtractorFactory)
+from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import (
+    KPIAdderFactory)
 from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
                             BaseKPICalculatorModel)
 from force_bdss.core.workflow import Workflow
@@ -29,9 +29,9 @@ class WorkflowSettingsEditor(HasTraits):
 def get_workflow_settings():
     plugin = mock.Mock(spec=Plugin)
     return WorkflowSettings(
-        available_mco_factories=[DummyDakotaBundle(plugin)],
-        available_data_source_factories=[CSVExtractorBundle(plugin)],
-        available_kpi_calculator_factories=[KPIAdderBundle(plugin)],
+        available_mco_factories=[DummyDakotaFactory(plugin)],
+        available_data_source_factories=[CSVExtractorFactory(plugin)],
+        available_kpi_calculator_factories=[KPIAdderFactory(plugin)],
         workflow_m=Workflow(),
     )
 
