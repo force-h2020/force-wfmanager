@@ -1,6 +1,7 @@
-from traits.api import HasStrictTraits, List, Str, Tuple, Instance
+from traits.api import (HasStrictTraits, List, Str, Tuple, Instance, Enum,
+                        Property)
 
-from traitsui.api import View, UItem
+from traitsui.api import View, UItem, Item, VGroup, HGroup
 
 from enable.api import Component, ComponentEditor
 
@@ -14,24 +15,42 @@ class ParetoFront(HasStrictTraits):
     #: List of evaluation steps
     evaluation_steps = List(Tuple())
 
+    #: List containing the data arrays
+    data_arrays = List(List())
+
     #: The Pareto Front plot
-    plot = Instance(Component)
+    plot = Property(Instance(Component), depends_on=['x', 'y'])
 
-    view = View(UItem('plot', editor=ComponentEditor(size=(300, 300))))
+    #: First parameter used for the plot
+    x = Enum(values='value_names')
 
-    def _plot_default(self):
+    #: Second parameter used for the plot
+    y = Enum(values='value_names')
+
+    view = View(VGroup(
+        HGroup(
+            Item('x'),
+            Item('y'),
+        ),
+        UItem('plot', editor=ComponentEditor()),
+    ))
+
+    def _get_plot(self):
+        x_index = self.value_names.index(self.x)
+        y_index = self.value_names.index(self.y)
+
         plot_data = ArrayPlotData()
-        plot_data.set_data("x", [1, 2, 3])
-        plot_data.set_data("y", [1.2, 0.56, 2.32])
+        plot_data.set_data(self.x, self.data_arrays[x_index])
+        plot_data.set_data(self.y, self.data_arrays[y_index])
 
         # Create the plot
         plot = Plot(plot_data)
-        plot.plot(("x", "y"),
+        plot.plot((self.x, self.y),
                   type="scatter",
                   name="Pareto Front",
                   marker="circle",
                   index_sort="ascending",
-                  color="red",
+                  color="blue",
                   marker_size=4,
                   bgcolor="white")
 
@@ -40,3 +59,11 @@ class ParetoFront(HasStrictTraits):
         plot.padding = 50
 
         return plot
+
+    def _data_arrays_default(self):
+        data_dim = len(self.evaluation_steps[0])
+        data_arrays = [[] for index in range(data_dim)]
+        for evaluation_step in self.evaluation_steps:
+            for index in range(data_dim):
+                data_arrays[index].append(evaluation_step[index])
+        return data_arrays

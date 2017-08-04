@@ -38,4 +38,7 @@ class Analysis(TraitsTaskPane):
     ))
 
     def _pareto_front_default(self):
-        return ParetoFront()
+        return ParetoFront(
+            value_names=self.value_names,
+            evaluation_steps=self.evaluation_steps
+        )
