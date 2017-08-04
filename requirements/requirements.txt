@@ -1,5 +1,6 @@
 envisage >= 4.6.0
 stevedore >= 1.24.0
+numpy >= 1.13.1
 chaco >= 4.6.1
 enable >= 4.6.2
 git+git://github.com/force-h2020/force-bdss.git
