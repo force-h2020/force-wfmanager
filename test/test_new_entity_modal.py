@@ -20,7 +20,7 @@ from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
                             BaseKPICalculatorModel)
 
 from force_wfmanager.left_side_pane.new_entity_modal import (
-    ModalHandler, NewEntityModal)
+    ModalHandler, NewEntityModal, ListAdapter)
 from force_wfmanager.left_side_pane.workflow_settings import WorkflowModelView
 
 
@@ -178,3 +178,19 @@ class NewEntityModalTest(unittest.TestCase):
 
         # Simulate pressing cancel button
         self.handler.object_cancel_button_changed(modal_info)
+
+    def test_selected_factory(self):
+        modal, _ = self._get_new_mco_dialog()
+        modal.selected_factory = modal.available_factories[0]
+
+        self.assertIsNotNone(modal.current_model)
+
+        modal.selected_factory = None
+
+        self.assertIsNone(modal.current_model)
+
+    def test_list_adapter(self):
+        plugin = mock.Mock(spec=Plugin)
+
+        adapter = ListAdapter(item=DummyDakotaFactory(plugin))
+        self.assertEqual(adapter.get_text({}, {}, {}), 'Dummy Dakota')
