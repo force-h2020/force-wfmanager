@@ -5,22 +5,22 @@ from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
 from traitsui.list_str_adapter import ListStrAdapter
 
 from force_bdss.api import (
-    BaseMCOModel, BaseMCOBundle,
-    BaseDataSourceModel, BaseDataSourceBundle,
-    BaseKPICalculatorModel, BaseKPICalculatorBundle,
+    BaseMCOModel, BaseMCOFactory,
+    BaseDataSourceModel, BaseDataSourceFactory,
+    BaseKPICalculatorModel, BaseKPICalculatorFactory,
     BaseMCOParameter, BaseMCOParameterFactory)
 
 from .workflow_model_view import WorkflowModelView
-from .view_utils import get_bundle_name
+from .view_utils import get_factory_name
 
 
 class ListAdapter(ListStrAdapter):
     """ Adapter for the list of available MCOs/Data sources/KPI calculators
-    bundles """
+    factories """
     can_edit = Bool(False)
 
     def get_text(self, object, trait, index):
-        return get_bundle_name(self.item)
+        return get_factory_name(self.item)
 
 
 class ModalHandler(Handler):
@@ -43,18 +43,18 @@ class NewEntityModal(HasStrictTraits):
     #: Available factories, this class is generic and can contain any factory
     #: which implement the create_model method
     available_factories = Either(
-        List(Instance(BaseMCOBundle)),
+        List(Instance(BaseMCOFactory)),
         List(Instance(BaseMCOParameterFactory)),
-        List(Instance(BaseDataSourceBundle)),
-        List(Instance(BaseKPICalculatorBundle)),
+        List(Instance(BaseDataSourceFactory)),
+        List(Instance(BaseKPICalculatorFactory)),
     )
 
     #: Selected factory in the list
     selected_factory = Either(
-        Instance(BaseMCOBundle),
+        Instance(BaseMCOFactory),
         Instance(BaseMCOParameterFactory),
-        Instance(BaseDataSourceBundle),
-        Instance(BaseKPICalculatorBundle)
+        Instance(BaseDataSourceFactory),
+        Instance(BaseKPICalculatorFactory)
     )
 
     add_button = Button("Add")

@@ -4,7 +4,7 @@ from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.api import FileDialog, OK, error
 
-from force_bdss.bundle_registry_plugin import BundleRegistryPlugin
+from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
@@ -24,8 +24,8 @@ class WfManagerTask(Task):
     #: allows to edit it
     workflow_settings = Instance(WorkflowSettings, allow_none=False)
 
-    #: Registry of the available bundles
-    bundle_registry = Instance(BundleRegistryPlugin)
+    #: Registry of the available factories
+    factory_registry = Instance(FactoryRegistryPlugin)
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
@@ -68,7 +68,7 @@ class WfManagerTask(Task):
         result = dialog.open()
 
         if result is OK:
-            reader = WorkflowReader(self.bundle_registry)
+            reader = WorkflowReader(self.factory_registry)
             try:
                 with open(dialog.path, 'r') as fobj:
                     self.workflow_m = reader.read(fobj)
@@ -90,11 +90,11 @@ class WfManagerTask(Task):
         return Workflow()
 
     def _workflow_settings_default(self):
-        registry = self.bundle_registry
+        registry = self.factory_registry
         return WorkflowSettings(
-            available_mco_factories=registry.mco_bundles,
-            available_data_source_factories=registry.data_source_bundles,
-            available_kpi_calculator_factories=registry.kpi_calculator_bundles,
+            available_mco_factories=registry.mco_factories,
+            available_data_source_factories=registry.data_source_factories,
+            available_kpi_calculator_factories=registry.kpi_calculator_factories,
             workflow_m=self.workflow_m)
 
     @on_trait_change('workflow_m')
