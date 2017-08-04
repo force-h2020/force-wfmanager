@@ -1,6 +1,6 @@
 from pyface.tasks.api import TraitsTaskPane
 
-from traits.api import List, Str, Tuple, Int, Instance
+from traits.api import List, Str, Tuple, Int, Instance, on_trait_change
 
 from traitsui.api import View, Tabbed, VGroup, Spring, UItem
 
@@ -42,3 +42,7 @@ class Analysis(TraitsTaskPane):
             value_names=self.value_names,
             evaluation_steps=self.evaluation_steps
         )
+
+    @on_trait_change('evaluation_steps[]')
+    def update_pareto_front(self):
+        self.pareto_front.evaluation_steps = self.evaluation_steps

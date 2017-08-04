@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, List, Str, Tuple, Instance, Enum,
-                        Property)
+                        Property, on_trait_change)
 
 from traitsui.api import View, UItem, Item, VGroup, HGroup
 
@@ -61,6 +61,13 @@ class ParetoFront(HasStrictTraits):
         return plot
 
     def _data_arrays_default(self):
+        return self._compute_data_arrays()
+
+    @on_trait_change('evaluation_steps')
+    def update_data_arrays(self):
+        self.data_arrays = self._compute_data_arrays()
+
+    def _compute_data_arrays(self):
         data_dim = len(self.evaluation_steps[0])
         data_arrays = [[] for index in range(data_dim)]
         for evaluation_step in self.evaluation_steps:
