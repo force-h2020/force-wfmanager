@@ -36,6 +36,9 @@ class ParetoFront(HasStrictTraits):
     ))
 
     def _get_plot(self):
+        if self.x is None or self.y is None:
+            return None
+
         x_index = self.value_names.index(self.x)
         y_index = self.value_names.index(self.y)
 
