@@ -1,4 +1,4 @@
-from traits.api import Instance, Str
+from traits.api import Instance, Str, on_trait_change
 
 from traitsui.api import View, Item, ModelView
 
@@ -26,6 +26,14 @@ class MCOParameterModelView(ModelView):
         Item(name="type"),
         kind="subpanel",
     )
+
+    @on_trait_change('name')
+    def update_name(self):
+        self.model.name = self.name
+
+    @on_trait_change('type')
+    def update_type(self):
+        self.model.type = self.type
 
     def _label_default(self):
         return get_factory_name(self.model.factory)
