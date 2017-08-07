@@ -12,7 +12,7 @@ class KPICalculatorModelView(ModelView):
     model = Instance(BaseKPICalculatorModel, allow_none=False)
 
     #: The human readable name of the KPI Calculator
-    name = Str()
+    label = Str()
 
     #: The input slot maps which is a list of dictionary defining the input
     #: slots of the KPI Calculator model
@@ -34,7 +34,7 @@ class KPICalculatorModelView(ModelView):
         kind="subpanel",
     )
 
-    def _name_default(self):
+    def _label_default(self):
         return get_factory_name(self.model.factory)
 
     def _get_input_slot_maps(self):

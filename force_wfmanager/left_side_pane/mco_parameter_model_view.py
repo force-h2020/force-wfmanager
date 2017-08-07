@@ -11,7 +11,10 @@ class MCOParameterModelView(ModelView):
     #: MCO parameter model
     model = Instance(BaseMCOParameter, allow_none=False)
 
-    #: The human readable name of the MCO parameter
+    #: The human readable name of the MCO parameter class
+    label = Str()
+
+    #: The user defined name of the MCO parameter
     name = Str()
 
     #: The type of the MCO parameter
@@ -24,8 +27,11 @@ class MCOParameterModelView(ModelView):
         kind="subpanel",
     )
 
-    def _name_default(self):
+    def _label_default(self):
         return get_factory_name(self.model.factory)
+
+    def _name_default(self):
+        return self.model.name
 
     def _type_default(self):
         return self.model.type
