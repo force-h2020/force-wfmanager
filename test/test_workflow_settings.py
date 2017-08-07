@@ -148,6 +148,16 @@ class TestTreeEditorHandler(unittest.TestCase):
 
             mock_modal.assert_called()
 
+    def test_edit_entity(self):
+        self.handler.edit_entity_handler(
+            self.workflow_settings_editor,
+            self.workflow.model.mco)
+
+        self.assertEqual(
+            self.workflow.model.mco.edit_traits.call_count,
+            1
+        )
+
     def test_delete_mco(self):
         self.assertIsNotNone(
             self.workflow.model.mco)
