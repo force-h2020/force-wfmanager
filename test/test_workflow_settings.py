@@ -8,6 +8,8 @@ from envisage.plugin import Plugin
 
 from traits.api import Instance, HasTraits
 
+from traitsui.api import Menu
+
 from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
     DummyDakotaFactory)
 from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
@@ -228,6 +230,11 @@ class TestTreeEditorHandler(unittest.TestCase):
             base_mco_parameter_view
         )
 
+        self.assertIsInstance(
+            adapter.get_menu(),
+            Menu
+        )
+
     def test_data_source_adapter(self):
         model = mock.Mock(spec=BaseDataSourceModel)
         model.factory = mock.Mock(spec=BaseDataSourceFactory)
@@ -242,6 +249,11 @@ class TestTreeEditorHandler(unittest.TestCase):
             base_data_source_view
         )
 
+        self.assertIsInstance(
+            adapter.get_menu(),
+            Menu
+        )
+
     def test_kpi_calculator_adapter(self):
         model = mock.Mock(spec=BaseKPICalculatorModel)
         model.factory = mock.Mock(spec=BaseKPICalculatorFactory)
@@ -254,4 +266,9 @@ class TestTreeEditorHandler(unittest.TestCase):
         self.assertEqual(
             adapter.get_view(),
             base_kpi_calculator_view
+        )
+
+        self.assertIsInstance(
+            adapter.get_menu(),
+            Menu
         )
