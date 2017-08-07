@@ -3,7 +3,7 @@ from traitsui.api import ModelView
 
 from force_bdss.api import BaseMCOModel, BaseMCOParameter
 
-from .view_utils import get_bundle_name
+from .view_utils import get_factory_name
 
 
 class MCOModelView(ModelView):
@@ -25,4 +25,4 @@ class MCOModelView(ModelView):
         return self.model.parameters
 
     def _label_default(self):
-        return get_bundle_name(self.model.bundle)
+        return get_factory_name(self.model.factory)

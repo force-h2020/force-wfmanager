@@ -17,7 +17,16 @@ class AnalysisTest(unittest.TestCase):
             self.analysis.evaluation_steps
         )
         self.assertEqual(
+            self.analysis.result_table.evaluation_steps,
+            self.analysis.evaluation_steps
+        )
+
+        self.assertEqual(
             self.analysis.pareto_front.value_names,
+            self.analysis.value_names
+        )
+        self.assertEqual(
+            self.analysis.result_table.value_names,
             self.analysis.value_names
         )
 

@@ -3,7 +3,7 @@ from envisage.ui.tasks.api import TaskFactory
 
 from traits.api import List
 
-from force_bdss.bundle_registry_plugin import BUNDLE_REGISTRY_PLUGIN_ID
+from force_bdss.factory_registry_plugin import FACTORY_REGISTRY_PLUGIN_ID
 
 
 class WfManagerPlugin(Plugin):
@@ -24,7 +24,7 @@ class WfManagerPlugin(Plugin):
     def _create_task(self):
         from force_wfmanager.wfmanager_task import WfManagerTask
 
-        bundle_registry = self.application.get_plugin(
-            BUNDLE_REGISTRY_PLUGIN_ID)
+        factory_registry = self.application.get_plugin(
+            FACTORY_REGISTRY_PLUGIN_ID)
 
-        return WfManagerTask(bundle_registry=bundle_registry)
+        return WfManagerTask(factory_registry=factory_registry)

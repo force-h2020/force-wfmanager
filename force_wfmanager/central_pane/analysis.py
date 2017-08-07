@@ -2,9 +2,11 @@ from pyface.tasks.api import TraitsTaskPane
 
 from traits.api import List, Str, Tuple, Int, Instance, on_trait_change
 
-from traitsui.api import View, Tabbed, VGroup, Spring, UItem
+from traitsui.api import View, Tabbed, VGroup, UItem
 
 from .pareto_front import ParetoFront
+
+from .result_table import ResultTable
 
 
 class Analysis(TraitsTaskPane):
@@ -26,9 +28,13 @@ class Analysis(TraitsTaskPane):
     #: The Pareto Front view
     pareto_front = Instance(ParetoFront)
 
+    #: The table in which we display the computation results received from the
+    #: bdss
+    result_table = Instance(ResultTable)
+
     view = View(Tabbed(
         VGroup(
-            Spring(),
+            UItem(name='result_table', style='custom'),
             label='Result Table'
         ),
         VGroup(
@@ -46,3 +52,9 @@ class Analysis(TraitsTaskPane):
     @on_trait_change('evaluation_steps[]')
     def update_pareto_front(self):
         self.pareto_front.evaluation_steps = self.evaluation_steps
+
+    def _result_table_default(self):
+        return ResultTable(
+            value_names=self.value_names,
+            evaluation_steps=self.evaluation_steps
+        )

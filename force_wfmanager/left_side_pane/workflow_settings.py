@@ -7,13 +7,13 @@ from traits.api import (Instance, List, provides, register_factory, Property,
                         on_trait_change)
 
 from force_bdss.api import (
-    BaseMCOBundle,
-    BaseDataSourceModel, BaseDataSourceBundle,
-    BaseKPICalculatorModel, BaseKPICalculatorBundle,
+    BaseMCOFactory,
+    BaseDataSourceModel, BaseDataSourceFactory,
+    BaseKPICalculatorModel, BaseKPICalculatorFactory,
     BaseMCOParameter, BaseMCOParameterFactory)
 from force_bdss.core.workflow import Workflow
 
-from .view_utils import get_bundle_name
+from .view_utils import get_factory_name
 from .new_entity_modal import NewEntityModal
 from .workflow_model_view import WorkflowModelView
 from .mco_model_view import MCOModelView
@@ -117,7 +117,7 @@ delete_kpi_calculator_action = Action(
 class MCOParameterAdapter(ITreeNodeAdapter):
     """ Adapts the MCO parameter model to be displayed in the tree editor """
     def get_label(self):
-        return get_bundle_name(self.adaptee.factory)
+        return get_factory_name(self.adaptee.factory)
 
     def get_view(self):
         view = self.adaptee.trait_view()
@@ -132,7 +132,7 @@ class MCOParameterAdapter(ITreeNodeAdapter):
 class DataSourceAdapter(ITreeNodeAdapter):
     """ Adapts the Data source model to be displayed in the tree editor """
     def get_label(self):
-        return get_bundle_name(self.adaptee.bundle)
+        return get_factory_name(self.adaptee.factory)
 
     def get_view(self):
         view = self.adaptee.trait_view()
@@ -147,7 +147,7 @@ class DataSourceAdapter(ITreeNodeAdapter):
 class KPICalculatorAdapter(ITreeNodeAdapter):
     """ Adapts the KPI calculator model to be displayed in the tree editor """
     def get_label(self):
-        return get_bundle_name(self.adaptee.bundle)
+        return get_factory_name(self.adaptee.factory)
 
     def get_view(self):
         view = self.adaptee.trait_view()
@@ -222,20 +222,20 @@ class WorkflowSettings(TraitsDockPane):
     id = 'force_wfmanager.workflow_settings'
     name = 'Workflow Settings'
 
-    #: Available MCO bundles
-    available_mco_factories = List(Instance(BaseMCOBundle))
+    #: Available MCO factories
+    available_mco_factories = List(Instance(BaseMCOFactory))
 
     #: Available parameters factories
     available_mco_parameter_factories = Property(
         List(Instance(BaseMCOParameterFactory)),
         depends_on='workflow_m.mco')
 
-    #: Available data source bundles
-    available_data_source_factories = List(Instance(BaseDataSourceBundle))
+    #: Available data source factories
+    available_data_source_factories = List(Instance(BaseDataSourceFactory))
 
-    #: Available KPI calculator bundles
+    #: Available KPI calculator factories
     available_kpi_calculator_factories = List(Instance(
-        BaseKPICalculatorBundle))
+        BaseKPICalculatorFactory))
 
     #: The workflow model view
     _workflow_mv = Instance(WorkflowModelView, allow_none=False)
@@ -262,5 +262,5 @@ class WorkflowSettings(TraitsDockPane):
         self._workflow_mv.model = self.workflow_m
 
     def _get_available_mco_parameter_factories(self):
-        mco_bundle = self.workflow_m.mco.bundle
-        return mco_bundle.parameter_factories()
+        mco_factory = self.workflow_m.mco.factory
+        return mco_factory.parameter_factories()

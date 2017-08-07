@@ -6,13 +6,13 @@ except ImportError:
 
 from pyface.api import FileDialog, OK
 
-from force_bdss.core_plugins.dummy.dummy_dakota.dakota_bundle import (
-    DummyDakotaBundle)
-from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_bundle import (
-    CSVExtractorBundle)
-from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_bundle import (
-    KPIAdderBundle)
-from force_bdss.bundle_registry_plugin import BundleRegistryPlugin
+from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
+    DummyDakotaFactory)
+from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
+    CSVExtractorFactory)
+from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import (
+    KPIAdderFactory)
+from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
@@ -27,11 +27,11 @@ ERROR_PATH = 'force_wfmanager.wfmanager_task.error'
 
 
 def get_wfmanager_task():
-    mock_plugin = mock.Mock(spec=BundleRegistryPlugin)
-    mock_plugin.mco_bundles = [mock.Mock(spec=DummyDakotaBundle)]
-    mock_plugin.data_source_bundles = [mock.Mock(spec=CSVExtractorBundle)]
-    mock_plugin.kpi_calculator_bundles = [mock.Mock(spec=KPIAdderBundle)]
-    return WfManagerTask(bundle_registry=mock_plugin)
+    mock_plugin = mock.Mock(spec=FactoryRegistryPlugin)
+    mock_plugin.mco_factories = [mock.Mock(spec=DummyDakotaFactory)]
+    mock_plugin.data_source_factories = [mock.Mock(spec=CSVExtractorFactory)]
+    mock_plugin.kpi_calculator_factories = [mock.Mock(spec=KPIAdderFactory)]
+    return WfManagerTask(factory_registry=mock_plugin)
 
 
 def mock_file_dialog(*args, **kwargs):
