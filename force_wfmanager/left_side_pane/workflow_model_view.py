@@ -64,6 +64,41 @@ class WorkflowModelView(ModelView):
                 ))
             )
 
+    def remove_entity(self, entity):
+        """ Removes an element from the workflow
+
+        Parameters
+        ----------
+        entity: BaseMCOModel or BaseMCOParameter or BaseDataSourceModel or
+            BaseKPICalculatorModel
+            The element to be removed from the Workflow
+
+        Raises
+        ------
+        ValueError:
+            If the element to be deleted is not present in the Workflow
+        """
+        if isinstance(entity, BaseMCOModel):
+            if self.model.mco is entity:
+                self.model.mco = None
+            else:
+                raise(
+                    ValueError("The MCO {} can not be removed from the"
+                               " workflow, it is not in the workflow".format(
+                                   type(entity).__name__))
+                )
+        elif isinstance(entity, BaseMCOParameter):
+            self.model.mco.parameters.remove(entity)
+        elif isinstance(entity, BaseDataSourceModel):
+            self.model.data_sources.remove(entity)
+        elif isinstance(entity, BaseKPICalculatorModel):
+            self.model.kpi_calculators.remove(entity)
+        else:
+            raise(
+                ValueError("Element of type {} can not be removed from the"
+                           " workflow".format(type(entity).__name__))
+            )
+
     def _get_mco_representation(self):
         if self.model.mco is not None:
             return [MCOModelView(model=self.model.mco)]
