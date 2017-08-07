@@ -212,7 +212,8 @@ tree_editor = TreeEditor(
                  view=no_view,
                  menu=Menu(new_kpi_calculator_action),
                  ),
-    ]
+    ],
+    orientation="vertical"
 )
 
 
