@@ -6,6 +6,8 @@ from force_bdss.api import (BaseMCOModel, BaseMCOParameter,
                             BaseDataSourceModel, BaseKPICalculatorModel)
 
 from .mco_model_view import MCOModelView
+from .data_source_model_view import DataSourceModelView
+from .kpi_calculator_model_view import KPICalculatorModelView
 
 
 class WorkflowModelView(ModelView):
@@ -19,12 +21,12 @@ class WorkflowModelView(ModelView):
 
     #: List of DataSources to be displayed in the TreeEditor
     data_sources_representation = Property(
-        List(Instance(BaseDataSourceModel)),
+        List(Instance(DataSourceModelView)),
         depends_on='model.data_sources')
 
     #: List of KPI Calculators to be displayed in the TreeEditor
     kpi_calculators_representation = Property(
-        List(Instance(BaseKPICalculatorModel)),
+        List(Instance(KPICalculatorModelView)),
         depends_on='model.kpi_calculators')
 
     def add_entity(self, entity):
@@ -112,10 +114,12 @@ class WorkflowModelView(ModelView):
             return []
 
     def _get_data_sources_representation(self):
-        return self.model.data_sources
+        return [DataSourceModelView(model=data_source)
+                for data_source in self.model.data_sources]
 
     def _get_kpi_calculators_representation(self):
-        return self.model.kpi_calculators
+        return [KPICalculatorModelView(model=kpi_calculator)
+                for kpi_calculator in self.model.kpi_calculators]
 
     def _model_default(self):
         return Workflow()
