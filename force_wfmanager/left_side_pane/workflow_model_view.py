@@ -41,7 +41,8 @@ class WorkflowModelView(ModelView):
         Raises
         ------
         RuntimeError:
-            If no MCO is defined for the Workflow
+            If the entity is an MCO parameter but no MCO is defined for the
+            Workflow.
         TypeError:
             If the type of the entity is not supported by the Workflow
         """
