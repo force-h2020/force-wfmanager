@@ -8,8 +8,6 @@ from envisage.plugin import Plugin
 
 from traits.api import Instance, HasTraits
 
-from traitsui.api import Menu
-
 from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
     DummyDakotaFactory)
 from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
@@ -18,8 +16,8 @@ from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import (
     KPIAdderFactory)
 from force_bdss.api import (BaseMCOModel, BaseMCOFactory,
                             BaseMCOParameter, BaseMCOParameterFactory,
-                            BaseDataSourceModel, BaseDataSourceFactory,
-                            BaseKPICalculatorModel, BaseKPICalculatorFactory)
+                            BaseDataSourceModel,
+                            BaseKPICalculatorModel)
 from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_model_view import \
