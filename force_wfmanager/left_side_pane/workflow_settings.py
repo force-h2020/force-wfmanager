@@ -60,7 +60,7 @@ class WorkflowHandler(Handler):
 
     def edit_entity_handler(self, editor, object):
         """ Opens a dialog for configuring the workflow element """
-        object.edit_traits()
+        object.model.edit_traits()
 
     def delete_mco_handler(self, editor, object):
         """ Delete the MCO from the workflow """
