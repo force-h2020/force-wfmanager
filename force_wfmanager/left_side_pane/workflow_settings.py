@@ -13,7 +13,8 @@ from force_bdss.api import (
     BaseMCOParameter, BaseMCOParameterFactory)
 from force_bdss.core.workflow import Workflow
 
-from .view_utils import get_factory_name, base_mco_parameter_view
+from .view_utils import (
+    get_factory_name, base_mco_parameter_view, base_data_source_view)
 from .new_entity_modal import NewEntityModal
 from .workflow_model_view import WorkflowModelView
 from .mco_model_view import MCOModelView
@@ -145,12 +146,13 @@ class DataSourceAdapter(ITreeNodeAdapter):
         return get_factory_name(self.adaptee.factory)
 
     def get_view(self):
-        view = self.adaptee.trait_view()
-        view.kind = "subpanel"
-        return view
+        return base_data_source_view
 
     def get_menu(self):
-        return Menu(delete_data_source_action)
+        return Menu(
+            edit_entity_action,
+            delete_data_source_action
+        )
 
 
 @provides(ITreeNode)
