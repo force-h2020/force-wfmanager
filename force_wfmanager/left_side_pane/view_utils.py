@@ -21,4 +21,11 @@ base_mco_parameter_view = View(
 base_data_source_view = View(
     Item(name="input_slot_maps"),
     Item(name="output_slot_names"),
+    kind="subpanel",
+)
+
+base_kpi_calculator_view = View(
+    Item(name="input_slot_maps"),
+    Item(name="output_slot_names"),
+    kind="subpanel",
 )

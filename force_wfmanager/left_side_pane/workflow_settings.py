@@ -14,7 +14,8 @@ from force_bdss.api import (
 from force_bdss.core.workflow import Workflow
 
 from .view_utils import (
-    get_factory_name, base_mco_parameter_view, base_data_source_view)
+    get_factory_name,
+    base_mco_parameter_view, base_data_source_view, base_kpi_calculator_view)
 from .new_entity_modal import NewEntityModal
 from .workflow_model_view import WorkflowModelView
 from .mco_model_view import MCOModelView
@@ -133,10 +134,7 @@ class MCOParameterAdapter(ITreeNodeAdapter):
         return base_mco_parameter_view
 
     def get_menu(self):
-        return Menu(
-            edit_entity_action,
-            delete_mco_parameter_action,
-        )
+        return Menu(edit_entity_action, delete_mco_parameter_action)
 
 
 @provides(ITreeNode)
@@ -149,10 +147,7 @@ class DataSourceAdapter(ITreeNodeAdapter):
         return base_data_source_view
 
     def get_menu(self):
-        return Menu(
-            edit_entity_action,
-            delete_data_source_action
-        )
+        return Menu(edit_entity_action, delete_data_source_action)
 
 
 @provides(ITreeNode)
@@ -162,12 +157,10 @@ class KPICalculatorAdapter(ITreeNodeAdapter):
         return get_factory_name(self.adaptee.factory)
 
     def get_view(self):
-        view = self.adaptee.trait_view()
-        view.kind = "subpanel"
-        return view
+        return base_kpi_calculator_view
 
     def get_menu(self):
-        return Menu(delete_kpi_calculator_action)
+        return Menu(edit_entity_action, delete_kpi_calculator_action)
 
 
 register_factory(MCOParameterAdapter, BaseMCOParameter, ITreeNode)
