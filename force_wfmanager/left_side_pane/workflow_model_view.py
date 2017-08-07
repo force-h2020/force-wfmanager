@@ -38,30 +38,72 @@ class WorkflowModelView(ModelView):
 
         Raises
         ------
-        RuntimeError:
-            If the entity is an MCO parameter but no MCO is defined for the
-            Workflow.
         TypeError:
             If the type of the entity is not supported by the Workflow
         """
         if isinstance(entity, BaseMCOModel):
-            self.model.mco = entity
+            self.add_mco(entity)
         elif isinstance(entity, BaseMCOParameter):
-            if self.model.mco is None:
-                raise(RuntimeError("Cannot add a parameter to the "
-                      "workflow if no MCO defined"))
-
-            self.model.mco.parameters.append(entity)
+            self.add_mco_parameter(entity)
         elif isinstance(entity, BaseDataSourceModel):
-            self.model.data_sources.append(entity)
+            self.add_data_source(entity)
         elif isinstance(entity, BaseKPICalculatorModel):
-            self.model.kpi_calculators.append(entity)
+            self.add_kpi_calculator(entity)
         else:
             raise(
                 TypeError("Type {} is not supported by the workflow".format(
                     type(entity).__name__
                 ))
             )
+
+    def add_mco(self, mco):
+        """ Adds an MCO to the workflow
+
+        Parameters
+        ----------
+        mco: BaseMCOModel
+            The MCO to be inserted in the Workflow
+        """
+        self.model.mco = mco
+
+    def add_mco_parameter(self, parameter):
+        """ Adds an mco parameter to the workflow
+
+        Parameters
+        ----------
+        parameter: BaseMCOParameter
+            The parameter to be inserted in the Workflow
+
+        Raises
+        ------
+        RuntimeError:
+            If no MCO is defined for the Workflow
+        """
+        if self.model.mco is None:
+            raise(RuntimeError("Cannot add a parameter to the "
+                  "workflow if no MCO defined"))
+
+        self.model.mco.parameters.append(parameter)
+
+    def add_data_source(self, data_source):
+        """ Adds a Data Source to the workflow
+
+        Parameters
+        ----------
+        data_source: BaseDataSourceModel
+            The Data Source to be inserted in the Workflow
+        """
+        self.model.data_sources.append(data_source)
+
+    def add_kpi_calculator(self, kpi_calculator):
+        """ Adds a KPI Calculator to the workflow
+
+        Parameters
+        ----------
+        kpi_calculator: BaseKPICalculatorModel
+            The KPI Calculator to be inserted in the Workflow
+        """
+        self.model.kpi_calculators.append(kpi_calculator)
 
     def _get_mco_representation(self):
         if self.model.mco is not None:
