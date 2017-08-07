@@ -25,6 +25,8 @@ from force_wfmanager.left_side_pane.workflow_model_view import \
 from force_wfmanager.left_side_pane.workflow_settings import (
     WorkflowSettings, WorkflowHandler, MCOParameterAdapter, DataSourceAdapter,
     KPICalculatorAdapter)
+from force_wfmanager.left_side_pane.view_utils import (
+    base_mco_parameter_view, base_data_source_view, base_kpi_calculator_view)
 
 
 class WorkflowSettingsEditor(HasTraits):
@@ -139,8 +141,10 @@ class TestTreeEditorHandler(unittest.TestCase):
 
         self.assertEqual(adapter.get_label(), 'Hi')
 
-        adapter.get_view()
-        model.trait_view.assert_called()
+        self.assertEqual(
+            adapter.get_view(),
+            base_mco_parameter_view
+        )
 
     def test_data_source_adapter(self):
         model = mock.Mock(spec=BaseDataSourceModel)
@@ -151,8 +155,10 @@ class TestTreeEditorHandler(unittest.TestCase):
 
         self.assertEqual(adapter.get_label(), 'Hi')
 
-        adapter.get_view()
-        model.trait_view.assert_called()
+        self.assertEqual(
+            adapter.get_view(),
+            base_data_source_view
+        )
 
     def test_kpi_calculator_adapter(self):
         model = mock.Mock(spec=BaseKPICalculatorModel)
@@ -163,5 +169,7 @@ class TestTreeEditorHandler(unittest.TestCase):
 
         self.assertEqual(adapter.get_label(), 'Hi')
 
-        adapter.get_view()
-        model.trait_view.assert_called()
+        self.assertEqual(
+            adapter.get_view(),
+            base_kpi_calculator_view
+        )
