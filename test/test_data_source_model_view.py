@@ -10,7 +10,7 @@ from force_wfmanager.left_side_pane.data_source_model_view import \
     DataSourceModelView
 
 
-class TestKPICalculatorModelViewTest(unittest.TestCase):
+class TestDataSourceModelViewTest(unittest.TestCase):
     def setUp(self):
         mock_model = mock.Mock(spec=BaseDataSourceModel)
         mock_model.input_slot_maps = []
