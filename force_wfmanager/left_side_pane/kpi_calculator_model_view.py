@@ -27,6 +27,7 @@ class KPICalculatorModelView(ModelView):
         depends_on='model.output_slot_names'
     )
 
+    #: Base view for the KPI Calculator
     traits_view = View(
         Item(name="input_slot_maps"),
         Item(name="output_slot_names"),

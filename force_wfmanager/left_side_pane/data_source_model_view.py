@@ -27,6 +27,7 @@ class DataSourceModelView(ModelView):
         depends_on='model.output_slot_names'
     )
 
+    #: Base view for the Data Source
     traits_view = View(
         Item(name="input_slot_maps"),
         Item(name="output_slot_names"),
