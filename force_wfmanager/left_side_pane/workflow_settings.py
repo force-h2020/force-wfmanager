@@ -13,7 +13,9 @@ from force_bdss.api import (
     BaseMCOParameter, BaseMCOParameterFactory)
 from force_bdss.core.workflow import Workflow
 
-from .view_utils import get_factory_name
+from .view_utils import (
+    get_factory_name,
+    base_mco_parameter_view, base_data_source_view, base_kpi_calculator_view)
 from .new_entity_modal import NewEntityModal
 from .workflow_model_view import WorkflowModelView
 from .mco_model_view import MCOModelView
@@ -31,7 +33,7 @@ class WorkflowHandler(Handler):
         modal = NewEntityModal(
             workflow_mv=editor.object._workflow_mv,
             available_factories=editor.object.available_mco_factories)
-        modal.configure_traits()
+        modal.edit_traits()
 
     def new_parameter_handler(self, editor, object):
         """ Opens a dialog for creating a parameter """
@@ -39,14 +41,14 @@ class WorkflowHandler(Handler):
             workflow_mv=editor.object._workflow_mv,
             available_factories=editor.object.available_mco_parameter_factories
         )
-        modal.configure_traits()
+        modal.edit_traits()
 
     def new_data_source_handler(self, editor, object):
         """ Opens a dialog for creating a Data Source """
         modal = NewEntityModal(
             workflow_mv=editor.object._workflow_mv,
             available_factories=editor.object.available_data_source_factories)
-        modal.configure_traits()
+        modal.edit_traits()
 
     def new_kpi_calculator_handler(self, editor, object):
         """ Opens a dialog for creating a KPI Calculator """
@@ -54,7 +56,11 @@ class WorkflowHandler(Handler):
         modal = NewEntityModal(
             workflow_mv=obj._workflow_mv,
             available_factories=obj.available_kpi_calculator_factories)
-        modal.configure_traits()
+        modal.edit_traits()
+
+    def edit_entity_handler(self, editor, object):
+        """ Opens a dialog for configuring the workflow element """
+        object.edit_traits()
 
     def delete_mco_handler(self, editor, object):
         """ Delete the MCO from the workflow """
@@ -92,6 +98,11 @@ new_kpi_calculator_action = Action(
     name='New KPI Calculator...',
     action='handler.new_kpi_calculator_handler(editor, object)')
 
+edit_entity_action = Action(
+    name='Edit',
+    action='handler.edit_entity_handler(editor, object)'
+)
+
 delete_mco_action = Action(
     name='Delete',
     action='handler.delete_mco_handler(editor, object)'
@@ -120,12 +131,10 @@ class MCOParameterAdapter(ITreeNodeAdapter):
         return get_factory_name(self.adaptee.factory)
 
     def get_view(self):
-        view = self.adaptee.trait_view()
-        view.kind = "subpanel"
-        return view
+        return base_mco_parameter_view
 
     def get_menu(self):
-        return Menu(delete_mco_parameter_action)
+        return Menu(edit_entity_action, delete_mco_parameter_action)
 
 
 @provides(ITreeNode)
@@ -135,12 +144,10 @@ class DataSourceAdapter(ITreeNodeAdapter):
         return get_factory_name(self.adaptee.factory)
 
     def get_view(self):
-        view = self.adaptee.trait_view()
-        view.kind = "subpanel"
-        return view
+        return base_data_source_view
 
     def get_menu(self):
-        return Menu(delete_data_source_action)
+        return Menu(edit_entity_action, delete_data_source_action)
 
 
 @provides(ITreeNode)
@@ -150,12 +157,10 @@ class KPICalculatorAdapter(ITreeNodeAdapter):
         return get_factory_name(self.adaptee.factory)
 
     def get_view(self):
-        view = self.adaptee.trait_view()
-        view.kind = "subpanel"
-        return view
+        return base_kpi_calculator_view
 
     def get_menu(self):
-        return Menu(delete_kpi_calculator_action)
+        return Menu(edit_entity_action, delete_kpi_calculator_action)
 
 
 register_factory(MCOParameterAdapter, BaseMCOParameter, ITreeNode)
