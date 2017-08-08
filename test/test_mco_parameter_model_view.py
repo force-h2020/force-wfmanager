@@ -21,13 +21,4 @@ class TestMCOParameterModelViewTest(unittest.TestCase):
         self.mco_param_mv = MCOParameterModelView(model=mock_model)
 
     def test_mco_parameter_mv_init(self):
-        self.assertEqual(self.mco_param_mv.name, "P1")
-        self.assertEqual(self.mco_param_mv.type, "PRESSURE")
         self.assertEqual(self.mco_param_mv.label, "baz")
-
-    def test_mco_parameter_update(self):
-        self.mco_param_mv.name = "T1"
-        self.assertEqual(self.mco_param_mv.model.name, "T1")
-
-        self.mco_param_mv.type = "TEMPERATURE"
-        self.assertEqual(self.mco_param_mv.model.type, "TEMPERATURE")

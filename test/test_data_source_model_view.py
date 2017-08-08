@@ -10,7 +10,7 @@ from force_wfmanager.left_side_pane.data_source_model_view import \
     DataSourceModelView
 
 
-class TestDataSourceModelViewTest(unittest.TestCase):
+class DataSourceModelViewTest(unittest.TestCase):
     def setUp(self):
         mock_model = mock.Mock(spec=BaseDataSourceModel)
         mock_model.input_slot_maps = []
@@ -22,14 +22,3 @@ class TestDataSourceModelViewTest(unittest.TestCase):
 
     def test_data_source_model_view_init(self):
         self.assertEqual(self.data_source_mv.label, "baz")
-        self.assertEqual(len(self.data_source_mv.input_slot_maps), 0)
-        self.assertEqual(len(self.data_source_mv.output_slot_names), 1)
-
-    def test_data_source_model_view_update(self):
-        self.data_source_mv.model.input_slot_maps.append({'name': 'P1'})
-
-        self.assertEqual(len(self.data_source_mv.input_slot_maps), 1)
-
-        self.data_source_mv.model.output_slot_names.append("P2")
-
-        self.assertEqual(len(self.data_source_mv.output_slot_names), 2)
