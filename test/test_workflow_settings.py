@@ -72,7 +72,7 @@ def get_workflow_model_view():
 def get_workflow_settings_editor(workflow_model_view):
     return WorkflowSettingsEditor(
         object=WorkflowSettings(
-            _workflow_mv=workflow_model_view,
+            workflow_mv=workflow_model_view,
             workflow_m=workflow_model_view.model
         )
     )
@@ -89,11 +89,11 @@ class TestWorkflowSettings(unittest.TestCase):
         self.assertEqual(len(self.settings.workflow_m.data_sources), 0)
         self.assertEqual(len(self.settings.workflow_m.kpi_calculators), 0)
 
-        self.assertEqual(len(self.settings._workflow_mv.mco_representation), 0)
+        self.assertEqual(len(self.settings.workflow_mv.mco_representation), 0)
         self.assertEqual(
-            len(self.settings._workflow_mv.data_sources_representation), 0)
+            len(self.settings.workflow_mv.data_sources_representation), 0)
         self.assertEqual(
-            len(self.settings._workflow_mv.kpi_calculators_representation), 0)
+            len(self.settings.workflow_mv.kpi_calculators_representation), 0)
 
 
 class TestTreeEditorHandler(unittest.TestCase):

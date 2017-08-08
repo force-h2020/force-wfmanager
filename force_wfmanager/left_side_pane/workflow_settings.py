@@ -30,14 +30,14 @@ class WorkflowHandler(Handler):
     def new_mco_handler(self, editor, object):
         """ Opens a dialog for creating a MCO """
         modal = NewEntityModal(
-            workflow_mv=editor.object._workflow_mv,
+            workflow_mv=editor.object.workflow_mv,
             available_factories=editor.object.available_mco_factories)
         modal.edit_traits()
 
     def new_parameter_handler(self, editor, object):
         """ Opens a dialog for creating a parameter """
         modal = NewEntityModal(
-            workflow_mv=editor.object._workflow_mv,
+            workflow_mv=editor.object.workflow_mv,
             available_factories=editor.object.available_mco_parameter_factories
         )
         modal.edit_traits()
@@ -45,7 +45,7 @@ class WorkflowHandler(Handler):
     def new_data_source_handler(self, editor, object):
         """ Opens a dialog for creating a Data Source """
         modal = NewEntityModal(
-            workflow_mv=editor.object._workflow_mv,
+            workflow_mv=editor.object.workflow_mv,
             available_factories=editor.object.available_data_source_factories)
         modal.edit_traits()
 
@@ -53,7 +53,7 @@ class WorkflowHandler(Handler):
         """ Opens a dialog for creating a KPI Calculator """
         obj = editor.object
         modal = NewEntityModal(
-            workflow_mv=obj._workflow_mv,
+            workflow_mv=obj.workflow_mv,
             available_factories=obj.available_kpi_calculator_factories)
         modal.edit_traits()
 
@@ -63,7 +63,7 @@ class WorkflowHandler(Handler):
 
     def delete_entity_handler(self, editor, object):
         """ Delete an element from the workflow """
-        editor.object._workflow_mv.remove_entity(object.model)
+        editor.object.workflow_mv.remove_entity(object.model)
 
 
 new_mco_action = Action(
@@ -190,13 +190,13 @@ class WorkflowSettings(TraitsDockPane):
         BaseKPICalculatorFactory))
 
     #: The workflow model view
-    _workflow_mv = Instance(WorkflowModelView, allow_none=False)
+    workflow_mv = Instance(WorkflowModelView, allow_none=False)
 
     #: The workflow model
     workflow_m = Instance(Workflow, allow_none=False)
 
     traits_view = View(
-        UItem(name='_workflow_mv',
+        UItem(name='workflow_mv',
               editor=tree_editor,
               show_label=False),
         width=800,
@@ -204,14 +204,14 @@ class WorkflowSettings(TraitsDockPane):
         resizable=True,
         handler=WorkflowHandler())
 
-    def __workflow_mv_default(self):
+    def _workflow_mv_default(self):
         return WorkflowModelView(
             model=self.workflow_m
         )
 
     @on_trait_change('workflow_m')
     def update_model_view(self):
-        self._workflow_mv.model = self.workflow_m
+        self.workflow_mv.model = self.workflow_m
 
     def _get_available_mco_parameter_factories(self):
         mco_factory = self.workflow_m.mco.factory
