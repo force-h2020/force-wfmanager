@@ -56,7 +56,7 @@ class EvaluatorModelView(ModelView):
     #: The human readable name of the evaluator
     label = Str()
 
-    #: Data source object, shouldn't be touched
+    #: evaluator object, shouldn't be touched
     _evaluator = Either(
         Instance(BaseDataSource),
         Instance(BaseKPICalculator),
