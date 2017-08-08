@@ -64,7 +64,17 @@ class DataSourceModelView(ModelView):
     def __init__(self, model, *args, **kwargs):
         self.model = model
         self._data_source = model.factory.create_data_source()
-        input_slots, output_slots = self._data_source.slots(self.model)
+
+        self._update_output_slots_table()
+
+        super(DataSourceModelView, self).__init__(*args, **kwargs)
+
+    def _label_default(self):
+        return get_factory_name(self.model.factory)
+
+    @on_trait_change('model.changes_slots')
+    def _update_output_slots_table(self):
+        _, output_slots = self._data_source.slots(self.model)
 
         #: Initialize the output_slot_names in the model
         self.model.output_slot_names = len(output_slots)*['']
@@ -74,8 +84,3 @@ class DataSourceModelView(ModelView):
             OutputSlot(type=output_slot.type, model=self.model, index=index)
             for index, output_slot in enumerate(output_slots)
         ]
-
-        super(DataSourceModelView, self).__init__(*args, **kwargs)
-
-    def _label_default(self):
-        return get_factory_name(self.model.factory)
