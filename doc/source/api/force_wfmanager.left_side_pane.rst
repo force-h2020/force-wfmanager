@@ -4,10 +4,42 @@ force_wfmanager.left_side_pane package
 Submodules
 ----------
 
+force_wfmanager.left_side_pane.data_source_model_view module
+------------------------------------------------------------
+
+.. automodule:: force_wfmanager.left_side_pane.data_source_model_view
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force_wfmanager.left_side_pane.evaluator_model_view module
+----------------------------------------------------------
+
+.. automodule:: force_wfmanager.left_side_pane.evaluator_model_view
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force_wfmanager.left_side_pane.kpi_calculator_model_view module
+---------------------------------------------------------------
+
+.. automodule:: force_wfmanager.left_side_pane.kpi_calculator_model_view
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 force_wfmanager.left_side_pane.mco_model_view module
 ----------------------------------------------------
 
 .. automodule:: force_wfmanager.left_side_pane.mco_model_view
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force_wfmanager.left_side_pane.mco_parameter_model_view module
+--------------------------------------------------------------
+
+.. automodule:: force_wfmanager.left_side_pane.mco_parameter_model_view
     :members:
     :undoc-members:
     :show-inheritance:
