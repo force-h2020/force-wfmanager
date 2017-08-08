@@ -77,7 +77,7 @@ class Plot(HasStrictTraits):
         self.data_arrays = self._compute_data_arrays()
 
     def _compute_data_arrays(self):
-        data_arrays = self.data_dim*[[]]
+        data_arrays = [[] for _ in range(self.data_dim)]
 
         if len(self.analysis_model.evaluation_steps) == 0:
             return data_arrays
