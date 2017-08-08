@@ -1,6 +1,6 @@
 from pyface.tasks.api import TraitsTaskPane
 
-from traits.api import Instance, on_trait_change
+from traits.api import Instance
 
 from traitsui.api import View, Tabbed, VGroup, UItem
 
@@ -34,23 +34,15 @@ class CentralPane(TraitsTaskPane):
         )
     ))
 
-    @on_trait_change('analysis_model.evaluation_steps[]')
-    def update_views(self):
-        self.result_table.evaluation_steps = \
-            self.analysis_model.evaluation_steps
-        self.plot.evaluation_steps = self.analysis_model.evaluation_steps
-
     def _analysis_model_default(self):
         return AnalysisModel()
 
     def _result_table_default(self):
         return ResultTable(
-            value_names=self.analysis_model.value_names,
-            evaluation_steps=self.analysis_model.evaluation_steps
+            analysis_model=self.analysis_model
         )
 
     def _plot_default(self):
         return Plot(
-            value_names=self.analysis_model.value_names,
-            evaluation_steps=self.analysis_model.evaluation_steps
+            analysis_model=self.analysis_model
         )

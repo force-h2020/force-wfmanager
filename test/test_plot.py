@@ -2,24 +2,26 @@ import unittest
 
 from chaco.api import Plot as ChacoPlot
 
+from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.plot import Plot
 
 
 class PlotTest(unittest.TestCase):
     def setUp(self):
-        self.plot = Plot()
+        self.analysis_model = AnalysisModel()
+        self.plot = Plot(analysis_model=self.analysis_model)
 
     def test_init(self):
-        self.assertEqual(len(self.plot.value_names), 0)
-        self.assertEqual(len(self.plot.evaluation_steps), 0)
+        self.assertEqual(len(self.analysis_model.value_names), 0)
+        self.assertEqual(len(self.analysis_model.evaluation_steps), 0)
         self.assertEqual(len(self.plot.data_arrays), 0)
         self.assertIsNone(self.plot.plot)
         self.assertIsNone(self.plot.x)
         self.assertIsNone(self.plot.y)
 
     def test_data_arrays(self):
-        self.plot.value_names = ['density', 'pressure']
-        self.plot.evaluation_steps = [
+        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.evaluation_steps = [
             (1.010, 101325),
             (1.100, 101423),
             (1.123, 102000),
@@ -43,8 +45,8 @@ class PlotTest(unittest.TestCase):
         )
 
     def test_plot(self):
-        self.plot.value_names = ['density', 'pressure']
-        self.plot.evaluation_steps = [
+        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.evaluation_steps = [
             (1.010, 101325),
         ]
 
