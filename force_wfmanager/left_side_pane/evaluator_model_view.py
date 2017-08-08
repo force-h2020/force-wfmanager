@@ -79,17 +79,19 @@ class EvaluatorModelView(ModelView):
 
     def __init__(self, model, *args, **kwargs):
         self.model = model
-        if isinstance(model, BaseDataSourceModel):
-            self._evaluator = model.factory.create_data_source()
-        elif isinstance(model, BaseKPICalculatorModel):
-            self._evaluator = model.factory.create_kpi_calculator()
-
-        self._update_output_slots_table()
 
         super(EvaluatorModelView, self).__init__(*args, **kwargs)
 
+        self._update_output_slots_table()
+
     def _label_default(self):
         return get_factory_name(self.model.factory)
+
+    def __evaluator_default(self):
+        if isinstance(self.model, BaseDataSourceModel):
+            return self.model.factory.create_data_source()
+        elif isinstance(self.model, BaseKPICalculatorModel):
+            return self.model.factory.create_kpi_calculator()
 
     @on_trait_change('model.changes_slots')
     def _update_output_slots_table(self):
