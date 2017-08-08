@@ -1,7 +1,7 @@
 from traits.api import (HasStrictTraits, Instance, Str, List, Int,
                         on_trait_change, Either)
 
-from traitsui.api import View, Item, UItem, ModelView, TableEditor
+from traitsui.api import View, Item, ModelView, TableEditor
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (
@@ -38,8 +38,9 @@ output_slots_editor = TableEditor(
     configurable=False,
     auto_size=False,
     columns=[
-        ObjectColumn(name="type", label="Output", editable=False),
-        ObjectColumn(name="name", label="Name", editable=True),
+        ObjectColumn(name="index", label="", editable=False),
+        ObjectColumn(name="type", label="Type", editable=False),
+        ObjectColumn(name="name", label="Variable Name", editable=True),
     ]
 )
 
@@ -68,8 +69,9 @@ class EvaluatorModelView(ModelView):
     #: Base view for the evaluator
     traits_view = View(
         Item("model.input_slot_maps"),
-        UItem(
+        Item(
             "output_slots_representation",
+            label="Output variables",
             editor=output_slots_editor,
         ),
         kind="subpanel",
