@@ -8,8 +8,6 @@ from envisage.plugin import Plugin
 
 from traits.api import Instance, HasTraits
 
-from traitsui.api import Menu
-
 from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
     DummyDakotaFactory)
 from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
@@ -18,18 +16,15 @@ from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import (
     KPIAdderFactory)
 from force_bdss.api import (BaseMCOModel, BaseMCOFactory,
                             BaseMCOParameter, BaseMCOParameterFactory,
-                            BaseDataSourceModel, BaseDataSourceFactory,
-                            BaseKPICalculatorModel, BaseKPICalculatorFactory)
+                            BaseDataSourceModel,
+                            BaseKPICalculatorModel)
 from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
 from force_wfmanager.left_side_pane.workflow_settings import (
-    WorkflowSettings, WorkflowHandler, MCOParameterAdapter, DataSourceAdapter,
-    KPICalculatorAdapter)
+    WorkflowSettings, WorkflowHandler)
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
-from force_wfmanager.left_side_pane.view_utils import (
-    base_mco_parameter_view, base_data_source_view, base_kpi_calculator_view)
 
 
 NEW_ENTITY_MODAL_PATH = \
@@ -77,7 +72,7 @@ def get_workflow_model_view():
 def get_workflow_settings_editor(workflow_model_view):
     return WorkflowSettingsEditor(
         object=WorkflowSettings(
-            _workflow_mv=workflow_model_view,
+            workflow_mv=workflow_model_view,
             workflow_m=workflow_model_view.model
         )
     )
@@ -94,11 +89,11 @@ class TestWorkflowSettings(unittest.TestCase):
         self.assertEqual(len(self.settings.workflow_m.data_sources), 0)
         self.assertEqual(len(self.settings.workflow_m.kpi_calculators), 0)
 
-        self.assertEqual(len(self.settings._workflow_mv.mco_representation), 0)
+        self.assertEqual(len(self.settings.workflow_mv.mco_representation), 0)
         self.assertEqual(
-            len(self.settings._workflow_mv.data_sources_representation), 0)
+            len(self.settings.workflow_mv.data_sources_representation), 0)
         self.assertEqual(
-            len(self.settings._workflow_mv.kpi_calculators_representation), 0)
+            len(self.settings.workflow_mv.kpi_calculators_representation), 0)
 
 
 class TestTreeEditorHandler(unittest.TestCase):
@@ -153,7 +148,7 @@ class TestTreeEditorHandler(unittest.TestCase):
     def test_edit_entity(self):
         self.handler.edit_entity_handler(
             self.workflow_settings_editor,
-            self.workflow.model.mco)
+            self.workflow.mco_representation[0])
 
         self.assertEqual(
             self.workflow.model.mco.edit_traits.call_count,
@@ -161,12 +156,11 @@ class TestTreeEditorHandler(unittest.TestCase):
         )
 
     def test_delete_mco(self):
-        self.assertIsNotNone(
-            self.workflow.model.mco)
+        self.assertIsNotNone(self.workflow.model.mco)
 
-        self.handler.delete_mco_handler(
+        self.handler.delete_entity_handler(
             self.workflow_settings_editor,
-            self.workflow.model.mco)
+            self.workflow.mco_representation[0])
 
         self.assertIsNone(
             self.workflow.model.mco)
@@ -177,9 +171,11 @@ class TestTreeEditorHandler(unittest.TestCase):
             1
         )
 
-        self.handler.delete_mco_parameter_handler(
+        self.handler.delete_entity_handler(
             self.workflow_settings_editor,
-            self.workflow.model.mco.parameters[0])
+            self.workflow.mco_representation[0].mco_parameters_representation[
+                0
+            ])
 
         self.assertEqual(
             len(self.workflow.model.mco.parameters),
@@ -187,12 +183,12 @@ class TestTreeEditorHandler(unittest.TestCase):
         )
 
     def test_delete_data_source(self):
-        first_data_source = self.workflow.model.data_sources[0]
+        first_data_source = self.workflow.data_sources_representation[0]
         first_data_source_id = id(first_data_source)
 
         self.assertEqual(len(self.workflow.model.data_sources), 2)
 
-        self.handler.delete_data_source_handler(
+        self.handler.delete_entity_handler(
             self.workflow_settings_editor,
             first_data_source)
 
@@ -202,12 +198,12 @@ class TestTreeEditorHandler(unittest.TestCase):
             id(self.workflow.model.data_sources[0]))
 
     def test_delete_kpi_calculator(self):
-        first_kpi_calculator = self.workflow.model.kpi_calculators[0]
+        first_kpi_calculator = self.workflow.kpi_calculators_representation[0]
         first_kpi_calculator_id = id(first_kpi_calculator)
 
         self.assertEqual(len(self.workflow.model.kpi_calculators), 3)
 
-        self.handler.delete_kpi_calculator_handler(
+        self.handler.delete_entity_handler(
             self.workflow_settings_editor,
             first_kpi_calculator)
 
@@ -215,60 +211,3 @@ class TestTreeEditorHandler(unittest.TestCase):
         self.assertNotEqual(
             first_kpi_calculator_id,
             id(self.workflow.model.kpi_calculators[0]))
-
-    def test_mco_parameter_adapter(self):
-        model = mock.Mock(spec=BaseMCOParameter)
-        model.factory = mock.Mock(spec=BaseMCOParameterFactory)
-        model.factory.name = 'Hi'
-
-        adapter = MCOParameterAdapter(adaptee=model)
-
-        self.assertEqual(adapter.get_label(), 'Hi')
-
-        self.assertEqual(
-            adapter.get_view(),
-            base_mco_parameter_view
-        )
-
-        self.assertIsInstance(
-            adapter.get_menu(),
-            Menu
-        )
-
-    def test_data_source_adapter(self):
-        model = mock.Mock(spec=BaseDataSourceModel)
-        model.factory = mock.Mock(spec=BaseDataSourceFactory)
-        model.factory.name = 'Hi'
-
-        adapter = DataSourceAdapter(adaptee=model)
-
-        self.assertEqual(adapter.get_label(), 'Hi')
-
-        self.assertEqual(
-            adapter.get_view(),
-            base_data_source_view
-        )
-
-        self.assertIsInstance(
-            adapter.get_menu(),
-            Menu
-        )
-
-    def test_kpi_calculator_adapter(self):
-        model = mock.Mock(spec=BaseKPICalculatorModel)
-        model.factory = mock.Mock(spec=BaseKPICalculatorFactory)
-        model.factory.name = 'Hi'
-
-        adapter = KPICalculatorAdapter(adaptee=model)
-
-        self.assertEqual(adapter.get_label(), 'Hi')
-
-        self.assertEqual(
-            adapter.get_view(),
-            base_kpi_calculator_view
-        )
-
-        self.assertIsInstance(
-            adapter.get_menu(),
-            Menu
-        )
