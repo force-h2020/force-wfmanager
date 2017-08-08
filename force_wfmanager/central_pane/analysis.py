@@ -4,7 +4,7 @@ from traits.api import List, Str, Tuple, Int, Instance, on_trait_change
 
 from traitsui.api import View, Tabbed, VGroup, UItem
 
-from .pareto_front import ParetoFront
+from .plot import Plot
 
 from .result_table import ResultTable
 
@@ -25,8 +25,8 @@ class Analysis(TraitsTaskPane):
     #: Selected step, used for highlighting in the table/plot
     selected_step_index = Int(None)
 
-    #: The Pareto Front view
-    pareto_front = Instance(ParetoFront)
+    #: The plot view
+    plot = Instance(Plot)
 
     #: The table in which we display the computation results received from the
     #: bdss
@@ -38,20 +38,20 @@ class Analysis(TraitsTaskPane):
             label='Result Table'
         ),
         VGroup(
-            UItem('pareto_front', style='custom'),
-            label='Pareto Front'
+            UItem('plot', style='custom'),
+            label='Plot'
         )
     ))
 
-    def _pareto_front_default(self):
-        return ParetoFront(
+    def _plot_default(self):
+        return Plot(
             value_names=self.value_names,
             evaluation_steps=self.evaluation_steps
         )
 
     @on_trait_change('evaluation_steps[]')
-    def update_pareto_front(self):
-        self.pareto_front.evaluation_steps = self.evaluation_steps
+    def update_plot(self):
+        self.plot.evaluation_steps = self.evaluation_steps
 
     def _result_table_default(self):
         return ResultTable(

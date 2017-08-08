@@ -13,7 +13,7 @@ class AnalysisTest(unittest.TestCase):
         self.assertIsNone(self.analysis.selected_step_index)
 
         self.assertEqual(
-            self.analysis.pareto_front.evaluation_steps,
+            self.analysis.plot.evaluation_steps,
             self.analysis.evaluation_steps
         )
         self.assertEqual(
@@ -22,7 +22,7 @@ class AnalysisTest(unittest.TestCase):
         )
 
         self.assertEqual(
-            self.analysis.pareto_front.value_names,
+            self.analysis.plot.value_names,
             self.analysis.value_names
         )
         self.assertEqual(

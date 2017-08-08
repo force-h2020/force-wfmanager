@@ -5,10 +5,11 @@ from traitsui.api import View, UItem, Item, VGroup, HGroup
 
 from enable.api import Component, ComponentEditor
 
-from chaco.api import ArrayPlotData, Plot
+from chaco.api import ArrayPlotData
+from chaco.api import Plot as ChacoPlot
 
 
-class ParetoFront(HasStrictTraits):
+class Plot(HasStrictTraits):
     #: List of parameter names
     value_names = List(Str)
 
@@ -18,7 +19,7 @@ class ParetoFront(HasStrictTraits):
     #: List containing the data arrays
     data_arrays = List(List())
 
-    #: The Pareto Front plot
+    #: The 2D plot
     plot = Property(Instance(Component), depends_on=['x', 'y'])
 
     #: First parameter used for the plot
@@ -47,17 +48,17 @@ class ParetoFront(HasStrictTraits):
         plot_data.set_data(self.y, self.data_arrays[y_index])
 
         # Create the plot
-        plot = Plot(plot_data)
+        plot = ChacoPlot(plot_data)
         plot.plot((self.x, self.y),
                   type="scatter",
-                  name="Pareto Front",
+                  name="Plot",
                   marker="circle",
                   index_sort="ascending",
                   color="blue",
                   marker_size=4,
                   bgcolor="white")
 
-        plot.title = "Pareto Front"
+        plot.title = "Plot"
         plot.line_width = 1
         plot.padding = 50
 
