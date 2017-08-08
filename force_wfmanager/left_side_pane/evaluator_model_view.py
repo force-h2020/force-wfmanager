@@ -23,8 +23,9 @@ class OutputSlot(HasStrictTraits):
 
     #: Model of the evaluator
     model = Either(
-        Instance(BaseDataSourceModel, allow_none=False),
-        Instance(BaseKPICalculatorModel, allow_none=False),
+        Instance(BaseDataSourceModel),
+        Instance(BaseKPICalculatorModel),
+        allow_none=False,
     )
 
     @on_trait_change('name')
@@ -47,8 +48,9 @@ class EvaluatorModelView(ModelView):
     #: Model of the evaluator (More restrictive than the ModelView model
     #: attribute)
     model = Either(
-        Instance(BaseDataSourceModel, allow_none=False),
-        Instance(BaseKPICalculatorModel, allow_none=False),
+        Instance(BaseDataSourceModel),
+        Instance(BaseKPICalculatorModel),
+        allow_none=False,
     )
 
     #: The human readable name of the evaluator
