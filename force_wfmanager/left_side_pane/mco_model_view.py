@@ -8,7 +8,7 @@ from .view_utils import get_factory_name
 
 
 class MCOModelView(ModelView):
-    #: MCO model
+    #: MCO model (More restrictive than the ModelView model attribute)
     model = Instance(BaseMCOModel)
 
     #: Label to be used in the TreeEditor
