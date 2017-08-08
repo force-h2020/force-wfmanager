@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, List, Instance, Enum, Property,
-                        on_trait_change)
+                        on_trait_change, Int)
 
 from traitsui.api import View, UItem, Item, VGroup, HGroup
 
@@ -14,6 +14,9 @@ from .analysis_model import AnalysisModel
 class Plot(HasStrictTraits):
     #: The model for the plot
     analysis_model = Instance(AnalysisModel)
+
+    #: Data dimension
+    data_dim = Property(Int(), depends_on='analysis_model.value_names')
 
     #: List containing the data arrays
     data_arrays = List(List())
@@ -66,17 +69,20 @@ class Plot(HasStrictTraits):
     def _data_arrays_default(self):
         return self._compute_data_arrays()
 
+    def _get_data_dim(self):
+        return len(self.analysis_model.value_names)
+
     @on_trait_change('analysis_model.evaluation_steps')
     def update_data_arrays(self):
         self.data_arrays = self._compute_data_arrays()
 
     def _compute_data_arrays(self):
-        if len(self.analysis_model.evaluation_steps) == 0:
-            return []
+        data_arrays = self.data_dim*[[]]
 
-        data_dim = len(self.analysis_model.evaluation_steps[0])
-        data_arrays = [[] for index in range(data_dim)]
+        if len(self.analysis_model.evaluation_steps) == 0:
+            return data_arrays
+
         for evaluation_step in self.analysis_model.evaluation_steps:
-            for index in range(data_dim):
+            for index in range(self.data_dim):
                 data_arrays[index].append(evaluation_step[index])
         return data_arrays
