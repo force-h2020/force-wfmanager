@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, List, Instance, Enum, Property,
-                        on_trait_change, Int)
+                        on_trait_change, Int, Str)
 
 from traitsui.api import View, UItem, Item, VGroup, HGroup
 
@@ -21,14 +21,23 @@ class Plot(HasStrictTraits):
     #: List containing the data arrays
     data_arrays = List(List())
 
+    #: The plot data
+    plot_data = Instance(ArrayPlotData)
+
     #: The 2D plot
     plot = Property(Instance(Component), depends_on=['x', 'y'])
 
+    #: Possible plotted variables
+    value_names = Property(
+        List(Str),
+        depends_on="analysis_model.value_names[]"
+    )
+
     #: First parameter used for the plot
-    x = Enum(values='analysis_model.value_names')
+    x = Enum(values='value_names')
 
     #: Second parameter used for the plot
-    y = Enum(values='analysis_model.value_names')
+    y = Enum(values='value_names')
 
     view = View(VGroup(
         HGroup(
@@ -49,15 +58,7 @@ class Plot(HasStrictTraits):
         if self.x is None or self.y is None:
             return None
 
-        x_index = self.analysis_model.value_names.index(self.x)
-        y_index = self.analysis_model.value_names.index(self.y)
-
-        plot_data = ArrayPlotData()
-        plot_data.set_data(self.x, self.data_arrays[x_index])
-        plot_data.set_data(self.y, self.data_arrays[y_index])
-
-        # Create the plot
-        plot = ChacoPlot(plot_data)
+        plot = ChacoPlot(self.plot_data)
         plot.plot((self.x, self.y),
                   type="scatter",
                   name="Plot",
@@ -72,6 +73,17 @@ class Plot(HasStrictTraits):
         plot.padding = 50
 
         return plot
+
+    def _get_value_names(self):
+        # TODO: Filter value names per type
+        return self.analysis_model.value_names
+
+    def _plot_data_default(self):
+        plot_data = ArrayPlotData()
+
+        self._update_plot_data(plot_data)
+
+        return plot_data
 
     def _data_arrays_default(self):
         return [[] for _ in range(self.data_dim)]
@@ -105,3 +117,12 @@ class Plot(HasStrictTraits):
         for evaluation_step in new_evaluation_steps:
             for index in range(self.data_dim):
                 self.data_arrays[index].append(evaluation_step[index])
+
+        # Update plot data
+        self._update_plot_data(self.plot_data)
+
+    def _update_plot_data(self, plot_data):
+        value_names = self.analysis_model.value_names
+        if self.data_dim != 0 and len(self.data_arrays[0]) > 0:
+            for index, value_name in enumerate(value_names):
+                plot_data.set_data(value_name, self.data_arrays[index])
