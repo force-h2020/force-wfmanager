@@ -70,9 +70,13 @@ class PlotTest(unittest.TestCase):
 
         self.assertEqual(len(self.plot.data_arrays), 2)
 
-        self.assertEqual(self.plot.data_arrays[0], [1.010, 1.100])
-        self.assertEqual(self.plot.data_arrays[1], [101325, 101423])
+        first_data_array = self.plot.data_arrays[0]
+        second_data_array = self.plot.data_arrays[1]
+
+        self.assertEqual(first_data_array, [1.010, 1.100])
+        self.assertEqual(second_data_array, [101325, 101423])
 
         self.analysis_model.evaluation_steps = []
 
-        self.assertEqual(self.plot.data_arrays, [[], []])
+        self.assertEqual(first_data_array, [])
+        self.assertEqual(second_data_array, [])

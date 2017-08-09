@@ -97,7 +97,8 @@ class Plot(HasStrictTraits):
         # in the data arrays, it certainly means that the model has been
         # reinitialized. The only thing we can do is recompute the data arrays.
         if len(evaluation_steps) < len(self.data_arrays[0]):
-            self.data_arrays = self._data_arrays_default()
+            for data_array in self.data_arrays:
+                data_array[:] = []
 
         # Update the data arrays with the newly added evaluation_steps
         new_evaluation_steps = evaluation_steps[len(self.data_arrays[0]):]
