@@ -59,7 +59,7 @@ class WorkflowHandler(Handler):
 
     def edit_entity_handler(self, editor, object):
         """ Opens a dialog for configuring the workflow element """
-        object.model.edit_traits()
+        object.model.edit_traits(kind="modal")
 
     def delete_entity_handler(self, editor, object):
         """ Delete an element from the workflow """
