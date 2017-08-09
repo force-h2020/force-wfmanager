@@ -15,9 +15,9 @@ class PlotTest(unittest.TestCase):
         self.assertEqual(len(self.analysis_model.value_names), 0)
         self.assertEqual(len(self.analysis_model.evaluation_steps), 0)
         self.assertEqual(len(self.plot.data_arrays), 0)
-        self.assertIsNone(self.plot.plot)
         self.assertIsNone(self.plot.x)
         self.assertIsNone(self.plot.y)
+        self.assertFalse(self.plot.plot_visible)
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ['density', 'pressure']
@@ -80,3 +80,32 @@ class PlotTest(unittest.TestCase):
 
         self.assertEqual(first_data_array, [])
         self.assertEqual(second_data_array, [])
+
+    def test_select_plot_axis(self):
+        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.evaluation_steps = [
+            (1.010, 101325),
+            (1.100, 101423),
+        ]
+
+        self.assertEqual(
+            self.plot.plot_data.get_data('x').tolist(),
+            [1.010, 1.100]
+        )
+        self.assertEqual(
+            self.plot.plot_data.get_data('y').tolist(),
+            [1.010, 1.100]
+        )
+
+        self.plot.x = 'pressure'
+
+        self.assertEqual(
+            self.plot.plot_data.get_data('x').tolist(),
+            [101325, 101423]
+        )
+        self.assertEqual(
+            self.plot.plot_data.get_data('y').tolist(),
+            [1.010, 1.100]
+        )
+
+        self.assertTrue(self.plot.plot_visible)

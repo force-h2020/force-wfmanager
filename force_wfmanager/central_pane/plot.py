@@ -77,7 +77,8 @@ class Plot(HasStrictTraits):
         return plot
 
     def _get_value_names(self):
-        # TODO: Filter value names per type
+        # TODO: Filter value names per type (we do not support string
+        # values for the plot)
         return self.analysis_model.value_names
 
     def _plot_data_default(self):
@@ -90,15 +91,15 @@ class Plot(HasStrictTraits):
         return [[] for _ in range(self.data_dim)]
 
     def _get_data_dim(self):
-        return len(self.analysis_model.value_names)
+        return len(self.value_names)
 
     @on_trait_change('analysis_model.evaluation_steps[]')
     def update_data_arrays(self):
         """ Update the data arrays used by the plot. It assumes that the
         AnalysisModel object is valid. Which means that the number of
         value_names is equal to the number of element in each evaluation step
-        (e.g. value_names=["viscosity", "pressure"] and each evaluation step
-        is a two dimensions tuple (2.3, 1.23)). Only the number of evaluation
+        (e.g. value_names=["viscosity", "pressure"] then each evaluation step
+        is a two dimensions tuple). Only the number of evaluation
         steps can change, not their values. """
         # If there is no data yet, don't do anything
         if self.data_dim == 0:
@@ -132,6 +133,7 @@ class Plot(HasStrictTraits):
 
         x_index = self.analysis_model.value_names.index(self.x)
         y_index = self.analysis_model.value_names.index(self.y)
+
         self.plot_data.set_data('x', self.data_arrays[x_index])
         self.plot_data.set_data('y', self.data_arrays[y_index])
 
