@@ -69,3 +69,16 @@ class EvaluatorModelViewTest(unittest.TestCase):
 
         with self.assertRaisesRegexp(RuntimeError, "output slots"):
             EvaluatorModelView(model=self.model)
+
+    def test_update_table(self):
+        self.model.cuba_type_in = "foo"
+        self.model.cuba_type_out = "bar"
+
+        self.assertEqual(
+            self.evaluator_mv.input_slots_representation[0].type,
+            "foo"
+        )
+        self.assertEqual(
+            self.evaluator_mv.output_slots_representation[0].type,
+            "bar"
+        )
