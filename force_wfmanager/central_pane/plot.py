@@ -38,6 +38,13 @@ class Plot(HasStrictTraits):
         UItem('plot', editor=ComponentEditor()),
     ))
 
+    def __init__(self, analysis_model, *args, **kwargs):
+        self.analysis_model = analysis_model
+
+        super(Plot, self).__init__(*args, **kwargs)
+
+        self.update_data_arrays()
+
     def _get_plot(self):
         if self.x is None or self.y is None:
             return None
@@ -67,22 +74,20 @@ class Plot(HasStrictTraits):
         return plot
 
     def _data_arrays_default(self):
-        return self._compute_data_arrays()
+        return [[] for _ in range(self.data_dim)]
 
     def _get_data_dim(self):
         return len(self.analysis_model.value_names)
 
-    @on_trait_change('analysis_model.evaluation_steps')
+    @on_trait_change('analysis_model.evaluation_steps[]')
     def update_data_arrays(self):
-        self.data_arrays = self._compute_data_arrays()
+        # If there is no data yet, don't do anything
+        if self.data_dim == 0:
+            return
 
-    def _compute_data_arrays(self):
-        data_arrays = [[] for _ in range(self.data_dim)]
-
-        if len(self.analysis_model.evaluation_steps) == 0:
-            return data_arrays
-
-        for evaluation_step in self.analysis_model.evaluation_steps:
+        # Update the data arrays with the newly added evaluation_steps
+        new_evaluation_steps = self.analysis_model.evaluation_steps[
+            len(self.data_arrays[0]):]
+        for evaluation_step in new_evaluation_steps:
             for index in range(self.data_dim):
-                data_arrays[index].append(evaluation_step[index])
-        return data_arrays
+                self.data_arrays[index].append(evaluation_step[index])
