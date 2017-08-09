@@ -55,6 +55,9 @@ def get_workflow_settings():
 def get_data_source_model_mock():
     data_source_model_mock = mock.Mock(spec=BaseDataSourceModel)
     data_source_model_mock.factory = mock.Mock(spec=BaseDataSourceFactory)
+    data_source_model_mock.input_slot_maps = []
+    data_source_model_mock.output_slot_names = []
+
     data_source_mock = mock.Mock(spec=BaseDataSource)
     data_source_mock.slots = lambda x: ((), ())
     data_source_model_mock.factory.create_data_source = lambda: \
@@ -66,6 +69,9 @@ def get_kpi_calculator_model_mock():
     kpi_calculator_model_mock = mock.Mock(spec=BaseKPICalculatorModel)
     kpi_calculator_model_mock.factory = mock.Mock(
         spec=BaseKPICalculatorFactory)
+    kpi_calculator_model_mock.input_slot_maps = []
+    kpi_calculator_model_mock.output_slot_names = []
+
     kpi_calculator_mock = mock.Mock(spec=BaseKPICalculator)
     kpi_calculator_mock.slots = lambda x: ((), ())
     kpi_calculator_model_mock.factory.create_kpi_calculator = lambda: \
