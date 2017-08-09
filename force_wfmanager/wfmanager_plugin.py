@@ -5,6 +5,8 @@ from traits.api import List
 
 from force_bdss.factory_registry_plugin import FACTORY_REGISTRY_PLUGIN_ID
 
+from force_wfmanager.wfmanager_task import WfManagerTask
+
 
 class WfManagerPlugin(Plugin):
     """ The basic WfManager """
@@ -22,8 +24,6 @@ class WfManagerPlugin(Plugin):
                             factory=self._create_task)]
 
     def _create_task(self):
-        from force_wfmanager.wfmanager_task import WfManagerTask
-
         factory_registry = self.application.get_plugin(
             FACTORY_REGISTRY_PLUGIN_ID)
 
