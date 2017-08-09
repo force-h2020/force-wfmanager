@@ -1,4 +1,4 @@
-from traits.api import HasStrictTraits, List, Instance, Property
+from traits.api import HasStrictTraits, List, Instance, Property, Tuple
 
 from traitsui.api import View, UItem, TableEditor
 from traitsui.table_column import ListColumn
@@ -18,6 +18,12 @@ class ResultTable(HasStrictTraits):
     #: The model for the result table
     analysis_model = Instance(AnalysisModel)
 
+    #: Rows of the table_editor
+    rows = Property(
+        List(Tuple),
+        depends_on='analysis_model.evaluation_steps'
+    )
+
     #: Columns of the table_editor
     columns = Property(
         List(ListColumn),
@@ -25,8 +31,11 @@ class ResultTable(HasStrictTraits):
     )
 
     view = View(
-        UItem("analysis_model.evaluation_steps", editor=table_editor)
+        UItem("rows", editor=table_editor)
     )
+
+    def _get_rows(self):
+        return self.analysis_model.evaluation_steps
 
     def _get_columns(self):
         return [ListColumn(label=name, index=index)
