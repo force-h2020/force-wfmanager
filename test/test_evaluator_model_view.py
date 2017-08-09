@@ -4,38 +4,73 @@ try:
 except ImportError:
     from unittest import mock
 
-from traits.api import Instance
+from traits.api import Instance, Str, on_trait_change
 
 from envisage.plugin import Plugin
 
-from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_calculator import \
-    KPIAdderCalculator
-from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import \
-    KPIAdderFactory
+from force_bdss.api import (
+    BaseKPICalculator, BaseKPICalculatorModel, BaseKPICalculatorFactory,
+    DataValue)
+from force_bdss.core.slot import Slot
 from force_bdss.core.input_slot_map import InputSlotMap
 
 from force_wfmanager.left_side_pane.evaluator_model_view import \
     EvaluatorModelView
 
 
+class KPICalculatorModel(BaseKPICalculatorModel):
+    output_type = Str('PRESSURE')
+
+    @on_trait_change('output_type')
+    def update_slots(self):
+        self.changes_slots = True
+
+
+class KPICalculator(BaseKPICalculator):
+    def run(self, model, data_source_results):
+        return [DataValue(), DataValue()]
+
+    def slots(self, model):
+        return (
+            Slot(type='PRESSURE'),
+        ), (
+            Slot(type=model.output_type),
+            Slot(type='TEMPERATURE'),
+        )
+
+
+class KPICalculatorFactory(BaseKPICalculatorFactory):
+    id = Str("enthought.test.kpi")
+    name = "test_kpi"
+
+    def create_model(self, model_data=None):
+        return KPICalculatorModel(self)
+
+    def create_kpi_calculator(self):
+        return KPICalculator(self)
+
+
 class BadEvaluatorModelView(EvaluatorModelView):
-    model = Instance(KPIAdderFactory)
+    model = Instance(KPICalculatorFactory)
 
 
 class EvaluatorModelViewTest(unittest.TestCase):
     def setUp(self):
-        self.model = KPIAdderFactory(mock.Mock(spec=Plugin)).create_model()
-        self.evaluator = KPIAdderFactory(
-            mock.Mock(spec=Plugin)).create_kpi_calculator()
+        factory = KPICalculatorFactory(mock.Mock(spec=Plugin))
+
+        self.model = factory.create_model()
+        self.evaluator = factory.create_kpi_calculator()
 
         self.evaluator_mv = EvaluatorModelView(model=self.model)
 
     def test_evaluator_model_view_init(self):
-        self.assertEqual(self.evaluator_mv.label, "KPI Adder")
+        self.assertEqual(self.evaluator_mv.label, "test_kpi")
         self.assertIsInstance(
             self.evaluator_mv._evaluator,
-            KPIAdderCalculator)
-        self.assertEqual(len(self.evaluator_mv.output_slots_representation), 1)
+            KPICalculator)
+        self.assertEqual(len(self.evaluator_mv.input_slots_representation), 1)
+        self.assertEqual(len(self.evaluator_mv.output_slots_representation), 2)
+        self.assertEqual(self.model.input_slot_maps[0].name, '')
         self.assertEqual(self.model.output_slot_names[0], '')
 
     def test_input_slot_update(self):
@@ -50,7 +85,7 @@ class EvaluatorModelViewTest(unittest.TestCase):
         with self.assertRaisesRegexp(TypeError, "The EvaluatorModelView needs "
                                                 "a BaseDataSourceModel"):
             BadEvaluatorModelView(
-                model=KPIAdderFactory(mock.Mock(spec=Plugin)))
+                model=KPICalculatorFactory(mock.Mock(spec=Plugin)))
 
     def test_bad_input_slots(self):
         input_slots, _ = self.evaluator.slots(self.model)
@@ -71,13 +106,8 @@ class EvaluatorModelViewTest(unittest.TestCase):
             EvaluatorModelView(model=self.model)
 
     def test_update_table(self):
-        self.model.cuba_type_in = "foo"
-        self.model.cuba_type_out = "bar"
+        self.model.output_type = "bar"
 
-        self.assertEqual(
-            self.evaluator_mv.input_slots_representation[0].type,
-            "foo"
-        )
         self.assertEqual(
             self.evaluator_mv.output_slots_representation[0].type,
             "bar"
