@@ -85,3 +85,19 @@ class PlotTest(unittest.TestCase):
             first_data_array, [1.010, 1.100, 1.123, 1.156, 1.242])
         self.assertEqual(
             second_data_array, [101325, 101423, 102000, 102123, 102453])
+
+    def test_reinitialize_model(self):
+        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.evaluation_steps = [
+            (1.010, 101325),
+            (1.100, 101423),
+        ]
+
+        self.assertEqual(len(self.plot.data_arrays), 2)
+
+        self.assertEqual(self.plot.data_arrays[0], [1.010, 1.100])
+        self.assertEqual(self.plot.data_arrays[1], [101325, 101423])
+
+        self.analysis_model.evaluation_steps = []
+
+        self.assertEqual(self.plot.data_arrays, [[], []])

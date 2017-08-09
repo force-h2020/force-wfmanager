@@ -85,9 +85,16 @@ class Plot(HasStrictTraits):
         if self.data_dim == 0:
             return
 
+        evaluation_steps = self.analysis_model.evaluation_steps
+
+        # If the number of evaluation steps is less than the number of element
+        # in the data arrays, it certainly means that the model has been
+        # reinitialized. The only thing we can do is recompute the data arrays.
+        if len(evaluation_steps) < len(self.data_arrays[0]):
+            self.data_arrays = self._data_arrays_default()
+
         # Update the data arrays with the newly added evaluation_steps
-        new_evaluation_steps = self.analysis_model.evaluation_steps[
-            len(self.data_arrays[0]):]
+        new_evaluation_steps = evaluation_steps[len(self.data_arrays[0]):]
         for evaluation_step in new_evaluation_steps:
             for index in range(self.data_dim):
                 self.data_arrays[index].append(evaluation_step[index])
