@@ -81,6 +81,12 @@ class Plot(HasStrictTraits):
 
     @on_trait_change('analysis_model.evaluation_steps[]')
     def update_data_arrays(self):
+        """ Update the data arrays used by the plot. It assumes that the
+        AnalysisModel object is valid. Which means that the number of
+        value_names is equal to the number of element in each evaluation step
+        (e.g. value_names=["viscosity", "pressure"] and each evaluation step
+        is a two dimensions tuple (2.3, 1.23)). Only the number of evaluation
+        steps can change, not their values. """
         # If there is no data yet, don't do anything
         if self.data_dim == 0:
             return
