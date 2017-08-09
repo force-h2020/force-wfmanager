@@ -92,6 +92,12 @@ class EvaluatorModelView(ModelView):
             return self.model.factory.create_data_source()
         elif isinstance(self.model, BaseKPICalculatorModel):
             return self.model.factory.create_kpi_calculator()
+        else:
+            raise TypeError(
+                "The EvaluatorModelView needs a BaseDataSourceModel or a "
+                "BaseKPICalculatorModel as model, but a {} has been given"
+                .format(type(self.model).__name__)
+            )
 
     @on_trait_change('model.changes_slots')
     def _update_output_slots_table(self):
