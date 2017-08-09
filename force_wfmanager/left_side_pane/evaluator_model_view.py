@@ -115,6 +115,14 @@ class EvaluatorModelView(ModelView):
                 .format(type(self.model).__name__))
 
     def _create_slots_tables(self):
+        """ Initialize the tables for editing the input and output slots
+
+        Raises
+        ------
+        RuntimeError:
+            If the input slots or output slots in the model are not of the
+            right length. This can come from a corrupted file.
+        """
         input_slots, output_slots = self._evaluator.slots(self.model)
 
         # Initialize model.input_slot_maps if not initialized yet
@@ -163,6 +171,8 @@ class EvaluatorModelView(ModelView):
 
     @on_trait_change('model.changes_slots')
     def _update_slots_tables(self):
+        """ Update the tables of slots when a change on the model triggers a
+        change on the shape of the input/output slots """
         input_slots, output_slots = self._evaluator.slots(self.model)
 
         #: Initialize the input slots
