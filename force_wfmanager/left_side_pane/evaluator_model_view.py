@@ -12,7 +12,7 @@ from force_bdss.core.input_slot_map import InputSlotMap
 from .view_utils import get_factory_name
 
 
-class InputSlot(HasStrictTraits):
+class TableRow(HasStrictTraits):
     #: Type of the slot
     type = Str()
 
@@ -29,28 +29,14 @@ class InputSlot(HasStrictTraits):
         allow_none=False,
     )
 
+
+class InputSlotRow(TableRow):
     @on_trait_change('name')
     def update_model(self):
         self.model.input_slot_maps[self.index].name = self.name
 
 
-class OutputSlot(HasStrictTraits):
-    #: Type of the slot
-    type = Str()
-
-    #: Name of the slot
-    name = Str()
-
-    #: Index of the slot in the slot list
-    index = Int()
-
-    #: Model of the evaluator
-    model = Either(
-        Instance(BaseDataSourceModel),
-        Instance(BaseKPICalculatorModel),
-        allow_none=False,
-    )
-
+class OutputSlotRow(TableRow):
     @on_trait_change('name')
     def update_model(self):
         self.model.output_slot_names[self.index] = self.name
@@ -87,10 +73,10 @@ class EvaluatorModelView(ModelView):
     )
 
     #: Input slots representation for the table editor
-    input_slots_representation = List(InputSlot)
+    input_slots_representation = List(InputSlotRow)
 
     #: Output slots representation for the table editor
-    output_slots_representation = List(OutputSlot)
+    output_slots_representation = List(OutputSlotRow)
 
     #: Base view for the evaluator
     traits_view = View(
@@ -139,9 +125,9 @@ class EvaluatorModelView(ModelView):
         for index, input_slot in enumerate(input_slots):
             self.model.input_slot_maps.append(InputSlotMap(name=''))
             self.input_slots_representation.append(
-                InputSlot(index=index,
-                          type=input_slot.type,
-                          model=self.model)
+                InputSlotRow(index=index,
+                             type=input_slot.type,
+                             model=self.model)
             )
 
         #: Initialize the output slots
@@ -150,7 +136,7 @@ class EvaluatorModelView(ModelView):
         for index, output_slot in enumerate(output_slots):
             self.model.output_slot_names.append('')
             self.output_slots_representation.append(
-                OutputSlot(index=index,
-                           type=output_slot.type,
-                           model=self.model)
+                OutputSlotRow(index=index,
+                              type=output_slot.type,
+                              model=self.model)
             )
