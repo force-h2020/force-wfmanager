@@ -59,7 +59,7 @@ class WorkflowHandler(Handler):
 
     def edit_entity_handler(self, editor, object):
         """ Opens a dialog for configuring the workflow element """
-        object.model.edit_traits()
+        object.model.edit_traits(kind="modal")
 
     def delete_entity_handler(self, editor, object):
         """ Delete an element from the workflow """
@@ -83,7 +83,7 @@ new_kpi_calculator_action = Action(
     action='handler.new_kpi_calculator_handler(editor, object)')
 
 edit_entity_action = Action(
-    name='Edit',
+    name='Edit...',
     action='handler.edit_entity_handler(editor, object)'
 )
 
