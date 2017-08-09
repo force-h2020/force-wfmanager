@@ -21,7 +21,6 @@ class WfManagerPluginTest(unittest.TestCase):
 
         def mock_wfmanager_task_constructor(*args, **kwargs):
             return
-        
 
         with mock.patch(
                 "force_wfmanager.wfmanager_plugin"
