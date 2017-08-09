@@ -83,7 +83,7 @@ new_kpi_calculator_action = Action(
     action='handler.new_kpi_calculator_handler(editor, object)')
 
 edit_entity_action = Action(
-    name='Edit',
+    name='Edit...',
     action='handler.edit_entity_handler(editor, object)'
 )
 
