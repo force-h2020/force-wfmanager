@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, List, Instance, Enum, Property,
-                        on_trait_change, Int, Str)
+                        on_trait_change, Int, Str, Bool)
 
 from traitsui.api import View, UItem, Item, VGroup, HGroup
 
@@ -25,7 +25,10 @@ class Plot(HasStrictTraits):
     plot_data = Instance(ArrayPlotData)
 
     #: The 2D plot
-    plot = Property(Instance(Component), depends_on=['x', 'y'])
+    plot = Instance(Component)
+
+    #: Boolean defining if the plot if visible or not
+    plot_visible = Bool(False)
 
     #: Possible plotted variables
     value_names = Property(
@@ -44,7 +47,7 @@ class Plot(HasStrictTraits):
             Item('x'),
             Item('y'),
         ),
-        UItem('plot', editor=ComponentEditor()),
+        UItem('plot', editor=ComponentEditor(), visible_when="plot_visible"),
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
@@ -54,19 +57,18 @@ class Plot(HasStrictTraits):
 
         self.update_data_arrays()
 
-    def _get_plot(self):
-        if self.x is None or self.y is None:
-            return None
-
+    def _plot_default(self):
         plot = ChacoPlot(self.plot_data)
-        plot.plot((self.x, self.y),
-                  type="scatter",
-                  name="Plot",
-                  marker="circle",
-                  index_sort="ascending",
-                  color="blue",
-                  marker_size=4,
-                  bgcolor="white")
+
+        plot.plot(
+            ('x', 'y'),
+            type="scatter",
+            name="Plot",
+            marker="circle",
+            index_sort="ascending",
+            color="blue",
+            marker_size=4,
+            bgcolor="white")
 
         plot.title = "Plot"
         plot.line_width = 1
@@ -80,9 +82,8 @@ class Plot(HasStrictTraits):
 
     def _plot_data_default(self):
         plot_data = ArrayPlotData()
-
-        self._update_plot_data(plot_data)
-
+        plot_data.set_data('x', [])
+        plot_data.set_data('y', [])
         return plot_data
 
     def _data_arrays_default(self):
@@ -119,10 +120,19 @@ class Plot(HasStrictTraits):
                 self.data_arrays[index].append(evaluation_step[index])
 
         # Update plot data
-        self._update_plot_data(self.plot_data)
+        self._update_plot_data()
 
-    def _update_plot_data(self, plot_data):
-        value_names = self.analysis_model.value_names
-        if self.data_dim != 0 and len(self.data_arrays[0]) > 0:
-            for index, value_name in enumerate(value_names):
-                plot_data.set_data(value_name, self.data_arrays[index])
+    @on_trait_change('x,y')
+    def _update_plot_data(self):
+        if self.x is None or self.y is None:
+            self.plot_visible = False
+            self.plot_data.set_data('x', [])
+            self.plot_data.set_data('y', [])
+            return
+
+        x_index = self.analysis_model.value_names.index(self.x)
+        y_index = self.analysis_model.value_names.index(self.y)
+        self.plot_data.set_data('x', self.data_arrays[x_index])
+        self.plot_data.set_data('y', self.data_arrays[y_index])
+
+        self.plot_visible = True
