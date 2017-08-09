@@ -38,9 +38,13 @@ class EvaluatorModelViewTest(unittest.TestCase):
         self.assertEqual(len(self.evaluator_mv.output_slots_representation), 1)
         self.assertEqual(self.model.output_slot_names[0], '')
 
+    def test_input_slot_update(self):
+        self.evaluator_mv.input_slots_representation[0].name = 'input'
+        self.assertEqual(self.model.input_slot_maps[0].name, 'input')
+
     def test_output_slot_update(self):
-        self.evaluator_mv.output_slots_representation[0].name = 'test'
-        self.assertEqual(self.model.output_slot_names[0], 'test')
+        self.evaluator_mv.output_slots_representation[0].name = 'output'
+        self.assertEqual(self.model.output_slot_names[0], 'output')
 
     def test_bad_evaluator(self):
         with self.assertRaisesRegexp(TypeError, "The EvaluatorModelView needs "
