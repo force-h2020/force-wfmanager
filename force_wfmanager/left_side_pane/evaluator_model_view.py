@@ -126,11 +126,12 @@ class EvaluatorModelView(ModelView):
         input_slots, output_slots = self._evaluator.slots(self.model)
 
         # Initialize model.input_slot_maps if not initialized yet
-        if not len(self.model.input_slot_maps):
+        if len(self.model.input_slot_maps) == 0:
             self.model.input_slot_maps = [
                 InputSlotMap(name='') for _ in input_slots
             ]
-        elif len(self.model.input_slot_maps) != len(input_slots):
+
+        if len(self.model.input_slot_maps) != len(input_slots):
             raise RuntimeError(
                 "The number of input slots ({}) of the {} model doesn't match "
                 "the expected number of slots ({}). This is likely due to a "
@@ -141,9 +142,10 @@ class EvaluatorModelView(ModelView):
                     len(input_slots)))
 
         # Initialize model.output_slot_names if not initialized yet
-        if not len(self.model.output_slot_names):
+        if len(self.model.output_slot_names) == 0:
             self.model.output_slot_names = len(output_slots)*['']
-        elif len(self.model.output_slot_names) != len(output_slots):
+
+        if len(self.model.output_slot_names) != len(output_slots):
             raise RuntimeError(
                 "The number of output slots ({}) of the {} model doesn't "
                 "match the expected number of slots ({}). This is likely due "
@@ -153,6 +155,27 @@ class EvaluatorModelView(ModelView):
                     type(self.model).__name__,
                     len(output_slots)))
 
+        self._fill_slot_rows(input_slots, output_slots)
+
+    @on_trait_change('model.changes_slots')
+    def _update_slots_tables(self):
+        """ Update the tables of slots when a change on the model triggers a
+        change on the shape of the input/output slots """
+        input_slots, output_slots = self._evaluator.slots(self.model)
+
+        #: Initialize the input slots
+        self.model.input_slot_maps = []
+        for input_slot in input_slots:
+            self.model.input_slot_maps.append(InputSlotMap(name=''))
+
+        #: Initialize the output slots
+        self.model.output_slot_names = len(output_slots)*['']
+
+        self._fill_slot_rows(input_slots, output_slots)
+
+    def _fill_slot_rows(self, input_slots, output_slots):
+        """ Fill the tables rows according to input_slots and output_slots
+        needed by the evaluator and the model slot values """
         self.input_slots_representation = [
             InputSlotRow(index=index,
                          name=self.model.input_slot_maps[index].name,
@@ -168,31 +191,3 @@ class EvaluatorModelView(ModelView):
                           model=self.model)
             for index, output_slot in enumerate(output_slots)
         ]
-
-    @on_trait_change('model.changes_slots')
-    def _update_slots_tables(self):
-        """ Update the tables of slots when a change on the model triggers a
-        change on the shape of the input/output slots """
-        input_slots, output_slots = self._evaluator.slots(self.model)
-
-        #: Initialize the input slots
-        self.model.input_slot_maps = []
-        self.input_slots_representation = []
-        for index, input_slot in enumerate(input_slots):
-            self.model.input_slot_maps.append(InputSlotMap(name=''))
-            self.input_slots_representation.append(
-                InputSlotRow(index=index,
-                             type=input_slot.type,
-                             model=self.model)
-            )
-
-        #: Initialize the output slots
-        self.model.output_slot_names = []
-        self.output_slots_representation = []
-        for index, output_slot in enumerate(output_slots):
-            self.model.output_slot_names.append('')
-            self.output_slots_representation.append(
-                OutputSlotRow(index=index,
-                              type=output_slot.type,
-                              model=self.model)
-            )
