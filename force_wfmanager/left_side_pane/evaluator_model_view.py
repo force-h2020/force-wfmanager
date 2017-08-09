@@ -108,6 +108,6 @@ class EvaluatorModelView(ModelView):
 
         # Initialize slot names representation for the tables
         self.output_slots_representation = [
-            OutputSlot(type=output_slot.type, model=self.model, index=index)
+            OutputSlot(index=index, type=output_slot.type, model=self.model)
             for index, output_slot in enumerate(output_slots)
         ]
