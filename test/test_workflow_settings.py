@@ -14,10 +14,11 @@ from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
     CSVExtractorFactory)
 from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import (
     KPIAdderFactory)
-from force_bdss.api import (BaseMCOModel, BaseMCOFactory,
-                            BaseMCOParameter, BaseMCOParameterFactory,
-                            BaseDataSourceModel,
-                            BaseKPICalculatorModel)
+from force_bdss.api import (
+    BaseMCOModel, BaseMCOFactory,
+    BaseMCOParameter, BaseMCOParameterFactory,
+    BaseDataSourceModel, BaseDataSourceFactory, BaseDataSource,
+    BaseKPICalculatorModel, BaseKPICalculatorFactory, BaseKPICalculator)
 from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_model_view import \
@@ -51,6 +52,27 @@ def get_workflow_settings():
     )
 
 
+def get_data_source_model_mock():
+    data_source_model_mock = mock.Mock(spec=BaseDataSourceModel)
+    data_source_model_mock.factory = mock.Mock(spec=BaseDataSourceFactory)
+    data_source_mock = mock.Mock(spec=BaseDataSource)
+    data_source_mock.slots = lambda x: ((), ())
+    data_source_model_mock.factory.create_data_source = lambda: \
+        data_source_mock
+    return data_source_model_mock
+
+
+def get_kpi_calculator_model_mock():
+    kpi_calculator_model_mock = mock.Mock(spec=BaseKPICalculatorModel)
+    kpi_calculator_model_mock.factory = mock.Mock(
+        spec=BaseKPICalculatorFactory)
+    kpi_calculator_mock = mock.Mock(spec=BaseKPICalculator)
+    kpi_calculator_mock.slots = lambda x: ((), ())
+    kpi_calculator_model_mock.factory.create_kpi_calculator = lambda: \
+        kpi_calculator_mock
+    return kpi_calculator_model_mock
+
+
 def get_workflow_model_view():
     mco = mock.Mock(spec=BaseMCOModel)
     mco.factory = mock.Mock(spec=BaseMCOFactory)
@@ -59,11 +81,11 @@ def get_workflow_model_view():
     workflow_mv = WorkflowModelView(
         model=Workflow(
             mco=mco,
-            data_sources=[mock.Mock(spec=BaseDataSourceModel),
-                          mock.Mock(spec=BaseDataSourceModel)],
-            kpi_calculators=[mock.Mock(spec=BaseKPICalculatorModel),
-                             mock.Mock(spec=BaseKPICalculatorModel),
-                             mock.Mock(spec=BaseKPICalculatorModel)])
+            data_sources=[get_data_source_model_mock(),
+                          get_data_source_model_mock()],
+            kpi_calculators=[get_kpi_calculator_model_mock(),
+                             get_kpi_calculator_model_mock(),
+                             get_kpi_calculator_model_mock()])
     )
     workflow_mv.model.mco.parameters = [mock.Mock(BaseMCOParameter)]
     return workflow_mv

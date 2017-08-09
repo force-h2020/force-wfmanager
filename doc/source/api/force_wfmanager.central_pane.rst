@@ -20,6 +20,14 @@ force_wfmanager.central_pane.central_pane module
     :undoc-members:
     :show-inheritance:
 
+force_wfmanager.central_pane.result_table module
+------------------------------------------------
+
+.. automodule:: force_wfmanager.central_pane.result_table
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
