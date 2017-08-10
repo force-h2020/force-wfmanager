@@ -19,7 +19,7 @@ class Plot(HasStrictTraits):
     data_dim = Property(Int(), depends_on='analysis_model.value_names')
 
     #: List containing the data arrays
-    data_arrays = List(List())
+    _data_arrays = List(List())
 
     #: The plot data
     plot_data = Instance(ArrayPlotData)
@@ -87,7 +87,7 @@ class Plot(HasStrictTraits):
         plot_data.set_data('y', [])
         return plot_data
 
-    def _data_arrays_default(self):
+    def __data_arrays_default(self):
         return [[] for _ in range(self.data_dim)]
 
     def _get_data_dim(self):
@@ -110,15 +110,15 @@ class Plot(HasStrictTraits):
         # If the number of evaluation steps is less than the number of element
         # in the data arrays, it certainly means that the model has been
         # reinitialized. The only thing we can do is recompute the data arrays.
-        if len(evaluation_steps) < len(self.data_arrays[0]):
-            for data_array in self.data_arrays:
+        if len(evaluation_steps) < len(self._data_arrays[0]):
+            for data_array in self._data_arrays:
                 data_array[:] = []
 
         # Update the data arrays with the newly added evaluation_steps
-        new_evaluation_steps = evaluation_steps[len(self.data_arrays[0]):]
+        new_evaluation_steps = evaluation_steps[len(self._data_arrays[0]):]
         for evaluation_step in new_evaluation_steps:
             for index in range(self.data_dim):
-                self.data_arrays[index].append(evaluation_step[index])
+                self._data_arrays[index].append(evaluation_step[index])
 
         # Update plot data
         self._update_plot_data()
@@ -134,7 +134,7 @@ class Plot(HasStrictTraits):
         x_index = self.analysis_model.value_names.index(self.x)
         y_index = self.analysis_model.value_names.index(self.y)
 
-        self.plot_data.set_data('x', self.data_arrays[x_index])
-        self.plot_data.set_data('y', self.data_arrays[y_index])
+        self.plot_data.set_data('x', self._data_arrays[x_index])
+        self.plot_data.set_data('y', self._data_arrays[y_index])
 
         self.plot_visible = True
