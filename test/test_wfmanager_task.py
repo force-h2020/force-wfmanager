@@ -144,6 +144,7 @@ class TestWFManagerTask(unittest.TestCase):
             mock_open.side_effect = mock_file_open
             mock_writer.side_effect = mock_file_writer
 
+            self.wfmanager_task.save_workflow()
             mock_open.assert_not_called()
 
     def test_load_workflow(self):
