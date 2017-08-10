@@ -27,9 +27,6 @@ class Plot(HasStrictTraits):
     #: The 2D plot
     plot = Instance(Component)
 
-    #: Boolean defining if the plot if visible or not
-    plot_visible = Bool(False)
-
     #: Possible plotted variables
     value_names = Property(
         List(Str),
@@ -47,7 +44,7 @@ class Plot(HasStrictTraits):
             Item('x'),
             Item('y'),
         ),
-        UItem('plot', editor=ComponentEditor(), visible_when="plot_visible"),
+        UItem('plot', editor=ComponentEditor()),
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
@@ -128,7 +125,6 @@ class Plot(HasStrictTraits):
     @on_trait_change('x,y')
     def _update_plot_data(self):
         if self.x is None or self.y is None:
-            self.plot_visible = False
             self.plot_data.set_data('x', [])
             self.plot_data.set_data('y', [])
             return
@@ -138,5 +134,3 @@ class Plot(HasStrictTraits):
 
         self.plot_data.set_data('x', self._data_arrays[x_index])
         self.plot_data.set_data('y', self._data_arrays[y_index])
-
-        self.plot_visible = True

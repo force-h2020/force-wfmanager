@@ -17,7 +17,6 @@ class PlotTest(unittest.TestCase):
         self.assertEqual(len(self.plot._data_arrays), 0)
         self.assertIsNone(self.plot.x)
         self.assertIsNone(self.plot.y)
-        self.assertFalse(self.plot.plot_visible)
         self.assertIsNone(self.plot.update_data_arrays())
         self.plot._update_plot_data()
         self.assertEqual(
@@ -113,8 +112,6 @@ class PlotTest(unittest.TestCase):
             self.plot.plot_data.get_data('y').tolist(),
             [1.010, 1.100]
         )
-
-        self.assertTrue(self.plot.plot_visible)
 
     def test_remove_value_names(self):
         self.analysis_model.value_names = ['density', 'pressure']
