@@ -37,6 +37,15 @@ class InputSlotRow(TableRow):
 
 
 class OutputSlotRow(TableRow):
+    @on_trait_change('model.output_slot_names')
+    def warning(self):
+        print '\n\nWarning, list changed:'
+        print 'id:', id(self.model.output_slot_names)
+        print 'value:', self.model.output_slot_names
+        import traceback
+        traceback.print_stack()
+        self.name = self.model.output_slot_names[self.index]
+
     @on_trait_change('name')
     def update_model(self):
         self.model.output_slot_names[self.index] = self.name
