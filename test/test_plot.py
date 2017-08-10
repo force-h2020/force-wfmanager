@@ -115,3 +115,31 @@ class PlotTest(unittest.TestCase):
         )
 
         self.assertTrue(self.plot.plot_visible)
+
+    def test_remove_value_names(self):
+        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.evaluation_steps = [
+            (1.010, 101325),
+            (1.100, 101423),
+        ]
+
+        self.assertEqual(
+            self.plot.plot_data.get_data('x').tolist(),
+            [1.010, 1.100]
+        )
+        self.assertEqual(
+            self.plot.plot_data.get_data('y').tolist(),
+            [1.010, 1.100]
+        )
+
+        self.analysis_model.value_names = []
+        self.analysis_model.evaluation_steps = []
+
+        self.assertEqual(
+            self.plot.plot_data.get_data('x').tolist(),
+            []
+        )
+        self.assertEqual(
+            self.plot.plot_data.get_data('y').tolist(),
+            []
+        )

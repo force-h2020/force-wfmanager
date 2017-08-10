@@ -101,8 +101,10 @@ class Plot(HasStrictTraits):
         (e.g. value_names=["viscosity", "pressure"] then each evaluation step
         is a two dimensions tuple). Only the number of evaluation
         steps can change, not their values. """
-        # If there is no data yet, don't do anything
+        # If there is no data yet, or the data has been removed, make sure the
+        # plot is updated accordingly and don't touch the data_arrays
         if self.data_dim == 0:
+            self._update_plot_data()
             return
 
         evaluation_steps = self.analysis_model.evaluation_steps
