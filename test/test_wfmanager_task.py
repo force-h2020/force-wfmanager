@@ -3,7 +3,9 @@ try:
     import mock
 except ImportError:
     from unittest import mock
+
 import subprocess
+from contextlib import contextmanager
 
 from pyface.tasks.api import TaskLayout
 
@@ -46,8 +48,17 @@ def mock_file_dialog(*args, **kwargs):
     return file_dialog
 
 
+def mock_file_dialog_being_closed(*args, **kwargs):
+    file_dialog = mock.Mock(spec=FileDialog)
+    file_dialog.open = lambda: False
+    file_dialog.path = ''
+    return file_dialog
+
+
+@contextmanager
 def mock_file_open(*args, **kwargs):
-    return ''
+    yield
+    return
 
 
 def mock_show_error(*args, **kwargs):
@@ -100,11 +111,12 @@ class TestWFManagerTask(unittest.TestCase):
                 mock.patch(FILE_OPEN_PATH) as mock_open, \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
             mock_dialog.side_effect = mock_file_dialog
-            mock_file_open.side_effect = mock_open
+            mock_open.side_effect = mock_file_open
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
             mock_writer.assert_called()
+            mock_open.assert_called()
             mock_dialog.assert_called()
 
             self.assertEqual(
@@ -116,19 +128,30 @@ class TestWFManagerTask(unittest.TestCase):
                 mock.patch(FILE_OPEN_PATH) as mock_open, \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
             mock_dialog.side_effect = mock_file_dialog
-            mock_file_open.side_effect = mock_open
+            mock_open.side_effect = mock_file_open
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
             mock_writer.assert_called()
+            mock_open.assert_called()
             mock_dialog.assert_not_called()
+
+    def test_close_saving_dialog(self):
+        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
+                mock.patch(FILE_OPEN_PATH) as mock_open, \
+                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
+            mock_dialog.side_effect = mock_file_dialog_being_closed
+            mock_open.side_effect = mock_file_open
+            mock_writer.side_effect = mock_file_writer
+
+            mock_open.assert_not_called()
 
     def test_load_workflow(self):
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
                 mock.patch(FILE_OPEN_PATH) as mock_open, \
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_dialog.side_effect = mock_file_dialog
-            mock_file_open.side_effect = mock_open
+            mock_open.side_effect = mock_file_open
             mock_reader.side_effect = mock_file_reader
 
             old_workflow = self.wfmanager_task.workflow_m
@@ -144,7 +167,7 @@ class TestWFManagerTask(unittest.TestCase):
                 mock.patch(ERROR_PATH) as mock_error, \
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_dialog.side_effect = mock_file_dialog
-            mock_file_open.side_effect = mock_open
+            mock_open.side_effect = mock_file_open
             mock_error.side_effect = mock_show_error
             mock_reader.side_effect = mock_file_reader_failure
 
