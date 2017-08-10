@@ -1,4 +1,4 @@
-import os
+import subprocess
 
 from pyface.tasks.api import TraitsDockPane
 
@@ -28,4 +28,4 @@ class BDSSRunner(TraitsDockPane):
         if len(self.wfmanager_task.current_file) == 0:
             raise RuntimeError("Can not run if you do not save the workflow")
 
-        os.system("force_bdss {}".format(self.wfmanager_task.current_file))
+        subprocess.check_call(["force_bdss", self.wfmanager_task.current_file])
