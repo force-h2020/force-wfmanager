@@ -3,6 +3,7 @@ try:
     import mock
 except ImportError:
     from unittest import mock
+import subprocess
 
 from pyface.tasks.api import TaskLayout
 
@@ -27,6 +28,7 @@ FILE_OPEN_PATH = 'force_wfmanager.wfmanager_task.open'
 WORKFLOW_WRITER_PATH = 'force_wfmanager.wfmanager_task.WorkflowWriter'
 WORKFLOW_READER_PATH = 'force_wfmanager.wfmanager_task.WorkflowReader'
 ERROR_PATH = 'force_wfmanager.wfmanager_task.error'
+SUBPROCESS_PATH = 'force_wfmanager.wfmanager_task.subprocess'
 
 
 def get_wfmanager_task():
@@ -41,6 +43,13 @@ def mock_file_dialog(*args, **kwargs):
     file_dialog = mock.Mock(spec=FileDialog)
     file_dialog.open = lambda: OK
     file_dialog.path = 'file_path'
+    return file_dialog
+
+
+def mock_file_dialog_being_closed(*args, **kwargs):
+    file_dialog = mock.Mock(spec=FileDialog)
+    file_dialog.open = lambda: False
+    file_dialog.path = ''
     return file_dialog
 
 
@@ -74,6 +83,14 @@ def mock_file_reader_failure(*args, **kwargs):
     reader = mock.Mock(spec=WorkflowReader)
     reader.read = read
     return reader
+
+
+def mock_subprocess(*args, **kwargs):
+    def check_call(*args, **kwargs):
+        return
+    mock_subprocess_module = mock.Mock(spec=subprocess)
+    mock_subprocess_module.check_call = check_call
+    return mock_subprocess_module
 
 
 class TestWFManagerTask(unittest.TestCase):
@@ -149,3 +166,24 @@ class TestWFManagerTask(unittest.TestCase):
                 'Error when reading file'
             )
             self.assertEqual(old_workflow, self.wfmanager_task.workflow_m)
+
+    def test_run_bdss_without_saving(self):
+        with mock.patch(FILE_DIALOG_PATH) as mock_dialog:
+            mock_dialog.side_effect = mock_file_dialog_being_closed
+
+            with self.assertRaises(RuntimeError):
+                self.wfmanager_task.run_bdss()
+
+    def test_run_bdss(self):
+        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
+                mock.patch(FILE_OPEN_PATH) as mock_open, \
+                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
+                mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
+            mock_dialog.side_effect = mock_file_dialog
+            mock_file_open.side_effect = mock_open
+            mock_writer.side_effect = mock_file_writer
+            _mock_subprocess.side_effect = mock_subprocess
+
+            self.wfmanager_task.run_bdss()
+            mock_writer.assert_called()
+            _mock_subprocess.check_call.assert_called()
