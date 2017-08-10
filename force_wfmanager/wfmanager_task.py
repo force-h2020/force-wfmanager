@@ -1,3 +1,5 @@
+import subprocess
+
 from traits.api import Instance, on_trait_change, Str
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem, Splitter
@@ -101,6 +103,17 @@ class WfManagerTask(Task):
             else:
                 self.current_file = dialog.path
 
+    @on_trait_change('bdss_runner.run_button')
+    def run_bdss(self):
+        """ Run the BDSS computation, it first saves the workflow into the
+        current file. If the user don't want to save, it can not run. """
+        self.save_workflow()
+
+        if len(self.current_file) == 0:
+            raise RuntimeError("Can not run if you do not save the workflow")
+
+        subprocess.check_call(["force_bdss", self.current_file])
+
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
         return TaskLayout(
@@ -115,7 +128,7 @@ class WfManagerTask(Task):
         return Workflow()
 
     def _bdss_runner_default(self):
-        return BDSSRunner(wfmanager_task=self)
+        return BDSSRunner()
 
     def _workflow_settings_default(self):
         registry = self.factory_registry
