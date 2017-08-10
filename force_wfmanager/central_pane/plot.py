@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, List, Instance, Enum, Property,
-                        on_trait_change, Int, Str, Bool)
+                        on_trait_change, Int, Str)
 
 from traitsui.api import View, UItem, Item, VGroup, HGroup
 
