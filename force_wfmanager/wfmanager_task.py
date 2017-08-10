@@ -1,5 +1,10 @@
 import subprocess
 
+import tempfile
+from contextlib import contextmanager
+import logging
+import os
+
 from traits.api import Instance, on_trait_change, File
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem, Splitter
@@ -14,6 +19,17 @@ from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
 from force_wfmanager.left_side_pane.bdss_runner import BDSSRunner
+
+
+@contextmanager
+def cleanup_garbage(tmpfile):
+    yield
+
+    try:
+        print "Cleaning up ", tmpfile
+        os.remove(tmpfile)
+    except OSError:
+        logging.exception("Could not delete the tmp directory")
 
 
 class WfManagerTask(Task):
@@ -108,14 +124,17 @@ class WfManagerTask(Task):
 
     @on_trait_change('bdss_runner.run_button')
     def run_bdss(self):
-        """ Run the BDSS computation, it first saves the workflow into the
-        current file. If the user don't want to save, it can not run. """
-        self.save_workflow()
+        """ Run the BDSS computation """
+        tmpfile = tempfile.mkstemp()
+        tmpfile_path = tmpfile[1]
 
-        if len(self.current_file) == 0:
-            raise RuntimeError("Can not run if you do not save the workflow")
+        with cleanup_garbage(tmpfile_path):
+            # Creates a temporary file containing the workflow
+            with open(tmpfile_path, 'w') as output:
+                WorkflowWriter().write(self.workflow_m, output)
 
-        subprocess.check_call(["force_bdss", self.current_file])
+            # Starts the bdss
+            subprocess.check_call(["force_bdss", tmpfile_path])
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """

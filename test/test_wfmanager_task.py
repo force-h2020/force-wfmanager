@@ -46,13 +46,6 @@ def mock_file_dialog(*args, **kwargs):
     return file_dialog
 
 
-def mock_file_dialog_being_closed(*args, **kwargs):
-    file_dialog = mock.Mock(spec=FileDialog)
-    file_dialog.open = lambda: False
-    file_dialog.path = ''
-    return file_dialog
-
-
 def mock_file_open(*args, **kwargs):
     return ''
 
@@ -166,13 +159,6 @@ class TestWFManagerTask(unittest.TestCase):
                 'Error when reading file'
             )
             self.assertEqual(old_workflow, self.wfmanager_task.workflow_m)
-
-    def test_run_bdss_without_saving(self):
-        with mock.patch(FILE_DIALOG_PATH) as mock_dialog:
-            mock_dialog.side_effect = mock_file_dialog_being_closed
-
-            with self.assertRaises(RuntimeError):
-                self.wfmanager_task.run_bdss()
 
     def test_run_bdss(self):
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
