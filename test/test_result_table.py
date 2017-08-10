@@ -6,14 +6,14 @@ from force_wfmanager.central_pane.result_table import ResultTable
 
 class ResultTableTest(unittest.TestCase):
     def setUp(self):
-        analysis_model = AnalysisModel(
+        self.analysis_model = AnalysisModel(
             value_names=['x', 'y', 'compound'],
             evaluation_steps=[
                 (2.1, 56, 'CO'),
                 (1.23, 51.2, 'CO2')
             ])
         self.result_table = ResultTable(
-            analysis_model=analysis_model
+            analysis_model=self.analysis_model
         )
 
     def test_columns(self):
@@ -22,5 +22,9 @@ class ResultTableTest(unittest.TestCase):
 
     def test_value(self):
         column_2 = self.result_table.columns[2]
-        row_1 = self.result_table.analysis_model.evaluation_steps[1]
+        row_1 = self.analysis_model.evaluation_steps[1]
         self.assertEqual(column_2.get_value(row_1), 'CO2')
+
+    def test_append_evaluation_steps(self):
+        self.analysis_model.evaluation_steps.append((1.5, 50, 'CO'))
+        self.assertEqual(self.result_table.rows[2], (1.5, 50, 'CO'))
