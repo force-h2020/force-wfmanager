@@ -1,4 +1,4 @@
-from traits.api import Instance, on_trait_change
+from traits.api import Instance, on_trait_change, Str
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
@@ -27,6 +27,9 @@ class WfManagerTask(Task):
     #: Registry of the available factories
     factory_registry = Instance(FactoryRegistryPlugin)
 
+    #: Current workflow file on which the application is writing
+    current_file = Str()
+
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
         TaskAction(
@@ -54,13 +57,22 @@ class WfManagerTask(Task):
 
     def save_workflow(self):
         """ Shows a dialog to save the workflow into a JSON file """
+        writer = WorkflowWriter()
+
+        # If the user already saved before or loaded a file, we overwrite this
+        # one
+        if len(self.current_file) != 0:
+            with open(self.current_file, 'wr') as output:
+                writer.write(self.workflow_m, output)
+            return
+
         dialog = FileDialog(action="save as", default_filename="workflow.json")
         result = dialog.open()
 
         if result is OK:
-            writer = WorkflowWriter()
             with open(dialog.path, 'wr') as output:
                 writer.write(self.workflow_m, output)
+            self.current_file = dialog.path
 
     def load_workflow(self):
         """ Shows a dialog to load a workflow file """
@@ -79,6 +91,8 @@ class WfManagerTask(Task):
                         str(e)),
                     'Error when reading file'
                 )
+            else:
+                self.current_file = dialog.path
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
