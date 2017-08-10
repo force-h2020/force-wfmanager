@@ -18,6 +18,12 @@ class PlotTest(unittest.TestCase):
         self.assertIsNone(self.plot.x)
         self.assertIsNone(self.plot.y)
         self.assertFalse(self.plot.plot_visible)
+        self.assertIsNone(self.plot.update_data_arrays())
+        self.plot._update_plot_data()
+        self.assertEqual(
+            self.plot.plot_data.get_data('x').tolist(), [])
+        self.assertEqual(
+            self.plot.plot_data.get_data('y').tolist(), [])
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ['density', 'pressure']
