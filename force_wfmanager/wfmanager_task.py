@@ -1,6 +1,6 @@
 import subprocess
 
-from traits.api import Instance, on_trait_change, Str
+from traits.api import Instance, on_trait_change, File
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem, Splitter
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
@@ -34,7 +34,7 @@ class WfManagerTask(Task):
     factory_registry = Instance(FactoryRegistryPlugin)
 
     #: Current workflow file on which the application is writing
-    current_file = Str()
+    current_file = File()
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
@@ -69,19 +69,22 @@ class WfManagerTask(Task):
         writer = WorkflowWriter()
 
         # If the user already saved before or loaded a file, we overwrite this
-        # one
+        # file
         if len(self.current_file) != 0:
-            with open(self.current_file, 'wr') as output:
-                writer.write(self.workflow_m, output)
-            return
+            current_file = self.current_file
+        else:
+            dialog = FileDialog(
+                action="save as", default_filename="workflow.json")
+            result = dialog.open()
 
-        dialog = FileDialog(action="save as", default_filename="workflow.json")
-        result = dialog.open()
+            if result is not OK:
+                return
 
-        if result is OK:
-            with open(dialog.path, 'wr') as output:
-                writer.write(self.workflow_m, output)
-            self.current_file = dialog.path
+            current_file = dialog.path
+
+        with open(current_file, 'w') as output:
+            writer.write(self.workflow_m, output)
+            self.current_file = current_file
 
     def load_workflow(self):
         """ Shows a dialog to load a workflow file """
