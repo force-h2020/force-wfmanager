@@ -62,7 +62,7 @@ class WfManagerTask(Task):
         # If the user already saved before or loaded a file, we overwrite this
         # one
         if len(self.current_file) != 0:
-            with open(self.current_file, 'wr') as output:
+            with open(self.current_file, 'w') as output:
                 writer.write(self.workflow_m, output)
             return
 
@@ -70,7 +70,7 @@ class WfManagerTask(Task):
         result = dialog.open()
 
         if result is OK:
-            with open(dialog.path, 'wr') as output:
+            with open(dialog.path, 'w') as output:
                 writer.write(self.workflow_m, output)
             self.current_file = dialog.path
 
