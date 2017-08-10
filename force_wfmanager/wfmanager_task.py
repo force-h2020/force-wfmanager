@@ -26,7 +26,6 @@ def cleanup_garbage(tmpfile):
     yield
 
     try:
-        print "Cleaning up ", tmpfile
         os.remove(tmpfile)
     except OSError:
         logging.exception("Could not delete the tmp directory")
