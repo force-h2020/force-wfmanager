@@ -1,4 +1,4 @@
-from traits.api import Instance, on_trait_change, Str
+from traits.api import Instance, on_trait_change, File
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
@@ -28,7 +28,7 @@ class WfManagerTask(Task):
     factory_registry = Instance(FactoryRegistryPlugin)
 
     #: Current workflow file on which the application is writing
-    current_file = Str()
+    current_file = File()
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
