@@ -4,6 +4,8 @@ try:
 except ImportError:
     from unittest import mock
 
+from pyface.tasks.api import TaskLayout
+
 from pyface.api import FileDialog, OK
 
 from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
@@ -18,6 +20,7 @@ from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
 from force_wfmanager.wfmanager_task import WfManagerTask
+from force_wfmanager.left_side_pane.bdss_runner import BDSSRunner
 
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_task.FileDialog'
 FILE_OPEN_PATH = 'force_wfmanager.wfmanager_task.open'
@@ -76,6 +79,11 @@ def mock_file_reader_failure(*args, **kwargs):
 class TestWFManagerTask(unittest.TestCase):
     def setUp(self):
         self.wfmanager_task = get_wfmanager_task()
+
+    def test_init(self):
+        self.assertEqual(len(self.wfmanager_task.create_dock_panes()), 2)
+        self.assertIsInstance(self.wfmanager_task.bdss_runner, BDSSRunner)
+        self.assertIsInstance(self.wfmanager_task.default_layout, TaskLayout)
 
     def test_save_workflow(self):
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
