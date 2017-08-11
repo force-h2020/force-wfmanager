@@ -50,3 +50,7 @@ class SidePane(TraitsDockPane):
             available_data_source_factories=registry.data_source_factories,
             available_kpi_calculator_factories=kpi_calculator_factories,
             workflow_m=self.workflow_m)
+
+    @on_trait_change('workflow_m')
+    def update_workflow_settings(self):
+        self.workflow_settings.workflow_m = self.workflow_m

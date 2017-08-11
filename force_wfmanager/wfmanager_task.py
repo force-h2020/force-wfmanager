@@ -157,5 +157,5 @@ class WfManagerTask(Task):
         )
 
     @on_trait_change('workflow_m')
-    def update_workflow_settings(self):
-        self.side_pane.workflow_settings.workflow_m = self.workflow_m
+    def update_side_pane(self):
+        self.side_pane.workflow_m = self.workflow_m
