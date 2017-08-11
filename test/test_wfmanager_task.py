@@ -3,6 +3,9 @@ try:
     import mock
 except ImportError:
     from unittest import mock
+import subprocess
+
+from pyface.tasks.api import TaskLayout
 
 from pyface.api import FileDialog, OK
 
@@ -17,13 +20,16 @@ from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
-from force_wfmanager.wfmanager_task import WfManagerTask
+from force_wfmanager.wfmanager_task import WfManagerTask, cleanup_garbage
+from force_wfmanager.left_side_pane.bdss_runner import BDSSRunner
 
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_task.FileDialog'
 FILE_OPEN_PATH = 'force_wfmanager.wfmanager_task.open'
 WORKFLOW_WRITER_PATH = 'force_wfmanager.wfmanager_task.WorkflowWriter'
 WORKFLOW_READER_PATH = 'force_wfmanager.wfmanager_task.WorkflowReader'
 ERROR_PATH = 'force_wfmanager.wfmanager_task.error'
+SUBPROCESS_PATH = 'force_wfmanager.wfmanager_task.subprocess'
+OS_REMOVE_PATH = 'force_wfmanager.wfmanager_task.os.remove'
 
 
 def get_wfmanager_task():
@@ -46,6 +52,10 @@ def mock_file_dialog_being_closed(*args, **kwargs):
     file_dialog.open = lambda: False
     file_dialog.path = ''
     return file_dialog
+
+
+def mock_os_remove(*args, **kwargs):
+    raise OSError("OUPS")
 
 
 def mock_show_error(*args, **kwargs):
@@ -76,9 +86,22 @@ def mock_file_reader_failure(*args, **kwargs):
     return reader
 
 
+def mock_subprocess(*args, **kwargs):
+    def check_call(*args, **kwargs):
+        return
+    mock_subprocess_module = mock.Mock(spec=subprocess)
+    mock_subprocess_module.check_call = check_call
+    return mock_subprocess_module
+
+
 class TestWFManagerTask(unittest.TestCase):
     def setUp(self):
         self.wfmanager_task = get_wfmanager_task()
+
+    def test_init(self):
+        self.assertEqual(len(self.wfmanager_task.create_dock_panes()), 2)
+        self.assertIsInstance(self.wfmanager_task.bdss_runner, BDSSRunner)
+        self.assertIsInstance(self.wfmanager_task.default_layout, TaskLayout)
 
     def test_save_workflow(self):
         mock_open = mock.mock_open()
@@ -159,6 +182,28 @@ class TestWFManagerTask(unittest.TestCase):
                 'Error when reading file'
             )
             self.assertEqual(old_workflow, self.wfmanager_task.workflow_m)
+
+    def test_run_bdss(self):
+        mock_open = mock.mock_open()
+        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
+                mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
+            mock_dialog.side_effect = mock_file_dialog
+            mock_writer.side_effect = mock_file_writer
+            _mock_subprocess.side_effect = mock_subprocess
+
+            self.wfmanager_task.run_bdss()
+            mock_writer.assert_called()
+            _mock_subprocess.check_call.assert_called()
+
+    def test_cleanup_garbage(self):
+        with mock.patch(OS_REMOVE_PATH) as mock_os:
+            mock_os.side_effect = mock_os_remove
+
+            with self.assertRaises(OSError):
+                with cleanup_garbage('wrongFile'):
+                    pass
 
     def test_open_failure(self):
         mock_open = mock.mock_open()
