@@ -38,7 +38,11 @@ def get_wfmanager_task():
     mock_plugin.mco_factories = [mock.Mock(spec=DummyDakotaFactory)]
     mock_plugin.data_source_factories = [mock.Mock(spec=CSVExtractorFactory)]
     mock_plugin.kpi_calculator_factories = [mock.Mock(spec=KPIAdderFactory)]
-    return WfManagerTask(factory_registry=mock_plugin)
+    wfmanager_task = WfManagerTask(factory_registry=mock_plugin)
+
+    wfmanager_task.create_central_pane()
+    wfmanager_task.create_dock_panes()
+    return wfmanager_task
 
 
 def mock_file_dialog(*args, **kwargs):

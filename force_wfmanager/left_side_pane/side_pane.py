@@ -42,12 +42,6 @@ class SidePane(TraitsDockPane):
         UItem('run_button')
     ))
 
-    def __init__(self, factory_registry, workflow_m, *args, **kwargs):
-        self.factory_registry = factory_registry
-        self.workflow_m = workflow_m
-
-        super(SidePane, self).__init__(*args, **kwargs)
-
     def _workflow_settings_default(self):
         registry = self.factory_registry
         kpi_calculator_factories = registry.kpi_calculator_factories
@@ -57,6 +51,6 @@ class SidePane(TraitsDockPane):
             available_kpi_calculator_factories=kpi_calculator_factories,
             workflow_m=self.workflow_m)
 
-    @on_trait_change('workflow_m')
-    def update_workflow_settings(self):
+    @on_trait_change('workflow_m', post_init=True)
+    def update_workflow_settings(self, *args, **kwargs):
         self.workflow_settings.workflow_m = self.workflow_m

@@ -204,7 +204,7 @@ class WorkflowSettings(HasStrictTraits):
             model=self.workflow_m
         )
 
-    @on_trait_change('workflow_m')
+    @on_trait_change('workflow_m', post_init=True)
     def update_model_view(self):
         self.workflow_mv.model = self.workflow_m
 
