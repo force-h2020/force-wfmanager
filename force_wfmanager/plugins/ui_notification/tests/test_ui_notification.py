@@ -87,7 +87,7 @@ class TestUINotification(unittest.TestCase):
         with LogCapture() as capture:
             listener.initialize(self.model)
             capture.check(
-                ("force_bdss.core_plugins.dummy.ui_notification.ui_notification",  # noqa
+                ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
                  "INFO",
                  "Could not connect to UI server after 1000 ms. Continuing without UI notification."  # noqa
                  ),
@@ -106,7 +106,7 @@ class TestUINotification(unittest.TestCase):
         with LogCapture() as capture:
             listener.initialize(self.model)
             capture.check(
-                ("force_bdss.core_plugins.dummy.ui_notification.ui_notification",  # noqa
+                ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
                  "ERROR",
                  "Unexpected reply in sync negotiation with UI server. "
                  "'HELLO\nnot_the_right_id\n1'"  # noqa
@@ -130,7 +130,7 @@ class TestUINotification(unittest.TestCase):
         with LogCapture() as capture:
             listener.finalize()
             capture.check(
-                ("force_bdss.core_plugins.dummy.ui_notification.ui_notification",  # noqa
+                ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
                  "INFO",
                  "Could not close connection to UI server after 1000 ms."  # noqa
                  ),
@@ -151,7 +151,7 @@ class TestUINotification(unittest.TestCase):
         with LogCapture() as capture:
             listener.finalize()
             capture.check(
-                ("force_bdss.core_plugins.dummy.ui_notification.ui_notification",  # noqa
+                ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
                  "ERROR",
                  "Unexpected reply in goodbye sync negotiation with UI server. "  # noqa
                  "'GOODBYE\nnot_the_right_id\n1'"  # noqa
