@@ -1,9 +1,8 @@
-from pyface.tasks.api import TraitsDockPane
+from traits.api import (Instance, List, Property, HasStrictTraits,
+                        on_trait_change)
 
 from traitsui.api import (TreeEditor, TreeNode, UItem, View, Menu, Action,
                           Handler)
-from traits.api import (Instance, List, Property,
-                        on_trait_change)
 
 from force_bdss.api import (
     BaseMCOFactory,
@@ -168,15 +167,8 @@ tree_editor = TreeEditor(
 )
 
 
-class WorkflowSettings(TraitsDockPane):
-    """ Side pane which contains the tree editor displaying the Workflow """
-
-    id = 'force_wfmanager.workflow_settings'
-    name = 'Workflow Settings'
-
-    #: Remove the ability of closing the pane
-    closable = False
-
+class WorkflowSettings(HasStrictTraits):
+    """ Part of the GUI containing the tree editor displaying the Workflow """
     #: Available MCO factories
     available_mco_factories = List(Instance(BaseMCOFactory))
 
