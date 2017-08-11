@@ -21,7 +21,8 @@ from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
 from force_wfmanager.wfmanager_task import WfManagerTask, cleanup_garbage
-from force_wfmanager.left_side_pane.bdss_runner import BDSSRunner
+from force_wfmanager.left_side_pane.side_pane import SidePane
+from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
 
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_task.FileDialog'
 FILE_OPEN_PATH = 'force_wfmanager.wfmanager_task.open'
@@ -99,8 +100,10 @@ class TestWFManagerTask(unittest.TestCase):
         self.wfmanager_task = get_wfmanager_task()
 
     def test_init(self):
-        self.assertEqual(len(self.wfmanager_task.create_dock_panes()), 2)
-        self.assertIsInstance(self.wfmanager_task.bdss_runner, BDSSRunner)
+        self.assertEqual(len(self.wfmanager_task.create_dock_panes()), 1)
+        self.assertIsInstance(self.wfmanager_task.side_pane, SidePane)
+        self.assertIsInstance(
+            self.wfmanager_task.side_pane.workflow_settings, WorkflowSettings)
         self.assertIsInstance(self.wfmanager_task.default_layout, TaskLayout)
 
     def test_save_workflow(self):
