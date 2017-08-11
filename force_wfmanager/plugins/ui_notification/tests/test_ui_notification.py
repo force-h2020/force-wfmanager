@@ -1,16 +1,14 @@
 import unittest
 from testfixtures import LogCapture
 
-from force_bdss.core_plugins.dummy.ui_notification.ui_notification import \
-    UINotification
-from force_bdss.core_plugins.dummy.ui_notification.ui_notification_factory \
-    import \
-    UINotificationFactory
-from force_bdss.core_plugins.dummy.ui_notification.ui_notification_model \
-    import \
-    UINotificationModel
-from force_bdss.mco.events import MCOStartEvent, MCOProgressEvent, \
+from force_bdss.api import MCOStartEvent, MCOProgressEvent, \
     MCOFinishEvent
+from force_wfmanager.plugins.ui_notification.ui_notification import \
+    UINotification
+from force_wfmanager.plugins.ui_notification.ui_notification_factory import \
+    UINotificationFactory
+from force_wfmanager.plugins.ui_notification.ui_notification_model import \
+    UINotificationModel
 
 try:
     import mock

@@ -2,13 +2,11 @@ import unittest
 
 from envisage.plugin import Plugin
 
-from force_bdss.core_plugins.dummy.ui_notification.ui_notification import \
+from force_wfmanager.plugins.ui_notification.ui_notification import \
     UINotification
-from force_bdss.core_plugins.dummy.ui_notification.ui_notification_factory \
-    import \
+from force_wfmanager.plugins.ui_notification.ui_notification_factory import \
     UINotificationFactory
-from force_bdss.core_plugins.dummy.ui_notification.ui_notification_model \
-    import \
+from force_wfmanager.plugins.ui_notification.ui_notification_model import \
     UINotificationModel
 
 try:
