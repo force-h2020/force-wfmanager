@@ -56,12 +56,6 @@ def mock_file_dialog_being_closed(*args, **kwargs):
     return file_dialog
 
 
-@contextmanager
-def mock_file_open(*args, **kwargs):
-    yield
-    return
-
-
 def mock_os_remove(*args, **kwargs):
     raise OSError("OUPS")
 
@@ -112,11 +106,11 @@ class TestWFManagerTask(unittest.TestCase):
         self.assertIsInstance(self.wfmanager_task.default_layout, TaskLayout)
 
     def test_save_workflow(self):
+        mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
-                mock.patch(FILE_OPEN_PATH) as mock_open, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
             mock_dialog.side_effect = mock_file_dialog
-            mock_open.side_effect = mock_file_open
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
@@ -129,11 +123,11 @@ class TestWFManagerTask(unittest.TestCase):
                 'file_path'
             )
 
+        mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
-                mock.patch(FILE_OPEN_PATH) as mock_open, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
             mock_dialog.side_effect = mock_file_dialog
-            mock_open.side_effect = mock_file_open
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
@@ -142,38 +136,39 @@ class TestWFManagerTask(unittest.TestCase):
             mock_dialog.assert_not_called()
 
     def test_close_saving_dialog(self):
+        mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
-                mock.patch(FILE_OPEN_PATH) as mock_open, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
             mock_dialog.side_effect = mock_file_dialog_being_closed
-            mock_open.side_effect = mock_file_open
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
             mock_open.assert_not_called()
 
     def test_load_workflow(self):
+        mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
-                mock.patch(FILE_OPEN_PATH) as mock_open, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_dialog.side_effect = mock_file_dialog
-            mock_open.side_effect = mock_file_open
             mock_reader.side_effect = mock_file_reader
 
             old_workflow = self.wfmanager_task.workflow_m
 
             self.wfmanager_task.load_workflow()
 
+            mock_open.assert_called()
             mock_reader.assert_called()
             self.assertNotEqual(old_workflow, self.wfmanager_task.workflow_m)
 
     def test_load_failure(self):
+        mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
-                mock.patch(FILE_OPEN_PATH) as mock_open, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(ERROR_PATH) as mock_error, \
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_dialog.side_effect = mock_file_dialog
-            mock_open.side_effect = mock_file_open
             mock_error.side_effect = mock_show_error
             mock_reader.side_effect = mock_file_reader_failure
 
@@ -181,6 +176,7 @@ class TestWFManagerTask(unittest.TestCase):
 
             self.wfmanager_task.load_workflow()
 
+            mock_open.assert_called()
             mock_reader.assert_called()
             mock_error.assert_called_with(
                 None,
@@ -190,12 +186,12 @@ class TestWFManagerTask(unittest.TestCase):
             self.assertEqual(old_workflow, self.wfmanager_task.workflow_m)
 
     def test_run_bdss(self):
+        mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
-                mock.patch(FILE_OPEN_PATH) as mock_open, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
                 mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
             mock_dialog.side_effect = mock_file_dialog
-            mock_file_open.side_effect = mock_open
             mock_writer.side_effect = mock_file_writer
             _mock_subprocess.side_effect = mock_subprocess
 
