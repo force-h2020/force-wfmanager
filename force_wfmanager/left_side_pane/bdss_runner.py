@@ -10,6 +10,9 @@ class BDSSRunner(TraitsDockPane):
     id = 'force_wfmanager.bdss_runner'
     name = 'Run BDSS'
 
+    #: Remove the possibility to close the pane
+    closable = False
+
     #: Run button for running the computation
     run_button = Button('Run')
 
