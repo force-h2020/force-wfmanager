@@ -1,8 +1,6 @@
 import subprocess
 
 import tempfile
-from contextlib import contextmanager
-import logging
 import os
 from concurrent.futures import ThreadPoolExecutor, Future
 
@@ -20,17 +18,6 @@ from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
 from force_wfmanager.left_side_pane.bdss_runner import BDSSRunner
-
-
-@contextmanager
-def cleanup_garbage(tmpfile):
-    yield
-
-    try:
-        os.remove(tmpfile)
-    except OSError:
-        logging.exception("Could not delete the tmp file {}".format(tmpfile))
-        raise
 
 
 class WfManagerTask(Task):
@@ -56,7 +43,6 @@ class WfManagerTask(Task):
     #: The thread pool executor
     executor = Instance(ThreadPoolExecutor)
 
-    execution_future = Instance(Future)
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
         TaskAction(
@@ -142,32 +128,40 @@ class WfManagerTask(Task):
                 self.current_file = dialog.path
 
     @on_trait_change('bdss_runner.run_button')
-    def run_bdss(self):
+    def run_calculation(self):
         """ Run the BDSS computation """
-        tmpfile = tempfile.mkstemp()
-        tmpfile_path = tmpfile[1]
+        tmpfile_path = tempfile.mktemp()
 
-        with cleanup_garbage(tmpfile_path):
-            # Creates a temporary file containing the workflow
-            with open(tmpfile_path, 'w') as output:
-                WorkflowWriter().write(self.workflow_m, output)
+        # Creates a temporary file containing the workflow
+        with open(tmpfile_path, 'w') as output:
+            WorkflowWriter().write(self.workflow_m, output)
 
-            self.execution_future = self.executor.submit(
-                self._execute_bdss, tmpfile_path)
-
-            self.execution_future.add_done_callback()
+        future = self.executor.submit(self._execute_bdss, tmpfile_path)
+        future.add_done_callback(self._execution_future_done)
 
     def _execute_bdss(self, workflow_path):
-        subprocess.check_call([
-            "force_bdss",
-            workflow_path
-        ])
+        """"""
+        try:
+            subprocess.check_call([
+                "force_bdss",
+                workflow_path
+            ])
+        except subprocess.CalledProcessError:
+            # Ignore any error of execution.
+            pass
+
+        try:
+            os.remove(workflow_path)
+        except IOError:
+            # Ignore deletion errors, in case the file magically
+            # vanished in the meantime
+            pass
 
     def _execution_future_done(self, future):
         GUI.invoke_later(self._bdss_done)
 
     def _bdss_done(self):
-        self.execution_future = None
+        pass
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
