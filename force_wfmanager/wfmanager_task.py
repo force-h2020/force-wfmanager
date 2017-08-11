@@ -4,12 +4,13 @@ import tempfile
 from contextlib import contextmanager
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor, Future
 
 from traits.api import Instance, on_trait_change, File
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem, Splitter
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
-from pyface.api import FileDialog, OK, error
+from pyface.api import FileDialog, OK, error, GUI
 
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
@@ -52,6 +53,10 @@ class WfManagerTask(Task):
     #: Current workflow file on which the application is writing
     current_file = File()
 
+    #: The thread pool executor
+    executor = Instance(ThreadPoolExecutor)
+
+    execution_future = Instance(Future)
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
         TaskAction(
@@ -147,8 +152,22 @@ class WfManagerTask(Task):
             with open(tmpfile_path, 'w') as output:
                 WorkflowWriter().write(self.workflow_m, output)
 
-            # Starts the bdss
-            subprocess.check_call(["force_bdss", tmpfile_path])
+            self.execution_future = self.executor.submit(
+                self._execute_bdss, tmpfile_path)
+
+            self.execution_future.add_done_callback()
+
+    def _execute_bdss(self, workflow_path):
+        subprocess.check_call([
+            "force_bdss",
+            workflow_path
+        ])
+
+    def _execution_future_done(self, future):
+        GUI.invoke_later(self._bdss_done)
+
+    def _bdss_done(self):
+        self.execution_future = None
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
@@ -174,6 +193,9 @@ class WfManagerTask(Task):
             available_data_source_factories=registry.data_source_factories,
             available_kpi_calculator_factories=kpi_calculator_factories,
             workflow_m=self.workflow_m)
+
+    def _executor_default(self):
+        return ThreadPoolExecutor(max_workers=1)
 
     @on_trait_change('workflow_m')
     def update_workflow_settings(self):
