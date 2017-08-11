@@ -3,7 +3,6 @@ try:
     import mock
 except ImportError:
     from unittest import mock
-from contextlib import contextmanager
 
 from pyface.api import FileDialog, OK
 
