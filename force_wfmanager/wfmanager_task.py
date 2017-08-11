@@ -1,4 +1,4 @@
-from traits.api import Instance, on_trait_change
+from traits.api import Instance, on_trait_change, File
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
@@ -27,6 +27,9 @@ class WfManagerTask(Task):
     #: Registry of the available factories
     factory_registry = Instance(FactoryRegistryPlugin)
 
+    #: Current workflow file on which the application is writing
+    current_file = File()
+
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
         TaskAction(
@@ -54,17 +57,43 @@ class WfManagerTask(Task):
 
     def save_workflow(self):
         """ Shows a dialog to save the workflow into a JSON file """
-        dialog = FileDialog(action="save as", default_filename="workflow.json")
-        result = dialog.open()
+        writer = WorkflowWriter()
 
-        if result is OK:
-            writer = WorkflowWriter()
-            with open(dialog.path, 'wr') as output:
+        # If the user already saved before or loaded a file, we overwrite this
+        # file
+        if len(self.current_file) != 0:
+            current_file = self.current_file
+        else:
+            dialog = FileDialog(
+                action="save as",
+                default_filename="workflow.json",
+                wildcard='JSON files (*.json)|*.json|'
+            )
+            result = dialog.open()
+
+            if result is not OK:
+                return
+
+            current_file = dialog.path
+
+        try:
+            with open(current_file, 'w') as output:
                 writer.write(self.workflow_m, output)
+                self.current_file = current_file
+        except IOError as e:
+            error(
+                None,
+                'Cannot save in the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when saving workflow'
+            )
 
     def load_workflow(self):
         """ Shows a dialog to load a workflow file """
-        dialog = FileDialog(action="open")
+        dialog = FileDialog(
+            action="open",
+            wildcard='JSON files (*.json)|*.json|'
+        )
         result = dialog.open()
 
         if result is OK:
@@ -79,6 +108,8 @@ class WfManagerTask(Task):
                         str(e)),
                     'Error when reading file'
                 )
+            else:
+                self.current_file = dialog.path
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
