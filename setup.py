@@ -39,7 +39,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'gui_scripts': [
-            ('force-wfmanager = force_wfmanager.run:main')
+            ('force_wfmanager = force_wfmanager.run:main')
         ]
     },
 )
