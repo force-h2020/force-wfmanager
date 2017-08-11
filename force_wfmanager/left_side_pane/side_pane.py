@@ -1,6 +1,6 @@
 from pyface.tasks.api import TraitsDockPane
 
-from traits.api import Instance, Button
+from traits.api import Instance, Button, on_trait_change
 
 from traitsui.api import View, UItem, VGroup
 
@@ -41,6 +41,12 @@ class SidePane(TraitsDockPane):
         UItem('workflow_settings', style='custom'),
         UItem('run_button')
     ))
+
+    def __init__(self, factory_registry, workflow_m, *args, **kwargs):
+        self.factory_registry = factory_registry
+        self.workflow_m = workflow_m
+
+        super(SidePane, self).__init__(*args, **kwargs)
 
     def _workflow_settings_default(self):
         registry = self.factory_registry
