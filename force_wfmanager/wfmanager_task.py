@@ -73,9 +73,17 @@ class WfManagerTask(Task):
 
             current_file = dialog.path
 
-        with open(current_file, 'w') as output:
-            writer.write(self.workflow_m, output)
-            self.current_file = current_file
+        try:
+            with open(current_file, 'w') as output:
+                writer.write(self.workflow_m, output)
+                self.current_file = current_file
+        except IOError as e:
+            error(
+                None,
+                'Cannot save in the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when saving workflow'
+            )
 
     def load_workflow(self):
         """ Shows a dialog to load a workflow file """
