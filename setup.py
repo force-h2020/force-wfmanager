@@ -32,8 +32,8 @@ setup(
     install_requires=[
         "envisage >= 4.6.0",
         "stevedore >= 1.24.0",
-        "numpy >= 1.12.0",
-        "cython >= 0.26",
+        "numpy >= 1.11.0",
+        "cython >= 0.25",
         "chaco >= 4.6.1",
         ],
     packages=find_packages(),
