@@ -65,7 +65,10 @@ class WfManagerTask(Task):
             current_file = self.current_file
         else:
             dialog = FileDialog(
-                action="save as", default_filename="workflow.json")
+                action="save as",
+                default_filename="workflow.json",
+                wildcard='JSON files (*.json)|*.json|'
+            )
             result = dialog.open()
 
             if result is not OK:
@@ -87,7 +90,10 @@ class WfManagerTask(Task):
 
     def load_workflow(self):
         """ Shows a dialog to load a workflow file """
-        dialog = FileDialog(action="open")
+        dialog = FileDialog(
+            action="open",
+            wildcard='JSON files (*.json)|*.json|'
+        )
         result = dialog.open()
 
         if result is OK:
