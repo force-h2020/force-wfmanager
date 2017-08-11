@@ -3,9 +3,7 @@ try:
     import mock
 except ImportError:
     from unittest import mock
-
 import subprocess
-from contextlib import contextmanager
 
 from pyface.tasks.api import TaskLayout
 
