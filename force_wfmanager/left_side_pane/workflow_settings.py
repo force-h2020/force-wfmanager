@@ -174,6 +174,9 @@ class WorkflowSettings(TraitsDockPane):
     id = 'force_wfmanager.workflow_settings'
     name = 'Workflow Settings'
 
+    #: Remove the ability of closing the pane
+    closable = False
+
     #: Available MCO factories
     available_mco_factories = List(Instance(BaseMCOFactory))
 
