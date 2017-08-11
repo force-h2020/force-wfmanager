@@ -4,7 +4,7 @@ from testfixtures import LogCapture
 from force_bdss.api import MCOStartEvent, MCOProgressEvent, \
     MCOFinishEvent
 from force_wfmanager.plugins.ui_notification.ui_notification import \
-    UINotification
+    UINotification, _format_event
 from force_wfmanager.plugins.ui_notification.ui_notification_factory import \
     UINotificationFactory
 from force_wfmanager.plugins.ui_notification.ui_notification_model import \
@@ -158,4 +158,16 @@ class TestUINotification(unittest.TestCase):
                  ),
             )
 
+        self.assertIsNone(listener._context)
+
+    def test_format_unknown_event(self):
+        self.assertIsNone(_format_event("foo", "foo"))
+
+    def test_double_clear_sockets(self):
+        listener = self.listener
+
+        listener._close_and_clear_sockets()
+        self.assertIsNone(listener._context)
+
+        listener._close_and_clear_sockets()
         self.assertIsNone(listener._context)
