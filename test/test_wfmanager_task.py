@@ -204,3 +204,20 @@ class TestWFManagerTask(unittest.TestCase):
             with self.assertRaises(OSError):
                 with cleanup_garbage('wrongFile'):
                     pass
+
+    def test_open_failure(self):
+        mock_open = mock.mock_open()
+        mock_open.side_effect = IOError("OUPS")
+        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(ERROR_PATH) as mock_error:
+            mock_dialog.side_effect = mock_file_dialog
+            mock_error.side_effect = mock_show_error
+
+            self.wfmanager_task.save_workflow()
+            mock_open.assert_called()
+            mock_error.assert_called_with(
+                None,
+                'Cannot save in the requested file:\n\nOUPS',
+                'Error when saving workflow'
+            )
