@@ -28,7 +28,8 @@ def cleanup_garbage(tmpfile):
     try:
         os.remove(tmpfile)
     except OSError:
-        logging.exception("Could not delete the tmp directory")
+        logging.exception("Could not delete the tmp file {}".format(tmpfile))
+        raise
 
 
 class WfManagerTask(Task):

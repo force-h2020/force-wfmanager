@@ -22,7 +22,7 @@ from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
-from force_wfmanager.wfmanager_task import WfManagerTask
+from force_wfmanager.wfmanager_task import WfManagerTask, cleanup_garbage
 from force_wfmanager.left_side_pane.bdss_runner import BDSSRunner
 
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_task.FileDialog'
@@ -31,6 +31,7 @@ WORKFLOW_WRITER_PATH = 'force_wfmanager.wfmanager_task.WorkflowWriter'
 WORKFLOW_READER_PATH = 'force_wfmanager.wfmanager_task.WorkflowReader'
 ERROR_PATH = 'force_wfmanager.wfmanager_task.error'
 SUBPROCESS_PATH = 'force_wfmanager.wfmanager_task.subprocess'
+OS_REMOVE_PATH = 'force_wfmanager.wfmanager_task.os.remove'
 
 
 def get_wfmanager_task():
@@ -59,6 +60,10 @@ def mock_file_dialog_being_closed(*args, **kwargs):
 def mock_file_open(*args, **kwargs):
     yield
     return
+
+
+def mock_os_remove(*args, **kwargs):
+    raise OSError("OUPS")
 
 
 def mock_show_error(*args, **kwargs):
@@ -197,3 +202,11 @@ class TestWFManagerTask(unittest.TestCase):
             self.wfmanager_task.run_bdss()
             mock_writer.assert_called()
             _mock_subprocess.check_call.assert_called()
+
+    def test_cleanup_garbage(self):
+        with mock.patch(OS_REMOVE_PATH) as mock_os:
+            mock_os.side_effect = mock_os_remove
+
+            with self.assertRaises(OSError):
+                with cleanup_garbage('wrongFile'):
+                    pass
