@@ -142,7 +142,6 @@ class WfManagerTask(Task):
                   "of the BDSS. {}".format(e),
                   'Error when saving workflow'
                   )
-
             return
 
         self.side_pane.enabled = False

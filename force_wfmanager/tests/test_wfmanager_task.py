@@ -229,18 +229,17 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
-                mock.patch(SUBPROCESS_PATH) as mock_subprocess, \
+                mock.patch(SUBPROCESS_PATH+".check_call") as mock_check_call, \
                 mock.patch(ERROR_PATH) as mock_error:
             mock_dialog.side_effect = mock_file_dialog
             mock_writer.side_effect = mock_file_writer
-            mock_subprocess.side_effect = mock_subprocess
             mock_error.side_effect = mock_show_error
-            mock_subprocess.check_call.side_effect = Exception("boom")
+            mock_check_call.side_effect = Exception("boom")
 
             self.assertTrue(self.wfmanager_task.side_pane.enabled)
 
             def condition():
-                return mock_subprocess.check_call.called
+                return mock_check_call.called
 
             with self.event_loop_until_condition(condition):
                 self.wfmanager_task.run_bdss()
