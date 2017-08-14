@@ -97,6 +97,8 @@ class WfManagerTask(Task):
 
         if self._write_workflow(self.current_file) is False:
             self.current_file = ''
+            return False
+        return True
 
     def save_workflow_as(self):
         """ Shows a dialog to save the workflow into a JSON file """
@@ -105,6 +107,7 @@ class WfManagerTask(Task):
             default_filename="workflow.json",
             wildcard='JSON files (*.json)|*.json|'
         )
+
         result = dialog.open()
 
         if result is not OK:
@@ -114,6 +117,8 @@ class WfManagerTask(Task):
 
         if self._write_workflow(current_file) is True:
             self.current_file = current_file
+            return True
+        return False
 
     def _write_workflow(self, file_path):
         """ Creates a JSON file in the file_path and write the workflow
@@ -224,7 +229,8 @@ class WfManagerTask(Task):
         result = dialog.open()
 
         if result is YES:
-            self.save_workflow()
+            if self.save_workflow() is False:
+                return
         elif result is CANCEL:
             return
 
