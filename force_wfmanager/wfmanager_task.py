@@ -53,7 +53,6 @@ class WfManagerTask(Task):
             name='Save Workflow',
             method='save_workflow',
             accelerator='Ctrl+S',
-            enabled_name='current_file',
         ),
         TaskAction(
             name='Save Workflow as...',
@@ -78,11 +77,13 @@ class WfManagerTask(Task):
         return [self.side_pane]
 
     def save_workflow(self):
-        """ Shows a dialog to save the workflow into a JSON file """
+        """ Saves the workflow into the currently used file. If there is no
+        current file, it shows a dialog """
         if len(self.current_file) == 0:
-            return
+            return self.save_workflow_as()
 
-        self._write_workflow(self.current_file)
+        if self._write_workflow(self.current_file) is False:
+            self.current_file = ''
 
     def save_workflow_as(self):
         """ Shows a dialog to save the workflow into a JSON file """
