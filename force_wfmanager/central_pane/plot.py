@@ -116,11 +116,18 @@ class Plot(HasStrictTraits):
         # Update the data arrays with the newly added evaluation_steps
         new_evaluation_steps = evaluation_steps[len(self._data_arrays[0]):]
         for evaluation_step in new_evaluation_steps:
+            print(self.data_dim)
+            print(self._data_arrays)
+            print(evaluation_step)
             for index in range(self.data_dim):
                 self._data_arrays[index].append(evaluation_step[index])
 
         # Update plot data
         self._update_plot_data()
+
+    @on_trait_change("data_dim")
+    def _update_data_arrays_size(self):
+        self._data_arrays = [[] for _ in range(self.data_dim)]
 
     @on_trait_change('x,y')
     def _update_plot_data(self):

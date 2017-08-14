@@ -14,9 +14,11 @@ from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
+from force_wfmanager.central_pane.analysis_model import AnalysisModel
 
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
+from force_wfmanager.zmq_monitor_thread import ZMQMonitorThread
 
 
 class WfManagerTask(Task):
@@ -25,6 +27,8 @@ class WfManagerTask(Task):
 
     #: Workflow model
     workflow_m = Instance(Workflow, allow_none=False)
+
+    analysis_model = Instance(AnalysisModel, allow_none=False)
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(SidePane)
@@ -37,6 +41,9 @@ class WfManagerTask(Task):
 
     #: The thread pool executor
     executor = Instance(ThreadPoolExecutor)
+
+    #: monitor thread for the zeromq notification
+    zmq_monitor_thread = Instance(ZMQMonitorThread)
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
@@ -52,11 +59,14 @@ class WfManagerTask(Task):
         ), id='File', name='&File'
     ))
 
+    def _analysis_model_default(self):
+        return AnalysisModel()
+
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        return CentralPane()
+        return CentralPane(self.analysis_model)
 
     def create_dock_panes(self):
         """ Creates the dock panes """
@@ -94,6 +104,11 @@ class WfManagerTask(Task):
                     str(e)),
                 'Error when saving workflow'
             )
+
+    def __init__(self, *args, **kwargs):
+        super(WfManagerTask, self).__init__(*args, **kwargs)
+        self.zmq_monitor_thread = ZMQMonitorThread(self.analysis_model)
+        self.zmq_monitor_thread.start()
 
     def load_workflow(self):
         """ Shows a dialog to load a workflow file """
@@ -182,3 +197,4 @@ class WfManagerTask(Task):
     @on_trait_change('workflow_m')
     def update_side_pane(self):
         self.side_pane.workflow_m = self.workflow_m
+
