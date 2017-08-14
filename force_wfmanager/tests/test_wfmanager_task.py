@@ -286,7 +286,31 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             mock_dialog.side_effect = mock_file_dialog
             mock_writer.side_effect = mock_file_writer
             mock_error.side_effect = mock_show_error
-            mock_check_call.side_effect = Exception("boom")
+
+            def _check_exception_behavior(exception):
+                mock_check_call.side_effect = exception
+
+                self.assertTrue(self.wfmanager_task.side_pane.enabled)
+
+                def condition():
+                    return mock_check_call.called
+
+                with self.event_loop_until_condition(condition):
+                    self.wfmanager_task.run_bdss()
+                self.assertTrue(self.wfmanager_task.side_pane.enabled)
+                return mock_error.call_args[0][1]
+
+            for exc, msg in [
+                    (Exception("boom"), 'Execution of BDSS failed. \n\nboom'),
+                    (subprocess.CalledProcessError(1, "fake_command"),
+                     "Execution of BDSS failed. \n\nCommand 'fake_command' "
+                     "returned non-zero exit status 1"),
+                    (OSError("whatever"), "Execution of BDSS failed. \n\n"
+                                          "whatever")]:
+                self.assertEqual(_check_exception_behavior(exc),
+                                 msg)
+
+            mock_writer.write.side_effect = Exception("write failed")
 
             self.assertTrue(self.wfmanager_task.side_pane.enabled)
 
@@ -296,8 +320,6 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             with self.event_loop_until_condition(condition):
                 self.wfmanager_task.run_bdss()
             self.assertTrue(self.wfmanager_task.side_pane.enabled)
-            mock_error.assert_called_once_with(
-                None,
-                'Execution of BDSS failed. \n\nboom',
-                "Error when running BDSS"
-            )
+            self.assertEqual(
+                mock_error.call_args[0][1],
+                'Execution of BDSS failed. \n\nwhatever')
