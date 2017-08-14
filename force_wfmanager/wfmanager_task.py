@@ -132,11 +132,21 @@ class WfManagerTask(Task):
         tmpfile_path = tempfile.mktemp()
 
         # Creates a temporary file containing the workflow
-        with open(tmpfile_path, 'w') as output:
-            WorkflowWriter().write(self.workflow_m, output)
+        try:
+            with open(tmpfile_path, 'w') as output:
+                WorkflowWriter().write(self.workflow_m, output)
+        except Exception as e:
+            logging.exception("Unable to create temporary workflow file.")
+            error(None,
+                  "Unable to create temporary workflow file for execution "
+                  "of the BDSS. {}".format(e),
+                  'Error when saving workflow'
+                  )
+
+            return
 
         self.side_pane.enabled = False
-        future = self.executor.submit(self._execute_bdss, tmpfile_path)
+        future = self._executor.submit(self._execute_bdss, tmpfile_path)
         future.add_done_callback(self._execution_done_callback)
 
     def _execute_bdss(self, workflow_path):
@@ -145,24 +155,45 @@ class WfManagerTask(Task):
         """
         try:
             subprocess.check_call([self._bdss_executable_path, workflow_path])
-        except OSError:
+        except OSError as e:
             log.exception("Error while executing force_bdss executable. "
                           " Is force_bdss in your path?")
-            raise
-        except subprocess.CalledProcessError:
+            self._clean_tmp_workflow(workflow_path, silent=True)
+            raise e
+        except subprocess.CalledProcessError as e:
             # Ignore any error of execution.
             log.exception("force_bdss returned a "
                           "non-zero value after execution")
-            raise
+            self._clean_tmp_workflow(workflow_path, silent=True)
+            raise e
+        except Exception as e:
+            log.exception("Unknown exception occurred "
+                          "while invoking force bdss executable.")
+            self._clean_tmp_workflow(workflow_path, silent=True)
+            raise e
 
+        self._clean_tmp_workflow(workflow_path)
+
+    def _clean_tmp_workflow(self, workflow_path, silent=False):
+        """Removes the temporary file for the workflow.
+
+        Parameters
+        ----------
+        workflow_path: str
+            The path of the workflow
+        silent: bool
+            If true, any exception encountered will be discarded (but logged).
+            If false, the exception will be re-raised
+        """
         try:
             os.remove(workflow_path)
-        except IOError:
+        except OSError as e:
             # Ignore deletion errors, in case the file magically
             # vanished in the meantime
             log.exception("Unable to delete temporary "
                           "workflow file at {}".format(workflow_path))
-            raise
+            if not silent:
+                raise e
 
     def _execution_done_callback(self, future):
         """Secondary thread code.

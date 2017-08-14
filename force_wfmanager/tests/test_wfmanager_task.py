@@ -6,8 +6,9 @@ except ImportError:
 import subprocess
 
 from pyface.tasks.api import TaskLayout
-
 from pyface.api import FileDialog, OK
+from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+
 
 from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
     DummyDakotaFactory)
@@ -20,7 +21,7 @@ from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
-from force_wfmanager.wfmanager_task import WfManagerTask, cleanup_garbage
+from force_wfmanager.wfmanager_task import WfManagerTask
 from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
 
@@ -99,8 +100,9 @@ def mock_subprocess(*args, **kwargs):
     return mock_subprocess_module
 
 
-class TestWFManagerTask(unittest.TestCase):
+class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
     def setUp(self):
+        super(TestWFManagerTask, self).setUp()
         self.wfmanager_task = get_wfmanager_task()
 
     def test_init(self):
@@ -208,22 +210,40 @@ class TestWFManagerTask(unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
-                mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
+                mock.patch(SUBPROCESS_PATH) as mock_subprocess:
             mock_dialog.side_effect = mock_file_dialog
             mock_writer.side_effect = mock_file_writer
-            _mock_subprocess.side_effect = mock_subprocess
+            mock_subprocess.side_effect = mock_subprocess
 
-            self.wfmanager_task.run_bdss()
-            mock_writer.assert_called()
-            _mock_subprocess.check_call.assert_called()
+            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+            condition = lambda: mock_subprocess.check_call.called
+            with self.event_loop_until_condition(condition):
+                self.wfmanager_task.run_bdss()
+            self.assertTrue(self.wfmanager_task.side_pane.enabled)
 
-    def test_cleanup_garbage(self):
-        with mock.patch(OS_REMOVE_PATH) as mock_os:
-            mock_os.side_effect = mock_os_remove
+    def test_run_bdss_failure(self):
+        mock_open = mock.mock_open()
+        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
+                mock.patch(SUBPROCESS_PATH) as mock_subprocess, \
+                mock.patch(ERROR_PATH) as mock_error:
+            mock_dialog.side_effect = mock_file_dialog
+            mock_writer.side_effect = mock_file_writer
+            mock_subprocess.side_effect = mock_subprocess
+            mock_error.side_effect = mock_show_error
+            mock_subprocess.check_call.side_effect = Exception("boom")
 
-            with self.assertRaises(OSError):
-                with cleanup_garbage('wrongFile'):
-                    pass
+            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+            condition = lambda: mock_subprocess.check_call.called
+            with self.event_loop_until_condition(condition):
+                self.wfmanager_task.run_bdss()
+            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+            mock_error.assert_called_once_with(
+                None,
+                'Execution of BDSS failed. \n\nboom',
+                "Error when running BDSS"
+            )
 
     def test_open_failure(self):
         mock_open = mock.mock_open()
