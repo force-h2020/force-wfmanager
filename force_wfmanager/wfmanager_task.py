@@ -229,7 +229,8 @@ class WfManagerTask(Task):
         result = dialog.open()
 
         if result is YES:
-            if self.save_workflow() is False:
+            save_result = self.save_workflow()
+            if not save_result:
                 return
         elif result is CANCEL:
             return
