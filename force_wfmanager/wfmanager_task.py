@@ -19,6 +19,8 @@ from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
 
+log = logging.getLogger(__name__)
+
 
 @contextmanager
 def cleanup_garbage(tmpfile):
@@ -128,6 +130,7 @@ class WfManagerTask(Task):
                     str(e)),
                 'Error when saving workflow'
             )
+            log.exception('Error when saving workflow')
             return False
         except Exception as e:
             error(
@@ -136,6 +139,7 @@ class WfManagerTask(Task):
                     str(e)),
                 'Error when saving workflow'
             )
+            log.exception('Error when saving workflow')
             return False
         else:
             return True
