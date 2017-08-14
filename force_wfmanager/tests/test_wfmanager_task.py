@@ -180,7 +180,7 @@ class TestWFManagerTask(unittest.TestCase):
                 old_workflow,
                 self.wfmanager_task.side_pane.workflow_settings.workflow_m)
 
-    def test_open_failure(self):
+    def test_read_failure(self):
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
