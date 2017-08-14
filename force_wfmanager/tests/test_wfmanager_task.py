@@ -118,7 +118,8 @@ class TestWFManagerTask(unittest.TestCase):
             mock_dialog.side_effect = mock_file_dialog
             mock_writer.side_effect = mock_file_writer
 
-            self.wfmanager_task.save_workflow()
+            self.wfmanager_task.save_workflow_as()
+
             mock_writer.assert_called()
             mock_open.assert_called()
             mock_dialog.assert_called()
@@ -136,6 +137,7 @@ class TestWFManagerTask(unittest.TestCase):
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
+
             mock_writer.assert_called()
             mock_open.assert_called()
             mock_dialog.assert_not_called()
@@ -234,7 +236,7 @@ class TestWFManagerTask(unittest.TestCase):
             mock_dialog.side_effect = mock_file_dialog
             mock_error.side_effect = mock_show_error
 
-            self.wfmanager_task.save_workflow()
+            self.wfmanager_task.save_workflow_as()
             mock_open.assert_called()
             mock_error.assert_called_with(
                 None,
