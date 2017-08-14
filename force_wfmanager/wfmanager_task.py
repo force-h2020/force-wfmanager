@@ -46,8 +46,8 @@ class WfManagerTask(Task):
             accelerator='Ctrl+S',
         ),
         TaskAction(
-            name='Load Workflow...',
-            method='load_workflow',
+            name='Open Workflow...',
+            method='open_workflow',
             accelerator='Ctrl+O',
         ), id='File', name='&File'
     ))
@@ -95,8 +95,8 @@ class WfManagerTask(Task):
                 'Error when saving workflow'
             )
 
-    def load_workflow(self):
-        """ Shows a dialog to load a workflow file """
+    def open_workflow(self):
+        """ Shows a dialog to open a workflow file """
         dialog = FileDialog(
             action="open",
             wildcard='JSON files (*.json)|*.json|'
