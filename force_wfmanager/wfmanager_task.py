@@ -103,7 +103,19 @@ class WfManagerTask(Task):
 
     def _write_workflow(self, file_path):
         """ Creates a JSON file in the file_path and write the workflow
-        description in it """
+        description in it
+
+        Parameters
+        ----------
+        file_path: String
+            The file_path pointing to the file in which you want to write the
+            workflow
+
+        Returns
+        -------
+        Boolean:
+            True if it was a success to write in the file, False otherwise
+        """
         writer = WorkflowWriter()
         try:
             with open(file_path, 'w') as output:
