@@ -150,7 +150,7 @@ class TestWFManagerTask(unittest.TestCase):
             mock_dialog.side_effect = mock_file_dialog_being_closed
             mock_writer.side_effect = mock_file_writer
 
-            self.wfmanager_task.save_workflow()
+            self.wfmanager_task.save_workflow_as()
             mock_open.assert_not_called()
 
     def test_load_workflow(self):
