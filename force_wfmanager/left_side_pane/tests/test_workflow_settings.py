@@ -45,9 +45,9 @@ class WorkflowSettingsEditor(HasTraits):
 def get_workflow_settings():
     plugin = mock.Mock(spec=Plugin)
     return WorkflowSettings(
-        available_mco_factories=[DummyDakotaFactory(plugin)],
-        available_data_source_factories=[CSVExtractorFactory(plugin)],
-        available_kpi_calculator_factories=[KPIAdderFactory(plugin)],
+        mco_factories=[DummyDakotaFactory(plugin)],
+        data_source_factories=[CSVExtractorFactory(plugin)],
+        kpi_calculator_factories=[KPIAdderFactory(plugin)],
         workflow_m=Workflow(),
     )
 

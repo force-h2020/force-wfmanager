@@ -47,11 +47,10 @@ class SidePane(TraitsDockPane):
 
     def _workflow_settings_default(self):
         registry = self.factory_registry
-        kpi_calculator_factories = registry.kpi_calculator_factories
         return WorkflowSettings(
-            available_mco_factories=registry.mco_factories,
-            available_data_source_factories=registry.data_source_factories,
-            available_kpi_calculator_factories=kpi_calculator_factories,
+            mco_factories=registry.mco_factories,
+            data_source_factories=registry.data_source_factories,
+            kpi_calculator_factories=registry.kpi_calculator_factories,
             workflow_m=self.workflow_m)
 
     @on_trait_change('workflow_m', post_init=True)

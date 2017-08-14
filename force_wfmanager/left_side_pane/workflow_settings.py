@@ -30,14 +30,14 @@ class WorkflowHandler(Handler):
         """ Opens a dialog for creating a MCO """
         modal = NewEntityModal(
             workflow_mv=editor.object.workflow_mv,
-            available_factories=editor.object.available_mco_factories)
+            factories=editor.object.mco_factories)
         modal.edit_traits()
 
     def new_parameter_handler(self, editor, object):
         """ Opens a dialog for creating a parameter """
         modal = NewEntityModal(
             workflow_mv=editor.object.workflow_mv,
-            available_factories=editor.object.available_mco_parameter_factories
+            factories=editor.object.mco_parameter_factories
         )
         modal.edit_traits()
 
@@ -45,15 +45,14 @@ class WorkflowHandler(Handler):
         """ Opens a dialog for creating a Data Source """
         modal = NewEntityModal(
             workflow_mv=editor.object.workflow_mv,
-            available_factories=editor.object.available_data_source_factories)
+            factories=editor.object.data_source_factories)
         modal.edit_traits()
 
     def new_kpi_calculator_handler(self, editor, object):
         """ Opens a dialog for creating a KPI Calculator """
-        obj = editor.object
         modal = NewEntityModal(
-            workflow_mv=obj.workflow_mv,
-            available_factories=obj.available_kpi_calculator_factories)
+            workflow_mv=editor.object.workflow_mv,
+            factories=editor.object.kpi_calculator_factories)
         modal.edit_traits()
 
     def edit_entity_handler(self, editor, object):
@@ -170,18 +169,18 @@ tree_editor = TreeEditor(
 class WorkflowSettings(HasStrictTraits):
     """ Part of the GUI containing the tree editor displaying the Workflow """
     #: Available MCO factories
-    available_mco_factories = List(Instance(BaseMCOFactory))
+    mco_factories = List(Instance(BaseMCOFactory))
 
     #: Available parameters factories
-    available_mco_parameter_factories = Property(
+    mco_parameter_factories = Property(
         List(Instance(BaseMCOParameterFactory)),
         depends_on='workflow_m.mco')
 
     #: Available data source factories
-    available_data_source_factories = List(Instance(BaseDataSourceFactory))
+    data_source_factories = List(Instance(BaseDataSourceFactory))
 
     #: Available KPI calculator factories
-    available_kpi_calculator_factories = List(Instance(
+    kpi_calculator_factories = List(Instance(
         BaseKPICalculatorFactory))
 
     #: The workflow model view
@@ -208,6 +207,6 @@ class WorkflowSettings(HasStrictTraits):
     def update_model_view(self):
         self.workflow_mv.model = self.workflow_m
 
-    def _get_available_mco_parameter_factories(self):
+    def _get_mco_parameter_factories(self):
         mco_factory = self.workflow_m.mco.factory
         return mco_factory.parameter_factories()
