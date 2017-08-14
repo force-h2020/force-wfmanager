@@ -19,6 +19,8 @@ from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
 
+log = logging.getLogger(__name__)
+
 
 @contextmanager
 def cleanup_garbage(tmpfile):
@@ -50,9 +52,14 @@ class WfManagerTask(Task):
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
         TaskAction(
-            name='Save Workflow...',
+            name='Save Workflow',
             method='save_workflow',
             accelerator='Ctrl+S',
+        ),
+        TaskAction(
+            name='Save Workflow as...',
+            method='save_workflow_as',
+            accelerator='Shift+Ctrl+S',
         ),
         TaskAction(
             name='Open Workflow...',
@@ -72,30 +79,50 @@ class WfManagerTask(Task):
         return [self.side_pane]
 
     def save_workflow(self):
+        """ Saves the workflow into the currently used file. If there is no
+        current file, it shows a dialog """
+        if len(self.current_file) == 0:
+            return self.save_workflow_as()
+
+        if not self._write_workflow(self.current_file):
+            self.current_file = ''
+
+    def save_workflow_as(self):
         """ Shows a dialog to save the workflow into a JSON file """
+        dialog = FileDialog(
+            action="save as",
+            default_filename="workflow.json",
+            wildcard='JSON files (*.json)|*.json|'
+        )
+        result = dialog.open()
+
+        if result is not OK:
+            return
+
+        current_file = dialog.path
+
+        if self._write_workflow(current_file):
+            self.current_file = current_file
+
+    def _write_workflow(self, file_path):
+        """ Creates a JSON file in the file_path and write the workflow
+        description in it
+
+        Parameters
+        ----------
+        file_path: String
+            The file_path pointing to the file in which you want to write the
+            workflow
+
+        Returns
+        -------
+        Boolean:
+            True if it was a success to write in the file, False otherwise
+        """
         writer = WorkflowWriter()
-
-        # If the user already saved before or loaded a file, we overwrite this
-        # file
-        if len(self.current_file) != 0:
-            current_file = self.current_file
-        else:
-            dialog = FileDialog(
-                action="save as",
-                default_filename="workflow.json",
-                wildcard='JSON files (*.json)|*.json|'
-            )
-            result = dialog.open()
-
-            if result is not OK:
-                return
-
-            current_file = dialog.path
-
         try:
-            with open(current_file, 'w') as output:
+            with open(file_path, 'w') as output:
                 writer.write(self.workflow_m, output)
-                self.current_file = current_file
         except IOError as e:
             error(
                 None,
@@ -103,6 +130,19 @@ class WfManagerTask(Task):
                     str(e)),
                 'Error when saving workflow'
             )
+            log.exception('Error when saving workflow')
+            return False
+        except Exception as e:
+            error(
+                None,
+                'Cannot save the workflow:\n\n{}'.format(
+                    str(e)),
+                'Error when saving workflow'
+            )
+            log.exception('Error when saving workflow')
+            return False
+        else:
+            return True
 
     def open_workflow(self):
         """ Shows a dialog to open a workflow file """
