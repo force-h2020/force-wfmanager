@@ -180,7 +180,7 @@ class WfManagerTask(Task):
             If the execution raised an exception of any sort.
         """
         self.side_pane.enabled = True
-        if exception:
+        if exception is not None:
             error(
                 None,
                 'Execution of BDSS failed. \n\n{}'.format(
