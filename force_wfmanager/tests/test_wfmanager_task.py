@@ -119,6 +119,7 @@ class TestWFManagerTask(unittest.TestCase):
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
+
             mock_writer.assert_called()
             mock_open.assert_called()
             mock_dialog.assert_called()
@@ -136,9 +137,42 @@ class TestWFManagerTask(unittest.TestCase):
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
+
             mock_writer.assert_called()
             mock_open.assert_called()
             mock_dialog.assert_not_called()
+
+    def test_save_workflow_failure(self):
+        mock_open = mock.mock_open()
+        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
+            mock_dialog.side_effect = mock_file_dialog
+            mock_writer.side_effect = mock_file_writer
+
+            self.wfmanager_task.save_workflow()
+
+            self.assertEqual(
+                self.wfmanager_task.current_file,
+                'file_path'
+            )
+
+        mock_open = mock.mock_open()
+        mock_open.side_effect = Exception("OUPS")
+        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(ERROR_PATH) as mock_error:
+            mock_dialog.side_effect = mock_file_dialog
+            mock_error.side_effect = mock_show_error
+
+            self.wfmanager_task.save_workflow()
+
+            self.assertEqual(
+                self.wfmanager_task.current_file,
+                ''
+            )
+
+            mock_error.assert_called()
 
     def test_close_saving_dialog(self):
         mock_open = mock.mock_open()
@@ -148,8 +182,26 @@ class TestWFManagerTask(unittest.TestCase):
             mock_dialog.side_effect = mock_file_dialog_being_closed
             mock_writer.side_effect = mock_file_writer
 
-            self.wfmanager_task.save_workflow()
+            self.wfmanager_task.save_workflow_as()
             mock_open.assert_not_called()
+
+    def test_open_failure(self):
+        mock_open = mock.mock_open()
+        mock_open.side_effect = IOError("OUPS")
+        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(ERROR_PATH) as mock_error:
+            mock_dialog.side_effect = mock_file_dialog
+            mock_error.side_effect = mock_show_error
+
+            self.wfmanager_task.save_workflow_as()
+
+            mock_open.assert_called()
+            mock_error.assert_called_with(
+                None,
+                'Cannot save in the requested file:\n\nOUPS',
+                'Error when saving workflow'
+            )
 
     def test_open_workflow(self):
         mock_open = mock.mock_open()
@@ -224,20 +276,3 @@ class TestWFManagerTask(unittest.TestCase):
             with self.assertRaises(OSError):
                 with cleanup_garbage('wrongFile'):
                     pass
-
-    def test_open_failure(self):
-        mock_open = mock.mock_open()
-        mock_open.side_effect = IOError("OUPS")
-        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(ERROR_PATH) as mock_error:
-            mock_dialog.side_effect = mock_file_dialog
-            mock_error.side_effect = mock_show_error
-
-            self.wfmanager_task.save_workflow()
-            mock_open.assert_called()
-            mock_error.assert_called_with(
-                None,
-                'Cannot save in the requested file:\n\nOUPS',
-                'Error when saving workflow'
-            )
