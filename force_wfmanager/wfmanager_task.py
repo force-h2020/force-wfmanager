@@ -127,11 +127,14 @@ class WfManagerTask(Task):
         with open(tmpfile_path, 'w') as output:
             WorkflowWriter().write(self.workflow_m, output)
 
+        self.side_pane.enabled = False
         future = self.executor.submit(self._execute_bdss, tmpfile_path)
         future.add_done_callback(self._execution_future_done)
 
     def _execute_bdss(self, workflow_path):
-        """"""
+        """Secondary thread executor routine.
+        This executes the BDSS and wait for its completion.
+        """
         try:
             subprocess.check_call([
                 "force_bdss",
@@ -149,10 +152,14 @@ class WfManagerTask(Task):
             pass
 
     def _execution_future_done(self, future):
+        """Called when the execution is completed.
+        Executed by the second thread."""
         GUI.invoke_later(self._bdss_done)
 
     def _bdss_done(self):
-        pass
+        """Called in the main thread when the execution is completed
+        """
+        self.side_pane.enabled = True
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
