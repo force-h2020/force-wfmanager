@@ -42,9 +42,9 @@ class NewEntityModalTest(unittest.TestCase):
     def setUp(self):
         plugin = mock.Mock(spec=Plugin)
 
-        self.available_mcos = [DummyDakotaFactory(plugin)]
-        self.available_data_sources = [CSVExtractorFactory(plugin)]
-        self.available_kpi_calculators = [KPIAdderFactory(plugin)]
+        self.mcos = [DummyDakotaFactory(plugin)]
+        self.data_sources = [CSVExtractorFactory(plugin)]
+        self.kpi_calculators = [KPIAdderFactory(plugin)]
 
         self.workflow_mv = WorkflowModelView(
             model=Workflow()
@@ -55,21 +55,21 @@ class NewEntityModalTest(unittest.TestCase):
     def _get_new_mco_dialog(self):
         modal = NewEntityModal(
             workflow_mv=self.workflow_mv,
-            available_factories=self.available_mcos
+            factories=self.mcos
         )
         return modal, ModalInfoDummy(object=modal)
 
     def _get_new_data_source_dialog(self):
         modal = NewEntityModal(
             workflow_mv=self.workflow_mv,
-            available_factories=self.available_data_sources
+            factories=self.data_sources
         )
         return modal, ModalInfoDummy(object=modal)
 
     def _get_new_kpi_calculator_dialog(self):
         modal = NewEntityModal(
             workflow_mv=self.workflow_mv,
-            available_factories=self.available_kpi_calculators
+            factories=self.kpi_calculators
         )
         return modal, ModalInfoDummy(object=modal)
 
@@ -83,7 +83,7 @@ class NewEntityModalTest(unittest.TestCase):
 
         # Simulate selecting an mco factory in the list
         modal, modal_info = self._get_new_mco_dialog()
-        modal.selected_factory = modal.available_factories[0]
+        modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add mco button
         self.handler.object_add_button_changed(modal_info)
@@ -92,7 +92,7 @@ class NewEntityModalTest(unittest.TestCase):
 
         # Simulate selecting an mco factory in the list
         modal, modal_info = self._get_new_mco_dialog()
-        modal.selected_factory = modal.available_factories[0]
+        modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add mco button again to create a new mco model
         self.handler.object_add_button_changed(modal_info)
@@ -109,7 +109,7 @@ class NewEntityModalTest(unittest.TestCase):
 
         # Simulate selecting a data_source factory in the list
         modal, modal_info = self._get_new_data_source_dialog()
-        modal.selected_factory = modal.available_factories[0]
+        modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add data_source button
         self.handler.object_add_button_changed(modal_info)
@@ -121,7 +121,7 @@ class NewEntityModalTest(unittest.TestCase):
 
         # Simulate selecting a data_source factory in the list
         modal, modal_info = self._get_new_data_source_dialog()
-        modal.selected_factory = modal.available_factories[0]
+        modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add data_source button again
         self.handler.object_add_button_changed(modal_info)
@@ -143,7 +143,7 @@ class NewEntityModalTest(unittest.TestCase):
 
         # Simulate selecting a kpi_calculator factory in the list
         modal, modal_info = self._get_new_kpi_calculator_dialog()
-        modal.selected_factory = modal.available_factories[0]
+        modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add kpi_calculator button
         self.handler.object_add_button_changed(modal_info)
@@ -156,7 +156,7 @@ class NewEntityModalTest(unittest.TestCase):
 
         # Simulate selecting a kpi_calculator factory in the list
         modal, modal_info = self._get_new_kpi_calculator_dialog()
-        modal.selected_factory = modal.available_factories[0]
+        modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add kpi_calculator button again
         self.handler.object_add_button_changed(modal_info)
@@ -174,14 +174,14 @@ class NewEntityModalTest(unittest.TestCase):
         modal, modal_info = self._get_new_mco_dialog()
 
         # Simulate selecting a kpi_calculator factory in the list
-        modal.selected_factory = modal.available_factories[0]
+        modal.selected_factory = modal.factories[0]
 
         # Simulate pressing cancel button
         self.handler.object_cancel_button_changed(modal_info)
 
     def test_selected_factory(self):
         modal, _ = self._get_new_mco_dialog()
-        modal.selected_factory = modal.available_factories[0]
+        modal.selected_factory = modal.factories[0]
 
         self.assertIsNotNone(modal.current_model)
 
