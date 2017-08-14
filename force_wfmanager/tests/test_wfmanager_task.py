@@ -142,6 +142,22 @@ class TestWFManagerTask(unittest.TestCase):
             mock_open.assert_called()
             mock_dialog.assert_not_called()
 
+    def test_save_workflow_without_current_file(self):
+        mock_open = mock.mock_open()
+        with mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
+            mock_writer.side_effect = mock_file_writer
+
+            self.wfmanager_task.save_workflow()
+
+            mock_writer.assert_not_called()
+            mock_open.assert_not_called()
+
+            self.assertEqual(
+                self.wfmanager_task.current_file,
+                ''
+            )
+
     def test_close_saving_dialog(self):
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
