@@ -7,7 +7,7 @@ import os
 
 from traits.api import Instance, on_trait_change, File
 
-from pyface.tasks.api import Task, TaskLayout, PaneItem, Splitter
+from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.api import FileDialog, OK, error
 
@@ -17,8 +17,7 @@ from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
 from force_wfmanager.central_pane.central_pane import CentralPane
-from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
-from force_wfmanager.left_side_pane.bdss_runner import BDSSRunner
+from force_wfmanager.left_side_pane.side_pane import SidePane
 
 
 @contextmanager
@@ -39,12 +38,8 @@ class WfManagerTask(Task):
     #: Workflow model
     workflow_m = Instance(Workflow, allow_none=False)
 
-    #: WorkflowSettings pane, it displays the workflow in a tree editor and
-    #: allows to edit it
-    workflow_settings = Instance(WorkflowSettings, allow_none=False)
-
-    #: The pane containing the run button for running the BDSS
-    bdss_runner = Instance(BDSSRunner, allow_none=False)
+    #: Side Pane containing the tree editor for the Workflow and the Run button
+    side_pane = Instance(SidePane)
 
     #: Registry of the available factories
     factory_registry = Instance(FactoryRegistryPlugin)
@@ -73,12 +68,8 @@ class WfManagerTask(Task):
         return CentralPane()
 
     def create_dock_panes(self):
-        """ Creates the dock panes which contains the MCO, datasources and
-        Constraints management """
-        return [
-            self.workflow_settings,
-            self.bdss_runner
-        ]
+        """ Creates the dock panes """
+        return [self.side_pane]
 
     def save_workflow(self):
         """ Shows a dialog to save the workflow into a JSON file """
@@ -136,7 +127,7 @@ class WfManagerTask(Task):
             else:
                 self.current_file = dialog.path
 
-    @on_trait_change('bdss_runner.run_button')
+    @on_trait_change('side_pane.run_button')
     def run_bdss(self):
         """ Run the BDSS computation """
         tmpfile = tempfile.mkstemp()
@@ -153,28 +144,18 @@ class WfManagerTask(Task):
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
         return TaskLayout(
-            left=Splitter(
-                PaneItem('force_wfmanager.workflow_settings'),
-                PaneItem('force_wfmanager.bdss_runner'),
-                orientation='vertical'
-            )
+            left=PaneItem('force_wfmanager.side_pane')
         )
 
     def _workflow_m_default(self):
         return Workflow()
 
-    def _bdss_runner_default(self):
-        return BDSSRunner()
-
-    def _workflow_settings_default(self):
-        registry = self.factory_registry
-        kpi_calculator_factories = registry.kpi_calculator_factories
-        return WorkflowSettings(
-            available_mco_factories=registry.mco_factories,
-            available_data_source_factories=registry.data_source_factories,
-            available_kpi_calculator_factories=kpi_calculator_factories,
-            workflow_m=self.workflow_m)
+    def _side_pane_default(self):
+        return SidePane(
+            factory_registry=self.factory_registry,
+            workflow_m=self.workflow_m
+        )
 
     @on_trait_change('workflow_m')
-    def update_workflow_settings(self):
-        self.workflow_settings.workflow_m = self.workflow_m
+    def update_side_pane(self):
+        self.side_pane.workflow_m = self.workflow_m
