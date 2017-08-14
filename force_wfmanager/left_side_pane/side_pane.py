@@ -22,6 +22,9 @@ class SidePane(TraitsDockPane):
     #: Remove the possibility to detach the pane from the GUI
     floatable = False
 
+    #: Remove the possibility to move the pane in the GUI
+    movable = False
+
     #: Make the pane visible by default
     visible = True
 
