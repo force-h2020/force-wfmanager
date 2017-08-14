@@ -216,7 +216,10 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             mock_subprocess.side_effect = mock_subprocess
 
             self.assertTrue(self.wfmanager_task.side_pane.enabled)
-            condition = lambda: mock_subprocess.check_call.called
+
+            def condition():
+                return mock_subprocess.check_call.called
+
             with self.event_loop_until_condition(condition):
                 self.wfmanager_task.run_bdss()
             self.assertTrue(self.wfmanager_task.side_pane.enabled)
@@ -235,7 +238,10 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             mock_subprocess.check_call.side_effect = Exception("boom")
 
             self.assertTrue(self.wfmanager_task.side_pane.enabled)
-            condition = lambda: mock_subprocess.check_call.called
+
+            def condition():
+                return mock_subprocess.check_call.called
+
             with self.event_loop_until_condition(condition):
                 self.wfmanager_task.run_bdss()
             self.assertTrue(self.wfmanager_task.side_pane.enabled)
