@@ -118,10 +118,9 @@ class WfManagerTask(Task):
         Boolean:
             True if it was a success to write in the file, False otherwise
         """
-        writer = WorkflowWriter()
         try:
             with open(file_path, 'w') as output:
-                writer.write(self.workflow_m, output)
+                WorkflowWriter().write(self.workflow_m, output)
         except IOError as e:
             error(
                 None,
