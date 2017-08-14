@@ -269,15 +269,13 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.assertTrue(self.wfmanager_task.side_pane.enabled)
 
-
             with self.event_loop_until_condition(
                     lambda: mock_subprocess.check_call.called):
                 self.wfmanager_task.run_bdss()
 
             with self.event_loop_until_condition(
-                lambda: self.wfmanager_task.side_pane.enabled):
+                    lambda: self.wfmanager_task.side_pane.enabled):
                 pass
-
 
     def test_run_bdss_failure(self):
         mock_open = mock.mock_open()
