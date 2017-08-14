@@ -217,6 +217,10 @@ class WfManagerTask(Task):
         self.side_pane.workflow_m = self.workflow_m
 
     def exit(self):
+        """ Exit the application. It first asks the user to save the current
+        Worklfow. The user can accept to save, ignore the request, or
+        cancel the quit. If the user wants to save, but the save fails, the
+        application is not closed so he has a chance to try to save again. """
         dialog = ConfirmationDialog(
             parent=None,
             message='Do you want to save before exiting the Workflow '
