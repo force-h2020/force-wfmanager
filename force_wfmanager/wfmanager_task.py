@@ -129,6 +129,14 @@ class WfManagerTask(Task):
                 'Error when saving workflow'
             )
             return False
+        except Exception as e:
+            error(
+                None,
+                'Cannot save the workflow:\n\n{}'.format(
+                    str(e)),
+                'Error when saving workflow'
+            )
+            return False
         else:
             return True
 
