@@ -84,7 +84,7 @@ class WfManagerTask(Task):
         if len(self.current_file) == 0:
             return self.save_workflow_as()
 
-        if self._write_workflow(self.current_file) is False:
+        if not self._write_workflow(self.current_file):
             self.current_file = ''
 
     def save_workflow_as(self):
@@ -101,7 +101,7 @@ class WfManagerTask(Task):
 
         current_file = dialog.path
 
-        if self._write_workflow(current_file) is True:
+        if self._write_workflow(current_file):
             self.current_file = current_file
 
     def _write_workflow(self, file_path):
