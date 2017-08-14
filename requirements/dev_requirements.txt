@@ -3,3 +3,4 @@ codecov
 flake8
 mock
 pytest
+testfixtures
