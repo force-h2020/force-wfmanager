@@ -151,7 +151,7 @@ class TestWFManagerTask(unittest.TestCase):
             self.wfmanager_task.save_workflow()
             mock_open.assert_not_called()
 
-    def test_load_workflow(self):
+    def test_open_workflow(self):
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
@@ -167,7 +167,7 @@ class TestWFManagerTask(unittest.TestCase):
                 old_workflow,
                 self.wfmanager_task.side_pane.workflow_settings.workflow_m)
 
-            self.wfmanager_task.load_workflow()
+            self.wfmanager_task.open_workflow()
 
             mock_open.assert_called()
             mock_reader.assert_called()
@@ -180,7 +180,7 @@ class TestWFManagerTask(unittest.TestCase):
                 old_workflow,
                 self.wfmanager_task.side_pane.workflow_settings.workflow_m)
 
-    def test_load_failure(self):
+    def test_open_failure(self):
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
@@ -192,7 +192,7 @@ class TestWFManagerTask(unittest.TestCase):
 
             old_workflow = self.wfmanager_task.workflow_m
 
-            self.wfmanager_task.load_workflow()
+            self.wfmanager_task.open_workflow()
 
             mock_open.assert_called()
             mock_reader.assert_called()
