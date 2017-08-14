@@ -160,12 +160,25 @@ class TestWFManagerTask(unittest.TestCase):
             mock_reader.side_effect = mock_file_reader
 
             old_workflow = self.wfmanager_task.workflow_m
+            self.assertEqual(
+                old_workflow,
+                self.wfmanager_task.side_pane.workflow_m)
+            self.assertEqual(
+                old_workflow,
+                self.wfmanager_task.side_pane.workflow_settings.workflow_m)
 
             self.wfmanager_task.load_workflow()
 
             mock_open.assert_called()
             mock_reader.assert_called()
+
             self.assertNotEqual(old_workflow, self.wfmanager_task.workflow_m)
+            self.assertNotEqual(
+                old_workflow,
+                self.wfmanager_task.side_pane.workflow_m)
+            self.assertNotEqual(
+                old_workflow,
+                self.wfmanager_task.side_pane.workflow_settings.workflow_m)
 
     def test_load_failure(self):
         mock_open = mock.mock_open()
