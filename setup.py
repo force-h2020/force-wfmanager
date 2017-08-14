@@ -28,7 +28,8 @@ install_requires = [
     "numpy >= 1.11.0",
     "cython >= 0.25",
     "chaco >= 4.6.1",
-    'futures >= 3.1.1'
+    "pyzmq >= 16.0.0",
+    'futures >= 3.1.1',
 ]
 
 # main setup configuration class
@@ -42,7 +43,12 @@ setup(
     packages=find_packages(),
     entry_points={
         'gui_scripts': [
-            ('force-wfmanager = force_wfmanager.run:main')
+            ('force_wfmanager = force_wfmanager.run:main')
+        ],
+        "force.bdss.extensions": [
+            "ui_notification = "
+            "force_wfmanager.plugins.ui_notification.ui_notification_plugin:"
+            "UINotificationPlugin",
         ]
     },
 )
