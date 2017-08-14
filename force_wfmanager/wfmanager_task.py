@@ -48,18 +48,29 @@ class WfManagerTask(Task):
     current_file = File()
 
     #: Menu bar on top of the GUI
-    menu_bar = SMenuBar(SMenu(
-        TaskAction(
-            name='Save Workflow...',
-            method='save_workflow',
-            accelerator='Ctrl+S',
+    menu_bar = SMenuBar(
+        SMenu(
+            TaskAction(
+                name='Exit',
+                method='exit',
+                accelerator='Ctrl+Q',
+            ),
+            name='&Workflow Manager'
         ),
-        TaskAction(
-            name='Open Workflow...',
-            method='open_workflow',
-            accelerator='Ctrl+O',
-        ), id='File', name='&File'
-    ))
+        SMenu(
+            TaskAction(
+                name='Save Workflow...',
+                method='save_workflow',
+                accelerator='Ctrl+S',
+            ),
+            TaskAction(
+                name='Open Workflow...',
+                method='open_workflow',
+                accelerator='Ctrl+O',
+            ),
+            name='&File'
+        ),
+    )
 
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part
@@ -159,3 +170,6 @@ class WfManagerTask(Task):
     @on_trait_change('workflow_m')
     def update_side_pane(self):
         self.side_pane.workflow_m = self.workflow_m
+
+    def exit(self):
+        self.window.application.exit()
