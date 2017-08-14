@@ -256,6 +256,7 @@ class WfManagerTask(Task):
                     str(exception)),
                 'Error when running BDSS'
             )
+        print("done")
 
     # Default initializers
 
