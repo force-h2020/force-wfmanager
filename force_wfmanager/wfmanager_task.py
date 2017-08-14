@@ -1,8 +1,9 @@
 import subprocess
+import logging
 
 import tempfile
 import os
-from concurrent.futures import ThreadPoolExecutor, Future
+from concurrent.futures import ThreadPoolExecutor
 
 from traits.api import Instance, on_trait_change, File
 
@@ -17,6 +18,9 @@ from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
+
+
+log = logging.getLogger(__name__)
 
 
 class WfManagerTask(Task):
@@ -35,8 +39,12 @@ class WfManagerTask(Task):
     #: Current workflow file on which the application is writing
     current_file = File()
 
-    #: The thread pool executor
-    executor = Instance(ThreadPoolExecutor)
+    #: The thread pool executor to spawn the BDSS CLI process.
+    _executor = Instance(ThreadPoolExecutor)
+
+    #: Path to spawn for the BDSS CLI executable.
+    #: This will go to some global configuration option later.
+    _bdss_executable_path = "force_bdss"
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
@@ -129,37 +137,58 @@ class WfManagerTask(Task):
 
         self.side_pane.enabled = False
         future = self.executor.submit(self._execute_bdss, tmpfile_path)
-        future.add_done_callback(self._execution_future_done)
+        future.add_done_callback(self._execution_done_callback)
 
     def _execute_bdss(self, workflow_path):
         """Secondary thread executor routine.
         This executes the BDSS and wait for its completion.
         """
         try:
-            subprocess.check_call([
-                "force_bdss",
-                workflow_path
-            ])
+            subprocess.check_call([self._bdss_executable_path, workflow_path])
+        except OSError:
+            log.exception("Error while executing force_bdss executable. "
+                          " Is force_bdss in your path?")
+            raise
         except subprocess.CalledProcessError:
             # Ignore any error of execution.
-            pass
+            log.exception("force_bdss returned a "
+                          "non-zero value after execution")
+            raise
 
         try:
             os.remove(workflow_path)
         except IOError:
             # Ignore deletion errors, in case the file magically
             # vanished in the meantime
-            pass
+            log.exception("Unable to delete temporary "
+                          "workflow file at {}".format(workflow_path))
+            raise
 
-    def _execution_future_done(self, future):
-        """Called when the execution is completed.
-        Executed by the second thread."""
-        GUI.invoke_later(self._bdss_done)
+    def _execution_done_callback(self, future):
+        """Secondary thread code.
+        Called when the execution is completed.
+        """
+        exc = future.exception()
+        GUI.invoke_later(self._bdss_done, exc)
 
-    def _bdss_done(self):
-        """Called in the main thread when the execution is completed
+    def _bdss_done(self, exception):
+        """Called in the main thread when the execution is completed.
+
+        Parameters
+        ----------
+        exception: Exception or None
+            If the execution raised an exception of any sort.
         """
         self.side_pane.enabled = True
+        if exception:
+            error(
+                None,
+                'Execution of BDSS failed. \n\n{}'.format(
+                    str(exception)),
+                'Error when running BDSS'
+            )
+
+    # Default initializers
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
@@ -176,8 +205,10 @@ class WfManagerTask(Task):
             workflow_m=self.workflow_m
         )
 
-    def _executor_default(self):
+    def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)
+
+    # Handlers
 
     @on_trait_change('workflow_m')
     def update_side_pane(self):
