@@ -9,7 +9,7 @@ from traits.api import Instance, on_trait_change, File
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
-from pyface.api import FileDialog, OK, error
+from pyface.api import FileDialog, OK, error, ConfirmationDialog, YES, CANCEL
 
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
@@ -172,4 +172,20 @@ class WfManagerTask(Task):
         self.side_pane.workflow_m = self.workflow_m
 
     def exit(self):
+        dialog = ConfirmationDialog(
+            parent=None,
+            message='Do you want to save before exiting the Workflow '
+                    'Manager ?',
+            cancel=True,
+            yes_label='Save...',
+            no_label='Ignore',
+        )
+
+        result = dialog.open()
+
+        if result is YES:
+            self.save_workflow()
+        elif result is CANCEL:
+            return
+
         self.window.application.exit()
