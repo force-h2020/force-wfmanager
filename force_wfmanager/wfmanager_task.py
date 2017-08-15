@@ -276,6 +276,31 @@ class WfManagerTask(Task):
                 'Error when running BDSS'
             )
 
+    def exit(self):
+        """ Exit the application. It first asks the user to save the current
+        Worklfow. The user can accept to save, ignore the request, or
+        cancel the quit. If the user wants to save, but the save fails, the
+        application is not closed so he has a chance to try to save again. """
+        dialog = ConfirmationDialog(
+            parent=None,
+            message='Do you want to save before exiting the Workflow '
+                    'Manager ?',
+            cancel=True,
+            yes_label='Save',
+            no_label='Don\'t save',
+        )
+
+        result = dialog.open()
+
+        if result is YES:
+            save_result = self.save_workflow()
+            if not save_result:
+                return
+        elif result is CANCEL:
+            return
+
+        self.window.application.exit()
+
     # Default initializers
 
     def _default_layout_default(self):
@@ -304,28 +329,3 @@ class WfManagerTask(Task):
     @on_trait_change('workflow_m')
     def update_side_pane(self):
         self.side_pane.workflow_m = self.workflow_m
-
-    def exit(self):
-        """ Exit the application. It first asks the user to save the current
-        Worklfow. The user can accept to save, ignore the request, or
-        cancel the quit. If the user wants to save, but the save fails, the
-        application is not closed so he has a chance to try to save again. """
-        dialog = ConfirmationDialog(
-            parent=None,
-            message='Do you want to save before exiting the Workflow '
-                    'Manager ?',
-            cancel=True,
-            yes_label='Save',
-            no_label='Don\'t save',
-        )
-
-        result = dialog.open()
-
-        if result is YES:
-            save_result = self.save_workflow()
-            if not save_result:
-                return
-        elif result is CANCEL:
-            return
-
-        self.window.application.exit()
