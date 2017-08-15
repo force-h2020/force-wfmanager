@@ -115,18 +115,9 @@ class Plot(HasStrictTraits):
         # Update the data arrays with the newly added evaluation_steps
         new_evaluation_steps = evaluation_steps[len(self._data_arrays[0]):]
         for evaluation_step in new_evaluation_steps:
-            # One of the tuples has a dimension that does not match what
-            # we expect. This is an error and we must report it as such.
-            if len(evaluation_step) != data_dim:
-                msg = (
-                    "Length of evaluation step and data dim differ. "
-                    "evaluation step={}\ndata_dim={}".format(
-                        evaluation_step, data_dim)
-                )
-                log.error(msg)
-                raise RuntimeError(msg)
-
-            # Fan out the data in the appropriate arrays
+            # Fan out the data in the appropriate arrays. The model guarantees
+            # that the size of the evaluation step and the data_dim are the
+            # same.
             for index in range(data_dim):
                 self._data_arrays[index].append(evaluation_step[index])
 

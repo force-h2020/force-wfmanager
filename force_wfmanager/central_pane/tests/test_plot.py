@@ -131,3 +131,13 @@ class PlotTest(unittest.TestCase):
             self.plot._plot_data.get_data('y').tolist(),
             []
         )
+
+    def test_change_in_value_names_size(self):
+        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.add_evaluation_step((1.010, 101325))
+        self.analysis_model.add_evaluation_step((1.100, 101423))
+
+        self.analysis_model.value_names = ['density']
+
+        self.assertEqual(len(self.plot._data_arrays), 1)
+        self.assertEqual(len(self.plot._data_arrays[0]), 0)
