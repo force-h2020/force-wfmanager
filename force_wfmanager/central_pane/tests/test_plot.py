@@ -34,7 +34,7 @@ class PlotTest(unittest.TestCase):
         self.analysis_model.value_names = ['density', 'pressure']
         self.analysis_model.add_evaluation_step((1.010, 101325))
 
-        self.assertIsInstance(self.plot.plot, ChacoPlot)
+        self.assertIsInstance(self.plot._plot, ChacoPlot)
 
     def test_push_new_evaluation_steps(self):
         self.analysis_model.value_names = ['density', 'pressure']

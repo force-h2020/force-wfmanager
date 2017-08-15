@@ -17,20 +17,11 @@ class Plot(HasStrictTraits):
     #: The model for the plot
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
-    #: The 2D plot
-    plot = Instance(Component)
-
-    #: Possible plotted variables
-    value_names = Property(
-        List(Str),
-        depends_on="analysis_model.value_names[]"
-    )
-
     #: First parameter used for the plot
-    x = Enum(values='value_names')
+    x = Enum(values='analysis_model.value_names')
 
     #: Second parameter used for the plot
-    y = Enum(values='value_names')
+    y = Enum(values='analysis_model.value_names')
 
     #: List containing the data arrays
     _data_arrays = List(List())
@@ -38,12 +29,15 @@ class Plot(HasStrictTraits):
     #: The plot data. This is the model of the actual Chaco plot.
     _plot_data = Instance(ArrayPlotData)
 
+    #: The 2D plot
+    _plot = Instance(Component)
+
     view = View(VGroup(
         HGroup(
             Item('x'),
             Item('y'),
         ),
-        UItem('plot', editor=ComponentEditor()),
+        UItem('_plot', editor=ComponentEditor()),
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
@@ -53,7 +47,7 @@ class Plot(HasStrictTraits):
 
         self.update_data_arrays()
 
-    def _plot_default(self):
+    def __plot_default(self):
         plot = ChacoPlot(self._plot_data)
 
         plot.plot(
@@ -81,11 +75,6 @@ class Plot(HasStrictTraits):
     def __data_arrays_default(self):
         return [[] for _ in range(len(self.analysis_model.value_names))]
 
-    def _get_value_names(self):
-        # TODO: Filter value names per type (we do not support string
-        # values for the plot)
-        return self.analysis_model.value_names
-
     @on_trait_change('analysis_model.evaluation_steps[]')
     def update_data_arrays(self):
         """ Update the data arrays used by the plot. It assumes that the
@@ -107,6 +96,9 @@ class Plot(HasStrictTraits):
             return
 
         evaluation_steps = self.analysis_model.evaluation_steps
+
+        if data_dim != len(self._data_arrays):
+            self._data_arrays = [[] for _ in range(data_dim)]
 
         # If the number of evaluation steps is less than the number of element
         # in the data arrays, it certainly means that the model has been
@@ -135,12 +127,6 @@ class Plot(HasStrictTraits):
 
         # Update plot data
         self._update_plot_data()
-
-    @on_trait_change("analysis_model.data_dim")
-    def _update_data_arrays_size(self):
-        """Updates the number of arrays when the data dimension changes"""
-        data_dim = len(self.analysis_model.value_names)
-        self._data_arrays = [[] for _ in range(data_dim)]
 
     @on_trait_change('x,y')
     def _update_plot_data(self):
