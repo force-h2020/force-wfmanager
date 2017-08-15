@@ -5,7 +5,7 @@ import tempfile
 import os
 from concurrent.futures import ThreadPoolExecutor
 
-from traits.api import Instance, on_trait_change, File
+from traits.api import Instance, on_trait_change, File, Str
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
@@ -15,14 +15,11 @@ from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
 
+from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.zmq_monitor_thread import ZMQMonitorThread
-
-log = logging.getLogger(__name__)
-
 
 log = logging.getLogger(__name__)
 
@@ -31,10 +28,12 @@ class WfManagerTask(Task):
     id = 'force_wfmanager.wfmanager_task'
     name = 'Workflow Manager'
 
-    #: Workflow model
+    #: Workflow model.
     workflow_m = Instance(Workflow, allow_none=False)
 
-    analysis_model = Instance(AnalysisModel, allow_none=False)
+    #: Analysis model. Contains the results that are displayed in the plot
+    #: and table
+    analysis_m = Instance(AnalysisModel, allow_none=False)
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(SidePane)
@@ -50,7 +49,7 @@ class WfManagerTask(Task):
 
     #: Path to spawn for the BDSS CLI executable.
     #: This will go to some global configuration option later.
-    _bdss_executable_path = "force_bdss"
+    _bdss_executable_path = Str("force_bdss")
 
     #: monitor thread for the zeromq notification
     zmq_monitor_thread = Instance(ZMQMonitorThread)
@@ -81,7 +80,7 @@ class WfManagerTask(Task):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        return CentralPane(self.analysis_model)
+        return CentralPane(self.analysis_m)
 
     def create_dock_panes(self):
         """ Creates the dock panes """
@@ -282,6 +281,9 @@ class WfManagerTask(Task):
 
     def _workflow_m_default(self):
         return Workflow()
+
+    def _analysis_m_default(self):
+        return AnalysisModel()
 
     def _side_pane_default(self):
         return SidePane(

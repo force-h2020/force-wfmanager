@@ -1,4 +1,7 @@
 import unittest
+
+from force_wfmanager.central_pane.analysis_model import AnalysisModel
+
 try:
     import mock
 except ImportError:
@@ -111,6 +114,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
         self.assertIsInstance(
             self.wfmanager_task.side_pane.workflow_settings, WorkflowSettings)
         self.assertIsInstance(self.wfmanager_task.default_layout, TaskLayout)
+        self.assertIsInstance(self.wfmanager_task.analysis_m, AnalysisModel)
 
     def test_save_workflow(self):
         mock_open = mock.mock_open()
