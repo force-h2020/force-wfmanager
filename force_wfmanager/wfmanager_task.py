@@ -1,8 +1,9 @@
 import subprocess
+import logging
 
 import tempfile
 import os
-from concurrent.futures import ThreadPoolExecutor, Future
+from concurrent.futures import ThreadPoolExecutor
 
 from traits.api import Instance, on_trait_change, File
 
@@ -19,6 +20,11 @@ from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.zmq_monitor_thread import ZMQMonitorThread
+
+log = logging.getLogger(__name__)
+
+
+log = logging.getLogger(__name__)
 
 
 class WfManagerTask(Task):
@@ -39,8 +45,12 @@ class WfManagerTask(Task):
     #: Current workflow file on which the application is writing
     current_file = File()
 
-    #: The thread pool executor
-    executor = Instance(ThreadPoolExecutor)
+    #: The thread pool executor to spawn the BDSS CLI process.
+    _executor = Instance(ThreadPoolExecutor)
+
+    #: Path to spawn for the BDSS CLI executable.
+    #: This will go to some global configuration option later.
+    _bdss_executable_path = "force_bdss"
 
     #: monitor thread for the zeromq notification
     zmq_monitor_thread = Instance(ZMQMonitorThread)
@@ -48,13 +58,18 @@ class WfManagerTask(Task):
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
         TaskAction(
-            name='Save Workflow...',
+            name='Save Workflow',
             method='save_workflow',
             accelerator='Ctrl+S',
         ),
         TaskAction(
-            name='Load Workflow...',
-            method='load_workflow',
+            name='Save Workflow as...',
+            method='save_workflow_as',
+            accelerator='Shift+Ctrl+S',
+        ),
+        TaskAction(
+            name='Open Workflow...',
+            method='open_workflow',
             accelerator='Ctrl+O',
         ), id='File', name='&File'
     ))
@@ -73,30 +88,49 @@ class WfManagerTask(Task):
         return [self.side_pane]
 
     def save_workflow(self):
+        """ Saves the workflow into the currently used file. If there is no
+        current file, it shows a dialog """
+        if len(self.current_file) == 0:
+            return self.save_workflow_as()
+
+        if not self._write_workflow(self.current_file):
+            self.current_file = ''
+
+    def save_workflow_as(self):
         """ Shows a dialog to save the workflow into a JSON file """
-        writer = WorkflowWriter()
+        dialog = FileDialog(
+            action="save as",
+            default_filename="workflow.json",
+            wildcard='JSON files (*.json)|*.json|'
+        )
+        result = dialog.open()
 
-        # If the user already saved before or loaded a file, we overwrite this
-        # file
-        if len(self.current_file) != 0:
-            current_file = self.current_file
-        else:
-            dialog = FileDialog(
-                action="save as",
-                default_filename="workflow.json",
-                wildcard='JSON files (*.json)|*.json|'
-            )
-            result = dialog.open()
+        if result is not OK:
+            return
 
-            if result is not OK:
-                return
+        current_file = dialog.path
 
-            current_file = dialog.path
+        if self._write_workflow(current_file):
+            self.current_file = current_file
 
+    def _write_workflow(self, file_path):
+        """ Creates a JSON file in the file_path and write the workflow
+        description in it
+
+        Parameters
+        ----------
+        file_path: String
+            The file_path pointing to the file in which you want to write the
+            workflow
+
+        Returns
+        -------
+        Boolean:
+            True if it was a success to write in the file, False otherwise
+        """
         try:
-            with open(current_file, 'w') as output:
-                writer.write(self.workflow_m, output)
-                self.current_file = current_file
+            with open(file_path, 'w') as output:
+                WorkflowWriter().write(self.workflow_m, output)
         except IOError as e:
             error(
                 None,
@@ -104,14 +138,27 @@ class WfManagerTask(Task):
                     str(e)),
                 'Error when saving workflow'
             )
+            log.exception('Error when saving workflow')
+            return False
+        except Exception as e:
+            error(
+                None,
+                'Cannot save the workflow:\n\n{}'.format(
+                    str(e)),
+                'Error when saving workflow'
+            )
+            log.exception('Error when saving workflow')
+            return False
+        else:
+            return True
 
     def __init__(self, *args, **kwargs):
         super(WfManagerTask, self).__init__(*args, **kwargs)
         self.zmq_monitor_thread = ZMQMonitorThread(self.analysis_model)
         self.zmq_monitor_thread.start()
 
-    def load_workflow(self):
-        """ Shows a dialog to load a workflow file """
+    def open_workflow(self):
+        """ Shows a dialog to open a workflow file """
         dialog = FileDialog(
             action="open",
             wildcard='JSON files (*.json)|*.json|'
@@ -139,42 +186,93 @@ class WfManagerTask(Task):
         tmpfile_path = tempfile.mktemp()
 
         # Creates a temporary file containing the workflow
-        with open(tmpfile_path, 'w') as output:
-            WorkflowWriter().write(self.workflow_m, output)
+        try:
+            with open(tmpfile_path, 'w') as output:
+                WorkflowWriter().write(self.workflow_m, output)
+        except Exception as e:
+            logging.exception("Unable to create temporary workflow file.")
+            error(None,
+                  "Unable to create temporary workflow file for execution "
+                  "of the BDSS. {}".format(e),
+                  'Error when saving workflow'
+                  )
+            return
 
         self.side_pane.enabled = False
-        future = self.executor.submit(self._execute_bdss, tmpfile_path)
-        future.add_done_callback(self._execution_future_done)
+        future = self._executor.submit(self._execute_bdss, tmpfile_path)
+        future.add_done_callback(self._execution_done_callback)
 
     def _execute_bdss(self, workflow_path):
         """Secondary thread executor routine.
         This executes the BDSS and wait for its completion.
         """
         try:
-            subprocess.check_call([
-                "force_bdss",
-                workflow_path
-            ])
-        except subprocess.CalledProcessError:
+            subprocess.check_call([self._bdss_executable_path, workflow_path])
+        except OSError as e:
+            log.exception("Error while executing force_bdss executable. "
+                          " Is force_bdss in your path?")
+            self._clean_tmp_workflow(workflow_path, silent=True)
+            raise e
+        except subprocess.CalledProcessError as e:
             # Ignore any error of execution.
-            pass
+            log.exception("force_bdss returned a "
+                          "non-zero value after execution")
+            self._clean_tmp_workflow(workflow_path, silent=True)
+            raise e
+        except Exception as e:
+            log.exception("Unknown exception occurred "
+                          "while invoking force bdss executable.")
+            self._clean_tmp_workflow(workflow_path, silent=True)
+            raise e
 
+        self._clean_tmp_workflow(workflow_path)
+
+    def _clean_tmp_workflow(self, workflow_path, silent=False):
+        """Removes the temporary file for the workflow.
+
+        Parameters
+        ----------
+        workflow_path: str
+            The path of the workflow
+        silent: bool
+            If true, any exception encountered will be discarded (but logged).
+            If false, the exception will be re-raised
+        """
         try:
             os.remove(workflow_path)
-        except IOError:
+        except OSError as e:
             # Ignore deletion errors, in case the file magically
             # vanished in the meantime
-            pass
+            log.exception("Unable to delete temporary "
+                          "workflow file at {}".format(workflow_path))
+            if not silent:
+                raise e
 
-    def _execution_future_done(self, future):
-        """Called when the execution is completed.
-        Executed by the second thread."""
-        GUI.invoke_later(self._bdss_done)
+    def _execution_done_callback(self, future):
+        """Secondary thread code.
+        Called when the execution is completed.
+        """
+        exc = future.exception()
+        GUI.invoke_later(self._bdss_done, exc)
 
-    def _bdss_done(self):
-        """Called in the main thread when the execution is completed
+    def _bdss_done(self, exception):
+        """Called in the main thread when the execution is completed.
+
+        Parameters
+        ----------
+        exception: Exception or None
+            If the execution raised an exception of any sort.
         """
         self.side_pane.enabled = True
+        if exception is not None:
+            error(
+                None,
+                'Execution of BDSS failed. \n\n{}'.format(
+                    str(exception)),
+                'Error when running BDSS'
+            )
+
+    # Default initializers
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
@@ -191,8 +289,10 @@ class WfManagerTask(Task):
             workflow_m=self.workflow_m
         )
 
-    def _executor_default(self):
+    def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)
+
+    # Handlers
 
     @on_trait_change('workflow_m')
     def update_side_pane(self):

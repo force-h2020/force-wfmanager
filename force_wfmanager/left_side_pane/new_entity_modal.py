@@ -42,7 +42,7 @@ class NewEntityModal(HasStrictTraits):
 
     #: Available factories, this class is generic and can contain any factory
     #: which implement the create_model method
-    available_factories = Either(
+    factories = Either(
         List(Instance(BaseMCOFactory)),
         List(Instance(BaseMCOParameterFactory)),
         List(Instance(BaseDataSourceFactory)),
@@ -77,7 +77,7 @@ class NewEntityModal(HasStrictTraits):
         VGroup(
             HSplit(
                 UItem(
-                    "available_factories",
+                    "factories",
                     editor=ListStrEditor(
                         adapter=ListAdapter(),
                         selected="selected_factory"),
