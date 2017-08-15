@@ -227,7 +227,7 @@ class WfManagerTask(Task):
                     'Manager ?',
             cancel=True,
             yes_label='Save',
-            no_label='Ignore',
+            no_label='Don\'t save',
         )
 
         result = dialog.open()
