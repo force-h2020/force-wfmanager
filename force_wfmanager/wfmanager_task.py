@@ -63,6 +63,11 @@ class WfManagerTask(Task):
         ),
         SMenu(
             TaskAction(
+                name='Open Workflow...',
+                method='open_workflow',
+                accelerator='Ctrl+O',
+            ),
+            TaskAction(
                 name='Save Workflow',
                 method='save_workflow',
                 accelerator='Ctrl+S',
@@ -71,11 +76,6 @@ class WfManagerTask(Task):
                 name='Save Workflow as...',
                 method='save_workflow_as',
                 accelerator='Shift+Ctrl+S',
-            ),
-            TaskAction(
-                name='Open Workflow...',
-                method='open_workflow',
-                accelerator='Ctrl+O',
             ),
             name='&File'
         ),
