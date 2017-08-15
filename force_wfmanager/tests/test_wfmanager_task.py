@@ -313,13 +313,33 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 return mock_error.call_args[0][1]
 
             for exc, msg in [
-                (Exception("boom"), 'boom'),
-                (subprocess.CalledProcessError(1, "fake_command"),
-                 "Command 'fake_command' returned non-zero exit status 1"),
-                (OSError("whatever"), "whatever")]:
+                    (Exception("boom"), 'boom'),
+                    (subprocess.CalledProcessError(1, "fake_command"),
+                        "Command 'fake_command' returned non-zero exit "
+                        "status 1"),
+                    (OSError("whatever"), "whatever")]:
                 self.assertEqual(
                     _check_exception_behavior(exc),
                     "Execution of BDSS failed. \n\n"+msg)
+
+    def test_run_bdss_write_failure(self):
+        with mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
+                mock.patch(ERROR_PATH) as mock_error:
+            workflow_writer = mock.Mock(spec=WorkflowWriter)
+            workflow_writer.write.side_effect = Exception("write failed")
+            mock_writer.return_value = workflow_writer
+            mock_error.side_effect = mock_show_error
+
+            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+
+            with self.event_loop_until_condition(
+                    lambda: self.wfmanager_task.side_pane.enabled):
+                self.wfmanager_task.run_bdss()
+
+            self.assertEqual(
+                mock_error.call_args[0][1],
+                'Unable to create temporary workflow file for execution'
+                ' of the BDSS. write failed')
 
     def test_exit_application_with_saving(self):
         mock_open = mock.mock_open()
@@ -399,23 +419,3 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             mock_open.assert_not_called()
             mock_writer.write.assert_not_called()
             self.wfmanager_task.window.application.exit.assert_not_called()
-
-    def test_run_bdss_write_failure(self):
-        with mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
-               mock.patch(ERROR_PATH) as mock_error:
-            workflow_writer = mock.Mock(spec=WorkflowWriter)
-            workflow_writer.write.side_effect = Exception("write failed")
-            mock_writer.return_value = workflow_writer
-            mock_error.side_effect = mock_show_error
-
-            self.assertTrue(self.wfmanager_task.side_pane.enabled)
-
-            with self.event_loop_until_condition(
-                    lambda: self.wfmanager_task.side_pane.enabled):
-                self.wfmanager_task.run_bdss()
-
-            self.assertEqual(
-                mock_error.call_args[0][1],
-                'Unable to create temporary workflow file for execution'
-                ' of the BDSS. write failed')
-
