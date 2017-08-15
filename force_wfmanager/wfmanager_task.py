@@ -22,9 +22,6 @@ from force_wfmanager.left_side_pane.side_pane import SidePane
 log = logging.getLogger(__name__)
 
 
-log = logging.getLogger(__name__)
-
-
 class WfManagerTask(Task):
     id = 'force_wfmanager.wfmanager_task'
     name = 'Workflow Manager'

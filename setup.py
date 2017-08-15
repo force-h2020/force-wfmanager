@@ -22,15 +22,6 @@ def write_version_py():
 
 write_version_py()
 
-install_requires = [
-    "envisage >= 4.6.0",
-    "stevedore >= 1.24.0",
-    "numpy >= 1.11.0",
-    "cython >= 0.25",
-    "chaco >= 4.6.1",
-    "pyzmq >= 16.0.0",
-    'futures >= 3.1.1',
-]
 
 # main setup configuration class
 setup(
@@ -39,7 +30,15 @@ setup(
     author='FORCE, EU H2020 Project',
     description='Workflow manager',
     long_description=README_TEXT,
-    install_requires=install_requires,
+    install_requires=[
+        "envisage >= 4.6.0",
+        "stevedore >= 1.24.0",
+        "numpy >= 1.11.0",
+        "cython >= 0.25",
+        "chaco >= 4.6.1",
+        "pyzmq >= 16.0.0",
+        'futures >= 3.1.1',
+    ],
     packages=find_packages(),
     entry_points={
         'gui_scripts': [
