@@ -195,7 +195,7 @@ class WfManagerTask(Task):
     def _workflow_m_default(self):
         return Workflow()
 
-    def _analysis_model_default(self):
+    def _analysis_m_default(self):
         return AnalysisModel()
 
     def _side_pane_default(self):
