@@ -1,6 +1,6 @@
 from pyface.tasks.api import TraitsDockPane
 
-from traits.api import Instance, Button, on_trait_change
+from traits.api import Instance, Button, on_trait_change, Bool
 
 from traitsui.api import View, UItem, VGroup
 
@@ -40,18 +40,26 @@ class SidePane(TraitsDockPane):
     #: Run button for running the computation
     run_button = Button('Run')
 
+    #: Enable or disable the contained entities.
+    #: Used when the computation is running
+    enabled = Bool(True)
+
     traits_view = View(VGroup(
-        UItem('workflow_settings', style='custom'),
-        UItem('run_button')
+        UItem('workflow_settings',
+              style='custom',
+              enabled_when="enabled"
+              ),
+        UItem('run_button',
+              enabled_when="enabled"
+              )
     ))
 
     def _workflow_settings_default(self):
         registry = self.factory_registry
-        kpi_calculator_factories = registry.kpi_calculator_factories
         return WorkflowSettings(
-            available_mco_factories=registry.mco_factories,
-            available_data_source_factories=registry.data_source_factories,
-            available_kpi_calculator_factories=kpi_calculator_factories,
+            mco_factories=registry.mco_factories,
+            data_source_factories=registry.data_source_factories,
+            kpi_calculator_factories=registry.kpi_calculator_factories,
             workflow_m=self.workflow_m)
 
     @on_trait_change('workflow_m', post_init=True)

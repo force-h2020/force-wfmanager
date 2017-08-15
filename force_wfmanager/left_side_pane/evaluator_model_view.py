@@ -6,7 +6,8 @@ from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (
     BaseDataSourceModel, BaseDataSource,
-    BaseKPICalculatorModel, BaseKPICalculator)
+    BaseKPICalculatorModel, BaseKPICalculator,
+    Identifier)
 from force_bdss.core.input_slot_map import InputSlotMap
 
 from .view_utils import get_factory_name
@@ -17,7 +18,7 @@ class TableRow(HasStrictTraits):
     type = Str()
 
     #: Name of the slot
-    name = Str()
+    name = Identifier()
 
     #: Index of the slot in the slot list
     index = Int()
