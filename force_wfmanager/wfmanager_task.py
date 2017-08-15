@@ -5,7 +5,7 @@ import tempfile
 import os
 from concurrent.futures import ThreadPoolExecutor
 
-from traits.api import Instance, on_trait_change, File
+from traits.api import Instance, on_trait_change, File, Str
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
@@ -43,7 +43,7 @@ class WfManagerTask(Task):
 
     #: Path to spawn for the BDSS CLI executable.
     #: This will go to some global configuration option later.
-    _bdss_executable_path = "force_bdss"
+    _bdss_executable_path = Str("force_bdss")
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(SMenu(
