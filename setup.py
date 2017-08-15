@@ -22,6 +22,7 @@ def write_version_py():
 
 write_version_py()
 
+
 # main setup configuration class
 setup(
     name='force-wfmanager',
@@ -35,8 +36,9 @@ setup(
         "numpy >= 1.11.0",
         "cython >= 0.25",
         "chaco >= 4.6.1",
-        "pyzmq >= 16.0.0"
-        ],
+        "pyzmq >= 16.0.0",
+        'futures >= 3.1.1',
+    ],
     packages=find_packages(),
     entry_points={
         'gui_scripts': [
