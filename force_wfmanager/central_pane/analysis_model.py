@@ -1,6 +1,5 @@
 from traits.api import (
-    HasStrictTraits, List, Str, Tuple, Int, on_trait_change, TraitError,
-    Property, Either
+    HasStrictTraits, List, Str, Tuple, Int, on_trait_change, Property, Either
 )
 
 
@@ -27,8 +26,8 @@ class AnalysisModel(HasStrictTraits):
 
     @on_trait_change("value_names[]")
     def _clear_evaluation_steps(self):
-        self.evaluation_steps[:] = []
-        self.selected_step_index = None
+        self._evaluation_steps[:] = []
+        self._selected_step_index = None
 
     def _get_evaluation_steps(self):
         return self._evaluation_steps
@@ -68,3 +67,6 @@ class AnalysisModel(HasStrictTraits):
 
     def clear(self):
         self.value_names[:] = []
+
+    def clear_steps(self):
+        self._clear_evaluation_steps()
