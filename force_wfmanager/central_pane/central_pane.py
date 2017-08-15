@@ -34,9 +34,8 @@ class CentralPane(TraitsTaskPane):
         )
     ))
 
-    def __init__(self, analysis_model, *args, **kwargs):
-        super(CentralPane, self).__init__(*args, **kwargs)
-        self.analysis_model = analysis_model
+    def _analysis_model_default(self):
+        return AnalysisModel()
 
     def _result_table_default(self):
         return ResultTable(

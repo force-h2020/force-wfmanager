@@ -16,7 +16,6 @@ from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
 
@@ -38,12 +37,8 @@ class WfManagerTask(Task):
     id = 'force_wfmanager.wfmanager_task'
     name = 'Workflow Manager'
 
-    #: Workflow model.
+    #: Workflow model
     workflow_m = Instance(Workflow, allow_none=False)
-
-    #: Analysis model. Contains the results that are displayed in the plot
-    #: and table
-    analysis_m = Instance(AnalysisModel, allow_none=False)
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(SidePane)
@@ -77,7 +72,7 @@ class WfManagerTask(Task):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        return CentralPane(self.analysis_m)
+        return CentralPane()
 
     def create_dock_panes(self):
         """ Creates the dock panes """
@@ -194,9 +189,6 @@ class WfManagerTask(Task):
 
     def _workflow_m_default(self):
         return Workflow()
-
-    def _analysis_model_default(self):
-        return AnalysisModel()
 
     def _side_pane_default(self):
         return SidePane(
