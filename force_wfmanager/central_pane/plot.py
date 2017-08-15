@@ -122,10 +122,6 @@ class Plot(HasStrictTraits):
         # Update plot data
         self._update_plot_data()
 
-    @on_trait_change("data_dim")
-    def _update_data_arrays_size(self):
-        self._data_arrays = [[] for _ in range(self.data_dim)]
-
     @on_trait_change('x,y')
     def _update_plot_data(self):
         if self.x is None or self.y is None:

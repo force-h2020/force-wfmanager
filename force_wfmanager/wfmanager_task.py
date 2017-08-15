@@ -73,9 +73,6 @@ class WfManagerTask(Task):
         ), id='File', name='&File'
     ))
 
-    def _analysis_model_default(self):
-        return AnalysisModel()
-
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
