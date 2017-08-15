@@ -52,36 +52,13 @@ def get_wfmanager_task():
     return wfmanager_task
 
 
-def mock_file_dialog_ok(*args, **kwargs):
-    file_dialog = mock.Mock(spec=FileDialog)
-    file_dialog.open = lambda: OK
-    file_dialog.path = 'file_path'
-    return file_dialog
-
-
-def mock_file_dialog_cancel(*args, **kwargs):
-    file_dialog = mock.Mock(spec=FileDialog)
-    file_dialog.open = lambda: False
-    file_dialog.path = ''
-    return file_dialog
-
-
-def mock_confirm_dialog_yes(*args, **kwargs):
-    confirm_dialog = mock.Mock(spec=ConfirmationDialog)
-    confirm_dialog.open = lambda: YES
-    return confirm_dialog
-
-
-def mock_confirm_dialog_no(*args, **kwargs):
-    confirm_dialog = mock.Mock(spec=ConfirmationDialog)
-    confirm_dialog.open = lambda: NO
-    return confirm_dialog
-
-
-def mock_confirm_dialog_cancel(*args, **kwargs):
-    confirm_dialog = mock.Mock(spec=ConfirmationDialog)
-    confirm_dialog.open = lambda: CANCEL
-    return confirm_dialog
+def mock_dialog(dialog_class, result, path=''):
+    def mock_dialog_call(*args, **kwargs):
+        dialog = mock.Mock(spec=dialog_class)
+        dialog.open = lambda: result
+        dialog.path = path
+        return dialog
+    return mock_dialog_call
 
 
 def mock_os_remove(*args, **kwargs):
@@ -140,7 +117,8 @@ class TestWFManagerTask(unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, OK, 'file_path')
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
@@ -158,7 +136,7 @@ class TestWFManagerTask(unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
@@ -172,7 +150,8 @@ class TestWFManagerTask(unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, OK, 'file_path')
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow()
@@ -187,7 +166,7 @@ class TestWFManagerTask(unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(ERROR_PATH) as mock_error:
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_error.side_effect = mock_show_error
 
             self.wfmanager_task.save_workflow()
@@ -204,7 +183,7 @@ class TestWFManagerTask(unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_file_dialog.side_effect = mock_file_dialog_cancel
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, CANCEL)
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.save_workflow_as()
@@ -216,7 +195,7 @@ class TestWFManagerTask(unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(ERROR_PATH) as mock_error:
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_error.side_effect = mock_show_error
 
             self.wfmanager_task.save_workflow_as()
@@ -233,7 +212,7 @@ class TestWFManagerTask(unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_reader.side_effect = mock_file_reader
 
             old_workflow = self.wfmanager_task.workflow_m
@@ -263,7 +242,7 @@ class TestWFManagerTask(unittest.TestCase):
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(ERROR_PATH) as mock_error, \
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_error.side_effect = mock_show_error
             mock_reader.side_effect = mock_file_reader_failure
 
@@ -286,7 +265,7 @@ class TestWFManagerTask(unittest.TestCase):
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
                 mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
             _mock_subprocess.side_effect = mock_subprocess
 
@@ -308,8 +287,9 @@ class TestWFManagerTask(unittest.TestCase):
                 mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_confirm_dialog_yes
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_confirm_dialog.side_effect = mock_dialog(
+                ConfirmationDialog, YES)
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.exit()
@@ -328,8 +308,9 @@ class TestWFManagerTask(unittest.TestCase):
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(ERROR_PATH) as mock_error, \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_confirm_dialog_yes
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_confirm_dialog.side_effect = mock_dialog(
+                ConfirmationDialog, YES)
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_error.side_effect = mock_show_error
             mock_writer.side_effect = mock_file_writer
 
@@ -347,8 +328,9 @@ class TestWFManagerTask(unittest.TestCase):
                 mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_confirm_dialog_no
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_confirm_dialog.side_effect = mock_dialog(
+                ConfirmationDialog, NO)
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.exit()
@@ -365,8 +347,9 @@ class TestWFManagerTask(unittest.TestCase):
                 mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_confirm_dialog_cancel
-            mock_file_dialog.side_effect = mock_file_dialog_ok
+            mock_confirm_dialog.side_effect = mock_dialog(
+                ConfirmationDialog, CANCEL)
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
 
             self.wfmanager_task.exit()
