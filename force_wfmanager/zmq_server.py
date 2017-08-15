@@ -1,6 +1,10 @@
+import logging
 import threading
 import zmq
 from pyface.api import GUI
+
+
+log = logging.getLogger(__name__)
 
 
 class ZMQServer(threading.Thread):
