@@ -20,7 +20,7 @@ from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
-from force_wfmanager.zmq_monitor_thread import ZMQMonitorThread
+from force_wfmanager.zmq_server import ZMQServer
 
 log = logging.getLogger(__name__)
 
@@ -52,8 +52,8 @@ class WfManagerTask(Task):
     #: This will go to some global configuration option later.
     _bdss_executable_path = Str("force_bdss")
 
-    #: monitor thread for the zeromq notification
-    zmq_monitor_thread = Instance(ZMQMonitorThread)
+    #: ZeroMQ Server to receive information from the running BDSS
+    zmq_server = Instance(ZMQServer)
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(
@@ -167,7 +167,7 @@ class WfManagerTask(Task):
 
     def __init__(self, *args, **kwargs):
         super(WfManagerTask, self).__init__(*args, **kwargs)
-        self.zmq_monitor_thread = ZMQMonitorThread(self.analysis_model)
+        self.zmq_monitor_thread = ZMQServer(self.analysis_model)
         self.zmq_monitor_thread.start()
 
     def open_workflow(self):

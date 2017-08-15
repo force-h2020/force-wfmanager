@@ -3,10 +3,10 @@ import zmq
 from pyface.api import GUI
 
 
-class ZMQMonitorThread(threading.Thread):
+class ZMQServer(threading.Thread):
     daemon = True
     def __init__(self, analysis_model):
-        super(ZMQMonitorThread, self).__init__()
+        super(ZMQServer, self).__init__()
         self.context = zmq.Context()
         self.analysis_model = analysis_model
 
