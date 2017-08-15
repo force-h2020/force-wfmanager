@@ -28,7 +28,6 @@ class AnalysisModelTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.analysis.add_evaluation_step(())
 
-
     def test_change_selection(self):
         self.analysis.value_names = ['foo', 'bar']
         self.analysis.add_evaluation_step((1, 2))

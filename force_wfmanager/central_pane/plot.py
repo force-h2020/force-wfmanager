@@ -1,7 +1,7 @@
 import logging
 
 from traits.api import (HasStrictTraits, List, Instance, Enum, Property,
-                        on_trait_change, Int, Str)
+                        on_trait_change)
 from traitsui.api import View, UItem, Item, VGroup, HGroup
 from enable.api import Component, ComponentEditor
 from chaco.api import ArrayPlotData
@@ -17,11 +17,13 @@ class Plot(HasStrictTraits):
     #: The model for the plot
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
+    _value_names = Property(depends_on="analysis_model.value_names")
+
     #: First parameter used for the plot
-    x = Enum(values='analysis_model.value_names')
+    x = Enum(values='_value_names')
 
     #: Second parameter used for the plot
-    y = Enum(values='analysis_model.value_names')
+    y = Enum(values='_value_names')
 
     #: List containing the data arrays
     _data_arrays = List(List())
@@ -74,6 +76,9 @@ class Plot(HasStrictTraits):
 
     def __data_arrays_default(self):
         return [[] for _ in range(len(self.analysis_model.value_names))]
+
+    def _get__value_names(self):
+        return self.analysis_model.value_names
 
     @on_trait_change('analysis_model.evaluation_steps[]')
     def update_data_arrays(self):
