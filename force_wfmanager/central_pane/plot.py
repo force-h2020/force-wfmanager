@@ -1,5 +1,3 @@
-import logging
-
 from traits.api import (HasStrictTraits, List, Instance, Enum, Property,
                         on_trait_change)
 from traitsui.api import View, UItem, Item, VGroup, HGroup
@@ -8,9 +6,6 @@ from chaco.api import ArrayPlotData
 from chaco.api import Plot as ChacoPlot
 
 from .analysis_model import AnalysisModel
-
-
-log = logging.getLogger(__name__)
 
 
 class Plot(HasStrictTraits):
@@ -102,6 +97,10 @@ class Plot(HasStrictTraits):
 
         evaluation_steps = self.analysis_model.evaluation_steps
 
+        # In this case, the value_names have changed, so we need to
+        # synchronize the number of data arrays to the newly found data
+        # dimensionality before adding new data to them. Of course, this also
+        # means to remove the current content.
         if data_dim != len(self._data_arrays):
             self._data_arrays = [[] for _ in range(data_dim)]
 
