@@ -1,28 +1,24 @@
+import logging
+
 from traits.api import (HasStrictTraits, List, Instance, Enum, Property,
                         on_trait_change, Int, Str)
-
 from traitsui.api import View, UItem, Item, VGroup, HGroup
-
 from enable.api import Component, ComponentEditor
-
 from chaco.api import ArrayPlotData
 from chaco.api import Plot as ChacoPlot
 
 from .analysis_model import AnalysisModel
 
 
+log = logging.getLogger(__name__)
+
+
 class Plot(HasStrictTraits):
     #: The model for the plot
-    analysis_model = Instance(AnalysisModel)
+    analysis_model = Instance(AnalysisModel, allow_none=False)
 
     #: Data dimension
-    data_dim = Property(Int(), depends_on='analysis_model.value_names')
-
-    #: List containing the data arrays
-    _data_arrays = List(List())
-
-    #: The plot data
-    plot_data = Instance(ArrayPlotData)
+    data_dim = Property(Int(), depends_on='analysis_model.value_names[]')
 
     #: The 2D plot
     plot = Instance(Component)
@@ -38,6 +34,12 @@ class Plot(HasStrictTraits):
 
     #: Second parameter used for the plot
     y = Enum(values='value_names')
+
+    #: List containing the data arrays
+    _data_arrays = List(List())
+
+    #: The plot data. This is the model of the actual Chaco plot.
+    _plot_data = Instance(ArrayPlotData)
 
     view = View(VGroup(
         HGroup(
@@ -55,7 +57,7 @@ class Plot(HasStrictTraits):
         self.update_data_arrays()
 
     def _plot_default(self):
-        plot = ChacoPlot(self.plot_data)
+        plot = ChacoPlot(self._plot_data)
 
         plot.plot(
             ('x', 'y'),
@@ -73,12 +75,7 @@ class Plot(HasStrictTraits):
 
         return plot
 
-    def _get_value_names(self):
-        # TODO: Filter value names per type (we do not support string
-        # values for the plot)
-        return self.analysis_model.value_names
-
-    def _plot_data_default(self):
+    def __plot_data_default(self):
         plot_data = ArrayPlotData()
         plot_data.set_data('x', [])
         plot_data.set_data('y', [])
@@ -86,6 +83,11 @@ class Plot(HasStrictTraits):
 
     def __data_arrays_default(self):
         return [[] for _ in range(self.data_dim)]
+
+    def _get_value_names(self):
+        # TODO: Filter value names per type (we do not support string
+        # values for the plot)
+        return self.analysis_model.value_names
 
     def _get_data_dim(self):
         return len(self.value_names)
@@ -97,7 +99,12 @@ class Plot(HasStrictTraits):
         value_names is equal to the number of element in each evaluation step
         (e.g. value_names=["viscosity", "pressure"] then each evaluation step
         is a two dimensions tuple). Only the number of evaluation
-        steps can change, not their values. """
+        steps can change, not their values.
+
+        Note: evaluation steps is row-based (one tuple = one row). The data
+        arrays are column based. The transformation happens here.
+        """
+
         # If there is no data yet, or the data has been removed, make sure the
         # plot is updated accordingly and don't touch the data_arrays
         if self.data_dim == 0:
@@ -116,21 +123,41 @@ class Plot(HasStrictTraits):
         # Update the data arrays with the newly added evaluation_steps
         new_evaluation_steps = evaluation_steps[len(self._data_arrays[0]):]
         for evaluation_step in new_evaluation_steps:
+            # One of the tuples has a dimension that does not match what
+            # we expect. This is an error and we must report it as such.
+            if len(evaluation_step) != self.data_dim:
+                msg = (
+                    "Length of evaluation step and data dim differ. "
+                    "evaluation step={}\ndata_dim={}".format(
+                        evaluation_step, self.data_dim)
+                )
+                log.error(msg)
+                raise RuntimeError(msg)
+
+            # Fan out the data in the appropriate arrays
             for index in range(self.data_dim):
                 self._data_arrays[index].append(evaluation_step[index])
 
         # Update plot data
         self._update_plot_data()
 
+    @on_trait_change("data_dim")
+    def _update_data_arrays_size(self):
+        """Updates the number of arrays when the data dimension changes"""
+        self._data_arrays = [[] for _ in range(self.data_dim)]
+
     @on_trait_change('x,y')
     def _update_plot_data(self):
+        """Set the plot data model to the appropriate arrays so that they
+        can be displayed when either X or Y selections have been changed.
+        """
         if self.x is None or self.y is None:
-            self.plot_data.set_data('x', [])
-            self.plot_data.set_data('y', [])
+            self._plot_data.set_data('x', [])
+            self._plot_data.set_data('y', [])
             return
 
         x_index = self.analysis_model.value_names.index(self.x)
         y_index = self.analysis_model.value_names.index(self.y)
 
-        self.plot_data.set_data('x', self._data_arrays[x_index])
-        self.plot_data.set_data('y', self._data_arrays[y_index])
+        self._plot_data.set_data('x', self._data_arrays[x_index])
+        self._plot_data.set_data('y', self._data_arrays[y_index])

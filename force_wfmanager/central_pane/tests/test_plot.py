@@ -4,6 +4,8 @@ from chaco.api import Plot as ChacoPlot
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.plot import Plot
+from traits.api import push_exception_handler
+push_exception_handler(reraise_exceptions=True)
 
 
 class PlotTest(unittest.TestCase):
@@ -20,9 +22,9 @@ class PlotTest(unittest.TestCase):
         self.assertIsNone(self.plot.update_data_arrays())
         self.plot._update_plot_data()
         self.assertEqual(
-            self.plot.plot_data.get_data('x').tolist(), [])
+            self.plot._plot_data.get_data('x').tolist(), [])
         self.assertEqual(
-            self.plot.plot_data.get_data('y').tolist(), [])
+            self.plot._plot_data.get_data('y').tolist(), [])
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ['density', 'pressure']
@@ -66,6 +68,15 @@ class PlotTest(unittest.TestCase):
         self.assertEqual(
             second_data_array, [101325, 101423, 102000, 102123, 102453])
 
+    def test_push_wrong_length_evaluation_steps(self):
+        self.analysis_model.value_names = ['density', 'pressure']
+        with self.assertRaisesRegexp(
+                RuntimeError,
+                "Length of evaluation step and data dim differ"):
+            self.analysis_model.evaluation_steps = [
+                (1.010, 101325, 0.214),
+            ]
+
     def test_reinitialize_model(self):
         self.analysis_model.value_names = ['density', 'pressure']
         self.analysis_model.evaluation_steps = [
@@ -94,22 +105,22 @@ class PlotTest(unittest.TestCase):
         ]
 
         self.assertEqual(
-            self.plot.plot_data.get_data('x').tolist(),
+            self.plot._plot_data.get_data('x').tolist(),
             [1.010, 1.100]
         )
         self.assertEqual(
-            self.plot.plot_data.get_data('y').tolist(),
+            self.plot._plot_data.get_data('y').tolist(),
             [1.010, 1.100]
         )
 
         self.plot.x = 'pressure'
 
         self.assertEqual(
-            self.plot.plot_data.get_data('x').tolist(),
+            self.plot._plot_data.get_data('x').tolist(),
             [101325, 101423]
         )
         self.assertEqual(
-            self.plot.plot_data.get_data('y').tolist(),
+            self.plot._plot_data.get_data('y').tolist(),
             [1.010, 1.100]
         )
 
@@ -121,11 +132,11 @@ class PlotTest(unittest.TestCase):
         ]
 
         self.assertEqual(
-            self.plot.plot_data.get_data('x').tolist(),
+            self.plot._plot_data.get_data('x').tolist(),
             [1.010, 1.100]
         )
         self.assertEqual(
-            self.plot.plot_data.get_data('y').tolist(),
+            self.plot._plot_data.get_data('y').tolist(),
             [1.010, 1.100]
         )
 
@@ -133,10 +144,10 @@ class PlotTest(unittest.TestCase):
         self.analysis_model.evaluation_steps = []
 
         self.assertEqual(
-            self.plot.plot_data.get_data('x').tolist(),
+            self.plot._plot_data.get_data('x').tolist(),
             []
         )
         self.assertEqual(
-            self.plot.plot_data.get_data('y').tolist(),
+            self.plot._plot_data.get_data('y').tolist(),
             []
         )
