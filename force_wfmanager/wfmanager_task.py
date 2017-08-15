@@ -226,7 +226,7 @@ class WfManagerTask(Task):
             message='Do you want to save before exiting the Workflow '
                     'Manager ?',
             cancel=True,
-            yes_label='Save...',
+            yes_label='Save',
             no_label='Ignore',
         )
 
