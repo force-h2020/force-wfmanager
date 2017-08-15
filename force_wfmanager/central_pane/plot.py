@@ -17,9 +17,6 @@ class Plot(HasStrictTraits):
     #: The model for the plot
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
-    #: Data dimension
-    data_dim = Property(Int(), depends_on='analysis_model.value_names[]')
-
     #: The 2D plot
     plot = Instance(Component)
 
@@ -82,15 +79,12 @@ class Plot(HasStrictTraits):
         return plot_data
 
     def __data_arrays_default(self):
-        return [[] for _ in range(self.data_dim)]
+        return [[] for _ in range(len(self.analysis_model.value_names))]
 
     def _get_value_names(self):
         # TODO: Filter value names per type (we do not support string
         # values for the plot)
         return self.analysis_model.value_names
-
-    def _get_data_dim(self):
-        return len(self.value_names)
 
     @on_trait_change('analysis_model.evaluation_steps[]')
     def update_data_arrays(self):
@@ -105,9 +99,10 @@ class Plot(HasStrictTraits):
         arrays are column based. The transformation happens here.
         """
 
+        data_dim = len(self.analysis_model.value_names)
         # If there is no data yet, or the data has been removed, make sure the
         # plot is updated accordingly and don't touch the data_arrays
-        if self.data_dim == 0:
+        if data_dim == 0:
             self._update_plot_data()
             return
 
@@ -125,26 +120,27 @@ class Plot(HasStrictTraits):
         for evaluation_step in new_evaluation_steps:
             # One of the tuples has a dimension that does not match what
             # we expect. This is an error and we must report it as such.
-            if len(evaluation_step) != self.data_dim:
+            if len(evaluation_step) != data_dim:
                 msg = (
                     "Length of evaluation step and data dim differ. "
                     "evaluation step={}\ndata_dim={}".format(
-                        evaluation_step, self.data_dim)
+                        evaluation_step, data_dim)
                 )
                 log.error(msg)
                 raise RuntimeError(msg)
 
             # Fan out the data in the appropriate arrays
-            for index in range(self.data_dim):
+            for index in range(data_dim):
                 self._data_arrays[index].append(evaluation_step[index])
 
         # Update plot data
         self._update_plot_data()
 
-    @on_trait_change("data_dim")
+    @on_trait_change("analysis_model.data_dim")
     def _update_data_arrays_size(self):
         """Updates the number of arrays when the data dimension changes"""
-        self._data_arrays = [[] for _ in range(self.data_dim)]
+        data_dim = len(self.analysis_model.value_names)
+        self._data_arrays = [[] for _ in range(data_dim)]
 
     @on_trait_change('x,y')
     def _update_plot_data(self):
