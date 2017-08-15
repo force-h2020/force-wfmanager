@@ -8,9 +8,9 @@ log = logging.getLogger(__name__)
 
 
 class ZMQServer(threading.Thread):
-    daemon = True
     def __init__(self, analysis_model):
         super(ZMQServer, self).__init__()
+        self.daemon = True
         self.context = zmq.Context()
         self.analysis_model = analysis_model
 
