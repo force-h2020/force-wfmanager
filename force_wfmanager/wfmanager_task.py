@@ -9,7 +9,8 @@ from traits.api import Instance, on_trait_change, File, Str
 
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
-from pyface.api import FileDialog, OK, error, GUI
+from pyface.api import (
+    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI)
 
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
@@ -51,23 +52,34 @@ class WfManagerTask(Task):
     _bdss_executable_path = Str("force_bdss")
 
     #: Menu bar on top of the GUI
-    menu_bar = SMenuBar(SMenu(
-        TaskAction(
-            name='Save Workflow',
-            method='save_workflow',
-            accelerator='Ctrl+S',
+    menu_bar = SMenuBar(
+        SMenu(
+            TaskAction(
+                name='Exit',
+                method='exit',
+                accelerator='Ctrl+Q',
+            ),
+            name='&Workflow Manager'
         ),
-        TaskAction(
-            name='Save Workflow as...',
-            method='save_workflow_as',
-            accelerator='Shift+Ctrl+S',
+        SMenu(
+            TaskAction(
+                name='Open Workflow...',
+                method='open_workflow',
+                accelerator='Ctrl+O',
+            ),
+            TaskAction(
+                name='Save Workflow',
+                method='save_workflow',
+                accelerator='Ctrl+S',
+            ),
+            TaskAction(
+                name='Save Workflow as...',
+                method='save_workflow_as',
+                accelerator='Shift+Ctrl+S',
+            ),
+            name='&File'
         ),
-        TaskAction(
-            name='Open Workflow...',
-            method='open_workflow',
-            accelerator='Ctrl+O',
-        ), id='File', name='&File'
-    ))
+    )
 
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part
@@ -87,6 +99,8 @@ class WfManagerTask(Task):
 
         if not self._write_workflow(self.current_file):
             self.current_file = ''
+            return False
+        return True
 
     def save_workflow_as(self):
         """ Shows a dialog to save the workflow into a JSON file """
@@ -95,6 +109,7 @@ class WfManagerTask(Task):
             default_filename="workflow.json",
             wildcard='JSON files (*.json)|*.json|'
         )
+
         result = dialog.open()
 
         if result is not OK:
@@ -104,6 +119,8 @@ class WfManagerTask(Task):
 
         if self._write_workflow(current_file):
             self.current_file = current_file
+            return True
+        return False
 
     def _write_workflow(self, file_path):
         """ Creates a JSON file in the file_path and write the workflow
@@ -258,6 +275,31 @@ class WfManagerTask(Task):
                     str(exception)),
                 'Error when running BDSS'
             )
+
+    def exit(self):
+        """ Exit the application. It first asks the user to save the current
+        Worklfow. The user can accept to save, ignore the request, or
+        cancel the quit. If the user wants to save, but the save fails, the
+        application is not closed so he has a chance to try to save again. """
+        dialog = ConfirmationDialog(
+            parent=None,
+            message='Do you want to save before exiting the Workflow '
+                    'Manager ?',
+            cancel=True,
+            yes_label='Save',
+            no_label='Don\'t save',
+        )
+
+        result = dialog.open()
+
+        if result is YES:
+            save_result = self.save_workflow()
+            if not save_result:
+                return
+        elif result is CANCEL:
+            return
+
+        self.window.application.exit()
 
     # Default initializers
 
