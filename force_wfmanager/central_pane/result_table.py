@@ -1,4 +1,4 @@
-from traits.api import (HasStrictTraits, List, Instance, Property, Tuple, Any,
+from traits.api import (HasStrictTraits, List, Instance, Property, Tuple,
                         on_trait_change, Either)
 
 from traitsui.api import View, UItem, TableEditor
