@@ -1,17 +1,10 @@
-from traits.api import HasStrictTraits, List, Instance, Property, Tuple
+from traits.api import (HasStrictTraits, List, Instance, Property, Tuple,
+                        on_trait_change, Either)
 
 from traitsui.api import View, UItem, TableEditor
 from traitsui.table_column import ListColumn
 
 from .analysis_model import AnalysisModel
-
-
-table_editor = TableEditor(
-    sortable=False,
-    configurable=False,
-    auto_size=False,
-    columns_name='columns'
-)
 
 
 class ResultTable(HasStrictTraits):
@@ -30,8 +23,17 @@ class ResultTable(HasStrictTraits):
         depends_on='analysis_model.value_names'
     )
 
+    #: Selected cells indices in the table
+    selected_indices = Either(List(Tuple), None)
+
     view = View(
-        UItem("rows", editor=table_editor)
+        UItem("rows", editor=TableEditor(
+            sortable=False,
+            configurable=False,
+            columns_name='columns',
+            selection_mode='row',
+            selected_indices='selected_indices',
+        ))
     )
 
     def _get_rows(self):
@@ -41,3 +43,11 @@ class ResultTable(HasStrictTraits):
         return [ListColumn(label=name, index=index)
                 for index, name
                 in enumerate(self.analysis_model.value_names)]
+
+    @on_trait_change('selected_indices')
+    def update_selected(self):
+        if self.selected_indices is None:
+            self.analysis_model.selected_step_index = self.selected_indices
+        else:
+            self.analysis_model.selected_step_index = \
+                self.selected_indices[0][0]

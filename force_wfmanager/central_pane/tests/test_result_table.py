@@ -27,3 +27,15 @@ class ResultTableTest(unittest.TestCase):
     def test_append_evaluation_steps(self):
         self.analysis_model.add_evaluation_step((1.5, 50, 'CO'))
         self.assertEqual(self.result_table.rows[2], (1.5, 50, 'CO'))
+
+    def test_selection(self):
+        self.assertIsNone(self.analysis_model.selected_step_index)
+
+        self.result_table.selected_indices = [(0, 0), (0, 1), (0, 2)]
+        self.assertEqual(self.analysis_model.selected_step_index, 0)
+
+        self.result_table.selected_indices = [(1, 0), (1, 1), (1, 2)]
+        self.assertEqual(self.analysis_model.selected_step_index, 1)
+
+        self.result_table.selected_indices = None
+        self.assertIsNone(self.analysis_model.selected_step_index)
