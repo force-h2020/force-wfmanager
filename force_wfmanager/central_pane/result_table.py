@@ -23,6 +23,7 @@ class ResultTable(HasStrictTraits):
         depends_on='analysis_model.value_names'
     )
 
+    #: Selected cells indices in the table
     selected_indices = List(Tuple)
 
     view = View(
