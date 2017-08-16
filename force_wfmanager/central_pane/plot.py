@@ -1,9 +1,13 @@
 from traits.api import (HasStrictTraits, List, Instance, Enum, Property,
                         on_trait_change)
+
 from traitsui.api import View, UItem, Item, VGroup, HGroup
+
 from enable.api import Component, ComponentEditor
-from chaco.api import ArrayPlotData
+
+from chaco.api import ArrayPlotData, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
+from chaco.tools.api import PanTool, ZoomTool, ScatterInspector
 
 from .analysis_model import AnalysisModel
 
@@ -47,7 +51,7 @@ class Plot(HasStrictTraits):
     def __plot_default(self):
         plot = ChacoPlot(self._plot_data)
 
-        plot.plot(
+        scatter_plot = plot.plot(
             ('x', 'y'),
             type="scatter",
             name="Plot",
@@ -57,9 +61,10 @@ class Plot(HasStrictTraits):
             marker_size=4,
             bgcolor="white")
 
-        plot.title = "Plot"
-        plot.line_width = 1
-        plot.padding = 50
+        plot.set(title="Plot", padding=50, line_width=1)
+
+        plot.tools.append(PanTool(plot))
+        plot.overlays.append(ZoomTool(plot))
 
         return plot
 
