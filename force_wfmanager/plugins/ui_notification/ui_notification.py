@@ -90,6 +90,7 @@ class UINotification(BaseNotificationListener):
 
         recv = self._sync_socket.recv_multipart()
 
+        print(recv, msg)
         if recv != msg:
             log.error(
                 ("Unexpected reply in goodbye sync"
