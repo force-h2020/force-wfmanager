@@ -86,7 +86,7 @@ class Plot(HasStrictTraits):
             selection_line_width=3)
         scatter_plot.overlays.append(overlay)
 
-        # Add event listener for the selection
+        # Initialize plot datasource
         self._plot_index_datasource = scatter_plot.index
 
         return plot
