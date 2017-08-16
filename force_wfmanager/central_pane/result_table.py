@@ -1,4 +1,4 @@
-from traits.api import (HasStrictTraits, List, Instance, Property, Tuple,
+from traits.api import (HasStrictTraits, List, Instance, Property, Tuple, Any,
                         on_trait_change, Either)
 
 from traitsui.api import View, UItem, TableEditor
@@ -23,16 +23,17 @@ class ResultTable(HasStrictTraits):
         depends_on='analysis_model.value_names'
     )
 
-    #: Selected cells indices in the table
-    selected_indices = Either(List(Tuple), None)
+    #: Selected evaluation step in the table
+    _selected_rows = Either(List(Tuple), None)
 
     view = View(
         UItem("rows", editor=TableEditor(
             sortable=False,
             configurable=False,
             columns_name='columns',
-            selection_mode='row',
-            selected_indices='selected_indices',
+            # Using rows instead of row because of a traitsui bug
+            selection_mode='rows',
+            selected='_selected_rows',
         ))
     )
 
@@ -44,10 +45,19 @@ class ResultTable(HasStrictTraits):
                 for index, name
                 in enumerate(self.analysis_model.value_names)]
 
-    @on_trait_change('selected_indices')
-    def update_selected(self):
-        if self.selected_indices is None:
-            self.analysis_model.selected_step_index = self.selected_indices
+    @on_trait_change('analysis_model.selected_step_index')
+    def update_table(self):
+        if self.analysis_model.selected_step_index is None:
+            self._selected_rows = []
+        else:
+            self._selected_rows = \
+                [self.rows[self.analysis_model.selected_step_index]]
+
+    @on_trait_change('_selected_rows[]')
+    def update_model(self):
+        if len(self._selected_rows) == 0:
+            self.analysis_model.selected_step_index = None
         else:
             self.analysis_model.selected_step_index = \
-                self.selected_indices[0][0]
+                self.analysis_model.evaluation_steps.index(
+                    self._selected_rows[0])
