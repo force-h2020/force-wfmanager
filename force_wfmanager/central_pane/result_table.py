@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, List, Instance, Property, Tuple,
-                        on_trait_change)
+                        on_trait_change, Either)
 
 from traitsui.api import View, UItem, TableEditor
 from traitsui.table_column import ListColumn
@@ -24,7 +24,7 @@ class ResultTable(HasStrictTraits):
     )
 
     #: Selected cells indices in the table
-    selected_indices = List(Tuple)
+    selected_indices = Either(List(Tuple), None)
 
     view = View(
         UItem("rows", editor=TableEditor(
