@@ -47,6 +47,7 @@ class ResultTable(HasStrictTraits):
 
     @on_trait_change('analysis_model.selected_step_index')
     def update_table(self):
+        """ Updates the selected row in the table according to the model """
         if self.analysis_model.selected_step_index is None:
             self._selected_rows = []
         else:
@@ -55,6 +56,7 @@ class ResultTable(HasStrictTraits):
 
     @on_trait_change('_selected_rows[]')
     def update_model(self):
+        """ Updates the model according to the selected row in the table """
         if len(self._selected_rows) == 0:
             self.analysis_model.selected_step_index = None
         else:

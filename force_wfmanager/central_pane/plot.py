@@ -169,6 +169,7 @@ class Plot(HasStrictTraits):
 
     @on_trait_change('analysis_model.selected_step_index')
     def update_selected_point(self):
+        """ Updates the selected point in the plot according to the model """
         if self.analysis_model.selected_step_index is None:
             self._plot_index_datasource.metadata['selections'] = []
         else:
@@ -177,6 +178,7 @@ class Plot(HasStrictTraits):
 
     @on_trait_change('_plot_index_datasource.metadata_changed')
     def update_model(self):
+        """ Updates the model according to the selected point in the plot """
         selected_indices = self._plot_index_datasource.metadata.get(
             'selections', [])
         if len(selected_indices) == 0:
