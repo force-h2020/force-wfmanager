@@ -2,7 +2,7 @@ from pyface.tasks.api import TraitsTaskPane
 
 from traits.api import Instance
 
-from traitsui.api import View, Tabbed, VGroup, UItem
+from traitsui.api import View, HGroup, VGroup, UItem
 
 from .analysis_model import AnalysisModel
 from .plot import Plot
@@ -23,15 +23,11 @@ class CentralPane(TraitsTaskPane):
     #: The plot view
     plot = Instance(Plot)
 
-    view = View(Tabbed(
-        VGroup(
-            UItem(name='result_table', style='custom'),
-            label='Result Table'
-        ),
-        VGroup(
+    view = View(VGroup(
+        HGroup(
+            UItem('result_table', style='custom'),
             UItem('plot', style='custom'),
-            label='Plot'
-        )
+        ),
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
