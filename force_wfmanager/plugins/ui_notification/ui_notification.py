@@ -4,9 +4,7 @@ from traits.api import Instance, String
 
 from force_bdss.api import (
     BaseNotificationListener,
-    MCOStartEvent,
-    MCOFinishEvent,
-    MCOProgressEvent
+    BaseMCOEvent,
 )
 
 import zmq
@@ -69,6 +67,9 @@ class UINotification(BaseNotificationListener):
     def deliver(self, event):
         if not self._context:
             return
+
+        if not isinstance(event, BaseMCOEvent):
+            raise TypeError("Event is not a BaseMCOEvent")
 
         data = pickle.dumps(event)
         self._pub_socket.send_multipart(

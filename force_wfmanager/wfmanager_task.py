@@ -354,5 +354,3 @@ class WfManagerTask(Task):
         elif isinstance(event, MCOProgressEvent):
             data = tuple(map(float, event.input + event.output))
             self.analysis_m.add_evaluation_step(data)
-        else:
-            pass

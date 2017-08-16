@@ -1,6 +1,6 @@
 from traits.api import Unicode
 from force_bdss.api import (
-    BaseNotificationListenerModel, ZMQSocketURL)
+    BaseNotificationListenerModel)
 
 
 class UINotificationModel(BaseNotificationListenerModel):

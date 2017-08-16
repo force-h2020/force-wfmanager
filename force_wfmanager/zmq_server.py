@@ -19,7 +19,7 @@ class EventUnpickler(pickle.Unpickler):
                         "MCOFinishEvent"]:
             raise pickle.UnpicklingError(
                 "Cannot unpickle '{}.{}'".format(
-                module, name))
+                    module, name))
 
         from force_bdss import api
         return getattr(api, name)
