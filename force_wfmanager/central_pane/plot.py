@@ -5,7 +5,7 @@ from traitsui.api import View, UItem, Item, VGroup, HGroup
 
 from enable.api import Component, ComponentEditor
 
-from chaco.api import ArrayPlotData, ScatterInspectorOverlay
+from chaco.api import ArrayPlotData, ScatterInspectorOverlay, ArrayDataSource
 from chaco.api import Plot as ChacoPlot
 from chaco.tools.api import PanTool, ZoomTool, ScatterInspector
 
@@ -32,6 +32,9 @@ class Plot(HasStrictTraits):
 
     #: The 2D plot
     _plot = Instance(Component)
+
+    #: Datasource of the plot (used for selection handling)
+    _plot_index_datasource = Instance(ArrayDataSource)
 
     view = View(VGroup(
         HGroup(
@@ -82,6 +85,9 @@ class Plot(HasStrictTraits):
             selection_outline_color="blue",
             selection_line_width=3)
         scatter_plot.overlays.append(overlay)
+
+        # Add event listener for the selection
+        self._plot_index_datasource = scatter_plot.index
 
         return plot
 
@@ -160,3 +166,20 @@ class Plot(HasStrictTraits):
 
         self._plot_data.set_data('x', self._data_arrays[x_index])
         self._plot_data.set_data('y', self._data_arrays[y_index])
+
+    @on_trait_change('analysis_model.selected_step_index')
+    def update_selected_point(self):
+        if self.analysis_model.selected_step_index is None:
+            self._plot_index_datasource.metadata['selections'] = []
+        else:
+            self._plot_index_datasource.metadata['selections'] = \
+                [self.analysis_model.selected_step_index]
+
+    @on_trait_change('_plot_index_datasource.metadata_changed')
+    def update_model(self):
+        selected_indices = self._plot_index_datasource.metadata.get(
+            'selections', [])
+        if len(selected_indices) == 0:
+            self.analysis_model.selected_step_index = None
+        else:
+            self.analysis_model.selected_step_index = selected_indices[0]
