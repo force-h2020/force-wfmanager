@@ -28,6 +28,8 @@ class PlotTest(unittest.TestCase):
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ['density', 'pressure']
+        self.assertEqual(self.plot.x, 'density')
+        self.assertEqual(self.plot.y, 'pressure')
         self.assertEqual(self.plot._data_arrays, [[], []])
 
     def test_plot(self):
@@ -93,10 +95,11 @@ class PlotTest(unittest.TestCase):
         )
         self.assertEqual(
             self.plot._plot_data.get_data('y').tolist(),
-            [1.010, 1.100]
+            [101325, 101423]
         )
 
         self.plot.x = 'pressure'
+        self.plot.y = 'density'
 
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(),
@@ -118,7 +121,7 @@ class PlotTest(unittest.TestCase):
         )
         self.assertEqual(
             self.plot._plot_data.get_data('y').tolist(),
-            [1.010, 1.100]
+            [101325, 101423]
         )
 
         self.analysis_model.value_names = []
