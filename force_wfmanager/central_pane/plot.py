@@ -57,14 +57,31 @@ class Plot(HasStrictTraits):
             name="Plot",
             marker="circle",
             index_sort="ascending",
-            color="blue",
+            color="green",
             marker_size=4,
-            bgcolor="white")
+            bgcolor="white")[0]
 
         plot.set(title="Plot", padding=50, line_width=1)
 
+        # Add pan and zoom tools
         plot.tools.append(PanTool(plot))
         plot.overlays.append(ZoomTool(plot))
+
+        # Add the selection tool
+        scatter_plot.tools.append(ScatterInspector(
+            scatter_plot,
+            threshold=10,
+            selection_mode="single",
+        ))
+        overlay = ScatterInspectorOverlay(
+            scatter_plot,
+            hover_color="blue",
+            hover_marker_size=6,
+            selection_marker_size=6,
+            selection_color="blue",
+            selection_outline_color="blue",
+            selection_line_width=3)
+        scatter_plot.overlays.append(overlay)
 
         return plot
 
