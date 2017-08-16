@@ -35,6 +35,9 @@ class WfManagerTask(Task):
     #: and table
     analysis_m = Instance(AnalysisModel, allow_none=False)
 
+    #: Central Pane containing the the table and the plot
+    central_pane = Instance(CentralPane)
+
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(SidePane)
 
@@ -85,7 +88,7 @@ class WfManagerTask(Task):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        return CentralPane(self.analysis_m)
+        return self.central_pane
 
     def create_dock_panes(self):
         """ Creates the dock panes """
@@ -203,6 +206,7 @@ class WfManagerTask(Task):
             return
 
         self.side_pane.enabled = False
+        self.central_pane.enabled = False
         future = self._executor.submit(self._execute_bdss, tmpfile_path)
         future.add_done_callback(self._execution_done_callback)
 
@@ -268,6 +272,7 @@ class WfManagerTask(Task):
             If the execution raised an exception of any sort.
         """
         self.side_pane.enabled = True
+        self.central_pane.enabled = True
         if exception is not None:
             error(
                 None,
@@ -314,6 +319,9 @@ class WfManagerTask(Task):
 
     def _analysis_m_default(self):
         return AnalysisModel()
+
+    def _central_pane_default(self):
+        return CentralPane(self.analysis_m)
 
     def _side_pane_default(self):
         return SidePane(
