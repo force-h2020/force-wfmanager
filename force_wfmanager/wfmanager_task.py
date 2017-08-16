@@ -12,6 +12,7 @@ from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.api import (
     FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI)
 
+from force_bdss.api import MCOProgressEvent, MCOStartEvent
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
@@ -169,8 +170,10 @@ class WfManagerTask(Task):
     def __init__(self, *args, **kwargs):
         super(WfManagerTask, self).__init__(*args, **kwargs)
         config = ZMQServerConfig()
-        self.zmq_monitor_thread = ZMQServer(config, self.analysis_m)
-        self.zmq_monitor_thread.start()
+        self._zmq_server = ZMQServer(
+            config,
+            on_event_callback=self._server_event)
+        self._zmq_server.start()
 
     def open_workflow(self):
         """ Shows a dialog to open a workflow file """
@@ -341,3 +344,15 @@ class WfManagerTask(Task):
     def update_side_pane(self):
         self.side_pane.workflow_m = self.workflow_m
 
+    def _server_event(self, event):
+        GUI.invoke_later(self._server_event_mainthread, event)
+
+    def _server_event_mainthread(self, event):
+        if isinstance(event, MCOStartEvent):
+            self.analysis_m.clear()
+            self.analysis_m.value_names = ["x", "y"]
+        elif isinstance(event, MCOProgressEvent):
+            data = tuple(map(float, event.input + event.output))
+            self.analysis_m.add_evaluation_step(data)
+        else:
+            pass

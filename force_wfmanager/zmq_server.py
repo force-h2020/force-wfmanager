@@ -1,14 +1,28 @@
 import logging
 import threading
 import pickle
+import six
 
 import zmq
 
-from pyface.api import GUI
-from force_bdss.api import MCOProgressEvent, MCOStartEvent, MCOFinishEvent
-
-
 log = logging.getLogger(__name__)
+
+
+class EventUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        # Only allow safe classes from builtins.
+        if module.startswith("traits"):
+            return pickle.Unpickler.find_class(self, module, name)
+
+        if name not in ["MCOProgressEvent",
+                        "MCOStartEvent",
+                        "MCOFinishEvent"]:
+            raise pickle.UnpicklingError(
+                "Cannot unpickle '{}.{}'".format(
+                module, name))
+
+        from force_bdss import api
+        return getattr(api, name)
 
 
 class ZMQServer(threading.Thread):
@@ -17,12 +31,16 @@ class ZMQServer(threading.Thread):
     STATE_WAITING = "WAITING"
     STATE_RECEIVING = "RECEIVING"
 
-    def __init__(self, config, analysis_model):
+    def __init__(self, config, on_event_callback):
+        """Sets up the server with the appropriate configuration.
+        When the event is detected, on_event_callback will be called
+        _in_the_secondary_thread_.
+        """
         super(ZMQServer, self).__init__()
         self.daemon = True
         self.config = config
         self.state = ZMQServer.STATE_STOPPED
-        self.analysis_model = analysis_model
+        self._on_event_callback = on_event_callback
 
         self._context = zmq.Context()
         self._pub_socket = None
@@ -121,34 +139,10 @@ class ZMQServer(threading.Thread):
             log.error("Unknown msg received {}".format(msg))
             return
 
-
         try:
-            event = pickle.loads(pickle_data)
-        except Exception as e:
-            log.error("Received pickle data. Discarding")
+            event = EventUnpickler(six.BytesIO(pickle_data)).load()
+        except Exception:
+            log.error("Received invalid pickle data. Discarding")
+            return
 
-        if isinstance(event, MCOProgressEvent):
-            self._deliver_info(event.input + event.output)
-        elif isinstance(event, MCOStartEvent):
-            self._reset_info()
-        elif isinstance(event, MCOFinishEvent):
-            pass
-        else:
-            log.error("Received unrecognized type data while waiting. Discarding")
-
-    def _deliver_info(self, data):
-        def _add_data():
-            if len(self.analysis_model.value_names) == 0:
-                self.analysis_model.value_names = ["x", "y"]
-
-            data_float = tuple(map(float, data))
-            self.analysis_model.evaluation_steps.append(data_float)
-
-        GUI.invoke_later(_add_data)
-
-    def _reset_info(self):
-        def _add_data():
-            self.analysis_model.value_names = []
-            self.analysis_model.evaluation_steps[:] = []
-
-        GUI.invoke_later(_add_data)
+        self._on_event_callback(event)
