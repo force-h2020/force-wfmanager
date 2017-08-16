@@ -42,7 +42,7 @@ class UINotification(BaseNotificationListener):
 
         self._sync_socket = self._context.socket(zmq.REQ)
         self._sync_socket.setsockopt(zmq.LINGER, 0)
-        self._sync_socket.connect(model.sync_url)
+        self._sync_socket.connect(model.rep_url)
 
         msg = "HELLO\n{}\n{}".format(self._identifier, self._proto_version)
         self._sync_socket.send_string(msg)

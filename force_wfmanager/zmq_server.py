@@ -51,7 +51,7 @@ class ZMQServer(threading.Thread):
                 rep_data = self._rep_socket.recv_string()
 
             handle = getattr(self, "_handle_"+self.state)
-            handle(events, pub_data, rep_data)
+            handle(pub_data, rep_data)
 
     def _setup_sockets(self):
         context = self._context
@@ -103,7 +103,7 @@ class ZMQServer(threading.Thread):
             if len(self.analysis_model.value_names) == 0:
                 self.analysis_model.value_names = ["x", "y"]
 
-            data_float = map(float, data)
+            data_float = tuple(map(float, data))
             self.analysis_model.evaluation_steps.append(data_float)
 
         GUI.invoke_later(_add_data)

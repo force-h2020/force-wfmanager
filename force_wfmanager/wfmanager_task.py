@@ -21,6 +21,7 @@ from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.zmq_server import ZMQServer
+from force_wfmanager.zmq_server_config import ZMQServerConfig
 
 log = logging.getLogger(__name__)
 
@@ -167,7 +168,8 @@ class WfManagerTask(Task):
 
     def __init__(self, *args, **kwargs):
         super(WfManagerTask, self).__init__(*args, **kwargs)
-        self.zmq_monitor_thread = ZMQServer(self.analysis_model)
+        config = ZMQServerConfig()
+        self.zmq_monitor_thread = ZMQServer(config, self.analysis_m)
         self.zmq_monitor_thread.start()
 
     def open_workflow(self):

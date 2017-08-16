@@ -5,7 +5,7 @@ from force_bdss.api import (
 
 class UINotificationModel(BaseNotificationListenerModel):
     #: The socket URL where the UI will be found. Synchronization port.
-    sync_url = Unicode()
+    rep_url = Unicode()
 
     #: The socket URL where the UI will be found. PubSub port.
     pub_url = Unicode()
