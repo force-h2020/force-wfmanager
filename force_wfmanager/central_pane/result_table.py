@@ -23,7 +23,7 @@ class ResultTable(HasStrictTraits):
         depends_on='analysis_model.value_names'
     )
 
-    #: Selected evaluation step in the table
+    #: Selected evaluation steps in the table
     _selected_rows = Either(List(Tuple), None)
 
     view = View(
