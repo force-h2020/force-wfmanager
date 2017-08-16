@@ -38,6 +38,7 @@ setup(
         "chaco >= 4.6.1",
         "pyzmq >= 16.0.0",
         'futures >= 3.1.1',
+        "six >= 1.10.0"
     ],
     packages=find_packages(),
     entry_points={
