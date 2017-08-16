@@ -1,11 +1,11 @@
-from traits.api import String, Unicode
+from traits.api import Unicode
 from force_bdss.api import (
     BaseNotificationListenerModel, ZMQSocketURL)
 
 
 class UINotificationModel(BaseNotificationListenerModel):
     #: The socket URL where the UI will be found. Synchronization port.
-    rep_url = Unicode()
+    sync_url = Unicode()
 
     #: The socket URL where the UI will be found. PubSub port.
     pub_url = Unicode()

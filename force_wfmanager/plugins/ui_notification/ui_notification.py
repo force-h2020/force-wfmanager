@@ -1,4 +1,5 @@
 import logging
+import pickle
 from traits.api import Instance, String
 
 from force_bdss.api import (
@@ -42,10 +43,12 @@ class UINotification(BaseNotificationListener):
 
         self._sync_socket = self._context.socket(zmq.REQ)
         self._sync_socket.setsockopt(zmq.LINGER, 0)
-        self._sync_socket.connect(model.rep_url)
+        self._sync_socket.connect(model.sync_url)
 
-        msg = "HELLO\n{}\n{}".format(self._identifier, self._proto_version)
-        self._sync_socket.send_string(msg)
+        msg = ["HELLO",
+               str(self._identifier),
+               str(self._proto_version)]
+        self._sync_socket.send_multipart(msg)
         events = self._sync_socket.poll(1000, zmq.POLLIN)
 
         if events == 0:
@@ -54,7 +57,7 @@ class UINotification(BaseNotificationListener):
             self._close_and_clear_sockets()
             return
 
-        recv = self._sync_socket.recv_string()
+        recv = self._sync_socket.recv_multipart()
 
         if recv != msg:
             log.error(
@@ -67,15 +70,15 @@ class UINotification(BaseNotificationListener):
         if not self._context:
             return
 
-        msg = _format_event(event, self._identifier)
-        if msg is not None:
-            self._pub_socket.send_string(msg)
+        data = pickle.dumps(event)
+        self._pub_socket.send_multipart(
+            ["MESSAGE", self._identifier, data])
 
     def finalize(self):
         if not self._context:
             return
 
-        msg = "GOODBYE\n{}\n{}".format(self._identifier, self._proto_version)
+        msg = ["GOODBYE", str(self._identifier)]
         self._sync_socket.send_string(msg)
         events = self._sync_socket.poll(1000, zmq.POLLIN)
         if events == 0:
@@ -109,19 +112,3 @@ class UINotification(BaseNotificationListener):
 
     def _create_context(self):
         return zmq.Context()
-
-
-def _format_event(event, identifier):
-    """Converts the event into a byte sequence to be transferred via zmq"""
-    if isinstance(event, MCOStartEvent):
-        data = "MCO_START"
-    elif isinstance(event, MCOFinishEvent):
-        data = "MCO_FINISH"
-    elif isinstance(event, MCOProgressEvent):
-        data = "MCO_PROGRESS\n{}\n{}".format(
-            " ".join([str(x) for x in event.input]),
-            " ".join([str(x) for x in event.output]))
-    else:
-        return None
-
-    return "EVENT\n{}\n{}".format(identifier, data)
