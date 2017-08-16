@@ -4,7 +4,7 @@ from traits.api import Instance, String
 
 from force_bdss.api import (
     BaseNotificationListener,
-    BaseMCOEvent,
+    BaseDriverEvent,
 )
 
 import zmq
@@ -68,8 +68,8 @@ class UINotification(BaseNotificationListener):
         if not self._context:
             return
 
-        if not isinstance(event, BaseMCOEvent):
-            raise TypeError("Event is not a BaseMCOEvent")
+        if not isinstance(event, BaseDriverEvent):
+            raise TypeError("Event is not a BaseDriverEvent")
 
         data = pickle.dumps(event)
         self._pub_socket.send_multipart(

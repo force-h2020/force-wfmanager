@@ -1,11 +1,11 @@
 from traits.api import (
-    HasStrictTraits, List, Str, Tuple, Int, on_trait_change, Property, Either
+    HasStrictTraits, List, Tuple, Int, on_trait_change, Property, Either
 )
 
 
 class AnalysisModel(HasStrictTraits):
     #: List of parameter names
-    value_names = List(Str)
+    value_names = Tuple()
 
     #: Evaluation steps, each evaluation step is a tuple of parameter values,
     #: received from the bdss. Each value can be of any type. The order of
@@ -24,7 +24,7 @@ class AnalysisModel(HasStrictTraits):
     #: Selected step, used for highlighting in the table/plot
     _selected_step_index = Either(None, Int())
 
-    @on_trait_change("value_names[]")
+    @on_trait_change("value_names")
     def _clear_evaluation_steps(self):
         self._evaluation_steps[:] = []
         self._selected_step_index = None
@@ -62,7 +62,7 @@ class AnalysisModel(HasStrictTraits):
         self._selected_step_index = value
 
     def clear(self):
-        self.value_names[:] = []
+        self.value_names = ()
 
     def clear_steps(self):
         self._clear_evaluation_steps()
