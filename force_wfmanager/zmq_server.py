@@ -86,13 +86,17 @@ class ZMQServer(threading.Thread):
                 return
 
         if pub_data is not None:
-            split_data = pub_data.split("\n")
-            if split_data[2] == "MCO_PROGRESS":
-                self._deliver_info(split_data[3:])
-            elif split_data[2] == "MCO_START":
-                self._reset_info()
+            if pub_data.startswith("EVENT"):
+                split_data = pub_data.split("\n")
+                if split_data[2] == "MCO_PROGRESS":
+                    self._deliver_info(split_data[3:])
+                elif split_data[2] == "MCO_START":
+                    self._reset_info()
+                else:
+                    log.error("Received data while waiting. Discarding")
             else:
-                log.error("Received data while waiting. Discarding")
+                log.error("Unrecognized message received. Discarding")
+
 
     def _deliver_info(self, data):
         def _add_data():
