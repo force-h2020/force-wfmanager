@@ -122,8 +122,11 @@ class WorkflowModelView(ModelView):
 
     @on_trait_change('mco_representation.mco_parameters_names')
     def update_mco_parameters_names(self):
-        self.mco_parameters_names = \
-            self.mco_representation[0].mco_parameters_names
+        if len(self.mco_representation) != 0:
+            self.mco_parameters_names = \
+                self.mco_representation[0].mco_parameters_names
+        else:
+            self.mco_parameters_names = []
 
     def _model_default(self):
         return Workflow()
