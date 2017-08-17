@@ -1,4 +1,4 @@
-from traits.api import Instance, List, Property
+from traits.api import Instance, List, Property, Bool
 from traitsui.api import ModelView
 
 from force_bdss.core.workflow import Workflow
@@ -28,6 +28,9 @@ class WorkflowModelView(ModelView):
     kpi_calculators_representation = Property(
         List(Instance(KPICalculatorModelView)),
         depends_on='model.kpi_calculators')
+
+    #: Defines if the Workflow is valid or not
+    valid = Bool(True)
 
     def add_entity(self, entity):
         """ Adds an element to the workflow

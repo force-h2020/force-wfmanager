@@ -1,4 +1,4 @@
-from traits.api import Instance
+from traits.api import Instance, Bool
 
 from force_bdss.api import BaseDataSourceModel
 
