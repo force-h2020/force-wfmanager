@@ -1,28 +1,12 @@
 import logging
 import threading
-import pickle
-import six
 
 import zmq
 
+from force_wfmanager.server.event_deserializer import (
+    EventDeserializer, DeserializerError)
+
 log = logging.getLogger(__name__)
-
-
-class EventUnpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        # Only allow safe classes from builtins.
-        if module.startswith("traits"):
-            return pickle.Unpickler.find_class(self, module, name)
-
-        if name not in ["MCOProgressEvent",
-                        "MCOStartEvent",
-                        "MCOFinishEvent"]:
-            raise pickle.UnpicklingError(
-                "Cannot unpickle '{}.{}'".format(
-                    module, name))
-
-        from force_bdss import api
-        return getattr(api, name)
 
 
 class ZMQServer(threading.Thread):
@@ -45,6 +29,7 @@ class ZMQServer(threading.Thread):
         self._context = zmq.Context()
         self._pub_socket = None
         self._sync_socket = None
+        self._deserializer = EventDeserializer()
 
     def run(self):
         if self.state != ZMQServer.STATE_STOPPED:
@@ -133,16 +118,16 @@ class ZMQServer(threading.Thread):
             log.error("Unknown request received {}".format(data))
             return
 
-        msg, identifier, pickle_data = data
+        msg, identifier, serialized_data = data
 
         if msg != "MESSAGE":
             log.error("Unknown msg received {}".format(msg))
             return
 
         try:
-            event = EventUnpickler(six.BytesIO(pickle_data)).load()
-        except Exception:
-            log.error("Received invalid pickle data. Discarding")
+            event = self._deserializer.deserialize(serialized_data)
+        except DeserializerError:
+            log.error("Received invalid data. Discarding")
             return
 
         self._on_event_callback(event)

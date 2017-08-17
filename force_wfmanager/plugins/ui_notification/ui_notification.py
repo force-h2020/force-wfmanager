@@ -1,13 +1,13 @@
 import logging
-import pickle
+
+import zmq
 from traits.api import Instance, String
 
 from force_bdss.api import (
     BaseNotificationListener,
-    BaseMCOEvent,
+    BaseDriverEvent,
 )
-
-import zmq
+from .event_serializer import EventSerializer
 
 log = logging.getLogger(__name__)
 
@@ -30,6 +30,9 @@ class UINotification(BaseNotificationListener):
 
     #: The protocol version that this plugin delivers
     _proto_version = "1"
+
+    #: The serializer for the event.
+    _serializer = Instance(EventSerializer)
 
     def initialize(self, model):
         self._identifier = model.identifier
@@ -68,10 +71,10 @@ class UINotification(BaseNotificationListener):
         if not self._context:
             return
 
-        if not isinstance(event, BaseMCOEvent):
-            raise TypeError("Event is not a BaseMCOEvent")
+        if not isinstance(event, BaseDriverEvent):
+            raise TypeError("Event is not a BaseDriverEvent")
 
-        data = pickle.dumps(event)
+        data = self._serializer.serialize(event)
         self._pub_socket.send_multipart(
             ["MESSAGE", self._identifier, data])
 
@@ -114,3 +117,6 @@ class UINotification(BaseNotificationListener):
 
     def _create_context(self):
         return zmq.Context()
+
+    def __serializer_default(self):
+        return EventSerializer()
