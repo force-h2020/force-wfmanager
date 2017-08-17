@@ -1,11 +1,14 @@
-Description:
-    No volume description specified.
+The icons are mostly derived work from other icons. As such they are
+licensed accordingly to the original license:
 
-Copyright:
-    No copyright information specified.
+Project                 License                   File
+----------------------------------------------------------------------------
+Enthought               BSD 3-Clause              LICENSE.txt
 
-License:
-    No license information specified.
+Unless stated in this file, icons are the work of Enthought, and are
+released under a 3 clause BSD license.
 
-Applicable Images:
-  - All
+Files and orginal authors:
+----------------------------------------------------------------------------
+force-wfmanager/force_wfmanager/left_side_pane/icons:
+                            all | Enthought
