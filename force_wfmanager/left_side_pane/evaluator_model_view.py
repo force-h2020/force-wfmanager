@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, Instance, Str, List, Int,
-                        on_trait_change, Either)
+                        on_trait_change, Either, Enum)
 
 from traitsui.api import View, Item, ModelView, TableEditor
 from traitsui.table_column import ObjectColumn
@@ -17,9 +17,6 @@ class TableRow(HasStrictTraits):
     #: Type of the slot
     type = Str()
 
-    #: Name of the slot
-    name = Identifier()
-
     #: Index of the slot in the slot list
     index = Int()
 
@@ -32,12 +29,24 @@ class TableRow(HasStrictTraits):
 
 
 class InputSlotRow(TableRow):
+    #: Name of the slot
+    name = Enum(values='available_variables')
+
+    #: Available variables as input for this evaluator
+    available_variables = List()
+
     @on_trait_change('name')
     def update_model(self):
         self.model.input_slot_maps[self.index].name = self.name
 
+    def _available_variables_default(self):
+        return ['', 'p0', 'p1', 'p2']
+
 
 class OutputSlotRow(TableRow):
+    #: Name of the slot
+    name = Identifier()
+
     @on_trait_change('name')
     def update_model(self):
         self.model.output_slot_names[self.index] = self.name
@@ -46,7 +55,6 @@ class OutputSlotRow(TableRow):
 slots_editor = TableEditor(
     sortable=False,
     configurable=False,
-    auto_size=False,
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
