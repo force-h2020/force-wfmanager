@@ -419,3 +419,6 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             mock_open.assert_not_called()
             mock_writer.write.assert_not_called()
             self.wfmanager_task.window.application.exit.assert_not_called()
+
+    def test_dispatch_mco_event(self):
+        pass

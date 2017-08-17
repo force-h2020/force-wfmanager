@@ -85,6 +85,7 @@ class TestZMQServer(unittest.TestCase):
     def test_start_and_stop(self):
         config = ZMQServerConfig()
         received = []
+
         def cb(event):
             received.append(event)
 
@@ -104,11 +105,14 @@ class TestZMQServer(unittest.TestCase):
         mock_inproc_socket = MockSocket()
 
         received = []
+
         def cb(event):
             received.append(event)
 
-        with mock.patch.object(ZMQServer, "_get_poller") as mock_get_poller, \
-                mock.patch.object(ZMQServer, "_get_context") as mock_get_context:
+        with mock.patch.object(
+                    ZMQServer, "_get_poller") as mock_get_poller, \
+                mock.patch.object(
+                    ZMQServer, "_get_context") as mock_get_context:
 
             mock_get_poller.return_value = MockPoller()
             mock_context = mock.Mock()
@@ -145,5 +149,3 @@ class TestZMQServer(unittest.TestCase):
 
             mock_inproc_socket.data = ''
             wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
-
-

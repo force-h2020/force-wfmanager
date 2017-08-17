@@ -17,11 +17,12 @@ class TestEventSerializer(unittest.TestCase):
 
         self.assertEqual(
             json.loads(data),
-            {"type": "MCOStartEvent",
-             "model_data": {
-                 "__traits_version__": "4.6.0",
-                 "input_names": ["a", "b"],
-                 "output_names": ["c", "d"],
-             }
+            {
+                "type": "MCOStartEvent",
+                "model_data": {
+                    "__traits_version__": "4.6.0",
+                    "input_names": ["a", "b"],
+                    "output_names": ["c", "d"],
+                }
             }
         )

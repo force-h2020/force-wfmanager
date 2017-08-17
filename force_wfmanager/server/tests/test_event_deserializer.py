@@ -5,11 +5,6 @@ import unittest
 from force_wfmanager.server.event_deserializer import (
     EventDeserializer, DeserializerError)
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
-
 from force_bdss.api import MCOStartEvent
 
 
@@ -55,8 +50,7 @@ class TestEventDeserializer(unittest.TestCase):
 
         for case in invalid_cases:
             with self.assertRaises(DeserializerError):
-                event = EventDeserializer().deserialize(json.dumps(case))
+                EventDeserializer().deserialize(json.dumps(case))
 
         with self.assertRaises(DeserializerError):
-            event = EventDeserializer().deserialize([])
-
+            EventDeserializer().deserialize([])
