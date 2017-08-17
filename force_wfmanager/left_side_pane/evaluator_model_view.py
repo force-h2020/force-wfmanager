@@ -33,7 +33,7 @@ class InputSlotRow(TableRow):
     name = Enum(values='available_variables')
 
     #: Available variables as input for this evaluator
-    available_variables = List()
+    available_variables = List(Identifier)
 
     @on_trait_change('name')
     def update_model(self):

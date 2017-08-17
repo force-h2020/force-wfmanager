@@ -1,7 +1,7 @@
-from traits.api import Instance, List, Property, Str
+from traits.api import Instance, List, Str, on_trait_change
 from traitsui.api import ModelView
 
-from force_bdss.api import BaseMCOModel
+from force_bdss.api import BaseMCOModel, Identifier
 
 from .mco_parameter_model_view import MCOParameterModelView
 from .view_utils import get_factory_name
@@ -14,17 +14,24 @@ class MCOModelView(ModelView):
     #: Label to be used in the TreeEditor
     label = Str()
 
-    #: List of MCO parameters to be displayed in the TreeEditor, it is a
-    #: Property so that the list in the editor is synchronized with the actual
-    #: list of parameters in the MCO model
-    mco_parameters_representation = Property(
-        List(Instance(MCOParameterModelView)),
-        depends_on="model.parameters"
-    )
+    #: List of MCO parameters to be displayed in the TreeEditor
+    mco_parameters_representation = List(Instance(MCOParameterModelView))
 
-    def _get_mco_parameters_representation(self):
-        return [MCOParameterModelView(model=parameter)
-                for parameter in self.model.parameters]
+    #: List of MCO parameter names
+    mco_parameters_names = List(Identifier)
+
+    @on_trait_change('model.parameters[]')
+    def update_mco_parameters_representation(self):
+        """ Update the MCOParameterModelViews """
+        self.mco_parameters_representation = [
+            MCOParameterModelView(model=parameter)
+            for parameter in self.model.parameters]
+
+    @on_trait_change('mco_parameters_representation.name')
+    def update_mco_parameter_names(self):
+        """ Update the available paramter names """
+        self.mco_parameters_names = [
+            p.name for p in self.mco_parameters_representation]
 
     def _label_default(self):
         return get_factory_name(self.model.factory)
