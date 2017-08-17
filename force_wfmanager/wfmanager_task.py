@@ -169,7 +169,7 @@ class WfManagerTask(Task):
         config = ZMQServerConfig()
         self._zmq_server = ZMQServer(
             config,
-            on_event_callback=self._server_event)
+            on_event_callback=self._server_event_callback)
         self._zmq_server.start()
 
     def open_workflow(self):
@@ -341,10 +341,17 @@ class WfManagerTask(Task):
     def update_side_pane(self):
         self.side_pane.workflow_m = self.workflow_m
 
-    def _server_event(self, event):
+    def _server_event_callback(self, event):
+        """Callback that is called by the server thread
+        when a new event is received. This method is
+        executed by the server thread.
+        """
         GUI.invoke_later(self._server_event_mainthread, event)
 
     def _server_event_mainthread(self, event):
+        """Invoked by the main thread.
+        Handles the event received by the server, dispatching its
+        action appropriately according to the type"""
         if isinstance(event, MCOStartEvent):
             self.analysis_m.clear()
             self.analysis_m.value_names = ["x", "y"]
