@@ -28,5 +28,4 @@ class MCOParameterModelView(ModelView):
 
     @on_trait_change('model.name')
     def update_name(self):
-        print 'name changed', self.model.name
         self.name = self.model.name
