@@ -1,7 +1,5 @@
-import os
-
 from traits.api import (Instance, List, Property, HasStrictTraits,
-                        on_trait_change, Str)
+                        on_trait_change)
 
 from traitsui.api import (TreeEditor, TreeNode, UItem, View, Menu, Action,
                           Handler)
@@ -95,19 +93,11 @@ delete_entity_action = Action(
 
 class WorkflowElementNode(TreeNode):
     """ Custom TreeNode class for worklow elements """
-    icon_invalid = Str('<invalid>')
-
     def get_icon(self, object, is_expanded):
-        if not object.valid:
-            return self.icon_invalid
-
-        return super(WorkflowElementNode, self).get_icon(object, is_expanded)
-
-    def _icon_path_default(self):
-        return os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            'icons'
-        )
+        if object.valid:
+            return 'icons/valid.png'
+        else:
+            return 'icons/invalid.png'
 
 
 tree_editor = TreeEditor(
