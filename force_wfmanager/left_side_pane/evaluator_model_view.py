@@ -20,32 +20,32 @@ class TableRow(HasStrictTraits):
     #: Index of the slot in the slot list
     index = Int()
 
-    #: ModelView of the evaluator
-    evaluator_mv = Instance(ModelView, allow_none=False)
-
-    def __init__(self, evaluator_mv, *args, **kwargs):
-        self.evaluator_mv = evaluator_mv
-
-        super(TableRow, self).__init__(*args, **kwargs)
+    #: Model of the evaluator
+    model = Either(
+        Instance(BaseDataSourceModel),
+        Instance(BaseKPICalculatorModel),
+        allow_none=False
+    )
 
 
 class InputSlotRow(TableRow):
     #: Name of the slot
-    name = Enum(values='available_variables')
+    name = Enum(values='_available_variables')
 
     #: Available variables as input for this evaluator
     available_variables = List(Identifier)
 
+    #: Possible values for the name of the input, it can be an empty string or
+    #: one of the available variables
+    _available_variables = List(Identifier)
+
     @on_trait_change('name')
     def update_model(self):
-        self.evaluator_mv.model.input_slot_maps[self.index].name = self.name
+        self.model.input_slot_maps[self.index].name = self.name
 
-    @on_trait_change('evaluator_mv.available_variables')
+    @on_trait_change('available_variables')
     def update_available_variables(self):
-        self.available_variables = [''] + self.evaluator_mv.available_variables
-
-    def _available_variables_default(self):
-        return [''] + self.evaluator_mv.available_variables
+        self._available_variables = [''] + self.available_variables
 
 
 class OutputSlotRow(TableRow):
@@ -54,7 +54,7 @@ class OutputSlotRow(TableRow):
 
     @on_trait_change('name')
     def update_model(self):
-        self.evaluator_mv.model.output_slot_names[self.index] = self.name
+        self.model.output_slot_names[self.index] = self.name
 
 
 slots_editor = TableEditor(
@@ -197,7 +197,8 @@ class EvaluatorModelView(ModelView):
             InputSlotRow(index=index,
                          name=self.model.input_slot_maps[index].name,
                          type=input_slot.type,
-                         evaluator_mv=self)
+                         model=self.model,
+                         available_variables=self.available_variables)
             for index, input_slot in enumerate(input_slots)
         ]
 
@@ -205,6 +206,11 @@ class EvaluatorModelView(ModelView):
             OutputSlotRow(index=index,
                           name=self.model.output_slot_names[index],
                           type=output_slot.type,
-                          evaluator_mv=self)
+                          model=self.model)
             for index, output_slot in enumerate(output_slots)
         ]
+
+    @on_trait_change('available_variables')
+    def update_input_rows(self):
+        for input_slot_row in self.input_slots_representation:
+            input_slot_row.available_variables = self.available_variables
