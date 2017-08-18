@@ -29,7 +29,7 @@ class MCOModelView(ModelView):
 
     @on_trait_change('mco_parameters_representation.model.name')
     def update_mco_parameter_names(self):
-        """ Update the available paramter names """
+        """ Update the available parameter names """
         self.mco_parameters_names = [
             p.model.name
             for p in self.mco_parameters_representation
