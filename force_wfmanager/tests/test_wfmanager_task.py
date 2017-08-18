@@ -25,9 +25,7 @@ from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
-from force_bdss.api import (
-    BaseMCOModel, BaseMCOFactory,
-    BaseMCOParameter, BaseMCOParameterFactory)
+from force_bdss.api import BaseMCOModel, BaseMCOFactory
 
 
 from force_wfmanager.wfmanager_task import WfManagerTask
