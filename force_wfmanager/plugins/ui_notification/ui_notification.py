@@ -86,8 +86,8 @@ class UINotification(BaseNotificationListener):
         self._sync_socket.send_multipart(msg)
         events = self._sync_socket.poll(1000, zmq.POLLIN)
         if events == 0:
-            log.info("Could not close connection to UI server after "
-                     "1000 ms.")
+            log.error("Could not close connection to UI server after "
+                      "1000 ms.")
             self._close_and_clear_sockets()
             return
 
