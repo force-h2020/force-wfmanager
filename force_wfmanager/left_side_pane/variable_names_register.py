@@ -49,7 +49,7 @@ class VariableNamesRegister(HasStrictTraits):
         while '' in data_sources_output_names:
             data_sources_output_names.pop(data_sources_output_names.index(''))
 
-        self.data_source_outputs_names = data_sources_output_names
+        self.data_sources_output_names = data_sources_output_names
 
     @on_trait_change('mco_parameters_names')
     def update_data_sources_inputs(self):
