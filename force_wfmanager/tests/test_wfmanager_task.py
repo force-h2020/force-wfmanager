@@ -1,6 +1,8 @@
 import unittest
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
+from force_wfmanager.server.zmq_server import ZMQServer
+from force_wfmanager.tests.utils import wait_condition
 
 try:
     import mock
@@ -422,3 +424,15 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
     def test_dispatch_mco_event(self):
         pass
+
+    def test_initialize_finalize(self):
+        self.wfmanager_task.initialized()
+        wait_condition(
+            lambda: (self.wfmanager_task._zmq_server.state ==
+                    ZMQServer.STATE_WAITING))
+
+        self.wfmanager_task.prepare_destroy()
+
+        self.assertEqual(
+            self.wfmanager_task._zmq_server.state,
+            ZMQServer.STATE_STOPPED)
