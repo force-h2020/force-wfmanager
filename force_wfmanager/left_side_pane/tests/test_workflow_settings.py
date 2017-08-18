@@ -84,6 +84,9 @@ def get_workflow_model_view():
     mco.factory = mock.Mock(spec=BaseMCOFactory)
     mco.factory.parameter_factories = lambda: [
         mock.Mock(spec=BaseMCOParameterFactory)]
+    parameter = mock.Mock(BaseMCOParameter)
+    parameter.name = ''
+    mco.parameters = [parameter]
     workflow_mv = WorkflowModelView(
         model=Workflow(
             mco=mco,
@@ -93,7 +96,6 @@ def get_workflow_model_view():
                              get_kpi_calculator_model_mock(),
                              get_kpi_calculator_model_mock()])
     )
-    workflow_mv.model.mco.parameters = [mock.Mock(BaseMCOParameter)]
     return workflow_mv
 
 

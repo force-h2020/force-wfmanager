@@ -25,6 +25,10 @@ from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
+from force_bdss.api import (
+    BaseMCOModel, BaseMCOFactory,
+    BaseMCOParameter, BaseMCOParameterFactory)
+
 
 from force_wfmanager.wfmanager_task import WfManagerTask
 from force_wfmanager.left_side_pane.side_pane import SidePane
@@ -84,7 +88,15 @@ def mock_file_writer(*args, **kwargs):
 
 def mock_file_reader(*args, **kwargs):
     def read(*args, **kwargs):
-        return mock.Mock(spec=Workflow)
+        mco = mock.Mock(spec=BaseMCOModel)
+        mco.factory = mock.Mock(spec=BaseMCOFactory)
+        mco.parameters = []
+
+        mock_workflow = mock.Mock(spec=Workflow)
+        mock_workflow.mco = mco
+        mock_workflow.data_sources = []
+        mock_workflow.kpi_calculators = []
+        return mock_workflow
     reader = mock.Mock(spec=WorkflowReader)
     reader.read = read
     return reader

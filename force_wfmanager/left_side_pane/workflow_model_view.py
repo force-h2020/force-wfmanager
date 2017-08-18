@@ -44,6 +44,12 @@ class WorkflowModelView(ModelView):
         self.variable_names_register.kpi_calculators_mv = \
             self.kpi_calculators_representation
 
+        # Now that the variable names register is correctly set, we can update
+        # the model views
+        self.update_mco_representation()
+        self.update_data_sources_representation()
+        self.update_kpi_calculators_representation()
+
     def add_entity(self, entity):
         """ Adds an element to the workflow
 
