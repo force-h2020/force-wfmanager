@@ -61,7 +61,10 @@ class EvaluatorModelViewTest(unittest.TestCase):
         self.model = factory.create_model()
         self.evaluator = factory.create_kpi_calculator()
 
-        self.evaluator_mv = EvaluatorModelView(model=self.model)
+        self.evaluator_mv = EvaluatorModelView(
+            model=self.model,
+            available_variables=['P1', 'P2', 'P3']
+        )
 
     def test_evaluator_model_view_init(self):
         self.assertEqual(self.evaluator_mv.label, "test_kpi")
@@ -74,8 +77,11 @@ class EvaluatorModelViewTest(unittest.TestCase):
         self.assertEqual(self.model.output_slot_names[0], '')
 
     def test_input_slot_update(self):
-        self.evaluator_mv.input_slots_representation[0].name = 'input'
-        self.assertEqual(self.model.input_slot_maps[0].name, 'input')
+        self.evaluator_mv.input_slots_representation[0].name = 'P1'
+        self.assertEqual(self.model.input_slot_maps[0].name, 'P1')
+
+        self.evaluator_mv.input_slots_representation[0].name = ''
+        self.assertEqual(self.model.input_slot_maps[0].name, '')
 
     def test_output_slot_update(self):
         self.evaluator_mv.output_slots_representation[0].name = 'output'
