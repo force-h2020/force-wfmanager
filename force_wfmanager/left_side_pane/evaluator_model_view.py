@@ -24,7 +24,7 @@ class TableRow(HasStrictTraits):
     model = Either(
         Instance(BaseDataSourceModel),
         Instance(BaseKPICalculatorModel),
-        allow_none=False
+        allow_none=False,
     )
 
 
