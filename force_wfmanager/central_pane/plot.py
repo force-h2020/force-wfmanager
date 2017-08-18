@@ -77,8 +77,8 @@ class Plot(HasStrictTraits):
 
     @on_trait_change('_value_names')
     def update_selected_axis(self):
-        """ If the data dimensions is larger than 1, select the second component
-        for the y axis """
+        """ If the data dimensions is larger than 1, select the second
+        component for the y axis """
         if len(self._value_names) > 1:
             self.y = self._value_names[1]
 
