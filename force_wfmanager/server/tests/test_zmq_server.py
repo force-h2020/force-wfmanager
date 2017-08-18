@@ -1,5 +1,11 @@
 import json
+import logging
 import unittest
+import contextlib
+
+from testfixtures import LogCapture
+
+from force_wfmanager.tests.utils import wait_condition
 
 try:
     import mock
@@ -11,21 +17,6 @@ import time
 from force_bdss.api import MCOStartEvent
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.server.zmq_server_config import ZMQServerConfig
-
-
-class TimeoutError(Exception):
-    pass
-
-
-def wait_condition(condition, seconds=5):
-    count = 0
-    while True:
-        if condition():
-            break
-        time.sleep(1)
-        count += 1
-        if count == seconds:
-            raise TimeoutError("timeout")
 
 
 class MockPoller(object):
@@ -99,18 +90,17 @@ class TestZMQServer(unittest.TestCase):
 
         wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
 
-    def test_receive_info(self):
+    @contextlib.contextmanager
+    def mock_server(self, events_received):
         mock_pub_socket = MockSocket()
         mock_sync_socket = MockSocket()
         mock_inproc_socket = MockSocket()
 
-        received = []
-
         def cb(event):
-            received.append(event)
+            events_received.append(event)
 
         with mock.patch.object(
-                    ZMQServer, "_get_poller") as mock_get_poller, \
+                ZMQServer, "_get_poller") as mock_get_poller, \
                 mock.patch.object(
                     ZMQServer, "_get_context") as mock_get_context:
 
@@ -124,28 +114,113 @@ class TestZMQServer(unittest.TestCase):
             config = ZMQServerConfig()
             server = ZMQServer(config, cb)
             server.start()
-
-            wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
-            mock_sync_socket.data = ["HELLO", "xxx", "1"]
-            wait_condition(lambda: server.state == ZMQServer.STATE_RECEIVING)
-
-            mock_sync_socket.data = ["GOODBYE", "xxx"]
             wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
 
-            mock_sync_socket.data = ["HELLO", "xxx", "1"]
+            yield server
+
+            mock_inproc_socket.data = ''
+            wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
+
+    def test_receive_info(self):
+        received = []
+
+        with self.mock_server(received) as server:
+            server._sync_socket.data = ["HELLO", "xxx", "1"]
             wait_condition(lambda: server.state == ZMQServer.STATE_RECEIVING)
 
-            mock_pub_socket.data = ["MESSAGE", "xxx",
-                                    json.dumps({
-                                        'type': 'MCOStartEvent',
-                                        'model_data': {}
-                                                })]
+            server._sync_socket.data = ["GOODBYE", "xxx"]
+            wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
+
+            server._sync_socket.data = ["HELLO", "xxx", "1"]
+            wait_condition(lambda: server.state == ZMQServer.STATE_RECEIVING)
+
+            server._pub_socket.data = ["MESSAGE", "xxx",
+                                       json.dumps({
+                                          'type': 'MCOStartEvent',
+                                          'model_data': {}
+                                                 })]
 
             wait_condition(lambda: len(received) == 1)
             self.assertIsInstance(received[0], MCOStartEvent)
 
-            mock_sync_socket.data = ["GOODBYE", "xxx"]
+            server._sync_socket.data = ["GOODBYE", "xxx"]
             wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
 
-            mock_inproc_socket.data = ''
-            wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
+    def test_error_conditions_waiting_sync(self):
+        received = []
+        with LogCapture(level=logging.ERROR) as capture:
+            with self.mock_server(received) as server:
+                server._sync_socket.data = ["HELLO"]
+                wait_condition(lambda: len(capture.records) == 1)
+                server._sync_socket.data = ["WHATEVER", 'xxx', '3']
+                wait_condition(lambda: len(capture.records) == 2)
+                server._sync_socket.data = ["HELLO", 'xxx', '3']
+                wait_condition(lambda: len(capture.records) == 3)
+
+            capture.check(
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "Unknown request received ['HELLO']"),
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 'Unknown msg request received WHATEVER'),
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 'Unknown protocol received 3')
+            )
+
+    def test_error_conditions_receiving_sync(self):
+        received = []
+        with LogCapture(level=logging.ERROR) as capture:
+            with self.mock_server(received) as server:
+                server._sync_socket.data = ["HELLO", "xxx", "1"]
+                wait_condition(
+                    lambda: server.state == ZMQServer.STATE_RECEIVING)
+
+                server._sync_socket.data = ["HELLO", 'xxx', '1']
+                wait_condition(lambda: len(capture.records) == 1)
+
+                server._sync_socket.data = ["HELLO", 'xxx']
+                wait_condition(lambda: len(capture.records) == 2)
+
+            capture.check(
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "Unknown request received ['HELLO', 'xxx', '1']"),
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 'Unknown msg request received HELLO'),
+            )
+
+    def test_error_conditions_waiting_pub(self):
+        received = []
+        with LogCapture(level=logging.ERROR) as capture:
+            with self.mock_server(received) as server:
+                server._pub_socket.data = ["HELLO", "xxx", "1"]
+                wait_condition(lambda: len(capture.records) == 1)
+
+            capture.check(
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "State WAITING cannot handle pub data. Discarding."),
+            )
+
+    def test_error_conditions_receiving_pub(self):
+        received = []
+        with LogCapture(level=logging.ERROR) as capture:
+            with self.mock_server(received) as server:
+                server._sync_socket.data = ["HELLO", "xxx", "1"]
+                wait_condition(
+                    lambda: server.state == ZMQServer.STATE_RECEIVING)
+
+                server._pub_socket.data = ["MESSAGE", "xxx"]
+                wait_condition(lambda: len(capture.records) == 1)
+
+                server._pub_socket.data = ["WHATEVER", "xxx", ""]
+                wait_condition(lambda: len(capture.records) == 2)
+
+                server._pub_socket.data = ["MESSAGE", "xxx", "bonkers"]
+                wait_condition(lambda: len(capture.records) == 3)
+
+            capture.check(
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "Unknown request received ['MESSAGE', 'xxx']"),
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 'Unknown msg request received WHATEVER'),
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 'Received invalid data. Discarding'),
+            )

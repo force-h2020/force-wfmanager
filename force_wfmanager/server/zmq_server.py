@@ -172,7 +172,7 @@ class ZMQServer(threading.Thread):
         msg, identifier = data
 
         if msg != "GOODBYE":
-            log.error("Unknown msg received {}".format(msg))
+            log.error("Unknown msg request received {}".format(msg))
             return
 
         self._sync_socket.send_multipart(data)
@@ -186,7 +186,7 @@ class ZMQServer(threading.Thread):
         msg, identifier, serialized_data = data
 
         if msg != "MESSAGE":
-            log.error("Unknown msg received {}".format(msg))
+            log.error("Unknown msg request received {}".format(msg))
             return
 
         try:

@@ -429,7 +429,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
         self.wfmanager_task.initialized()
         wait_condition(
             lambda: (self.wfmanager_task._zmq_server.state ==
-                    ZMQServer.STATE_WAITING))
+                     ZMQServer.STATE_WAITING))
 
         self.wfmanager_task.prepare_destroy()
 
