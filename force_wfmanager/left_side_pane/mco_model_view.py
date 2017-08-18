@@ -31,7 +31,10 @@ class MCOModelView(ModelView):
     def update_mco_parameter_names(self):
         """ Update the available paramter names """
         self.mco_parameters_names = [
-            p.model.name for p in self.mco_parameters_representation]
+            p.model.name
+            for p in self.mco_parameters_representation
+            if len(p.model.name) != 0
+        ]
 
     def _label_default(self):
         return get_factory_name(self.model.factory)

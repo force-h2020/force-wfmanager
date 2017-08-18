@@ -145,6 +145,9 @@ class WorkflowModelView(ModelView):
         data_source_outputs_names = []
         for data_source in self.model.data_sources:
             data_source_outputs_names.extend(data_source.output_slot_names)
+        while '' in data_source_outputs_names:
+            data_source_outputs_names.pop(data_source_outputs_names.index(''))
+
         self.data_source_outputs_names = data_source_outputs_names
 
     @on_trait_change('data_source_outputs_names[]')
