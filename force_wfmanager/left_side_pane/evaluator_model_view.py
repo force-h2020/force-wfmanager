@@ -47,6 +47,9 @@ class InputSlotRow(TableRow):
     def update_available_variables(self):
         self._available_variables = [''] + self.available_variables
 
+    def __available_variables_default(self):
+        return [''] + self.available_variables
+
 
 class OutputSlotRow(TableRow):
     #: Name of the slot
