@@ -94,9 +94,7 @@ delete_entity_action = Action(
 class WorkflowElementNode(TreeNode):
     """ Custom TreeNode class for worklow elements """
     def get_icon(self, object, is_expanded):
-        if object.valid:
-            return 'icons/valid.png'
-        return 'icons/invalid.png'
+        return 'icons/valid.png' if object.valid else 'icons/invalid.png'
 
 
 tree_editor = TreeEditor(
