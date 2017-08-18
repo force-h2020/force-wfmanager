@@ -3,7 +3,7 @@ import json
 
 from force_bdss.api import MCOStartEvent
 from force_wfmanager.plugins.ui_notification.event_serializer import \
-    EventSerializer
+    EventSerializer, SerializerError
 
 
 class TestEventSerializer(unittest.TestCase):
@@ -26,3 +26,7 @@ class TestEventSerializer(unittest.TestCase):
                 }
             }
         )
+
+    def test_serialize_invalid_entity(self):
+        with self.assertRaises(SerializerError):
+            EventSerializer().serialize("foo")
