@@ -4,7 +4,7 @@ from force_bdss.api import Identifier
 
 from .mco_parameter_model_view import MCOParameterModelView
 from .data_source_model_view import DataSourceModelView
-from kpi_calculator_model_view import KPICalculatorModelView
+from .kpi_calculator_model_view import KPICalculatorModelView
 
 
 class VariableNamesRegister(HasStrictTraits):
