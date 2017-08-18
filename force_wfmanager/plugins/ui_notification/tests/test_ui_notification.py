@@ -131,7 +131,7 @@ class TestUINotification(unittest.TestCase):
             listener.finalize()
             capture.check(
                 ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
-                 "INFO",
+                 "ERROR",
                  "Could not close connection to UI server after 1000 ms."  # noqa
                  ),
             )
