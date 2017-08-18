@@ -108,16 +108,22 @@ class WorkflowModelView(ModelView):
         else:
             self.mco_representation = []
 
-    @on_trait_change('model.data_sources[]')
+    @on_trait_change('model.data_sources[]', post_init=True)
     def update_data_sources_representation(self):
+        """ Update the data source model views. We use the post_init option
+        because we want the WorkflowModelView and the available_variables to be
+        correctly set before creating the DataSourceModelViews """
         self.data_sources_representation = [
             DataSourceModelView(
                 model=data_source,
                 available_variables=self.mco_parameters_names)
             for data_source in self.model.data_sources]
 
-    @on_trait_change('model.kpi_calculators[]')
+    @on_trait_change('model.kpi_calculators[]', post_init=True)
     def update_kpi_calculators_representation(self):
+        """ Update the kpi calculator model views. We use the post_init option
+        because we want the WorkflowModelView and the available_variables to be
+        correctly set before creating the KPICalculatorModelViews """
         available_variables = self.mco_parameters_names + \
             self.data_source_outputs_names
         self.kpi_calculators_representation = [
