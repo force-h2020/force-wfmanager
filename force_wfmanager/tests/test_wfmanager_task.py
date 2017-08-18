@@ -1,5 +1,6 @@
 import unittest
 
+from force_bdss.core_driver_events import MCOStartEvent, MCOProgressEvent
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.tests.utils import wait_condition
@@ -423,7 +424,24 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             self.wfmanager_task.window.application.exit.assert_not_called()
 
     def test_dispatch_mco_event(self):
-        pass
+        send_event = self.wfmanager_task._server_event_callback
+        self.assertEqual(self.wfmanager_task.analysis_m.value_names, [])
+        with self.event_loop():
+            send_event(MCOStartEvent())
+
+        self.assertEqual(
+            len(self.wfmanager_task.analysis_m.evaluation_steps),
+            0)
+        self.assertEqual(
+            self.wfmanager_task.analysis_m.value_names,
+            ['x', 'y'])
+
+        with self.event_loop():
+            send_event(MCOProgressEvent(input=["1.0"], output=["2.0"]))
+
+        self.assertEqual(
+            len(self.wfmanager_task.analysis_m.evaluation_steps),
+            1)
 
     def test_initialize_finalize(self):
         self.wfmanager_task.initialized()

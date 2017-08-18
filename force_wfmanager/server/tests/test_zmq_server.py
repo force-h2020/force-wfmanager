@@ -90,20 +90,6 @@ class TestZMQServer(unittest.TestCase):
 
         wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
 
-    def test_double_start(self):
-        config = ZMQServerConfig()
-        server = ZMQServer(config, lambda: None)
-
-        server.start()
-        wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
-
-        # This should have no effect and leave the state as waiting.
-        server.start()
-        wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
-
-        server.stop()
-        wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
-
     @contextlib.contextmanager
     def mock_server(self, events_received):
         mock_pub_socket = MockSocket()
