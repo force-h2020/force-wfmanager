@@ -1,28 +1,25 @@
-import subprocess
 import logging
-
-import tempfile
 import os
+import subprocess
+import tempfile
+
 from concurrent.futures import ThreadPoolExecutor
-
-from traits.api import Instance, on_trait_change, File, Str
-
-from pyface.tasks.api import Task, TaskLayout, PaneItem
-from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.api import (
     FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI)
+from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
+from pyface.tasks.api import Task, TaskLayout, PaneItem
+from traits.api import Instance, on_trait_change, File, Str
 
 from force_bdss.api import MCOProgressEvent, MCOStartEvent
-from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
-from force_bdss.io.workflow_writer import WorkflowWriter
+from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
-
+from force_bdss.io.workflow_writer import WorkflowWriter
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
-from force_wfmanager.zmq_server import ZMQServer
-from force_wfmanager.zmq_server_config import ZMQServerConfig
+from force_wfmanager.server.zmq_server import ZMQServer
+from force_wfmanager.server.zmq_server_config import ZMQServerConfig
 
 log = logging.getLogger(__name__)
 
@@ -55,7 +52,7 @@ class WfManagerTask(Task):
     _bdss_executable_path = Str("force_bdss")
 
     #: ZeroMQ Server to receive information from the running BDSS
-    zmq_server = Instance(ZMQServer)
+    _zmq_server = Instance(ZMQServer)
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(
@@ -96,6 +93,12 @@ class WfManagerTask(Task):
     def create_dock_panes(self):
         """ Creates the dock panes """
         return [self.side_pane]
+
+    def initialized(self):
+        self._zmq_server.start()
+
+    def prepare_destroy(self):
+        self._zmq_server.stop()
 
     def save_workflow(self):
         """ Saves the workflow into the currently used file. If there is no
@@ -166,14 +169,6 @@ class WfManagerTask(Task):
             return False
         else:
             return True
-
-    def __init__(self, *args, **kwargs):
-        super(WfManagerTask, self).__init__(*args, **kwargs)
-        config = ZMQServerConfig()
-        self._zmq_server = ZMQServer(
-            config,
-            on_event_callback=self._server_event)
-        self._zmq_server.start()
 
     def open_workflow(self):
         """ Shows a dialog to open a workflow file """
@@ -338,16 +333,27 @@ class WfManagerTask(Task):
     def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)
 
+    def __zmq_server_default(self):
+        config = ZMQServerConfig()
+        return ZMQServer(config, on_event_callback=self._server_event_callback)
+
     # Handlers
 
     @on_trait_change('workflow_m')
     def update_side_pane(self):
         self.side_pane.workflow_m = self.workflow_m
 
-    def _server_event(self, event):
+    def _server_event_callback(self, event):
+        """Callback that is called by the server thread
+        when a new event is received. This method is
+        executed by the server thread.
+        """
         GUI.invoke_later(self._server_event_mainthread, event)
 
     def _server_event_mainthread(self, event):
+        """Invoked by the main thread.
+        Handles the event received by the server, dispatching its
+        action appropriately according to the type"""
         if isinstance(event, MCOStartEvent):
             self.analysis_m.clear()
             self.analysis_m.value_names = event.input_names + event.output_names

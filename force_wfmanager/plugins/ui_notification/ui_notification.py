@@ -1,13 +1,13 @@
 import logging
-import pickle
+
+import zmq
 from traits.api import Instance, String
 
 from force_bdss.api import (
     BaseNotificationListener,
     BaseDriverEvent,
 )
-
-import zmq
+from .event_serializer import EventSerializer
 
 log = logging.getLogger(__name__)
 
@@ -30,6 +30,9 @@ class UINotification(BaseNotificationListener):
 
     #: The protocol version that this plugin delivers
     _proto_version = "1"
+
+    #: The serializer for the event.
+    _serializer = Instance(EventSerializer)
 
     def initialize(self, model):
         self._identifier = model.identifier
@@ -71,7 +74,7 @@ class UINotification(BaseNotificationListener):
         if not isinstance(event, BaseDriverEvent):
             raise TypeError("Event is not a BaseDriverEvent")
 
-        data = pickle.dumps(event)
+        data = self._serializer.serialize(event)
         self._pub_socket.send_multipart(
             ["MESSAGE", self._identifier, data])
 
@@ -83,14 +86,13 @@ class UINotification(BaseNotificationListener):
         self._sync_socket.send_multipart(msg)
         events = self._sync_socket.poll(1000, zmq.POLLIN)
         if events == 0:
-            log.info("Could not close connection to UI server after "
-                     "1000 ms.")
+            log.error("Could not close connection to UI server after "
+                      "1000 ms.")
             self._close_and_clear_sockets()
             return
 
         recv = self._sync_socket.recv_multipart()
 
-        print(recv, msg)
         if recv != msg:
             log.error(
                 ("Unexpected reply in goodbye sync"
@@ -114,3 +116,6 @@ class UINotification(BaseNotificationListener):
 
     def _create_context(self):
         return zmq.Context()
+
+    def __serializer_default(self):
+        return EventSerializer()
