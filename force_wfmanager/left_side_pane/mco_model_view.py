@@ -27,11 +27,11 @@ class MCOModelView(ModelView):
             MCOParameterModelView(model=parameter)
             for parameter in self.model.parameters]
 
-    @on_trait_change('mco_parameters_representation.name')
+    @on_trait_change('mco_parameters_representation.model.name')
     def update_mco_parameter_names(self):
         """ Update the available paramter names """
         self.mco_parameters_names = [
-            p.name for p in self.mco_parameters_representation]
+            p.model.name for p in self.mco_parameters_representation]
 
     def _label_default(self):
         return get_factory_name(self.model.factory)
