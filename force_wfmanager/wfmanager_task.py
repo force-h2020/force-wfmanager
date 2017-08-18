@@ -52,7 +52,7 @@ class WfManagerTask(Task):
     _bdss_executable_path = Str("force_bdss")
 
     #: ZeroMQ Server to receive information from the running BDSS
-    zmq_server = Instance(ZMQServer)
+    _zmq_server = Instance(ZMQServer)
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(
@@ -93,6 +93,12 @@ class WfManagerTask(Task):
     def create_dock_panes(self):
         """ Creates the dock panes """
         return [self.side_pane]
+
+    def initialized(self):
+        self._zmq_server.start()
+
+    def prepare_destroy(self):
+        self._zmq_server.stop()
 
     def save_workflow(self):
         """ Saves the workflow into the currently used file. If there is no
@@ -163,14 +169,6 @@ class WfManagerTask(Task):
             return False
         else:
             return True
-
-    def __init__(self, *args, **kwargs):
-        super(WfManagerTask, self).__init__(*args, **kwargs)
-        config = ZMQServerConfig()
-        self._zmq_server = ZMQServer(
-            config,
-            on_event_callback=self._server_event_callback)
-        self._zmq_server.start()
 
     def open_workflow(self):
         """ Shows a dialog to open a workflow file """
@@ -334,6 +332,10 @@ class WfManagerTask(Task):
 
     def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)
+
+    def __zmq_server_default(self):
+        config = ZMQServerConfig()
+        return ZMQServer(config, on_event_callback=self._server_event_callback)
 
     # Handlers
 

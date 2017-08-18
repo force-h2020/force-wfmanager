@@ -94,10 +94,10 @@ class TestZMQServer(unittest.TestCase):
         self.assertEqual(server.state, ZMQServer.STATE_STOPPED)
         server.start()
 
-        self.assertEqual(server.state, ZMQServer.STATE_WAITING)
+        wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
         server.stop()
 
-        self.assertEqual(server.state, ZMQServer.STATE_STOPPED)
+        wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
 
     def test_receive_info(self):
         mock_pub_socket = MockSocket()

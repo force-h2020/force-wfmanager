@@ -108,19 +108,28 @@ class ZMQServer(threading.Thread):
         It stops until the server acknowledges that it
         stopped. If you want to timeout, wrap this call in
         a future and timeout the future."""
-        socket = self._context.socket(zmq.PAIR)
-        socket.connect("inproc://stop")
-        socket.send(b"")
-        socket.recv()
-        socket.close()
+        try:
+            socket = self._context.socket(zmq.PAIR)
+            socket.setsockopt(zmq.RCVTIMEO, 1000)
+            socket.setsockopt(zmq.SNDTIMEO, 1000)
+            socket.setsockopt(zmq.LINGER, 0)
+            socket.connect("inproc://stop")
+            socket.send(b"")
+            socket.recv()
+        except Exception:
+            # If anything goes wrong at this stage, just log it and
+            # ignore
+            log.exception("Error while attempting to stop server")
+        finally:
+            socket.close()
 
     def _setup_sockets(self):
         """Sets up the sockets."""
         context = self._context
         pub_socket = context.socket(zmq.SUB)
-        pub_socket.bind(self.config.pub_url)
         pub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
         pub_socket.setsockopt(zmq.LINGER, 0)
+        pub_socket.bind(self.config.pub_url)
 
         sync_socket = context.socket(zmq.REP)
         sync_socket.setsockopt(zmq.LINGER, 0)
