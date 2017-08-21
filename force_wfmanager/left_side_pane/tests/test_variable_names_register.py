@@ -6,7 +6,8 @@ except ImportError:
 
 from force_bdss.api import (
     BaseMCOParameter, BaseMCOParameterFactory,
-    BaseDataSourceModel, BaseDataSourceFactory, BaseDataSource)
+    BaseDataSourceModel, BaseDataSourceFactory, BaseDataSource,
+    BaseKPICalculatorModel, BaseKPICalculatorFactory, BaseKPICalculator)
 from force_bdss.core.slot import Slot
 
 from force_wfmanager.left_side_pane.mco_parameter_model_view import (
@@ -25,12 +26,31 @@ class DummyDataSourceModel(BaseDataSourceModel):
     pass
 
 
+class DummyKPIModel(BaseKPICalculatorModel):
+    pass
+
+
 def create_parameter_model():
     factory = mock.Mock(spec=BaseMCOParameterFactory)
     return DummyParameterModel(factory=factory)
 
 
 def create_data_source_model():
+    factory = mock.Mock(spec=BaseDataSourceFactory)
+    data_source = mock.Mock(spec=BaseDataSource)
+
+    def slots(*args, **kwargs):
+        return (
+            (Slot(type='P'), ),
+            (Slot(type='T'), )
+        )
+    data_source.slots = slots
+
+    factory.create_data_source = lambda: data_source
+    return DummyDataSourceModel(factory=factory)
+
+
+def create_kpi_model():
     factory = mock.Mock(spec=BaseDataSourceFactory)
     data_source = mock.Mock(spec=BaseDataSource)
 
