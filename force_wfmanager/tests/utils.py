@@ -10,7 +10,7 @@ def wait_condition(condition, seconds=5):
     while True:
         if condition():
             break
-        time.sleep(1)
+        time.sleep(0.1)
         count += 1
-        if count == seconds:
+        if count == seconds*10:
             raise TimeoutError("timeout")
