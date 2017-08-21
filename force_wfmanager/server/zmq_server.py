@@ -162,7 +162,7 @@ class ZMQServer(threading.Thread):
             log.error("Unknown protocol received {}".format(protocol))
             return
 
-        self._sync_socket.send_multipart(data)
+        self._sync_socket.send_multipart([x.encode('utf-8') for x in data])
         self.state = ZMQServer.STATE_RECEIVING
 
     def _handle_RECEIVING_sync(self, data):
@@ -176,7 +176,7 @@ class ZMQServer(threading.Thread):
             log.error("Unknown msg request received {}".format(msg))
             return
 
-        self._sync_socket.send_multipart(data)
+        self._sync_socket.send_multipart([x.encode('utf-8') for x in data])
         self.state = ZMQServer.STATE_WAITING
 
     def _handle_RECEIVING_pub(self, data):
