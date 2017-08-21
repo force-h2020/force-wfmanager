@@ -38,6 +38,7 @@ setup(
         "chaco >= 4.6.1",
         "pyzmq >= 16.0.0",
         'futures >= 3.1.1',
+        'force_bdss >= 0.1.0.dev2'
     ],
     packages=find_packages(),
     package_data={'force_wfmanager.left_side_pane': 'icons/*'},
