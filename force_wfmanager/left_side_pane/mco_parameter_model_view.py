@@ -1,4 +1,4 @@
-from traits.api import Instance, Str, Bool
+from traits.api import Instance, Str
 
 from traitsui.api import View, Item, ModelView
 
@@ -15,7 +15,7 @@ class MCOParameterModelView(ModelView):
     label = Str()
 
     #: Defines if the MCO parameter is valid or not
-    valid = Bool(True)
+    # valid = Bool(True)
 
     #: Base view for the MCO parameter
     traits_view = View(
