@@ -46,9 +46,9 @@ class UINotification(BaseNotificationListener):
         self._sync_socket.setsockopt(zmq.LINGER, 0)
         self._sync_socket.connect(model.sync_url)
 
-        msg = ["HELLO",
-               str(self._identifier),
-               str(self._proto_version)]
+        msg = [x.encode('utf-8')
+               for x in ["HELLO", self._identifier, self._proto_version]]
+
         self._sync_socket.send_multipart(msg)
         events = self._sync_socket.poll(1000, zmq.POLLIN)
 
@@ -63,7 +63,8 @@ class UINotification(BaseNotificationListener):
         if recv != msg:
             log.error(
                 ("Unexpected reply in sync"
-                 " negotiation with UI server. '{}'".format(recv)))
+                 " negotiation with UI server. '{}'".format(
+                    [x.decode('utf-8') for x in recv])))
             self._close_and_clear_sockets()
             return
 
@@ -76,13 +77,13 @@ class UINotification(BaseNotificationListener):
 
         data = self._serializer.serialize(event)
         self._pub_socket.send_multipart(
-            ["MESSAGE", self._identifier, data])
+            [x.encode('utf-8') for x in ["MESSAGE", self._identifier, data]])
 
     def finalize(self):
         if not self._context:
             return
 
-        msg = ["GOODBYE", str(self._identifier)]
+        msg = [x.encode('utf-8') for x in ["GOODBYE", self._identifier]]
         self._sync_socket.send_multipart(msg)
         events = self._sync_socket.poll(1000, zmq.POLLIN)
         if events == 0:
@@ -96,7 +97,8 @@ class UINotification(BaseNotificationListener):
         if recv != msg:
             log.error(
                 ("Unexpected reply in goodbye sync"
-                 " negotiation with UI server. '{}'".format(recv)))
+                 " negotiation with UI server. '{}'".format(
+                    [x.decode('utf-8') for x in recv])))
 
         self._close_and_clear_sockets()
 

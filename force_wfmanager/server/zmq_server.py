@@ -82,7 +82,8 @@ class ZMQServer(threading.Thread):
                 if socket not in events:
                     continue
 
-                data = socket.recv_multipart()
+                data = [x.decode('utf-8') for x in socket.recv_multipart()]
+
                 try:
                     handle = getattr(
                         self,
@@ -99,7 +100,7 @@ class ZMQServer(threading.Thread):
                 self._pub_socket.close()
                 self._sync_socket.close()
                 self.state = ZMQServer.STATE_STOPPED
-                self._inproc_socket.send(b'')
+                self._inproc_socket.send(''.encode('utf-8'))
                 self._inproc_socket.close()
                 return
 
@@ -114,7 +115,7 @@ class ZMQServer(threading.Thread):
             socket.setsockopt(zmq.SNDTIMEO, 1000)
             socket.setsockopt(zmq.LINGER, 0)
             socket.connect("inproc://stop")
-            socket.send(b"")
+            socket.send("".encode("utf-8"))
             socket.recv()
         except Exception:
             # If anything goes wrong at this stage, just log it and

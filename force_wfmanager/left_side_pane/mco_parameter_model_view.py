@@ -1,4 +1,4 @@
-from traits.api import Instance, Str
+from traits.api import Instance, Str, Bool
 
 from traitsui.api import View, Item, ModelView
 
@@ -13,6 +13,8 @@ class MCOParameterModelView(ModelView):
 
     #: The human readable name of the MCO parameter class
     label = Str()
+
+    valid = Bool(True)
 
     #: Base view for the MCO parameter
     traits_view = View(
