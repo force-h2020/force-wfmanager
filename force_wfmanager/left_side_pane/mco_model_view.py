@@ -1,4 +1,4 @@
-from traits.api import Instance, List, Property, Str
+from traits.api import Instance, List, Property, Str, Bool
 from traitsui.api import ModelView
 
 from force_bdss.api import BaseMCOModel
@@ -13,6 +13,9 @@ class MCOModelView(ModelView):
 
     #: Label to be used in the TreeEditor
     label = Str()
+
+    #: Defines if the MCO is valid or not
+    valid = Bool(True)
 
     #: List of MCO parameters to be displayed in the TreeEditor, it is a
     #: Property so that the list in the editor is synchronized with the actual
