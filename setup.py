@@ -40,6 +40,7 @@ setup(
         'futures >= 3.1.1',
     ],
     packages=find_packages(),
+    package_data={'force_wfmanager.left_side_pane': 'icons/*'},
     entry_points={
         'gui_scripts': [
             ('force_wfmanager = force_wfmanager.run:main')
