@@ -202,19 +202,19 @@ class EvaluatorModelView(ModelView):
         """ Fill the tables rows according to input_slots and output_slots
         needed by the evaluator and the model slot values """
         self.input_slots_representation = [
-            InputSlotRow(index=index,
+            InputSlotRow(model=self.model,
+                         available_variables=self.available_variables,
+                         index=index,
                          name=self.model.input_slot_maps[index].name,
-                         type=input_slot.type,
-                         model=self.model,
-                         available_variables=self.available_variables)
+                         type=input_slot.type)
             for index, input_slot in enumerate(input_slots)
         ]
 
         self.output_slots_representation = [
-            OutputSlotRow(index=index,
+            OutputSlotRow(model=self.model,
+                          index=index,
                           name=self.model.output_slot_names[index],
-                          type=output_slot.type,
-                          model=self.model)
+                          type=output_slot.type)
             for index, output_slot in enumerate(output_slots)
         ]
 
