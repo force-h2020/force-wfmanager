@@ -10,7 +10,7 @@ from traits.api import Instance, on_trait_change, File, Str
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.api import (
-    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI)
+    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, confirm)
 
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
@@ -187,6 +187,14 @@ class WfManagerTask(Task):
     @on_trait_change('side_pane.run_button')
     def run_bdss(self):
         """ Run the BDSS computation """
+        if len(self.analysis_m.evaluation_steps) != 0:
+            result = confirm(
+                None,
+                "Are you sure you want to run the computation and "
+                "empty the result table?")
+            if result is not YES:
+                return
+
         tmpfile_path = tempfile.mktemp()
 
         # Creates a temporary file containing the workflow
