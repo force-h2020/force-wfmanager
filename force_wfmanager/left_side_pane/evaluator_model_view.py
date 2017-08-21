@@ -27,6 +27,13 @@ class TableRow(HasStrictTraits):
         allow_none=False,
     )
 
+    def __init__(self, model=None, *args, **kwargs):
+        if model is None:
+            raise RuntimeError("The model of a slot table row can not be None")
+        self.model = model
+
+        super(TableRow, self).__init__(*args, **kwargs)
+
 
 class InputSlotRow(TableRow):
     #: Name of the slot
