@@ -356,7 +356,8 @@ class WfManagerTask(Task):
         action appropriately according to the type"""
         if isinstance(event, MCOStartEvent):
             self.analysis_m.clear()
-            self.analysis_m.value_names = event.input_names + event.output_names
+            self.analysis_m.value_names = (
+                event.input_names + event.output_names)
         elif isinstance(event, MCOProgressEvent):
             data = tuple(map(float, event.input + event.output))
             self.analysis_m.add_evaluation_step(data)
