@@ -1,6 +1,7 @@
-from traits.api import String
+from traits.api import Unicode
 from force_bdss.api import (
-    BaseNotificationListenerModel, ZMQSocketURL)
+    BaseNotificationListenerModel)
+from force_wfmanager.local_traits import ZMQSocketURL
 
 
 class UINotificationModel(BaseNotificationListenerModel):
@@ -11,4 +12,4 @@ class UINotificationModel(BaseNotificationListenerModel):
     pub_url = ZMQSocketURL()
 
     #: Unique identifier assigned by the UI to recognize the connection.
-    identifier = String()
+    identifier = Unicode()

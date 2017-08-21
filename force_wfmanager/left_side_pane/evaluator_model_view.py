@@ -27,7 +27,7 @@ class TableRow(HasStrictTraits):
         allow_none=False,
     )
 
-    def __init__(self, model=None, *args, **kwargs):
+    def __init__(self, model, *args, **kwargs):
         self.model = model
 
         super(TableRow, self).__init__(*args, **kwargs)
