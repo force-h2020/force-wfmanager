@@ -252,3 +252,8 @@ class TestWorkflowElementNode(unittest.TestCase):
         wf_mv.valid = False
         self.assertEqual(wfelement_node.get_icon(wf_mv, False),
                          'icons/invalid.png')
+        self.assertEqual(
+            wfelement_node.get_icon(
+                wf_mv.mco_representation[0].mco_parameters_representation[0],
+                False),
+            'icons/valid.png')
