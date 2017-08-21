@@ -435,16 +435,19 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
     def test_dispatch_mco_event(self):
         send_event = self.wfmanager_task._server_event_callback
-        self.assertEqual(self.wfmanager_task.analysis_m.value_names, [])
+        self.assertEqual(self.wfmanager_task.analysis_m.value_names, ())
         with self.event_loop():
-            send_event(MCOStartEvent())
+            send_event(MCOStartEvent(
+                input_names=("x",),
+                output_names=("y",)
+            ))
 
         self.assertEqual(
             len(self.wfmanager_task.analysis_m.evaluation_steps),
             0)
         self.assertEqual(
             self.wfmanager_task.analysis_m.value_names,
-            ['x', 'y'])
+            ('x', 'y'))
 
         with self.event_loop():
             send_event(MCOProgressEvent(input=["1.0"], output=["2.0"]))
