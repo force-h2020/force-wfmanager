@@ -12,6 +12,23 @@ class EventDeserializer(object):
     objects, you must implement a better serializer/deserializer.
     """
     def deserialize(self, data):
+        """Deserializes the appropriate object from the given data
+
+        Parameters
+        ----------
+        data: str
+            The string containing the data to deserialize.
+
+        Returns
+        -------
+        BaseDriverEvent
+            A specific instance of the driver event. The resulting class
+            must be derived from BaseDriverEvent.
+
+        Raises
+        ------
+        DeserializerError
+        """
         try:
             d = json.loads(data)
         except Exception as e:

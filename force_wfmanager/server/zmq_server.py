@@ -21,6 +21,10 @@ class ZMQServer(threading.Thread):
     where [STATE] is the string associated to the state (see STATE_* enum
     in class) and [socket] is "pub" for handling data from the pubsub socket,
     "sync" for handling data from the synchronization (req/rep) socket.
+    Handlers receive a single parameter `data` (a list) that contains the
+    multipart message received. Note that each individual entry of the list
+    has already been decoded from utf-8 (our transfer encoding), and is
+    therefore a unicode string.
     """
 
     STATE_STOPPED = "STOPPED"
@@ -82,7 +86,8 @@ class ZMQServer(threading.Thread):
                 if socket not in events:
                     continue
 
-                data = socket.recv_multipart()
+                data = [x.decode('utf-8') for x in socket.recv_multipart()]
+
                 try:
                     handle = getattr(
                         self,
@@ -99,22 +104,23 @@ class ZMQServer(threading.Thread):
                 self._pub_socket.close()
                 self._sync_socket.close()
                 self.state = ZMQServer.STATE_STOPPED
-                self._inproc_socket.send(b'')
+                self._inproc_socket.send(''.encode('utf-8'))
                 self._inproc_socket.close()
                 return
 
     def stop(self):
         """Stops the server. This method is synchronous.
         It stops until the server acknowledges that it
-        stopped. If you want to timeout, wrap this call in
-        a future and timeout the future."""
+        stopped. It does however give up after a second if
+        the stop sequence is not respected.
+        """
         try:
             socket = self._context.socket(zmq.PAIR)
             socket.setsockopt(zmq.RCVTIMEO, 1000)
             socket.setsockopt(zmq.SNDTIMEO, 1000)
             socket.setsockopt(zmq.LINGER, 0)
             socket.connect("inproc://stop")
-            socket.send(b"")
+            socket.send("".encode("utf-8"))
             socket.recv()
         except Exception:
             # If anything goes wrong at this stage, just log it and
@@ -161,7 +167,7 @@ class ZMQServer(threading.Thread):
             log.error("Unknown protocol received {}".format(protocol))
             return
 
-        self._sync_socket.send_multipart(data)
+        self._sync_socket.send_multipart([x.encode('utf-8') for x in data])
         self.state = ZMQServer.STATE_RECEIVING
 
     def _handle_RECEIVING_sync(self, data):
@@ -175,7 +181,7 @@ class ZMQServer(threading.Thread):
             log.error("Unknown msg request received {}".format(msg))
             return
 
-        self._sync_socket.send_multipart(data)
+        self._sync_socket.send_multipart([x.encode('utf-8') for x in data])
         self.state = ZMQServer.STATE_WAITING
 
     def _handle_RECEIVING_pub(self, data):

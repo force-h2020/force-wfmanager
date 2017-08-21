@@ -1,9 +1,13 @@
 from traits.api import (HasStrictTraits, List, Instance, Enum, Property,
                         on_trait_change)
+
 from traitsui.api import View, UItem, Item, VGroup, HGroup
+
 from enable.api import Component, ComponentEditor
-from chaco.api import ArrayPlotData
+
+from chaco.api import ArrayPlotData, ScatterInspectorOverlay, ArrayDataSource
 from chaco.api import Plot as ChacoPlot
+from chaco.tools.api import PanTool, ZoomTool, ScatterInspector
 
 from .analysis_model import AnalysisModel
 
@@ -29,6 +33,9 @@ class Plot(HasStrictTraits):
     #: The 2D plot
     _plot = Instance(Component)
 
+    #: Datasource of the plot (used for selection handling)
+    _plot_index_datasource = Instance(ArrayDataSource)
+
     view = View(VGroup(
         HGroup(
             Item('x'),
@@ -47,19 +54,40 @@ class Plot(HasStrictTraits):
     def __plot_default(self):
         plot = ChacoPlot(self._plot_data)
 
-        plot.plot(
+        scatter_plot = plot.plot(
             ('x', 'y'),
             type="scatter",
             name="Plot",
             marker="circle",
             index_sort="ascending",
-            color="blue",
+            color="green",
             marker_size=4,
-            bgcolor="white")
+            bgcolor="white")[0]
 
-        plot.title = "Plot"
-        plot.line_width = 1
-        plot.padding = 50
+        plot.set(title="Plot", padding=50, line_width=1)
+
+        # Add pan and zoom tools
+        plot.tools.append(PanTool(plot))
+        plot.overlays.append(ZoomTool(plot))
+
+        # Add the selection tool
+        scatter_plot.tools.append(ScatterInspector(
+            scatter_plot,
+            threshold=10,
+            selection_mode="single",
+        ))
+        overlay = ScatterInspectorOverlay(
+            scatter_plot,
+            hover_color="blue",
+            hover_marker_size=6,
+            selection_marker_size=6,
+            selection_color="blue",
+            selection_outline_color="blue",
+            selection_line_width=3)
+        scatter_plot.overlays.append(overlay)
+
+        # Initialize plot datasource
+        self._plot_index_datasource = scatter_plot.index
 
         return plot
 
@@ -138,3 +166,22 @@ class Plot(HasStrictTraits):
 
         self._plot_data.set_data('x', self._data_arrays[x_index])
         self._plot_data.set_data('y', self._data_arrays[y_index])
+
+    @on_trait_change('analysis_model.selected_step_index')
+    def update_selected_point(self):
+        """ Updates the selected point in the plot according to the model """
+        if self.analysis_model.selected_step_index is None:
+            self._plot_index_datasource.metadata['selections'] = []
+        else:
+            self._plot_index_datasource.metadata['selections'] = \
+                [self.analysis_model.selected_step_index]
+
+    @on_trait_change('_plot_index_datasource.metadata_changed')
+    def update_model(self):
+        """ Updates the model according to the selected point in the plot """
+        selected_indices = self._plot_index_datasource.metadata.get(
+            'selections', [])
+        if len(selected_indices) == 0:
+            self.analysis_model.selected_step_index = None
+        else:
+            self.analysis_model.selected_step_index = selected_indices[0]
