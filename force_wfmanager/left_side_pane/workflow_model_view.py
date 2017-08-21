@@ -1,4 +1,5 @@
-from traits.api import Instance, List, on_trait_change
+from traits.api import Instance, List, Bool, on_trait_change
+
 from traitsui.api import ModelView
 
 from force_bdss.core.workflow import Workflow
@@ -49,6 +50,9 @@ class WorkflowModelView(ModelView):
         self.update_mco_representation()
         self.update_data_sources_representation()
         self.update_kpi_calculators_representation()
+
+    #: Defines if the Workflow is valid or not
+    valid = Bool(True)
 
     def add_entity(self, entity):
         """ Adds an element to the workflow
