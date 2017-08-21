@@ -21,6 +21,10 @@ class ZMQServer(threading.Thread):
     where [STATE] is the string associated to the state (see STATE_* enum
     in class) and [socket] is "pub" for handling data from the pubsub socket,
     "sync" for handling data from the synchronization (req/rep) socket.
+    Handlers receive a single parameter `data` (a list) that contains the
+    multipart message received. Note that each individual entry of the list
+    has already been decoded from utf-8 (our transfer encoding), and is
+    therefore a unicode string.
     """
 
     STATE_STOPPED = "STOPPED"
@@ -107,8 +111,9 @@ class ZMQServer(threading.Thread):
     def stop(self):
         """Stops the server. This method is synchronous.
         It stops until the server acknowledges that it
-        stopped. If you want to timeout, wrap this call in
-        a future and timeout the future."""
+        stopped. It does however give up after a second if
+        the stop sequence is not respected.
+        """
         try:
             socket = self._context.socket(zmq.PAIR)
             socket.setsockopt(zmq.RCVTIMEO, 1000)

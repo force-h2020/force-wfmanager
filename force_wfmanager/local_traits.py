@@ -1,8 +1,10 @@
 import re
-from traits.api import BaseStr
+from traits.api import BaseUnicode
 
 
-class ZMQSocketURL(BaseStr):
+class ZMQSocketURL(BaseUnicode):
+    info_text = "A ZeroMQ Socket URL"
+
     def validate(self, object, name, value):
         super(ZMQSocketURL, self).validate(object, name, value)
         m = re.match(
