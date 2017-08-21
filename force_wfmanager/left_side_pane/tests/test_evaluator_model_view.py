@@ -4,7 +4,7 @@ try:
 except ImportError:
     from unittest import mock
 
-from traits.api import Instance, Str, on_trait_change
+from traits.api import Instance, Str, on_trait_change, TraitError
 
 from envisage.plugin import Plugin
 
@@ -80,8 +80,14 @@ class EvaluatorModelViewTest(unittest.TestCase):
         self.evaluator_mv.input_slots_representation[0].name = 'P1'
         self.assertEqual(self.model.input_slot_maps[0].name, 'P1')
 
-        self.evaluator_mv.input_slots_representation[0].name = ''
+        self.evaluator_mv.available_variables = ['P2', 'P3']
         self.assertEqual(self.model.input_slot_maps[0].name, '')
+
+        self.evaluator_mv.input_slots_representation[0].name = 'P2'
+        self.assertEqual(self.model.input_slot_maps[0].name, 'P2')
+
+        with self.assertRaises(TraitError):
+            self.evaluator_mv.input_slots_representation[0].name = 'P1'
 
     def test_output_slot_update(self):
         self.evaluator_mv.output_slots_representation[0].name = 'output'

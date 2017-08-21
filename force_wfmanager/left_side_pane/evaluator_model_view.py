@@ -46,6 +46,8 @@ class InputSlotRow(TableRow):
     @on_trait_change('available_variables')
     def update_available_variables(self):
         self._available_variables = [''] + self.available_variables
+        self.name = ('' if self.name not in self.available_variables
+                     else self.name)
 
     def __available_variables_default(self):
         return [''] + self.available_variables
