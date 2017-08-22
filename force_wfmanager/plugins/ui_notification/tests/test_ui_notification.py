@@ -1,10 +1,11 @@
 import unittest
 from testfixtures import LogCapture
+import six
 
 from force_bdss.api import MCOStartEvent, MCOProgressEvent, \
     MCOFinishEvent
 from force_wfmanager.plugins.ui_notification.ui_notification import \
-    UINotification, _format_event
+    UINotification
 from force_wfmanager.plugins.ui_notification.ui_notification_factory import \
     UINotificationFactory
 from force_wfmanager.plugins.ui_notification.ui_notification_model import \
@@ -26,10 +27,10 @@ class TestUINotification(unittest.TestCase):
 
         listener = UINotification(factory)
         self.sync_socket = mock.Mock(spec=zmq.Socket)
-        self.sync_socket.recv_string = mock.Mock()
-        self.sync_socket.recv_string.side_effect = [
-            "HELLO\nan_id\n1",
-            "GOODBYE\nan_id\n1"
+        self.sync_socket.recv_multipart = mock.Mock()
+        self.sync_socket.recv_multipart.side_effect = [
+            [x.encode('utf-8') for x in ["HELLO", "an_id", "1"]],
+            [x.encode('utf-8') for x in ["GOODBYE", "an_id"]]
         ]
 
         self.pub_socket = mock.Mock(spec=zmq.Socket)
@@ -45,23 +46,23 @@ class TestUINotification(unittest.TestCase):
         listener = self.listener
         listener.initialize(self.model)
         self.assertEqual(
-            self.sync_socket.send_string.call_args[0][0],
-            'HELLO\nan_id\n1')
+            self.sync_socket.send_multipart.call_args[0][0],
+            [x.encode('utf-8') for x in ['HELLO', 'an_id', '1']])
 
         listener.deliver(MCOStartEvent())
         self.assertEqual(
-            self.pub_socket.send_string.call_args[0][0],
-            'EVENT\nan_id\nMCO_START')
+            self.pub_socket.send_multipart.call_args[0][0][0:2],
+            [x.encode('utf-8') for x in ['MESSAGE', 'an_id']])
 
         listener.deliver(MCOProgressEvent(input=(1, 2, 3), output=(4, 5)))
         self.assertEqual(
-            self.pub_socket.send_string.call_args[0][0],
-            'EVENT\nan_id\nMCO_PROGRESS\n1 2 3\n4 5')
+            self.pub_socket.send_multipart.call_args[0][0][0:2],
+            [x.encode('utf-8') for x in ['MESSAGE', 'an_id']])
 
         listener.deliver(MCOFinishEvent())
         self.assertEqual(
-            self.pub_socket.send_string.call_args[0][0],
-            'EVENT\nan_id\nMCO_FINISH')
+            self.pub_socket.send_multipart.call_args[0][0][0:2],
+            [x.encode('utf-8') for x in ['MESSAGE', 'an_id']])
 
     def test_finalize(self):
         listener = self.listener
@@ -78,8 +79,8 @@ class TestUINotification(unittest.TestCase):
         listener = self.listener
         listener.initialize(self.model)
         self.assertEqual(
-            self.sync_socket.send_string.call_args[0][0],
-            'HELLO\nan_id\n1')
+            self.sync_socket.send_multipart.call_args[0][0],
+            [x.encode('utf-8') for x in ['HELLO', 'an_id', '1']])
 
     def test_polling(self):
         self.sync_socket.poll.return_value = 0
@@ -95,33 +96,42 @@ class TestUINotification(unittest.TestCase):
 
         self.assertIsNone(listener._context)
 
-    def test_wrong_init_recv_string(self):
+    def test_wrong_init_recv(self):
         listener = self.listener
 
-        self.sync_socket.recv_string.side_effect = [
-            "HELLO\nnot_the_right_id\n1",
-            "GOODBYE\nan_id\n1"
+        self.sync_socket.recv_multipart.side_effect = [
+            [x.encode('utf-8') for x in ["HELLO", "not_the_right_id", "1"]],
+            [x.encode('utf-8') for x in ["GOODBYE", "an_id"]]
         ]
 
         with LogCapture() as capture:
             listener.initialize(self.model)
-            capture.check(
-                ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
-                 "ERROR",
-                 "Unexpected reply in sync negotiation with UI server. "
-                 "'HELLO\nnot_the_right_id\n1'"  # noqa
-                 ),
-            )
+            if six.PY2:
+                capture.check(
+                    ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
+                     "ERROR",
+                     "Unexpected reply in sync negotiation with UI server. "
+                     "'[u'HELLO', u'not_the_right_id', u'1']'"  # noqa
+                     ),
+                )
+            else:
+                capture.check(
+                    ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
+                     "ERROR",
+                     "Unexpected reply in sync negotiation with UI server. "
+                     "'['HELLO', 'not_the_right_id', '1']'"  # noqa
+                     ),
+                )
 
         self.assertIsNone(listener._context)
 
     def test_deliver_without_context(self):
         self.listener.deliver(MCOStartEvent())
-        self.assertFalse(self.pub_socket.send_string.called)
+        self.assertFalse(self.pub_socket.send_multipart.called)
 
     def test_finalize_without_context(self):
         self.listener.finalize()
-        self.assertFalse(self.sync_socket.send_string.called)
+        self.assertFalse(self.sync_socket.send_multipart.called)
 
     def test_finalize_no_response(self):
         self.sync_socket.poll.side_effect = [1, 0]
@@ -131,37 +141,43 @@ class TestUINotification(unittest.TestCase):
             listener.finalize()
             capture.check(
                 ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
-                 "INFO",
+                 "ERROR",
                  "Could not close connection to UI server after 1000 ms."  # noqa
                  ),
             )
 
         self.assertIsNone(listener._context)
 
-    def test_wrong_finalize_recv_string(self):
+    def test_wrong_finalize_recv(self):
         listener = self.listener
         self.sync_socket.poll.side_effect = [1, 1]
-        self.sync_socket.recv_string.side_effect = [
-            "HELLO\nan_id\n1",
-            "GOODBYE\nnot_the_right_id\n1"
+        self.sync_socket.recv_multipart.side_effect = [
+            [x.encode('utf-8') for x in ["HELLO", "an_id", "1"]],
+            [x.encode('utf-8') for x in ["GOODBYE", "not_the_right_id"]]
         ]
 
         listener.initialize(self.model)
 
         with LogCapture() as capture:
             listener.finalize()
-            capture.check(
-                ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
-                 "ERROR",
-                 "Unexpected reply in goodbye sync negotiation with UI server. "  # noqa
-                 "'GOODBYE\nnot_the_right_id\n1'"  # noqa
-                 ),
-            )
+            if six.PY2:
+                capture.check(
+                    ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
+                     "ERROR",
+                     "Unexpected reply in goodbye sync negotiation with UI server. "  # noqa
+                     "'[u'GOODBYE', u'not_the_right_id']'"  # noqa
+                     ),
+                )
+            else:
+                capture.check(
+                    ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
+                     "ERROR",
+                     "Unexpected reply in goodbye sync negotiation with UI server. "  # noqa
+                     "'['GOODBYE', 'not_the_right_id']'"  # noqa
+                     ),
+                )
 
         self.assertIsNone(listener._context)
-
-    def test_format_unknown_event(self):
-        self.assertIsNone(_format_event("foo", "foo"))
 
     def test_double_clear_sockets(self):
         listener = self.listener
