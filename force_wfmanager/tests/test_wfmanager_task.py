@@ -277,6 +277,8 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             self.assertEqual(old_workflow, self.wfmanager_task.workflow_m)
 
     def test_run_bdss(self):
+        self.wfmanager_task.analysis_m.value_names = ('x', )
+        self.wfmanager_task.analysis_m.add_evaluation_step((2.0, ))
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
