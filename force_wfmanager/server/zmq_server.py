@@ -79,8 +79,8 @@ class ZMQServer(threading.Thread):
             events = dict(poller.poll())
 
             for socket_name, socket in [
-                    ("sync", self._sync_socket),
                     ("pub", self._pub_socket),
+                    ("sync", self._sync_socket),
                     ]:
 
                 if socket not in events:

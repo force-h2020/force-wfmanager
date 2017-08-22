@@ -230,6 +230,26 @@ class TestZMQServer(unittest.TestCase):
                  "State WAITING cannot handle pub data. Discarding."),
             )
 
+    def test_socket_ordering(self):
+        received = []
+        with self.mock_server(received) as server:
+            server._sync_socket.data = [x.encode('utf-8')
+                                        for x in ["HELLO", "xxx", "1"]]
+            wait_condition(lambda: server.state == ZMQServer.STATE_RECEIVING)
+
+            server._pub_socket.data = [
+                x.encode('utf-8')
+                for x in ["MESSAGE", "xxx", json.dumps(
+                    {
+                        'type': 'MCOStartEvent',
+                        'model_data': {}
+                    })]]
+            server._sync_socket.data = [x.encode('utf-8')
+                                        for x in ["GOODBYE", "xxx"]]
+
+            wait_condition(lambda: len(received) == 1)
+            wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
+
     def test_error_conditions_receiving_pub(self):
         received = []
         with LogCapture(level=logging.ERROR) as capture:
