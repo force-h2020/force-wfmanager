@@ -90,77 +90,93 @@ delete_entity_action = Action(
     action='handler.delete_entity_handler(editor, object)'
 )
 
+
+class WorkflowElementNode(TreeNode):
+    """ Custom TreeNode class for worklow elements """
+    def get_icon(self, object, is_expanded):
+        return 'icons/valid.png' if object.valid else 'icons/invalid.png'
+
+
 tree_editor = TreeEditor(
     nodes=[
         # Root node "Workflow"
-        TreeNode(node_for=[WorkflowModelView],
-                 auto_open=True,
-                 children='',
-                 label='=Workflow',
-                 view=no_view,
-                 menu=no_menu,
-                 ),
+        WorkflowElementNode(
+            node_for=[WorkflowModelView],
+            auto_open=True,
+            children='',
+            label='=Workflow',
+            view=no_view,
+            menu=no_menu,
+        ),
         # Folder node "MCO" containing the MCO
-        TreeNode(node_for=[WorkflowModelView],
-                 auto_open=True,
-                 children='mco_representation',
-                 label='=MCO',
-                 view=no_view,
-                 menu=Menu(new_mco_action),
-                 ),
+        TreeNode(
+            node_for=[WorkflowModelView],
+            auto_open=True,
+            children='mco_representation',
+            label='=MCO',
+            view=no_view,
+            menu=Menu(new_mco_action),
+        ),
         # Node representing the MCO
-        TreeNode(node_for=[MCOModelView],
-                 auto_open=True,
-                 children='',
-                 label='label',
-                 view=no_view,
-                 menu=Menu(edit_entity_action, delete_entity_action),
-                 ),
+        WorkflowElementNode(
+            node_for=[MCOModelView],
+            auto_open=True,
+            children='',
+            label='label',
+            view=no_view,
+            menu=Menu(edit_entity_action, delete_entity_action),
+        ),
         # Folder node "Parameters" containing the MCO parameters
-        TreeNode(node_for=[MCOModelView],
-                 auto_open=True,
-                 children='mco_parameters_representation',
-                 label='=Parameters',
-                 view=no_view,
-                 menu=Menu(new_parameter_action),
-                 ),
+        TreeNode(
+            node_for=[MCOModelView],
+            auto_open=True,
+            children='mco_parameters_representation',
+            label='=Parameters',
+            view=no_view,
+            menu=Menu(new_parameter_action),
+        ),
         #: Node representing an MCO parameter
-        TreeNode(node_for=[MCOParameterModelView],
-                 auto_open=True,
-                 children='',
-                 label='label',
-                 menu=Menu(edit_entity_action, delete_entity_action),
-                 ),
+        WorkflowElementNode(
+            node_for=[MCOParameterModelView],
+            auto_open=True,
+            children='',
+            label='label',
+            menu=Menu(edit_entity_action, delete_entity_action),
+        ),
         # Folder node "Data Sources" containing the DataSources
-        TreeNode(node_for=[WorkflowModelView],
-                 auto_open=True,
-                 children='data_sources_representation',
-                 label='=Data sources',
-                 view=no_view,
-                 menu=Menu(new_data_source_action),
-                 ),
+        TreeNode(
+            node_for=[WorkflowModelView],
+            auto_open=True,
+            children='data_sources_representation',
+            label='=Data sources',
+            view=no_view,
+            menu=Menu(new_data_source_action),
+        ),
         #: Node representing a DataSource
-        TreeNode(node_for=[DataSourceModelView],
-                 auto_open=True,
-                 children='',
-                 label='label',
-                 menu=Menu(edit_entity_action, delete_entity_action),
-                 ),
+        WorkflowElementNode(
+            node_for=[DataSourceModelView],
+            auto_open=True,
+            children='',
+            label='label',
+            menu=Menu(edit_entity_action, delete_entity_action),
+        ),
         # Folder node "KPI Calculators" containing the KPI Calculators
-        TreeNode(node_for=[WorkflowModelView],
-                 auto_open=True,
-                 children='kpi_calculators_representation',
-                 label='=KPI calculators',
-                 view=no_view,
-                 menu=Menu(new_kpi_calculator_action),
-                 ),
+        TreeNode(
+            node_for=[WorkflowModelView],
+            auto_open=True,
+            children='kpi_calculators_representation',
+            label='=KPI calculators',
+            view=no_view,
+            menu=Menu(new_kpi_calculator_action),
+        ),
         #: Node representing a KPI Calculator
-        TreeNode(node_for=[KPICalculatorModelView],
-                 auto_open=True,
-                 children='',
-                 label='label',
-                 menu=Menu(edit_entity_action, delete_entity_action),
-                 ),
+        WorkflowElementNode(
+            node_for=[KPICalculatorModelView],
+            auto_open=True,
+            children='',
+            label='label',
+            menu=Menu(edit_entity_action, delete_entity_action),
+        ),
     ],
     orientation="vertical"
 )

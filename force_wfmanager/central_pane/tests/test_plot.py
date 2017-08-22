@@ -144,3 +144,28 @@ class PlotTest(unittest.TestCase):
 
         self.assertEqual(len(self.plot._data_arrays), 1)
         self.assertEqual(len(self.plot._data_arrays[0]), 0)
+
+    def test_selection(self):
+        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.add_evaluation_step((1.010, 101325))
+        self.analysis_model.add_evaluation_step((1.100, 101423))
+        self.assertIsInstance(self.plot._plot, ChacoPlot)
+
+        plot_metadata = self.plot._plot_index_datasource.metadata
+
+        # From plot to the model
+        plot_metadata['selections'] = [1]
+        self.assertEqual(self.analysis_model.selected_step_index, 1)
+
+        plot_metadata['selections'] = [0]
+        self.assertEqual(self.analysis_model.selected_step_index, 0)
+
+        plot_metadata['selections'] = []
+        self.assertIsNone(self.analysis_model.selected_step_index)
+
+        # From model to the plot
+        self.analysis_model.selected_step_index = 1
+        self.assertEqual(plot_metadata['selections'], [1])
+
+        self.analysis_model.selected_step_index = None
+        self.assertEqual(plot_metadata['selections'], [])

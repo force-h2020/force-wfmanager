@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, Instance, Str, List, Int,
-                        on_trait_change, Either)
+                        on_trait_change, Either, Bool)
 
 from traitsui.api import View, Item, ModelView, TableEditor
 from traitsui.table_column import ObjectColumn
@@ -29,6 +29,11 @@ class TableRow(HasStrictTraits):
         Instance(BaseKPICalculatorModel),
         allow_none=False,
     )
+
+    def __init__(self, model, *args, **kwargs):
+        self.model = model
+
+        super(TableRow, self).__init__(*args, **kwargs)
 
 
 class InputSlotRow(TableRow):
@@ -78,6 +83,9 @@ class EvaluatorModelView(ModelView):
 
     #: Output slots representation for the table editor
     output_slots_representation = List(OutputSlotRow)
+
+    #: Defines if the evaluator is valid or not
+    valid = Bool(True)
 
     #: Base view for the evaluator
     traits_view = View(

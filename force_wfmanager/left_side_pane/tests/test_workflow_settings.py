@@ -24,7 +24,7 @@ from force_bdss.core.workflow import Workflow
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
 from force_wfmanager.left_side_pane.workflow_settings import (
-    WorkflowSettings, WorkflowHandler)
+    WorkflowSettings, WorkflowHandler, WorkflowElementNode)
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 
 
@@ -84,6 +84,9 @@ def get_workflow_model_view():
     mco.factory = mock.Mock(spec=BaseMCOFactory)
     mco.factory.parameter_factories = lambda: [
         mock.Mock(spec=BaseMCOParameterFactory)]
+    parameter = mock.Mock(BaseMCOParameter)
+    parameter.name = ''
+    mco.parameters = [parameter]
     workflow_mv = WorkflowModelView(
         model=Workflow(
             mco=mco,
@@ -93,7 +96,6 @@ def get_workflow_model_view():
                              get_kpi_calculator_model_mock(),
                              get_kpi_calculator_model_mock()])
     )
-    workflow_mv.model.mco.parameters = [mock.Mock(BaseMCOParameter)]
     return workflow_mv
 
 
@@ -239,3 +241,19 @@ class TestTreeEditorHandler(unittest.TestCase):
         self.assertNotEqual(
             first_kpi_calculator_id,
             id(self.workflow.model.kpi_calculators[0]))
+
+
+class TestWorkflowElementNode(unittest.TestCase):
+    def test_wfelement_node(self):
+        wfelement_node = WorkflowElementNode()
+        wf_mv = get_workflow_model_view()
+        self.assertEqual(wfelement_node.get_icon(wf_mv, False),
+                         'icons/valid.png')
+        wf_mv.valid = False
+        self.assertEqual(wfelement_node.get_icon(wf_mv, False),
+                         'icons/invalid.png')
+        self.assertEqual(
+            wfelement_node.get_icon(
+                wf_mv.mco_representation[0].mco_parameters_representation[0],
+                False),
+            'icons/valid.png')

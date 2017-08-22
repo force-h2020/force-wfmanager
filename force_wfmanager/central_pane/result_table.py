@@ -1,17 +1,10 @@
-from traits.api import HasStrictTraits, List, Instance, Property, Tuple
+from traits.api import (HasStrictTraits, List, Instance, Property, Tuple,
+                        on_trait_change, Either)
 
 from traitsui.api import View, UItem, TableEditor
 from traitsui.table_column import ListColumn
 
 from .analysis_model import AnalysisModel
-
-
-table_editor = TableEditor(
-    sortable=False,
-    configurable=False,
-    auto_size=False,
-    columns_name='columns'
-)
 
 
 class ResultTable(HasStrictTraits):
@@ -30,8 +23,18 @@ class ResultTable(HasStrictTraits):
         depends_on='analysis_model.value_names'
     )
 
+    #: Selected evaluation steps in the table
+    _selected_rows = Either(List(Tuple), None)
+
     view = View(
-        UItem("rows", editor=table_editor)
+        UItem("rows", editor=TableEditor(
+            sortable=False,
+            configurable=False,
+            columns_name='columns',
+            # Using rows instead of row because of a traitsui bug
+            selection_mode='rows',
+            selected='_selected_rows',
+        ))
     )
 
     def _get_rows(self):
@@ -41,3 +44,22 @@ class ResultTable(HasStrictTraits):
         return [ListColumn(label=name, index=index)
                 for index, name
                 in enumerate(self.analysis_model.value_names)]
+
+    @on_trait_change('analysis_model.selected_step_index')
+    def update_table(self):
+        """ Updates the selected row in the table according to the model """
+        if self.analysis_model.selected_step_index is None:
+            self._selected_rows = []
+        else:
+            self._selected_rows = \
+                [self.rows[self.analysis_model.selected_step_index]]
+
+    @on_trait_change('_selected_rows[]')
+    def update_model(self):
+        """ Updates the model according to the selected row in the table """
+        if len(self._selected_rows) == 0:
+            self.analysis_model.selected_step_index = None
+        else:
+            self.analysis_model.selected_step_index = \
+                self.analysis_model.evaluation_steps.index(
+                    self._selected_rows[0])
