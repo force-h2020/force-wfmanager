@@ -64,4 +64,3 @@ class TestUINotificationHooksManager(unittest.TestCase):
 
         manager.after_execution(mock_task)
         self.assertNotIn(model, workflow.notification_listeners)
-
