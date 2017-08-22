@@ -5,7 +5,7 @@ import tempfile
 
 from concurrent.futures import ThreadPoolExecutor
 from pyface.api import (
-    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI)
+    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, confirm)
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Instance, on_trait_change, File, Str, List
@@ -214,7 +214,13 @@ class WfManagerTask(Task):
     @on_trait_change('side_pane.run_button')
     def run_bdss(self):
         """ Run the BDSS computation """
-        # Add the notification listener information for the server.
+        if len(self.analysis_m.evaluation_steps) != 0:
+            result = confirm(
+                None,
+                "Are you sure you want to run the computation and "
+                "empty the result table?")
+            if result is not YES:
+                return
 
         for hook_manager in self.ui_hooks_managers:
             try:
