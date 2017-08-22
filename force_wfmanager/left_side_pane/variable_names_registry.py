@@ -7,7 +7,10 @@ from .data_source_model_view import DataSourceModelView
 from .kpi_calculator_model_view import KPICalculatorModelView
 
 
-class VariableNamesRegister(HasStrictTraits):
+class VariableNamesRegistry(HasStrictTraits):
+    """ Class used for listening to the structure of the Workflow in order to
+    check the available variables that can be used as inputs for each layer
+    (Datasources/KPICalculators) """
     #: MCO parameters model views
     mco_parameters_mv = List(Instance(MCOParameterModelView))
 
