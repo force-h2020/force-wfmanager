@@ -57,7 +57,11 @@ class WfManagerTask(Task):
     #: ZeroMQ Server to receive information from the running BDSS
     _zmq_server = Instance(ZMQServer)
 
+    #: Flag which says if the computation is running or not
     _computation_running = Bool(False)
+
+    #: Flag which says if the menus should be disabled or not
+    _menu_enabled = Bool(True)
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(
@@ -73,19 +77,19 @@ class WfManagerTask(Task):
             TaskAction(
                 name='Open Workflow...',
                 method='open_workflow',
-                enabled_name='not _computation_running',
+                enabled_name='_menu_enabled',
                 accelerator='Ctrl+O',
             ),
             TaskAction(
                 name='Save Workflow',
                 method='save_workflow',
-                enabled_name='not _computation_running',
+                enabled_name='_menu_enabled',
                 accelerator='Ctrl+S',
             ),
             TaskAction(
                 name='Save Workflow as...',
                 method='save_workflow_as',
-                enabled_name='not _computation_running',
+                enabled_name='_menu_enabled',
                 accelerator='Shift+Ctrl+S',
             ),
             name='&File'
@@ -204,6 +208,7 @@ class WfManagerTask(Task):
     @on_trait_change('_computation_running')
     def update_side_pane_status(self):
         self.side_pane.enabled = not self._computation_running
+        self._menu_enabled = not self._computation_running
 
     @on_trait_change('side_pane.run_button')
     def run_bdss(self):
