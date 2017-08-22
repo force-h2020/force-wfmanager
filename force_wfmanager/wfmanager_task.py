@@ -4,17 +4,20 @@ import subprocess
 import tempfile
 
 from concurrent.futures import ThreadPoolExecutor
+
+from traits.api import Instance, on_trait_change, File, Str, Bool
+
 from pyface.api import (
     FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI)
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.tasks.api import Task, TaskLayout, PaneItem
-from traits.api import Instance, on_trait_change, File, Str
 
 from force_bdss.api import MCOProgressEvent, MCOStartEvent
 from force_bdss.core.workflow import Workflow
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 from force_bdss.io.workflow_writer import WorkflowWriter
+
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
@@ -54,6 +57,9 @@ class WfManagerTask(Task):
     #: ZeroMQ Server to receive information from the running BDSS
     _zmq_server = Instance(ZMQServer)
 
+    #: False when the ui must be disabled because of a running computation
+    _ui_enabled = Bool(True)
+
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(
         SMenu(
@@ -68,16 +74,19 @@ class WfManagerTask(Task):
             TaskAction(
                 name='Open Workflow...',
                 method='open_workflow',
+                enabled_name='_ui_enabled',
                 accelerator='Ctrl+O',
             ),
             TaskAction(
                 name='Save Workflow',
                 method='save_workflow',
+                enabled_name='_ui_enabled',
                 accelerator='Ctrl+S',
             ),
             TaskAction(
                 name='Save Workflow as...',
                 method='save_workflow_as',
+                enabled_name='_ui_enabled',
                 accelerator='Shift+Ctrl+S',
             ),
             name='&File'
@@ -193,6 +202,10 @@ class WfManagerTask(Task):
             else:
                 self.current_file = dialog.path
 
+    @on_trait_change('_ui_enabled')
+    def update_ui_status(self):
+        self.side_pane.enabled = self._ui_enabled
+
     @on_trait_change('side_pane.run_button')
     def run_bdss(self):
         """ Run the BDSS computation """
@@ -211,7 +224,7 @@ class WfManagerTask(Task):
                   )
             return
 
-        self.side_pane.enabled = False
+        self._ui_enabled = False
         future = self._executor.submit(self._execute_bdss, tmpfile_path)
         future.add_done_callback(self._execution_done_callback)
 
@@ -276,7 +289,7 @@ class WfManagerTask(Task):
         exception: Exception or None
             If the execution raised an exception of any sort.
         """
-        self.side_pane.enabled = True
+        self._ui_enabled = True
         if exception is not None:
             error(
                 None,
