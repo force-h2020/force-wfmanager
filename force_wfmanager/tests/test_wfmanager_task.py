@@ -35,6 +35,7 @@ from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
 
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_task.FileDialog'
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager_task.ConfirmationDialog'
+INFORMATION_PATH = 'force_wfmanager.wfmanager_task.information'
 CONFIRM_PATH = 'force_wfmanager.wfmanager_task.confirm'
 FILE_OPEN_PATH = 'force_wfmanager.wfmanager_task.open'
 WORKFLOW_WRITER_PATH = 'force_wfmanager.wfmanager_task.WorkflowWriter'
@@ -81,6 +82,10 @@ def mock_os_remove(*args, **kwargs):
 
 
 def mock_show_error(*args, **kwargs):
+    return args
+
+
+def mock_info_dialog(*args, **kwargs):
     return args
 
 
@@ -205,6 +210,14 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.save_workflow_as()
             mock_open.assert_not_called()
+
+    def test_about_action(self):
+        with mock.patch(INFORMATION_PATH) as mock_information:
+            mock_information.side_effect = mock_info_dialog
+
+            self.wfmanager_task.open_about()
+
+            mock_information.assert_called()
 
     def test_open_failure(self):
         mock_open = mock.mock_open()
