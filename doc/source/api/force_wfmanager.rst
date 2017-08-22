@@ -1,5 +1,5 @@
-force_wfmanager package
-=======================
+force\_wfmanager package
+========================
 
 Subpackages
 -----------
@@ -8,44 +8,55 @@ Subpackages
 
     force_wfmanager.central_pane
     force_wfmanager.left_side_pane
+    force_wfmanager.plugins
+    force_wfmanager.server
+    force_wfmanager.tests
 
 Submodules
 ----------
 
-force_wfmanager.run module
---------------------------
+force\_wfmanager\.local\_traits module
+--------------------------------------
+
+.. automodule:: force_wfmanager.local_traits
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force\_wfmanager\.run module
+----------------------------
 
 .. automodule:: force_wfmanager.run
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.version module
-------------------------------
+force\_wfmanager\.version module
+--------------------------------
 
 .. automodule:: force_wfmanager.version
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.wfmanager module
---------------------------------
+force\_wfmanager\.wfmanager module
+----------------------------------
 
 .. automodule:: force_wfmanager.wfmanager
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.wfmanager_plugin module
----------------------------------------
+force\_wfmanager\.wfmanager\_plugin module
+------------------------------------------
 
 .. automodule:: force_wfmanager.wfmanager_plugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.wfmanager_task module
--------------------------------------
+force\_wfmanager\.wfmanager\_task module
+----------------------------------------
 
 .. automodule:: force_wfmanager.wfmanager_task
     :members:
