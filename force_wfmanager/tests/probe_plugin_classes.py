@@ -29,5 +29,10 @@ class ProbeUIHooksManager(BaseUIHooksManager):
 
 
 class ProbeUIHooksFactory(BaseUIHooksFactory):
+    create_ui_hooks_manager_raises = Bool()
+
     def create_ui_hooks_manager(self):
+        if self.create_ui_hooks_manager_raises:
+            raise Exception("Boom")
+
         return ProbeUIHooksManager(self)

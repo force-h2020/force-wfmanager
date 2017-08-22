@@ -398,7 +398,8 @@ class WfManagerTask(Task):
             except Exception:
                 log.exception(
                     "Failed to create UI "
-                    "hook manager by factory {}".format(factory)
+                    "hook manager by factory {}".format(
+                        factory.__class__.__name__)
                 )
         return managers
 

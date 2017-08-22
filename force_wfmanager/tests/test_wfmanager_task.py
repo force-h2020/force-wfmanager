@@ -134,6 +134,25 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
         self.assertIsInstance(self.wfmanager_task.analysis_m, AnalysisModel)
         self.assertEqual(len(self.wfmanager_task.ui_hooks_managers), 1)
 
+    def test_failed_initialization_of_ui_hooks(self):
+        mock_plugin = mock.Mock(spec=FactoryRegistryPlugin)
+        mock_plugin.mco_factories = [mock.Mock(spec=DummyDakotaFactory)]
+        mock_plugin.data_source_factories = [mock.Mock(spec=CSVExtractorFactory)]
+        mock_plugin.kpi_calculator_factories = [mock.Mock(spec=KPIAdderFactory)]
+
+        probe_factory = ProbeUIHooksFactory(mock_plugin)
+        mock_plugin.ui_hooks_factories = [probe_factory]
+        probe_factory.create_ui_hooks_manager_raises = True
+        with LogCapture() as capture:
+            wfmanager_task = WfManagerTask(factory_registry=mock_plugin)
+            self.assertEqual(len(wfmanager_task.ui_hooks_managers), 0)
+
+        capture.check(
+            ('force_wfmanager.wfmanager_task',
+             'ERROR',
+             'Failed to create UI hook manager by factory ProbeUIHooksFactory')
+        )
+
     def test_save_workflow(self):
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
