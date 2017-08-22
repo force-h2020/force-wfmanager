@@ -1,6 +1,6 @@
 from traits.api import HasStrictTraits
 
-from force_bdss.api import ZMQSocketURL
+from force_wfmanager.local_traits import ZMQSocketURL
 
 
 class ZMQServerConfig(HasStrictTraits):
