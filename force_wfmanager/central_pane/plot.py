@@ -1,4 +1,4 @@
-from traits.api import (HasStrictTraits, List, Instance, Enum, Property,
+from traits.api import (HasStrictTraits, List, Instance, Enum, Str,
                         on_trait_change)
 from traitsui.api import View, UItem, Item, VGroup, HGroup
 from enable.api import Component, ComponentEditor
@@ -12,7 +12,7 @@ class Plot(HasStrictTraits):
     #: The model for the plot
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
-    _value_names = Property(depends_on="analysis_model.value_names")
+    _value_names = List(Str)
 
     #: First parameter used for the plot
     x = Enum(values='_value_names')
@@ -72,13 +72,9 @@ class Plot(HasStrictTraits):
     def __data_arrays_default(self):
         return [[] for _ in range(len(self.analysis_model.value_names))]
 
-    def _get__value_names(self):
-        return self.analysis_model.value_names
-
-    @on_trait_change('_value_names')
-    def update_selected_axis(self):
-        """ If the data dimensions is larger than 1, select the second
-        component for the y axis """
+    @on_trait_change('analysis_model.value_names')
+    def update_value_names(self):
+        self._value_names = self.analysis_model.value_names
         if len(self._value_names) > 1:
             self.y = self._value_names[1]
 
