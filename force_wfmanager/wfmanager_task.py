@@ -161,7 +161,8 @@ class WfManagerTask(Task):
             except Exception:
                 log.exception(
                     "Failed before_save hook "
-                    "for hook manager {}".format(hook_manager)
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__)
                 )
 
         try:
@@ -228,7 +229,8 @@ class WfManagerTask(Task):
             except Exception:
                 log.exception(
                     "Failed before_execution hook "
-                    "for hook manager {}".format(hook_manager)
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__)
                 )
 
         # Creates a temporary file containing the workflow
@@ -316,7 +318,8 @@ class WfManagerTask(Task):
             except Exception:
                 log.exception(
                     "Failed after_execution hook "
-                    "for hook manager {}".format(hook_manager)
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__)
                 )
 
         self.side_pane.enabled = True

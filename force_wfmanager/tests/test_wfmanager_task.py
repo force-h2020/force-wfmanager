@@ -1,5 +1,7 @@
 import unittest
 
+from testfixtures import LogCapture
+
 from force_bdss.core_driver_events import MCOStartEvent, MCOProgressEvent
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.server.zmq_server import ZMQServer
@@ -311,6 +313,41 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.assertTrue(hook_manager.before_execution_called)
             self.assertTrue(hook_manager.after_execution_called)
+
+    def test_hook_manager_raises(self):
+        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
+                mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
+            mock_writer.side_effect = mock_file_writer
+            mock_subprocess.side_effect = mock_subprocess
+
+            hook_manager = self.wfmanager_task.ui_hooks_managers[0]
+            hook_manager.before_execution_raises = True
+            with LogCapture() as capture, \
+                    self.event_loop_until_condition(
+                        lambda: _mock_subprocess.check_call.called):
+                self.wfmanager_task.run_bdss()
+
+            capture.check(
+                ('force_wfmanager.wfmanager_task',
+                 'ERROR',
+                 'Failed before_execution hook for hook manager '
+                 'ProbeUIHooksManager')
+            )
+            hook_manager.before_execution_raises = False
+            hook_manager.after_execution_raises = True
+            with LogCapture() as capture, \
+                    self.event_loop_until_condition(
+                        lambda: _mock_subprocess.check_call.called):
+                self.wfmanager_task.run_bdss()
+
+            capture.check(
+                ('force_wfmanager.wfmanager_task',
+                 'ERROR',
+                 'Failed after_execution hook for hook manager '
+                 'ProbeUIHooksManager')
+            )
 
     def test_run_bdss_cancel(self):
         self.wfmanager_task.analysis_m.value_names = ('x', )
