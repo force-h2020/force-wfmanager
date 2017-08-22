@@ -386,7 +386,7 @@ class WfManagerTask(Task):
                 managers.append(
                     factory.create_ui_hooks_manager()
                 )
-            except Exception:
+            except Exception as e:
                 log.exception(
                     "Failed to create UI "
                     "hook manager by factory {}".format(factory)

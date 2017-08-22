@@ -1,13 +1,11 @@
+from traits.api import Bool
 from force_bdss.api import BaseUIHooksFactory, BaseUIHooksManager
 
 
 class ProbeUIHooksManager(BaseUIHooksManager):
-    def __init__(self, *args, **kwargs):
-        super(ProbeUIHooksManager, self).__init__(*args, **kwargs)
-
-        self.before_execution_called = False
-        self.after_execution_called = False
-        self.before_save_called = False
+    before_execution_called = Bool()
+    after_execution_called = Bool()
+    before_save_called = Bool()
 
     def before_execution(self, task):
         self.before_execution_called = True
