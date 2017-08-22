@@ -38,12 +38,10 @@ class WorkflowModelView(ModelView):
             for mco_mv in self.mco_representation
         ]
         self.variable_names_registry = VariableNamesRegistry(
-            mco_parameters_mv=mco_parameters_mv
+            mco_parameters_mv=mco_parameters_mv,
+            data_sources_mv=self.data_sources_representation,
+            kpi_calculators_mv=self.kpi_calculators_representation
         )
-        self.variable_names_registry.data_sources_mv = \
-            self.data_sources_representation
-        self.variable_names_registry.kpi_calculators_mv = \
-            self.kpi_calculators_representation
 
         # Now that the variable names register is correctly set, we can update
         # the model views
