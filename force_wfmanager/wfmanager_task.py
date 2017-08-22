@@ -57,8 +57,7 @@ class WfManagerTask(Task):
     #: ZeroMQ Server to receive information from the running BDSS
     _zmq_server = Instance(ZMQServer)
 
-    #: False when the ui must be disabled because of a running computation
-    _ui_enabled = Bool(True)
+    _computation_running = Bool(False)
 
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(
@@ -74,19 +73,19 @@ class WfManagerTask(Task):
             TaskAction(
                 name='Open Workflow...',
                 method='open_workflow',
-                enabled_name='_ui_enabled',
+                enabled_name='not _computation_running',
                 accelerator='Ctrl+O',
             ),
             TaskAction(
                 name='Save Workflow',
                 method='save_workflow',
-                enabled_name='_ui_enabled',
+                enabled_name='not _computation_running',
                 accelerator='Ctrl+S',
             ),
             TaskAction(
                 name='Save Workflow as...',
                 method='save_workflow_as',
-                enabled_name='_ui_enabled',
+                enabled_name='not _computation_running',
                 accelerator='Shift+Ctrl+S',
             ),
             name='&File'
@@ -202,9 +201,9 @@ class WfManagerTask(Task):
             else:
                 self.current_file = dialog.path
 
-    @on_trait_change('_ui_enabled')
-    def update_ui_status(self):
-        self.side_pane.enabled = self._ui_enabled
+    @on_trait_change('_computation_running')
+    def update_side_pane_status(self):
+        self.side_pane.enabled = not self._computation_running
 
     @on_trait_change('side_pane.run_button')
     def run_bdss(self):
@@ -224,7 +223,7 @@ class WfManagerTask(Task):
                   )
             return
 
-        self._ui_enabled = False
+        self._computation_running = True
         future = self._executor.submit(self._execute_bdss, tmpfile_path)
         future.add_done_callback(self._execution_done_callback)
 
@@ -289,7 +288,7 @@ class WfManagerTask(Task):
         exception: Exception or None
             If the execution raised an exception of any sort.
         """
-        self._ui_enabled = True
+        self._computation_running = False
         if exception is not None:
             error(
                 None,
