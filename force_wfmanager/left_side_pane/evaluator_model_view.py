@@ -35,14 +35,14 @@ class TableRow(HasStrictTraits):
 
 class InputSlotRow(TableRow):
     #: Name of the slot
-    name = Enum(values='_available_variables')
+    name = Enum(values='_combobox_values')
 
     #: Available variables as input for this evaluator
     available_variables = List(Identifier)
 
     #: Possible values for the name of the input, it can be an empty string or
     #: one of the available variables
-    _available_variables = List(Identifier)
+    _combobox_values = List(Identifier)
 
     @on_trait_change('name')
     def update_model(self):
@@ -50,11 +50,11 @@ class InputSlotRow(TableRow):
 
     @on_trait_change('available_variables')
     def update_available_variables(self):
-        self._available_variables = [''] + self.available_variables
+        self._combobox_values = [''] + self.available_variables
         self.name = ('' if self.name not in self.available_variables
                      else self.name)
 
-    def __available_variables_default(self):
+    def __combobox_values_default(self):
         return [''] + self.available_variables
 
 
