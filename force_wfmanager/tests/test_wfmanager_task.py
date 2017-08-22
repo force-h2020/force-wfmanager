@@ -35,6 +35,7 @@ from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
 
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_task.FileDialog'
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager_task.ConfirmationDialog'
+CONFIRM_PATH = 'force_wfmanager.wfmanager_task.confirm'
 FILE_OPEN_PATH = 'force_wfmanager.wfmanager_task.open'
 WORKFLOW_WRITER_PATH = 'force_wfmanager.wfmanager_task.WorkflowWriter'
 WORKFLOW_READER_PATH = 'force_wfmanager.wfmanager_task.WorkflowReader'
@@ -58,6 +59,12 @@ def get_wfmanager_task():
     wfmanager_task.create_dock_panes()
 
     return wfmanager_task
+
+
+def mock_confirm_function(result):
+    def mock_conf(*args, **kwargs):
+        return result
+    return mock_conf
 
 
 def mock_dialog(dialog_class, result, path=''):
@@ -288,6 +295,22 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             with self.event_loop_until_condition(
                     lambda: self.wfmanager_task.side_pane.enabled):
                 pass
+
+    def test_run_bdss_cancel(self):
+        self.wfmanager_task.analysis_m.value_names = ('x', )
+        self.wfmanager_task.analysis_m.add_evaluation_step((2.0, ))
+        with mock.patch(CONFIRM_PATH) as mock_confirm:
+            mock_confirm.side_effect = mock_confirm_function(CANCEL)
+
+            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+            self.wfmanager_task.run_bdss()
+            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+
+            mock_confirm.assert_called_with(
+                None,
+                "Are you sure you want to run the computation and "
+                "empty the result table?"
+            )
 
     def test_run_bdss_failure(self):
         mock_open = mock.mock_open()
