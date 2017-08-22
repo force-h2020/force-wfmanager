@@ -280,10 +280,12 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
         self.wfmanager_task.analysis_m.value_names = ('x', )
         self.wfmanager_task.analysis_m.add_evaluation_step((2.0, ))
         mock_open = mock.mock_open()
-        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
+        with mock.patch(CONFIRM_PATH) as mock_confirm, \
+                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
                 mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
+            mock_confirm.side_effect = mock_confirm_function(YES)
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
             mock_subprocess.side_effect = mock_subprocess
