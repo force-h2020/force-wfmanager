@@ -181,11 +181,13 @@ class EvaluatorModelView(ModelView):
         input_slots, output_slots = self._evaluator.slots(self.model)
 
         #: Initialize the input slots
+        self.input_slots_representation = []
         self.model.input_slot_maps = []
         for input_slot in input_slots:
             self.model.input_slot_maps.append(InputSlotMap(name=''))
 
         #: Initialize the output slots
+        self.output_slots_representation = []
         self.model.output_slot_names = len(output_slots)*['']
 
         self._fill_slot_rows(input_slots, output_slots)
