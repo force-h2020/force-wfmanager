@@ -140,7 +140,6 @@ class PlotTest(unittest.TestCase):
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
 
-        print "0", self.plot._value_names
         self.analysis_model.value_names = ('density', )
 
         self.assertEqual(len(self.plot._data_arrays), 1)
