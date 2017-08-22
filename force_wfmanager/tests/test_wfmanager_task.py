@@ -156,6 +156,17 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             self.assertEqual(self.wfmanager_task.current_file, 'file_path')
             self.assertTrue(hook_manager.before_save_called)
 
+            hook_manager.before_save_raises = True
+            with LogCapture() as capture:
+                self.wfmanager_task.save_workflow()
+
+            capture.check(('force_wfmanager.wfmanager_task',
+                           'ERROR',
+                           'Failed before_save hook for hook manager '
+                           'ProbeUIHooksManager'))
+
+            hook_manager.before_save_raises = False
+
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
