@@ -207,7 +207,8 @@ class WfManagerTask(Task):
         information(
             None,
             "Workflow manager: UI application for Business Decision System\n\n"
-            "It is part of the FORCE project\n"
+            "It is part of the FORCE project "
+            "(Horizon 2020/NMBP-23-2016/721027)\n\n"
             "This software is released under the BSD license",
             "About WorflowManager"
         )
