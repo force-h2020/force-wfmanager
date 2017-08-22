@@ -1,9 +1,9 @@
 from force_bdss.api import BaseUIHooksFactory, BaseUIHooksManager
 
 
-class NullUIHookManager(BaseUIHooksManager):
+class ProbeUIHooksManager(BaseUIHooksManager):
     def __init__(self, *args, **kwargs):
-        super(NullUIHookManager, self).__init__(*args, **kwargs)
+        super(ProbeUIHooksManager, self).__init__(*args, **kwargs)
 
         self.before_execution_called = False
         self.after_execution_called = False
@@ -19,6 +19,6 @@ class NullUIHookManager(BaseUIHooksManager):
         self.before_save_called = True
 
 
-class NullUIHookFactory(BaseUIHooksFactory):
+class ProbeUIHooksFactory(BaseUIHooksFactory):
     def create_ui_hooks_manager(self):
-        return NullUIHookManager(self)
+        return ProbeUIHooksManager(self)
