@@ -201,16 +201,11 @@ class WfManagerTask(Task):
                 self.current_file = dialog.path
 
     def open_about(self):
-        license_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            'LICENSE.txt'
-        )
-        with open(license_path) as license_obj:
-            license = license_obj.read()
         information(
             None,
             "Workflow manager: UI application for Business Decision System\n\n"
-            + license,
+            "It is part of the FORCE project\n"
+            "This software is released under the BSD license",
             "About WorflowManager"
         )
 
