@@ -5,7 +5,7 @@ import tempfile
 
 from concurrent.futures import ThreadPoolExecutor
 from pyface.api import (
-    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI)
+    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, information)
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Instance, on_trait_change, File, Str
@@ -81,6 +81,13 @@ class WfManagerTask(Task):
                 accelerator='Shift+Ctrl+S',
             ),
             name='&File'
+        ),
+        SMenu(
+            TaskAction(
+                name='About WorflowManager...',
+                method='open_about'
+            ),
+            name='&Help'
         ),
     )
 
@@ -192,6 +199,20 @@ class WfManagerTask(Task):
                 )
             else:
                 self.current_file = dialog.path
+
+    def open_about(self):
+        license_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            'LICENSE.txt'
+        )
+        with open(license_path) as license_obj:
+            license = license_obj.read()
+        information(
+            None,
+            "Workflow manager: UI application for Business Decision System\n\n"
+            + license,
+            "About WorflowManager"
+        )
 
     @on_trait_change('side_pane.run_button')
     def run_bdss(self):
