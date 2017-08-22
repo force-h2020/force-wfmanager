@@ -10,7 +10,7 @@ from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Instance, on_trait_change, File, Str
 
-from force_bdss.api import MCOProgressEvent, MCOStartEvent
+from force_bdss.api import MCOProgressEvent, MCOStartEvent, factory_id
 from force_bdss.core.workflow import Workflow
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
@@ -20,6 +20,8 @@ from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.server.zmq_server_config import ZMQServerConfig
+from force_wfmanager.plugins.ui_notification.ui_notification_model import \
+    UINotificationModel
 
 log = logging.getLogger(__name__)
 
@@ -50,6 +52,9 @@ class WfManagerTask(Task):
     #: Path to spawn for the BDSS CLI executable.
     #: This will go to some global configuration option later.
     _bdss_executable_path = Str("force_bdss")
+
+    #: Configuration of the ZeroMQ server
+    zmq_server_config = Instance(ZMQServerConfig)
 
     #: ZeroMQ Server to receive information from the running BDSS
     _zmq_server = Instance(ZMQServer)
@@ -146,6 +151,12 @@ class WfManagerTask(Task):
         Boolean:
             True if it was a success to write in the file, False otherwise
         """
+        hooks_factories = self.factory_registry.ui_hooks_factories
+
+        for factory in hooks_factories:
+            hook_manager = factory.create_ui_hooks_manager()
+            hook_manager.before_save(self)
+
         try:
             with open(file_path, 'w') as output:
                 WorkflowWriter().write(self.workflow_m, output)
@@ -196,9 +207,16 @@ class WfManagerTask(Task):
     @on_trait_change('side_pane.run_button')
     def run_bdss(self):
         """ Run the BDSS computation """
-        tmpfile_path = tempfile.mktemp()
+
+        # Add the notification listener information for the server.
+        hooks_factories = self.factory_registry.ui_hooks_factories
+
+        for factory in hooks_factories:
+            hook_manager = factory.create_ui_hooks_manager()
+            hook_manager.before_execution(self)
 
         # Creates a temporary file containing the workflow
+        tmpfile_path = tempfile.mktemp()
         try:
             with open(tmpfile_path, 'w') as output:
                 WorkflowWriter().write(self.workflow_m, output)
@@ -333,9 +351,12 @@ class WfManagerTask(Task):
     def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)
 
+    def _zmq_server_config_default(self):
+        return ZMQServerConfig()
+
     def __zmq_server_default(self):
-        config = ZMQServerConfig()
-        return ZMQServer(config, on_event_callback=self._server_event_callback)
+        return ZMQServer(self.zmq_server_config,
+                         on_event_callback=self._server_event_callback)
 
     # Handlers
 
