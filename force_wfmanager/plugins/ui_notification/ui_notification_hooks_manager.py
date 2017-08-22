@@ -25,7 +25,7 @@ class UINotificationHooksManager(BaseUIHooksManager):
             task.zmq_server_config.pub_url)
         notification_model.identifier = ""
 
-    def before_save(self, task):
+    def after_execution(self, task):
         model = task.workflow_m
         notification_model = None
         for listener_model in model.notification_listeners:
