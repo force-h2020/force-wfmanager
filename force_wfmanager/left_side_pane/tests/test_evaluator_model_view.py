@@ -183,9 +183,15 @@ class TestEvaluatorModelView(unittest.TestCase):
             'P2'
         )
 
-    def test_create_data_source_table(self):
+    def test_update_data_source_table(self):
         slots = self.data_source_mv.input_slots_representation
         self.assertEqual(
             slots[0].available_variables,
             ['P1']
+        )
+
+        self.variable_names_registry.data_source_available_variables = ['P2']
+        self.assertEqual(
+            slots[0].available_variables,
+            ['P2']
         )
