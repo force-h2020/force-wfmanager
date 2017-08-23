@@ -112,3 +112,19 @@ class TestEvaluatorModelView(unittest.TestCase):
             self.evaluator_mv.output_slots_representation[0].type,
             "bar"
         )
+
+        self.model.output_slot_names = ['p1', 't1']
+        self.assertEqual(
+            self.evaluator_mv.output_slots_representation[0].name,
+            'p1'
+        )
+        self.assertEqual(
+            self.evaluator_mv.output_slots_representation[1].name,
+            't1'
+        )
+
+        self.model.input_slot_maps[0].name = 'p_in'
+        self.assertEqual(
+            self.evaluator_mv.input_slots_representation[0].name,
+            'p_in'
+        )
