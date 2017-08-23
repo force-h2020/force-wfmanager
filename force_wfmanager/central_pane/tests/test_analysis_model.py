@@ -5,7 +5,7 @@ from traits.trait_errors import TraitError
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 
 
-class AnalysisModelTest(unittest.TestCase):
+class TestAnalysisModel(unittest.TestCase):
     def setUp(self):
         self.analysis = AnalysisModel()
 

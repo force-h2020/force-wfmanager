@@ -54,7 +54,7 @@ class BadEvaluatorModelView(EvaluatorModelView):
     model = Instance(KPICalculatorFactory)
 
 
-class EvaluatorModelViewTest(unittest.TestCase):
+class TestEvaluatorModelView(unittest.TestCase):
     def setUp(self):
         factory = KPICalculatorFactory(mock.Mock(spec=Plugin))
 

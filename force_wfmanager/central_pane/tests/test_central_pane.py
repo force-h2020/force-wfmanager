@@ -4,7 +4,7 @@ from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 
 
-class CentralPaneTest(unittest.TestCase):
+class TestCentralPane(unittest.TestCase):
     def setUp(self):
         self.model = AnalysisModel()
         self.pane = CentralPane(self.model)
