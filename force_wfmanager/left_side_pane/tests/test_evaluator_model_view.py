@@ -63,7 +63,7 @@ class TestEvaluatorModelView(unittest.TestCase):
         self.model = factory.create_model()
         self.evaluator = factory.create_kpi_calculator()
 
-        self.variable_names_registry = mock.Mock(spec=VariableNamesRegistry)
+        self.variable_names_registry = VariableNamesRegistry()
         self.variable_names_registry.kpi_calculator_available_variables = \
             ['P1', 'P2', 'P3']
 
@@ -142,8 +142,8 @@ class TestEvaluatorModelView(unittest.TestCase):
             't1'
         )
 
-        self.model.input_slot_maps[0].name = 'p_in'
+        self.model.input_slot_maps[0].name = 'P2'
         self.assertEqual(
             self.evaluator_mv.input_slots_representation[0].name,
-            'p_in'
+            'P2'
         )

@@ -241,7 +241,8 @@ class EvaluatorModelView(ModelView):
             for index, output_slot in enumerate(output_slots)
         ]
 
-    @on_trait_change('variable_names_registry.data_source_available_variables')
+    @on_trait_change(
+        'variable_names_registry.data_source_available_variables[]')
     def update_data_source_input_rows(self):
         if not isinstance(self.model, BaseDataSourceModel):
             return
@@ -252,7 +253,7 @@ class EvaluatorModelView(ModelView):
             input_slot_row.available_variables = available_variables
 
     @on_trait_change(
-        'variable_names_registry.kpi_calculator_available_variables')
+        'variable_names_registry.kpi_calculator_available_variables[]')
     def update_kpi_calculator_input_rows(self):
         if not isinstance(self.model, BaseKPICalculatorModel):
             return
