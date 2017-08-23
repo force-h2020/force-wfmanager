@@ -9,7 +9,7 @@ from envisage.api import Application
 from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 
-class WfManagerPluginTest(unittest.TestCase):
+class TestWfManagerPlugin(unittest.TestCase):
     def setUp(self):
         self.wfmanager_plugin = WfManagerPlugin()
         self.wfmanager_plugin.application = mock.Mock(spec=Application)

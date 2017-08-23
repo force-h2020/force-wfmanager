@@ -11,7 +11,7 @@ from force_wfmanager.left_side_pane.mco_parameter_model_view import \
     MCOParameterModelView
 
 
-class MCOModelViewTest(unittest.TestCase):
+class TestMCOModelView(unittest.TestCase):
     def setUp(self):
         mock_model = mock.Mock(spec=BaseMCOModel)
         mock_model.parameters = [mock.Mock(spec=BaseMCOParameter)]

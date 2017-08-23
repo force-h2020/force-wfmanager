@@ -14,7 +14,7 @@ def mock_wfmanager_constructor(*args, **kwargs):
     return wfmanager
 
 
-class RunTest(unittest.TestCase):
+class TestRun(unittest.TestCase):
     def test_main(self):
         with mock.patch('force_wfmanager.run.WfManager') as mock_wfmanager:
             mock_wfmanager.side_effect = mock_wfmanager_constructor
