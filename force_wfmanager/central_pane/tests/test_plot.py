@@ -8,7 +8,7 @@ from traits.api import push_exception_handler
 push_exception_handler(reraise_exceptions=True)
 
 
-class PlotTest(unittest.TestCase):
+class TestPlot(unittest.TestCase):
     def setUp(self):
         self.analysis_model = AnalysisModel()
         self.plot = Plot(analysis_model=self.analysis_model)
