@@ -4,21 +4,14 @@ try:
 except ImportError:
     from unittest import mock
 
-from envisage.plugin import Plugin
-
 from traits.api import Instance, HasTraits
 
-from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
-    DummyDakotaFactory)
-from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
-    CSVExtractorFactory)
-from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import (
-    KPIAdderFactory)
 from force_bdss.api import (
     BaseMCOModel, BaseMCOFactory,
     BaseMCOParameter, BaseMCOParameterFactory,
-    BaseDataSourceModel, BaseDataSourceFactory, BaseDataSource,
-    BaseKPICalculatorModel, BaseKPICalculatorFactory, BaseKPICalculator)
+    BaseDataSourceModel, BaseDataSourceFactory,
+    BaseKPICalculatorModel, BaseKPICalculatorFactory,
+    BaseDataSource, BaseKPICalculator)
 from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_model_view import \
@@ -43,58 +36,69 @@ class WorkflowSettingsEditor(HasTraits):
 
 
 def get_workflow_settings():
-    plugin = mock.Mock(spec=Plugin)
     return WorkflowSettings(
-        mco_factories=[DummyDakotaFactory(plugin)],
-        data_source_factories=[CSVExtractorFactory(plugin)],
-        kpi_calculator_factories=[KPIAdderFactory(plugin)],
+        mco_factories=[mock.Mock(spec=BaseMCOFactory)],
+        data_source_factories=[mock.Mock(spec=BaseDataSourceFactory)],
+        kpi_calculator_factories=[mock.Mock(spec=BaseKPICalculatorFactory)],
         workflow_m=Workflow(),
     )
 
 
-def get_data_source_model_mock():
-    data_source_model_mock = mock.Mock(spec=BaseDataSourceModel)
-    data_source_model_mock.factory = mock.Mock(spec=BaseDataSourceFactory)
-    data_source_model_mock.input_slot_maps = []
-    data_source_model_mock.output_slot_names = []
-
-    data_source_mock = mock.Mock(spec=BaseDataSource)
-    data_source_mock.slots = lambda x: ((), ())
-    data_source_model_mock.factory.create_data_source = lambda: \
-        data_source_mock
-    return data_source_model_mock
+class DummyParameterModel(BaseMCOParameter):
+    pass
 
 
-def get_kpi_calculator_model_mock():
-    kpi_calculator_model_mock = mock.Mock(spec=BaseKPICalculatorModel)
-    kpi_calculator_model_mock.factory = mock.Mock(
-        spec=BaseKPICalculatorFactory)
-    kpi_calculator_model_mock.input_slot_maps = []
-    kpi_calculator_model_mock.output_slot_names = []
+class DummyMCOModel(BaseMCOModel):
+    edit_traits = mock.Mock()
 
-    kpi_calculator_mock = mock.Mock(spec=BaseKPICalculator)
-    kpi_calculator_mock.slots = lambda x: ((), ())
-    kpi_calculator_model_mock.factory.create_kpi_calculator = lambda: \
-        kpi_calculator_mock
-    return kpi_calculator_model_mock
+
+class DummyDataSourceModel(BaseDataSourceModel):
+    pass
+
+
+class DummyKPIModel(BaseKPICalculatorModel):
+    pass
 
 
 def get_workflow_model_view():
-    mco = mock.Mock(spec=BaseMCOModel)
-    mco.factory = mock.Mock(spec=BaseMCOFactory)
+    mco = DummyMCOModel(factory=mock.Mock(spec=BaseMCOFactory))
     mco.factory.parameter_factories = lambda: [
         mock.Mock(spec=BaseMCOParameterFactory)]
-    parameter = mock.Mock(BaseMCOParameter)
+
+    parameter = DummyParameterModel(
+        factory=mock.Mock(spec=BaseMCOParameterFactory))
     parameter.name = ''
     mco.parameters = [parameter]
+
+    def slots_mock(*args, **kwargs):
+        return ((), ())
+
+    def create_data_source_mock(*args, **kwargs):
+        data_source = mock.Mock(spec=BaseDataSource)
+        data_source.slots = slots_mock
+        return data_source
+
+    def create_kpi_calculator_mock(*args, **kwargs):
+        kpi_calc = mock.Mock(spec=BaseKPICalculator)
+        kpi_calc.slots = slots_mock
+        return kpi_calc
+
+    data_source_factory = mock.Mock(spec=BaseDataSourceFactory)
+    data_source_factory.create_data_source = create_data_source_mock
+
+    kpi_factory = mock.Mock(spec=BaseKPICalculatorFactory)
+    kpi_factory.create_kpi_calculator = create_kpi_calculator_mock
+
     workflow_mv = WorkflowModelView(
         model=Workflow(
             mco=mco,
-            data_sources=[get_data_source_model_mock(),
-                          get_data_source_model_mock()],
-            kpi_calculators=[get_kpi_calculator_model_mock(),
-                             get_kpi_calculator_model_mock(),
-                             get_kpi_calculator_model_mock()])
+            data_sources=[
+                DummyDataSourceModel(factory=data_source_factory),
+                DummyDataSourceModel(factory=data_source_factory)],
+            kpi_calculators=[
+                DummyKPIModel(factory=kpi_factory),
+                DummyKPIModel(factory=kpi_factory),
+                DummyKPIModel(factory=kpi_factory)])
     )
     return workflow_mv
 
@@ -252,6 +256,7 @@ class TestWorkflowElementNode(unittest.TestCase):
         wf_mv.valid = False
         self.assertEqual(wfelement_node.get_icon(wf_mv, False),
                          'icons/invalid.png')
+
         self.assertEqual(
             wfelement_node.get_icon(
                 wf_mv.mco_representation[0].mco_parameters_representation[0],
