@@ -1,6 +1,7 @@
 from traits.api import HasStrictTraits, List, Instance, on_trait_change
 
-from force_bdss.api import Identifier, Workflow
+from force_bdss.api import Identifier
+from force_bdss.core.workflow import Workflow
 
 
 class VariableNamesRegistry(HasStrictTraits):
