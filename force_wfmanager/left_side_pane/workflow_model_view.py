@@ -28,13 +28,6 @@ class WorkflowModelView(ModelView):
     #: Variable Names Registry
     variable_names_registry = Instance(VariableNamesRegistry)
 
-    def __init__(self, model, *args, **kwargs):
-        self.model = model
-        self.variable_names_registry = VariableNamesRegistry(
-            workflow=self.model)
-
-        super(WorkflowModelView, self).__init__(*args, **kwargs)
-
     #: Defines if the Workflow is valid or not
     valid = Bool(True)
 
@@ -140,3 +133,6 @@ class WorkflowModelView(ModelView):
 
     def _model_default(self):
         return Workflow()
+
+    def _variable_names_registry_default(self):
+        return VariableNamesRegistry(workflow=self.model)
