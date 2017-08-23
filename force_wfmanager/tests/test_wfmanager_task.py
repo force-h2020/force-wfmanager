@@ -105,15 +105,8 @@ def mock_file_writer(*args, **kwargs):
 
 def mock_file_reader(*args, **kwargs):
     def read(*args, **kwargs):
-        mco = mock.Mock(spec=BaseMCOModel)
-        mco.factory = mock.Mock(spec=BaseMCOFactory)
-        mco.parameters = []
-
-        mock_workflow = mock.Mock(spec=Workflow)
-        mock_workflow.mco = mco
-        mock_workflow.data_sources = []
-        mock_workflow.kpi_calculators = []
-        return mock_workflow
+        workflow = Workflow()
+        return workflow
     reader = mock.Mock(spec=WorkflowReader)
     reader.read = read
     return reader
