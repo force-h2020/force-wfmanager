@@ -5,14 +5,15 @@ import tempfile
 
 from concurrent.futures import ThreadPoolExecutor
 
-from traits.api import Instance, on_trait_change, File, Str, Bool
+from traits.api import Instance, on_trait_change, File, Str, Bool, List
 
 from pyface.api import (
-    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI)
+    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, confirm)
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 
-from force_bdss.api import MCOProgressEvent, MCOStartEvent
+from force_bdss.api import (
+    MCOProgressEvent, MCOStartEvent, BaseUIHooksManager)
 from force_bdss.core.workflow import Workflow
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
@@ -47,12 +48,20 @@ class WfManagerTask(Task):
     #: Current workflow file on which the application is writing
     current_file = File()
 
+    #: A list of UI hooks managers. These hold plugin injected "hook managers",
+    #: classes with methods that are called when some operation is performed
+    #: by the UI
+    _ui_hooks_managers = List(BaseUIHooksManager)
+
     #: The thread pool executor to spawn the BDSS CLI process.
     _executor = Instance(ThreadPoolExecutor)
 
     #: Path to spawn for the BDSS CLI executable.
     #: This will go to some global configuration option later.
     _bdss_executable_path = Str("force_bdss")
+
+    #: Configuration of the ZeroMQ server
+    zmq_server_config = Instance(ZMQServerConfig)
 
     #: ZeroMQ Server to receive information from the running BDSS
     _zmq_server = Instance(ZMQServer)
@@ -158,6 +167,16 @@ class WfManagerTask(Task):
         Boolean:
             True if it was a success to write in the file, False otherwise
         """
+        for hook_manager in self._ui_hooks_managers:
+            try:
+                hook_manager.before_save(self)
+            except Exception:
+                log.exception(
+                    "Failed before_save hook "
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__)
+                )
+
         try:
             with open(file_path, 'w') as output:
                 WorkflowWriter().write(self.workflow_m, output)
@@ -213,9 +232,28 @@ class WfManagerTask(Task):
     @on_trait_change('side_pane.run_button')
     def run_bdss(self):
         """ Run the BDSS computation """
-        tmpfile_path = tempfile.mktemp()
+        if len(self.analysis_m.evaluation_steps) != 0:
+            result = confirm(
+                None,
+                "Are you sure you want to run the computation and "
+                "empty the result table?")
+            if result is not YES:
+                return
+
+        self._computation_running = True
+
+        for hook_manager in self._ui_hooks_managers:
+            try:
+                hook_manager.before_execution(self)
+            except Exception:
+                log.exception(
+                    "Failed before_execution hook "
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__)
+                )
 
         # Creates a temporary file containing the workflow
+        tmpfile_path = tempfile.mktemp()
         try:
             with open(tmpfile_path, 'w') as output:
                 WorkflowWriter().write(self.workflow_m, output)
@@ -228,7 +266,6 @@ class WfManagerTask(Task):
                   )
             return
 
-        self._computation_running = True
         future = self._executor.submit(self._execute_bdss, tmpfile_path)
         future.add_done_callback(self._execution_done_callback)
 
@@ -293,7 +330,19 @@ class WfManagerTask(Task):
         exception: Exception or None
             If the execution raised an exception of any sort.
         """
+
+        for hook_manager in self._ui_hooks_managers:
+            try:
+                hook_manager.after_execution(self)
+            except Exception:
+                log.exception(
+                    "Failed after_execution hook "
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__)
+                )
+
         self._computation_running = False
+
         if exception is not None:
             error(
                 None,
@@ -350,9 +399,29 @@ class WfManagerTask(Task):
     def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)
 
+    def _zmq_server_config_default(self):
+        return ZMQServerConfig()
+
     def __zmq_server_default(self):
-        config = ZMQServerConfig()
-        return ZMQServer(config, on_event_callback=self._server_event_callback)
+        return ZMQServer(self.zmq_server_config,
+                         on_event_callback=self._server_event_callback)
+
+    def __ui_hooks_managers_default(self):
+        hooks_factories = self.factory_registry.ui_hooks_factories
+
+        managers = []
+        for factory in hooks_factories:
+            try:
+                managers.append(
+                    factory.create_ui_hooks_manager()
+                )
+            except Exception:
+                log.exception(
+                    "Failed to create UI "
+                    "hook manager by factory {}".format(
+                        factory.__class__.__name__)
+                )
+        return managers
 
     # Handlers
 

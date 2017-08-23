@@ -34,7 +34,7 @@ class UnnamedFactory(BaseDataSourceFactory):
         pass
 
 
-class FactoryNameTest(unittest.TestCase):
+class TestFactoryName(unittest.TestCase):
     def test_get_factory_name(self):
         plugin = mock.Mock(spec=Plugin)
 

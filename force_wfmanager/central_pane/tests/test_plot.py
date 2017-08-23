@@ -8,7 +8,7 @@ from traits.api import push_exception_handler
 push_exception_handler(reraise_exceptions=True)
 
 
-class PlotTest(unittest.TestCase):
+class TestPlot(unittest.TestCase):
     def setUp(self):
         self.analysis_model = AnalysisModel()
         self.plot = Plot(analysis_model=self.analysis_model)
@@ -27,17 +27,19 @@ class PlotTest(unittest.TestCase):
             self.plot._plot_data.get_data('y').tolist(), [])
 
     def test_init_data_arrays(self):
-        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.value_names = ('density', 'pressure')
+        self.assertEqual(self.plot.x, 'density')
+        self.assertEqual(self.plot.y, 'pressure')
         self.assertEqual(self.plot._data_arrays, [[], []])
 
     def test_plot(self):
-        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
 
         self.assertIsInstance(self.plot._plot, ChacoPlot)
 
     def test_push_new_evaluation_steps(self):
-        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
 
@@ -65,7 +67,7 @@ class PlotTest(unittest.TestCase):
             second_data_array, [101325, 101423, 102000, 102123, 102453])
 
     def test_reinitialize_model(self):
-        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
 
@@ -83,7 +85,7 @@ class PlotTest(unittest.TestCase):
         self.assertEqual(second_data_array, [])
 
     def test_select_plot_axis(self):
-        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
 
@@ -93,10 +95,11 @@ class PlotTest(unittest.TestCase):
         )
         self.assertEqual(
             self.plot._plot_data.get_data('y').tolist(),
-            [1.010, 1.100]
+            [101325, 101423]
         )
 
         self.plot.x = 'pressure'
+        self.plot.y = 'density'
 
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(),
@@ -108,7 +111,7 @@ class PlotTest(unittest.TestCase):
         )
 
     def test_remove_value_names(self):
-        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
 
@@ -118,10 +121,10 @@ class PlotTest(unittest.TestCase):
         )
         self.assertEqual(
             self.plot._plot_data.get_data('y').tolist(),
-            [1.010, 1.100]
+            [101325, 101423]
         )
 
-        self.analysis_model.value_names = []
+        self.analysis_model.value_names = ()
 
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(),
@@ -133,17 +136,17 @@ class PlotTest(unittest.TestCase):
         )
 
     def test_change_in_value_names_size(self):
-        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
 
-        self.analysis_model.value_names = ['density']
+        self.analysis_model.value_names = ('density', )
 
         self.assertEqual(len(self.plot._data_arrays), 1)
         self.assertEqual(len(self.plot._data_arrays[0]), 0)
 
     def test_selection(self):
-        self.analysis_model.value_names = ['density', 'pressure']
+        self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
         self.assertIsInstance(self.plot._plot, ChacoPlot)

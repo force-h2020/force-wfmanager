@@ -38,7 +38,7 @@ class ModalInfoDummy(HasTraits):
         return UIDummy()
 
 
-class NewEntityModalTest(unittest.TestCase):
+class TestNewEntityModal(unittest.TestCase):
     def setUp(self):
         plugin = mock.Mock(spec=Plugin)
 
