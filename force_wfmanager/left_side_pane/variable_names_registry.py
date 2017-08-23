@@ -11,7 +11,7 @@ class VariableNamesRegistry(HasStrictTraits):
     workflow = Instance(Workflow)
 
     #: List of available variables for the data sources (MCO parameters names)
-    data_sources_available_variables = List(Identifier)
+    data_source_available_variables = List(Identifier)
 
     #: List of available variables for the kpi calculators (Data sources output
     #: names and MCO parameters)
@@ -23,7 +23,7 @@ class VariableNamesRegistry(HasStrictTraits):
     #: List of data sources outputs
     _data_sources_outputs = List(Identifier)
 
-    def _data_sources_available_variables_default(self):
+    def _data_source_available_variables_default(self):
         return []
 
     def _kpi_calculator_available_variables_default(self):
@@ -62,7 +62,7 @@ class VariableNamesRegistry(HasStrictTraits):
 
     @on_trait_change('_mco_parameters_names')
     def update_available_variables(self):
-        self.data_sources_available_variables = self._mco_parameters_names
+        self.data_source_available_variables = self._mco_parameters_names
         self.update_kpi_calculators_available_variables()
 
     @on_trait_change('_data_sources_outputs')

@@ -11,6 +11,7 @@ from force_bdss.api import (
 from force_bdss.core.input_slot_map import InputSlotMap
 
 from .view_utils import get_factory_name
+from .variable_names_registry import VariableNamesRegistry
 
 
 class TableRow(HasStrictTraits):
@@ -95,8 +96,8 @@ class EvaluatorModelView(ModelView):
         allow_none=False,
     )
 
-    #: Available variables for the input slots
-    available_variables = List(Identifier)
+    #: Registry of the available variables
+    variable_names_registry = Instance(VariableNamesRegistry)
 
     #: The human readable name of the evaluator
     label = Str()
@@ -216,9 +217,16 @@ class EvaluatorModelView(ModelView):
     def _fill_slot_rows(self, input_slots, output_slots):
         """ Fill the tables rows according to input_slots and output_slots
         needed by the evaluator and the model slot values """
+        if isinstance(self.model, BaseDataSourceModel):
+            available_variables = \
+                self.variable_names_registry.data_source_available_variables
+        else:
+            available_variables = \
+                self.variable_names_registry.kpi_calculator_available_variables
+
         self.input_slots_representation = [
             InputSlotRow(model=self.model,
-                         available_variables=self.available_variables,
+                         available_variables=available_variables,
                          index=index,
                          name=self.model.input_slot_maps[index].name,
                          type=input_slot.type)
@@ -233,7 +241,23 @@ class EvaluatorModelView(ModelView):
             for index, output_slot in enumerate(output_slots)
         ]
 
-    @on_trait_change('available_variables')
-    def update_input_rows(self):
+    @on_trait_change('variable_names_registry.data_source_available_variables')
+    def update_data_source_input_rows(self):
+        if not isinstance(self.model, BaseDataSourceModel):
+            return
+
+        available_variables = \
+            self.variable_names_registry.data_source_available_variables
         for input_slot_row in self.input_slots_representation:
-            input_slot_row.available_variables = self.available_variables
+            input_slot_row.available_variables = available_variables
+
+    @on_trait_change(
+        'variable_names_registry.kpi_calculator_available_variables')
+    def update_kpi_calculator_input_rows(self):
+        if not isinstance(self.model, BaseKPICalculatorModel):
+            return
+
+        available_variables = \
+            self.variable_names_registry.kpi_calculator_available_variables
+        for input_slot_row in self.input_slots_representation:
+            input_slot_row.available_variables = available_variables
