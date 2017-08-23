@@ -6,21 +6,21 @@ except ImportError:
 
 from force_bdss.api import (
     BaseMCOParameter, BaseMCOParameterFactory,
+    BaseMCOModel, BaseMCOFactory,
     BaseDataSourceModel, BaseDataSourceFactory, BaseDataSource,
     BaseKPICalculatorModel, BaseKPICalculatorFactory, BaseKPICalculator)
 from force_bdss.core.slot import Slot
+from force_bdss.core.workflow import Workflow
 
-from force_wfmanager.left_side_pane.mco_parameter_model_view import (
-    MCOParameterModelView)
-from force_wfmanager.left_side_pane.data_source_model_view import (
-    DataSourceModelView)
-from force_wfmanager.left_side_pane.kpi_calculator_model_view import (
-    KPICalculatorModelView)
 from force_wfmanager.left_side_pane.variable_names_registry import (
     VariableNamesRegistry)
 
 
 class DummyParameterModel(BaseMCOParameter):
+    pass
+
+
+class DummyMCOModel(BaseMCOModel):
     pass
 
 
@@ -35,6 +35,11 @@ class DummyKPIModel(BaseKPICalculatorModel):
 def create_parameter_model():
     factory = mock.Mock(spec=BaseMCOParameterFactory)
     return DummyParameterModel(factory=factory)
+
+
+def create_mco_model():
+    factory = mock.Mock(spec=BaseMCOFactory)
+    return DummyMCOModel(factory=factory)
 
 
 def create_data_source_model():
@@ -69,71 +74,64 @@ def create_kpi_model():
 
 class VariableNamesRegistryTest(unittest.TestCase):
     def setUp(self):
-        self.registry = VariableNamesRegistry()
+        workflow = Workflow()
+
+        mco = create_mco_model()
 
         self.param1 = create_parameter_model()
         self.param2 = create_parameter_model()
         self.param3 = create_parameter_model()
 
-        self.registry.mco_parameters_mv = [
-            MCOParameterModelView(model=self.param1),
-            MCOParameterModelView(model=self.param2),
-            MCOParameterModelView(model=self.param3),
-        ]
-
         self.data_source1 = create_data_source_model()
         self.data_source2 = create_data_source_model()
 
-        self.registry.data_sources_mv = [
-            DataSourceModelView(model=self.data_source1),
-            DataSourceModelView(model=self.data_source2),
-        ]
+        kpi1 = create_kpi_model()
+        kpi2 = create_kpi_model()
 
-        self.kpi1 = create_kpi_model()
-        self.kpi2 = create_kpi_model()
+        workflow.mco = mco
+        mco.parameters = [self.param1, self.param2, self.param3]
+        workflow.data_sources = [self.data_source1, self.data_source2]
+        workflow.kpi_calculators = [kpi1, kpi2]
 
-        self.registry.kpi_calculators_mv = [
-            KPICalculatorModelView(model=self.kpi1),
-            KPICalculatorModelView(model=self.kpi2),
-        ]
+        self.registry = VariableNamesRegistry(workflow=workflow)
 
     def test_registry_init(self):
-        self.assertEqual(len(self.registry.mco_parameters_mv), 3)
-        self.assertEqual(len(self.registry.mco_parameters_names), 0)
-        self.assertEqual(len(self.registry.data_sources_mv), 2)
-        self.assertEqual(len(self.registry.data_sources_output_names), 0)
-        self.assertEqual(len(self.registry.kpi_calculators_mv), 2)
+        self.assertEqual(
+            len(self.registry.data_source_available_variables), 0)
+        self.assertEqual(
+            len(self.registry.kpi_calculator_available_variables), 0)
+        self.assertEqual(len(self.registry._mco_parameters_names), 0)
+        self.assertEqual(len(self.registry._data_sources_outputs), 0)
 
     def test_available_names_update(self):
-        self.assertEqual(self.registry.mco_parameters_names, [])
-
         self.param1.name = 'V1'
-        self.assertEqual(self.registry.mco_parameters_names, ['V1'])
+        self.assertEqual(self.registry._mco_parameters_names, ['V1'])
 
         self.param2.name = 'V2'
-        self.assertEqual(self.registry.mco_parameters_names, ['V1', 'V2'])
+        self.assertEqual(self.registry._mco_parameters_names, ['V1', 'V2'])
 
         self.param3.name = 'V3'
-        self.assertEqual(self.registry.mco_parameters_names,
+        self.assertEqual(self.registry._mco_parameters_names,
                          ['V1', 'V2', 'V3'])
 
         self.param1.name = ''
-        self.assertEqual(self.registry.mco_parameters_names,
+        self.assertEqual(self.registry._mco_parameters_names,
                          ['V2', 'V3'])
 
-        self.assertEqual(self.registry.data_sources_mv[0].available_variables,
-                         ['V2', 'V3'])
         self.assertEqual(
-            self.registry.kpi_calculators_mv[0].available_variables,
+            self.registry.data_source_available_variables,
+            ['V2', 'V3'])
+        self.assertEqual(
+            self.registry.kpi_calculator_available_variables,
             ['V2', 'V3'])
 
         self.data_source1.output_slot_names = ['T1']
         self.data_source2.output_slot_names = ['T2']
-        self.assertEqual(self.registry.data_sources_output_names,
+        self.assertEqual(self.registry._data_sources_outputs,
                          ['T1', 'T2'])
 
-        self.assertEqual(self.registry.data_sources_mv[0].available_variables,
+        self.assertEqual(self.registry.data_source_available_variables,
                          ['V2', 'V3'])
         self.assertEqual(
-            self.registry.kpi_calculators_mv[0].available_variables,
+            self.registry.kpi_calculator_available_variables,
             ['V2', 'V3', 'T1', 'T2'])

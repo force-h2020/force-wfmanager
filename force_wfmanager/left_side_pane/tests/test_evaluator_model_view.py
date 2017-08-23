@@ -16,6 +16,8 @@ from force_bdss.core.input_slot_map import InputSlotMap
 
 from force_wfmanager.left_side_pane.evaluator_model_view import \
     EvaluatorModelView
+from force_wfmanager.left_side_pane.variable_names_registry import \
+    VariableNamesRegistry
 
 
 class KPICalculatorModel(BaseKPICalculatorModel):
@@ -61,9 +63,13 @@ class TestEvaluatorModelView(unittest.TestCase):
         self.model = factory.create_model()
         self.evaluator = factory.create_kpi_calculator()
 
+        self.variable_names_registry = mock.Mock(spec=VariableNamesRegistry)
+        self.variable_names_registry.kpi_calculator_available_variables = \
+            ['P1', 'P2', 'P3']
+
         self.evaluator_mv = EvaluatorModelView(
             model=self.model,
-            available_variables=['P1', 'P2', 'P3']
+            variable_names_registry=self.variable_names_registry
         )
 
     def test_evaluator_model_view_init(self):
@@ -80,7 +86,8 @@ class TestEvaluatorModelView(unittest.TestCase):
         self.evaluator_mv.input_slots_representation[0].name = 'P1'
         self.assertEqual(self.model.input_slot_maps[0].name, 'P1')
 
-        self.evaluator_mv.available_variables = ['P2', 'P3']
+        self.variable_names_registry.kpi_calculator_available_variables = \
+            ['P2', 'P3']
         self.assertEqual(self.model.input_slot_maps[0].name, '')
 
         self.evaluator_mv.input_slots_representation[0].name = 'P2'
