@@ -54,7 +54,7 @@ class InputSlotRow(TableRow):
         self.model.input_slot_maps[self.index].name = self.name
 
     @on_trait_change('available_variables')
-    def update_available_variables(self):
+    def update_combobox_values(self):
         self._combobox_values = [''] + self.available_variables
         self.name = ('' if self.name not in self.available_variables
                      else self.name)
