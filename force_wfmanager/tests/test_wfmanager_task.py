@@ -443,14 +443,13 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.assertTrue(self.wfmanager_task.side_pane.enabled)
 
-            with self.event_loop_until_condition(
-                    lambda: self.wfmanager_task.side_pane.enabled):
-                self.wfmanager_task.run_bdss()
+            self.wfmanager_task.run_bdss()
+
+            self.assertTrue(self.wfmanager_task.side_pane.enabled)
 
             self.assertEqual(
                 mock_error.call_args[0][1],
-                'Unable to create temporary workflow file for execution'
-                ' of the BDSS. write failed')
+                'Unable to run BDSS: write failed')
 
     def test_exit_application_with_saving(self):
         mock_open = mock.mock_open()

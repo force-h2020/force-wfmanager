@@ -241,33 +241,32 @@ class WfManagerTask(Task):
                 return
 
         self._computation_running = True
-
-        for hook_manager in self._ui_hooks_managers:
-            try:
-                hook_manager.before_execution(self)
-            except Exception:
-                log.exception(
-                    "Failed before_execution hook "
-                    "for hook manager {}".format(
-                        hook_manager.__class__.__name__)
-                )
-
-        # Creates a temporary file containing the workflow
-        tmpfile_path = tempfile.mktemp()
         try:
+            for hook_manager in self._ui_hooks_managers:
+                try:
+                    hook_manager.before_execution(self)
+                except Exception:
+                    log.exception(
+                        "Failed before_execution hook "
+                        "for hook manager {}".format(
+                            hook_manager.__class__.__name__)
+                    )
+
+            # Creates a temporary file containing the workflow
+            tmpfile_path = tempfile.mktemp()
             with open(tmpfile_path, 'w') as output:
                 WorkflowWriter().write(self.workflow_m, output)
-        except Exception as e:
-            logging.exception("Unable to create temporary workflow file.")
-            error(None,
-                  "Unable to create temporary workflow file for execution "
-                  "of the BDSS. {}".format(e),
-                  'Error when saving workflow'
-                  )
-            return
 
-        future = self._executor.submit(self._execute_bdss, tmpfile_path)
-        future.add_done_callback(self._execution_done_callback)
+            future = self._executor.submit(self._execute_bdss, tmpfile_path)
+            future.add_done_callback(self._execution_done_callback)
+        except Exception as e:
+            logging.exception("Unable to run BDSS.")
+            error(None,
+                  "Unable to run BDSS: {}".format(e),
+                  'Error when running BDSS'
+                  )
+            self._computation_running = False
+
 
     def _execute_bdss(self, workflow_path):
         """Secondary thread executor routine.
