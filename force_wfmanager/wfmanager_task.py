@@ -2,10 +2,14 @@ import logging
 import os
 import subprocess
 import tempfile
+import textwrap
 
 from concurrent.futures import ThreadPoolExecutor
 from pyface.api import (
-    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, confirm)
+    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, confirm,
+    information
+)
+
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Instance, on_trait_change, File, Str, List
@@ -90,6 +94,13 @@ class WfManagerTask(Task):
                 accelerator='Shift+Ctrl+S',
             ),
             name='&File'
+        ),
+        SMenu(
+            TaskAction(
+                name='About WorflowManager...',
+                method='open_about'
+            ),
+            name='&Help'
         ),
     )
 
@@ -211,6 +222,21 @@ class WfManagerTask(Task):
                 )
             else:
                 self.current_file = dialog.path
+
+    def open_about(self):
+        information(
+            None,
+            textwrap.dedent(
+                """
+                Workflow Manager: a UI application for Business Decision System.
+
+                Developed as part of the FORCE project (Horizon 2020/NMBP-23-2016/721027).
+
+                This software is released under the BSD license.
+                """,  # noqa
+            ),
+            "About WorflowManager"
+        )
 
     @on_trait_change('side_pane.run_button')
     def run_bdss(self):
