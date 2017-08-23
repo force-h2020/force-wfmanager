@@ -2,6 +2,7 @@ import logging
 import os
 import subprocess
 import tempfile
+import textwrap
 
 from concurrent.futures import ThreadPoolExecutor
 from pyface.api import (
@@ -206,12 +207,14 @@ class WfManagerTask(Task):
     def open_about(self):
         information(
             None,
-            (
-                "Workflow Manager: a UI application for Business Decision "
-                "System\n\n"
-                "Developed as part of the FORCE project "
-                "(Horizon 2020/NMBP-23-2016/721027)\n\n"
-                "This software is released under the BSD license"
+            textwrap.dedent(
+                """
+                Workflow Manager: a UI application for Business Decision System.
+
+                Developed as part of the FORCE project (Horizon 2020/NMBP-23-2016/721027).
+
+                This software is released under the BSD license.
+                """,  # noqa
             ),
             "About WorflowManager"
         )
