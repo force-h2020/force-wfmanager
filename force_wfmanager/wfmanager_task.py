@@ -267,7 +267,6 @@ class WfManagerTask(Task):
                   )
             self._computation_running = False
 
-
     def _execute_bdss(self, workflow_path):
         """Secondary thread executor routine.
         This executes the BDSS and wait for its completion.
