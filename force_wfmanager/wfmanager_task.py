@@ -206,8 +206,8 @@ class WfManagerTask(Task):
     def open_about(self):
         information(
             None,
-            "Workflow manager: UI application for Business Decision System\n\n"
-            "It is part of the FORCE project "
+            "Workflow Manager: a UI application for Business Decision System\n\n"
+            "Developed as part of the FORCE project "
             "(Horizon 2020/NMBP-23-2016/721027)\n\n"
             "This software is released under the BSD license",
             "About WorflowManager"
