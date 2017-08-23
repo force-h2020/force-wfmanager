@@ -20,8 +20,7 @@ def main():
 
     mgr = extension.ExtensionManager(
         namespace='force.bdss.extensions',
-        invoke_on_load=True
-    )
+        invoke_on_load=True)
 
     def import_extensions(ext):
         print("Found extension {}".format(ext.name))
