@@ -10,6 +10,7 @@ from envisage.plugin import Plugin
 
 from force_bdss.api import (
     BaseKPICalculator, BaseKPICalculatorModel, BaseKPICalculatorFactory,
+    BaseDataSource, BaseDataSourceModel, BaseDataSourceFactory,
     DataValue)
 from force_bdss.core.slot import Slot
 from force_bdss.core.input_slot_map import InputSlotMap
@@ -52,6 +53,29 @@ class KPICalculatorFactory(BaseKPICalculatorFactory):
         return KPICalculator(self)
 
 
+class DataSourceModel(BaseDataSourceModel):
+    pass
+
+
+class DataSource(BaseDataSource):
+    def run(self, model, parameters):
+        return [DataValue()]
+
+    def slots(self, model):
+            return (Slot(type='PRESSURE'), ), ()
+
+
+class DataSourceFactory(BaseDataSourceFactory):
+    id = Str("enthought.test.datasource")
+    name = "test_datasource"
+
+    def create_model(self, model_data=None):
+        return DataSourceModel(self)
+
+    def create_data_source(self):
+        return DataSource(self)
+
+
 class BadEvaluatorModelView(EvaluatorModelView):
     model = Instance(KPICalculatorFactory)
 
@@ -64,11 +88,22 @@ class TestEvaluatorModelView(unittest.TestCase):
         self.evaluator = factory.create_kpi_calculator()
 
         self.variable_names_registry = VariableNamesRegistry()
+        self.variable_names_registry.data_source_available_variables = \
+            ['P1']
         self.variable_names_registry.kpi_calculator_available_variables = \
             ['P1', 'P2', 'P3']
 
         self.evaluator_mv = EvaluatorModelView(
             model=self.model,
+            variable_names_registry=self.variable_names_registry
+        )
+
+        data_source_factory = DataSourceFactory(mock.Mock(spec=Plugin))
+
+        data_source_model = data_source_factory.create_model()
+
+        self.data_source_mv = EvaluatorModelView(
+            model=data_source_model,
             variable_names_registry=self.variable_names_registry
         )
 
@@ -146,4 +181,11 @@ class TestEvaluatorModelView(unittest.TestCase):
         self.assertEqual(
             self.evaluator_mv.input_slots_representation[0].name,
             'P2'
+        )
+
+    def test_create_data_source_table(self):
+        slots = self.data_source_mv.input_slots_representation
+        self.assertEqual(
+            slots[0].available_variables,
+            ['P1']
         )
