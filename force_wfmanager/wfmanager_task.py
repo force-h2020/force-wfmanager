@@ -48,7 +48,7 @@ class WfManagerTask(Task):
     #: A list of UI hooks managers. These hold plugin injected "hook managers",
     #: classes with methods that are called when some operation is performed
     #: by the UI
-    ui_hooks_managers = List(BaseUIHooksManager)
+    _ui_hooks_managers = List(BaseUIHooksManager)
 
     #: The thread pool executor to spawn the BDSS CLI process.
     _executor = Instance(ThreadPoolExecutor)
@@ -155,7 +155,7 @@ class WfManagerTask(Task):
         Boolean:
             True if it was a success to write in the file, False otherwise
         """
-        for hook_manager in self.ui_hooks_managers:
+        for hook_manager in self._ui_hooks_managers:
             try:
                 hook_manager.before_save(self)
             except Exception:
@@ -223,7 +223,7 @@ class WfManagerTask(Task):
             if result is not YES:
                 return
 
-        for hook_manager in self.ui_hooks_managers:
+        for hook_manager in self._ui_hooks_managers:
             try:
                 hook_manager.before_execution(self)
             except Exception:
@@ -312,7 +312,7 @@ class WfManagerTask(Task):
         exception: Exception or None
             If the execution raised an exception of any sort.
         """
-        for hook_manager in self.ui_hooks_managers:
+        for hook_manager in self._ui_hooks_managers:
             try:
                 hook_manager.after_execution(self)
             except Exception:
@@ -386,7 +386,7 @@ class WfManagerTask(Task):
         return ZMQServer(self.zmq_server_config,
                          on_event_callback=self._server_event_callback)
 
-    def _ui_hooks_managers_default(self):
+    def __ui_hooks_managers_default(self):
         hooks_factories = self.factory_registry.ui_hooks_factories
 
         managers = []

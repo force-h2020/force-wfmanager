@@ -132,7 +132,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             self.wfmanager_task.side_pane.workflow_settings, WorkflowSettings)
         self.assertIsInstance(self.wfmanager_task.default_layout, TaskLayout)
         self.assertIsInstance(self.wfmanager_task.analysis_m, AnalysisModel)
-        self.assertEqual(len(self.wfmanager_task.ui_hooks_managers), 1)
+        self.assertEqual(len(self.wfmanager_task._ui_hooks_managers), 1)
 
     def test_failed_initialization_of_ui_hooks(self):
         mock_plugin = mock.Mock(spec=FactoryRegistryPlugin)
@@ -147,7 +147,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
         probe_factory.create_ui_hooks_manager_raises = True
         with LogCapture() as capture:
             wfmanager_task = WfManagerTask(factory_registry=mock_plugin)
-            self.assertEqual(len(wfmanager_task.ui_hooks_managers), 0)
+            self.assertEqual(len(wfmanager_task._ui_hooks_managers), 0)
 
         capture.check(
             ('force_wfmanager.wfmanager_task',
@@ -161,7 +161,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
 
-            hook_manager = self.wfmanager_task.ui_hooks_managers[0]
+            hook_manager = self.wfmanager_task._ui_hooks_managers[0]
             self.assertFalse(hook_manager.before_save_called)
 
             mock_file_dialog.side_effect = mock_dialog(
@@ -329,7 +329,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             mock_writer.side_effect = mock_file_writer
             mock_subprocess.side_effect = mock_subprocess
 
-            hook_manager = self.wfmanager_task.ui_hooks_managers[0]
+            hook_manager = self.wfmanager_task._ui_hooks_managers[0]
 
             self.assertTrue(self.wfmanager_task.side_pane.enabled)
             self.assertFalse(hook_manager.before_execution_called)
@@ -354,7 +354,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             mock_writer.side_effect = mock_file_writer
             mock_subprocess.side_effect = mock_subprocess
 
-            hook_manager = self.wfmanager_task.ui_hooks_managers[0]
+            hook_manager = self.wfmanager_task._ui_hooks_managers[0]
             hook_manager.before_execution_raises = True
             with LogCapture() as capture, \
                     self.event_loop_until_condition(
