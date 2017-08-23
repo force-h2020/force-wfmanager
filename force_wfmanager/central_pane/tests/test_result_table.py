@@ -4,7 +4,7 @@ from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.result_table import ResultTable
 
 
-class ResultTableTest(unittest.TestCase):
+class TestResultTable(unittest.TestCase):
     def setUp(self):
         self.analysis_model = AnalysisModel()
 
