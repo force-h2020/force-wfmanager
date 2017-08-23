@@ -1,66 +1,71 @@
 from traits.api import HasStrictTraits, List, Instance, on_trait_change
 
-from force_bdss.api import Identifier
-
-from .mco_parameter_model_view import MCOParameterModelView
-from .data_source_model_view import DataSourceModelView
-from .kpi_calculator_model_view import KPICalculatorModelView
+from force_bdss.api import Identifier, Workflow
 
 
 class VariableNamesRegistry(HasStrictTraits):
     """ Class used for listening to the structure of the Workflow in order to
     check the available variables that can be used as inputs for each layer
     (Datasources/KPICalculators) """
-    #: MCO parameters model views
-    mco_parameters_mv = List(Instance(MCOParameterModelView))
+    #: Workflow model
+    workflow = Instance(Workflow)
 
-    #: MCO parameters names
-    mco_parameters_names = List(Identifier)
+    #: List of available variables for the data sources (MCO parameters names)
+    data_sources_available_variables = List(Identifier)
 
-    #: Data sources model views
-    data_sources_mv = List(Instance(DataSourceModelView))
+    #: List of available variables for the kpi calculators (Data sources output
+    #: names and MCO parameters)
+    kpi_calculator_available_variables = List(Identifier)
 
-    #: Data sources output names
-    data_sources_output_names = List(Identifier)
+    #: List of MCO parameters
+    _mco_parameters_names = List(Identifier)
 
-    #: KPI Calculators model views
-    kpi_calculators_mv = List(Instance(KPICalculatorModelView))
+    #: List of data sources outputs
+    _data_sources_outputs = List(Identifier)
 
-    def _mco_parameters_names_default(self):
+    def _data_sources_available_variables_default(self):
         return []
 
-    def _data_sources_output_names_default(self):
+    def _kpi_calculator_available_variables_default(self):
         return []
 
-    @on_trait_change('mco_parameters_mv.model.name')
-    def update_mco_parameters_names(self):
-        self.mco_parameters_names = [
-            p.model.name
-            for p in self.mco_parameters_mv
-            if len(p.model.name) != 0
+    def __mco_parameters_names_default(self):
+        return []
+
+    def __data_sources_outputs_default(self):
+        return []
+
+    @on_trait_change('workflow.mco.parameters.name')
+    def update__mco_parameters_names(self):
+        if self.workflow.mco is None:
+            self._mco_parameters_names = []
+            return
+
+        self._mco_parameters_names = [
+            p.name
+            for p in self.workflow.mco.parameters
+            if len(p.name) != 0
         ]
 
-    @on_trait_change('data_sources_mv.model.output_slot_names[]')
-    def update_data_sources_output_names(self):
+    @on_trait_change('workflow.data_sources.output_slot_names[]')
+    def update__data_sources_outputs(self):
         data_sources_output_names = []
 
-        for data_source_mv in self.data_sources_mv:
-            data_sources_output_names.extend(
-                data_source_mv.model.output_slot_names)
+        for data_source in self.workflow.data_sources:
+            data_sources_output_names.extend(data_source.output_slot_names)
 
         # Removes empty strings from the variable names
         while '' in data_sources_output_names:
             data_sources_output_names.pop(data_sources_output_names.index(''))
 
-        self.data_sources_output_names = data_sources_output_names
+        self._data_sources_outputs = data_sources_output_names
 
-    @on_trait_change('mco_parameters_names')
-    def update_data_sources_inputs(self):
-        for data_source_mv in self.data_sources_mv:
-            data_source_mv.available_variables = self.mco_parameters_names
+    @on_trait_change('_mco_parameters_names')
+    def update_available_variables(self):
+        self.data_sources_available_variables = self._mco_parameters_names
+        self.update_kpi_calculators_available_variables()
 
-    @on_trait_change('mco_parameters_names,data_sources_output_names')
-    def update_kpi_calculators_inputs(self):
-        for kpi_calculator_mv in self.kpi_calculators_mv:
-            kpi_calculator_mv.available_variables = \
-                self.mco_parameters_names + self.data_sources_output_names
+    @on_trait_change('_data_sources_outputs')
+    def update_kpi_calculators_available_variables(self):
+        self.kpi_calculator_available_variables = \
+            self._mco_parameters_names + self._data_sources_outputs
