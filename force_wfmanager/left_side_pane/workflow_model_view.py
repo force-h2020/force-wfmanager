@@ -30,24 +30,10 @@ class WorkflowModelView(ModelView):
 
     def __init__(self, model, *args, **kwargs):
         self.model = model
+        self.variable_names_registry = VariableNamesRegistry(
+            workflow=self.model)
 
         super(WorkflowModelView, self).__init__(*args, **kwargs)
-
-        mco_parameters_mv = [
-            mco_mv.mco_parameters_representation
-            for mco_mv in self.mco_representation
-        ]
-        self.variable_names_registry = VariableNamesRegistry(
-            mco_parameters_mv=mco_parameters_mv,
-            data_sources_mv=self.data_sources_representation,
-            kpi_calculators_mv=self.kpi_calculators_representation
-        )
-
-        # Now that the variable names register is correctly set, we can update
-        # the model views
-        self.update_mco_representation()
-        self.update_data_sources_representation()
-        self.update_kpi_calculators_representation()
 
     #: Defines if the Workflow is valid or not
     valid = Bool(True)
@@ -133,38 +119,24 @@ class WorkflowModelView(ModelView):
     @on_trait_change('model.data_sources[]', post_init=True)
     def update_data_sources_representation(self):
         """ Update the data source model views """
-        available_variables = self.variable_names_registry.mco_parameters_names
         self.data_sources_representation = [
             DataSourceModelView(
                 model=data_source,
-                available_variables=available_variables
+                variable_names_registry=self.variable_names_registry
             )
-            for data_source in self.model.data_sources]
-        self.variable_names_registry.data_sources_mv = \
-            self.data_sources_representation
+            for data_source in self.model.data_sources
+        ]
 
     @on_trait_change('model.kpi_calculators[]', post_init=True)
     def update_kpi_calculators_representation(self):
         """ Update the kpi calculator model views """
-        available_variables = \
-            self.variable_names_registry.mco_parameters_names \
-            + self.variable_names_registry.data_sources_output_names
         self.kpi_calculators_representation = [
             KPICalculatorModelView(
                 model=kpi_calculator,
-                available_variables=available_variables
+                variable_names_registry=self.variable_names_registry
             )
-            for kpi_calculator in self.model.kpi_calculators]
-        self.variable_names_registry.kpi_calculators_mv = \
-            self.kpi_calculators_representation
-
-    @on_trait_change('mco_representation.mco_parameters_representation[]')
-    def update_variable_register(self):
-        if len(self.mco_representation) != 0:
-            self.variable_names_registry.mco_parameters_mv = \
-                self.mco_representation[0].mco_parameters_representation
-        else:
-            self.variable_names_registry.mco_parameters_mv = []
+            for kpi_calculator in self.model.kpi_calculators
+        ]
 
     def _model_default(self):
         return Workflow()
