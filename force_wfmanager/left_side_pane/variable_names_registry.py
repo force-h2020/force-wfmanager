@@ -9,7 +9,7 @@ class VariableNamesRegistry(HasStrictTraits):
     check the available variables that can be used as inputs for each layer
     (Datasources/KPICalculators) """
     #: Workflow model
-    workflow = Instance(Workflow)
+    workflow = Instance(Workflow, allow_none=False)
 
     #: List of available variables for the data sources (MCO parameters names)
     data_source_available_variables = List(Identifier)
