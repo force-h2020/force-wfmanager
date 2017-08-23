@@ -37,12 +37,20 @@ class TableRow(HasStrictTraits):
 
 
 class InputSlotRow(TableRow):
+    @on_trait_change('model.input_slot_maps.name')
+    def update_view(self):
+        self.name = self.model.input_slot_maps[self.index].name
+
     @on_trait_change('name')
     def update_model(self):
         self.model.input_slot_maps[self.index].name = self.name
 
 
 class OutputSlotRow(TableRow):
+    @on_trait_change('model.output_slot_names[]')
+    def update_view(self):
+        self.name = self.model.output_slot_names[self.index]
+
     @on_trait_change('name')
     def update_model(self):
         self.model.output_slot_names[self.index] = self.name
@@ -173,11 +181,13 @@ class EvaluatorModelView(ModelView):
         input_slots, output_slots = self._evaluator.slots(self.model)
 
         #: Initialize the input slots
+        self.input_slots_representation = []
         self.model.input_slot_maps = []
         for input_slot in input_slots:
             self.model.input_slot_maps.append(InputSlotMap(name=''))
 
         #: Initialize the output slots
+        self.output_slots_representation = []
         self.model.output_slot_names = len(output_slots)*['']
 
         self._fill_slot_rows(input_slots, output_slots)
