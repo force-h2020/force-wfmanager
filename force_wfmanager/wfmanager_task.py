@@ -5,6 +5,9 @@ import tempfile
 import textwrap
 
 from concurrent.futures import ThreadPoolExecutor
+
+from traits.api import Instance, on_trait_change, File, Str, Bool, List
+
 from pyface.api import (
     FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, confirm,
     information
@@ -12,7 +15,6 @@ from pyface.api import (
 
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.tasks.api import Task, TaskLayout, PaneItem
-from traits.api import Instance, on_trait_change, File, Str, List
 
 from force_bdss.api import (
     MCOProgressEvent, MCOStartEvent, BaseUIHooksManager)
@@ -20,6 +22,7 @@ from force_bdss.core.workflow import Workflow
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 from force_bdss.io.workflow_writer import WorkflowWriter
+
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
@@ -67,6 +70,12 @@ class WfManagerTask(Task):
     #: ZeroMQ Server to receive information from the running BDSS
     _zmq_server = Instance(ZMQServer)
 
+    #: Flag which says if the computation is running or not
+    _computation_running = Bool(False)
+
+    #: Flag which says if the menus should be disabled or not
+    _menu_enabled = Bool(True)
+
     #: Menu bar on top of the GUI
     menu_bar = SMenuBar(
         SMenu(
@@ -81,16 +90,19 @@ class WfManagerTask(Task):
             TaskAction(
                 name='Open Workflow...',
                 method='open_workflow',
+                enabled_name='_menu_enabled',
                 accelerator='Ctrl+O',
             ),
             TaskAction(
                 name='Save Workflow',
                 method='save_workflow',
+                enabled_name='_menu_enabled',
                 accelerator='Ctrl+S',
             ),
             TaskAction(
                 name='Save Workflow as...',
                 method='save_workflow_as',
+                enabled_name='_menu_enabled',
                 accelerator='Shift+Ctrl+S',
             ),
             name='&File'
@@ -223,6 +235,11 @@ class WfManagerTask(Task):
             else:
                 self.current_file = dialog.path
 
+    @on_trait_change('_computation_running')
+    def update_side_pane_status(self):
+        self.side_pane.enabled = not self._computation_running
+        self._menu_enabled = not self._computation_running
+
     def open_about(self):
         information(
             None,
@@ -249,33 +266,32 @@ class WfManagerTask(Task):
             if result is not YES:
                 return
 
-        for hook_manager in self._ui_hooks_managers:
-            try:
-                hook_manager.before_execution(self)
-            except Exception:
-                log.exception(
-                    "Failed before_execution hook "
-                    "for hook manager {}".format(
-                        hook_manager.__class__.__name__)
-                )
-
-        # Creates a temporary file containing the workflow
-        tmpfile_path = tempfile.mktemp()
+        self._computation_running = True
         try:
+            for hook_manager in self._ui_hooks_managers:
+                try:
+                    hook_manager.before_execution(self)
+                except Exception:
+                    log.exception(
+                        "Failed before_execution hook "
+                        "for hook manager {}".format(
+                            hook_manager.__class__.__name__)
+                    )
+
+            # Creates a temporary file containing the workflow
+            tmpfile_path = tempfile.mktemp()
             with open(tmpfile_path, 'w') as output:
                 WorkflowWriter().write(self.workflow_m, output)
-        except Exception as e:
-            logging.exception("Unable to create temporary workflow file.")
-            error(None,
-                  "Unable to create temporary workflow file for execution "
-                  "of the BDSS. {}".format(e),
-                  'Error when saving workflow'
-                  )
-            return
 
-        self.side_pane.enabled = False
-        future = self._executor.submit(self._execute_bdss, tmpfile_path)
-        future.add_done_callback(self._execution_done_callback)
+            future = self._executor.submit(self._execute_bdss, tmpfile_path)
+            future.add_done_callback(self._execution_done_callback)
+        except Exception as e:
+            logging.exception("Unable to run BDSS.")
+            error(None,
+                  "Unable to run BDSS: {}".format(e),
+                  'Error when running BDSS'
+                  )
+            self._computation_running = False
 
     def _execute_bdss(self, workflow_path):
         """Secondary thread executor routine.
@@ -338,6 +354,7 @@ class WfManagerTask(Task):
         exception: Exception or None
             If the execution raised an exception of any sort.
         """
+
         for hook_manager in self._ui_hooks_managers:
             try:
                 hook_manager.after_execution(self)
@@ -348,7 +365,8 @@ class WfManagerTask(Task):
                         hook_manager.__class__.__name__)
                 )
 
-        self.side_pane.enabled = True
+        self._computation_running = False
+
         if exception is not None:
             error(
                 None,
