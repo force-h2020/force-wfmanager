@@ -29,18 +29,6 @@ class VariableNamesRegistry(HasStrictTraits):
     #: List of data sources outputs
     _data_sources_outputs = List(Identifier)
 
-    def _data_source_available_variables_default(self):
-        return []
-
-    def _kpi_calculator_available_variables_default(self):
-        return []
-
-    def __mco_parameters_names_default(self):
-        return []
-
-    def __data_sources_outputs_default(self):
-        return []
-
     @on_trait_change('workflow.mco.parameters.name')
     def update__mco_parameters_names(self):
         if self.workflow.mco is None:
