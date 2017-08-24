@@ -208,12 +208,7 @@ class EvaluatorModelView(ModelView):
     def _fill_slot_rows(self, input_slots, output_slots):
         """ Fill the tables rows according to input_slots and output_slots
         needed by the evaluator and the model slot values """
-        if isinstance(self.model, BaseDataSourceModel):
-            available_variables = \
-                self.variable_names_registry.data_source_available_variables
-        else:
-            available_variables = \
-                self.variable_names_registry.kpi_calculator_available_variables
+        available_variables = self._get_available_variables()
 
         self.input_slots_representation = [
             InputSlotRow(model=self.model,
