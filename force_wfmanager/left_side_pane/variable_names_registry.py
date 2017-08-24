@@ -8,6 +8,11 @@ class VariableNamesRegistry(HasStrictTraits):
     """ Class used for listening to the structure of the Workflow in order to
     check the available variables that can be used as inputs for each layer
     (Datasources/KPICalculators) """
+    # NOTE: For now there is only two layers, the DataSources layer and the KPI
+    # Calculators layer. This is likely to change, we will have a list of
+    # DataSources layers, then this class will need to be adapted and will
+    # compute the available variables for each layer in the Workflow.
+
     #: Workflow model
     workflow = Instance(Workflow, allow_none=False)
 
