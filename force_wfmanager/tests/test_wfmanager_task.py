@@ -32,6 +32,7 @@ from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
+
 from force_wfmanager.wfmanager_task import WfManagerTask
 from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
@@ -103,7 +104,8 @@ def mock_file_writer(*args, **kwargs):
 
 def mock_file_reader(*args, **kwargs):
     def read(*args, **kwargs):
-        return mock.Mock(spec=Workflow)
+        workflow = Workflow()
+        return workflow
     reader = mock.Mock(spec=WorkflowReader)
     reader.read = read
     return reader
