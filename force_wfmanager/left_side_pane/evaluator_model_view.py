@@ -142,17 +142,6 @@ class EvaluatorModelView(ModelView):
     def _label_default(self):
         return get_factory_name(self.model.factory)
 
-    def __evaluator_default(self):
-        if isinstance(self.model, BaseDataSourceModel):
-            return self.model.factory.create_data_source()
-        elif isinstance(self.model, BaseKPICalculatorModel):
-            return self.model.factory.create_kpi_calculator()
-        else:
-            raise TypeError(
-                "The EvaluatorModelView needs a BaseDataSourceModel or a "
-                "BaseKPICalculatorModel as model, but a {} has been given"
-                .format(type(self.model).__name__))
-
     def _create_slots_tables(self):
         """ Initialize the tables for editing the input and output slots
 
@@ -242,25 +231,3 @@ class EvaluatorModelView(ModelView):
                           type=output_slot.type)
             for index, output_slot in enumerate(output_slots)
         ]
-
-    @on_trait_change(
-        'variable_names_registry.data_source_available_variables[]')
-    def update_data_source_input_rows(self):
-        if not isinstance(self.model, BaseDataSourceModel):
-            return
-
-        available_variables = \
-            self.variable_names_registry.data_source_available_variables
-        for input_slot_row in self.input_slots_representation:
-            input_slot_row.available_variables = available_variables
-
-    @on_trait_change(
-        'variable_names_registry.kpi_calculator_available_variables[]')
-    def update_kpi_calculator_input_rows(self):
-        if not isinstance(self.model, BaseKPICalculatorModel):
-            return
-
-        available_variables = \
-            self.variable_names_registry.kpi_calculator_available_variables
-        for input_slot_row in self.input_slots_representation:
-            input_slot_row.available_variables = available_variables
