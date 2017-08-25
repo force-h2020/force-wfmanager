@@ -4,14 +4,13 @@ try:
 except ImportError:
     from unittest import mock
 
-from traits.api import Instance, HasTraits
+from traits.api import Instance, HasTraits, Int
 
-from force_bdss.api import (
-    BaseMCOModel, BaseMCOFactory,
-    BaseMCOParameter, BaseMCOParameterFactory,
-    BaseDataSourceModel, BaseDataSourceFactory,
-    BaseKPICalculatorModel, BaseKPICalculatorFactory,
-    BaseDataSource, BaseKPICalculator)
+from force_bdss.tests.probe_classes.mco import (
+    ProbeParameterFactory, ProbeMCOFactory, ProbeMCOModel)
+from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
+from force_bdss.tests.probe_classes.kpi_calculator import (
+    ProbeKPICalculatorFactory)
 from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_model_view import \
@@ -37,68 +36,41 @@ class WorkflowSettingsEditor(HasTraits):
 
 def get_workflow_settings():
     return WorkflowSettings(
-        mco_factories=[mock.Mock(spec=BaseMCOFactory)],
-        data_source_factories=[mock.Mock(spec=BaseDataSourceFactory)],
-        kpi_calculator_factories=[mock.Mock(spec=BaseKPICalculatorFactory)],
+        mco_factories=[ProbeMCOFactory(None)],
+        data_source_factories=[ProbeDataSourceFactory(None)],
+        kpi_calculator_factories=[ProbeKPICalculatorFactory(None)],
         workflow_m=Workflow(),
     )
 
 
-class DummyParameterModel(BaseMCOParameter):
-    pass
+class ProbeMCOModelEditable(ProbeMCOModel):
+    edit_traits_call_count = Int(0)
 
-
-class DummyMCOModel(BaseMCOModel):
-    edit_traits = mock.Mock()
-
-
-class DummyDataSourceModel(BaseDataSourceModel):
-    pass
-
-
-class DummyKPIModel(BaseKPICalculatorModel):
-    pass
+    def edit_traits(self, *args, **kwargs):
+        self.edit_traits_call_count += 1
 
 
 def get_workflow_model_view():
-    mco = DummyMCOModel(factory=mock.Mock(spec=BaseMCOFactory))
-    mco.factory.parameter_factories = lambda: [
-        mock.Mock(spec=BaseMCOParameterFactory)]
+    mco_factory = ProbeMCOFactory(None, model_class=ProbeMCOModelEditable)
+    mco = mco_factory.create_model()
 
-    parameter = DummyParameterModel(
-        factory=mock.Mock(spec=BaseMCOParameterFactory))
+    parameter = ProbeParameterFactory(None).create_model()
     parameter.name = ''
     mco.parameters = [parameter]
 
-    def slots_mock(*args, **kwargs):
-        return ((), ())
-
-    def create_data_source_mock(*args, **kwargs):
-        data_source = mock.Mock(spec=BaseDataSource)
-        data_source.slots = slots_mock
-        return data_source
-
-    def create_kpi_calculator_mock(*args, **kwargs):
-        kpi_calc = mock.Mock(spec=BaseKPICalculator)
-        kpi_calc.slots = slots_mock
-        return kpi_calc
-
-    data_source_factory = mock.Mock(spec=BaseDataSourceFactory)
-    data_source_factory.create_data_source = create_data_source_mock
-
-    kpi_factory = mock.Mock(spec=BaseKPICalculatorFactory)
-    kpi_factory.create_kpi_calculator = create_kpi_calculator_mock
+    data_source_factory = ProbeDataSourceFactory(None)
+    kpi_factory = ProbeKPICalculatorFactory(None)
 
     workflow_mv = WorkflowModelView(
         model=Workflow(
             mco=mco,
             data_sources=[
-                DummyDataSourceModel(factory=data_source_factory),
-                DummyDataSourceModel(factory=data_source_factory)],
+                data_source_factory.create_model(),
+                data_source_factory.create_model()],
             kpi_calculators=[
-                DummyKPIModel(factory=kpi_factory),
-                DummyKPIModel(factory=kpi_factory),
-                DummyKPIModel(factory=kpi_factory)])
+                kpi_factory.create_model(),
+                kpi_factory.create_model(),
+                kpi_factory.create_model()])
     )
     return workflow_mv
 
@@ -185,7 +157,7 @@ class TestTreeEditorHandler(unittest.TestCase):
             self.workflow.mco_representation[0])
 
         self.assertEqual(
-            self.workflow.model.mco.edit_traits.call_count,
+            self.workflow.model.mco.edit_traits_call_count,
             1
         )
 

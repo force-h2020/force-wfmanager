@@ -1,10 +1,6 @@
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
 
-from force_bdss.api import BaseMCOParameterFactory, BaseMCOParameter
+from force_bdss.tests.probe_classes.mco import ProbeParameterFactory
 
 from force_wfmanager.left_side_pane.mco_parameter_model_view import \
     MCOParameterModelView
@@ -12,13 +8,8 @@ from force_wfmanager.left_side_pane.mco_parameter_model_view import \
 
 class TestMCOParameterModelViewTest(unittest.TestCase):
     def setUp(self):
-        mock_model = mock.Mock(spec=BaseMCOParameter)
-        mock_model.name = "P1"
-        mock_model.type = "PRESSURE"
-        mock_model.factory = mock.Mock(spec=BaseMCOParameterFactory)
-        mock_model.factory.name = "baz"
-
-        self.mco_param_mv = MCOParameterModelView(model=mock_model)
+        self.mco_param_mv = MCOParameterModelView(
+            model=ProbeParameterFactory(None).create_model())
 
     def test_mco_parameter_mv_init(self):
-        self.assertEqual(self.mco_param_mv.label, "baz")
+        self.assertEqual(self.mco_param_mv.label, "Undefined parameter")

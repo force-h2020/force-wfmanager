@@ -1,11 +1,8 @@
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
 
+from force_bdss.tests.probe_classes.mco import (
+    ProbeParameterFactory, ProbeMCOFactory)
 from force_bdss.core.workflow import Workflow
-from force_bdss.api import BaseMCOParameter, BaseMCOModel
 
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
@@ -17,7 +14,7 @@ class TestWorkflowModelView(unittest.TestCase):
 
     def test_add_parameter_error(self):
         with self.assertRaisesRegexp(RuntimeError, "no MCO defined"):
-            self.wf_mv.add_entity(mock.Mock(spec=BaseMCOParameter))
+            self.wf_mv.add_entity(ProbeParameterFactory(None).create_model())
 
     def test_add_whatever_error(self):
         with self.assertRaisesRegexp(TypeError, "not supported"):
@@ -25,7 +22,7 @@ class TestWorkflowModelView(unittest.TestCase):
 
     def test_remove_mco_error(self):
         with self.assertRaisesRegexp(ValueError, "not in the workflow"):
-            self.wf_mv.remove_entity(mock.Mock(spec=BaseMCOModel))
+            self.wf_mv.remove_entity(ProbeMCOFactory(None).create_model())
 
     def test_remove_whatever_error(self):
         with self.assertRaisesRegexp(ValueError, "can not be removed"):

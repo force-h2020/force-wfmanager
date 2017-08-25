@@ -4,7 +4,7 @@ from traits.api import Instance, Button, on_trait_change, Bool
 
 from traitsui.api import View, UItem, VGroup
 
-from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
+from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
 
 from .workflow_settings import WorkflowSettings
@@ -29,7 +29,7 @@ class SidePane(TraitsDockPane):
     visible = True
 
     #: The factory registry containing all the factories
-    factory_registry = Instance(FactoryRegistryPlugin)
+    factory_registry = Instance(IFactoryRegistryPlugin)
 
     #: The Worflow model
     workflow_m = Instance(Workflow)

@@ -19,7 +19,7 @@ from pyface.tasks.api import Task, TaskLayout, PaneItem
 from force_bdss.api import (
     MCOProgressEvent, MCOStartEvent, BaseUIHooksManager)
 from force_bdss.core.workflow import Workflow
-from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
+from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 from force_bdss.io.workflow_writer import WorkflowWriter
 
@@ -47,7 +47,7 @@ class WfManagerTask(Task):
     side_pane = Instance(SidePane)
 
     #: Registry of the available factories
-    factory_registry = Instance(FactoryRegistryPlugin)
+    factory_registry = Instance(IFactoryRegistryPlugin)
 
     #: Current workflow file on which the application is writing
     current_file = File()
