@@ -2,12 +2,6 @@ import unittest
 
 from testfixtures import LogCapture
 
-from force_bdss.core_driver_events import MCOStartEvent, MCOProgressEvent
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
-from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.tests.probe_plugin_classes import ProbeUIHooksFactory
-from force_wfmanager.tests.utils import wait_condition
-
 try:
     import mock
 except ImportError:
@@ -20,19 +14,17 @@ from pyface.tasks.api import TaskLayout, TaskWindow
 from pyface.api import FileDialog, OK, ConfirmationDialog, YES, NO, CANCEL
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
-
-from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
-    DummyDakotaFactory)
-from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
-    CSVExtractorFactory)
-from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import (
-    KPIAdderFactory)
-from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
+from force_bdss.tests.probe_classes.factory_registry_plugin import \
+    ProbeFactoryRegistryPlugin
+from force_bdss.core_driver_events import MCOStartEvent, MCOProgressEvent
 from force_bdss.core.workflow import Workflow
 from force_bdss.io.workflow_writer import WorkflowWriter
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
-
+from force_wfmanager.central_pane.analysis_model import AnalysisModel
+from force_wfmanager.server.zmq_server import ZMQServer
+from force_wfmanager.tests.probe_plugin_classes import ProbeUIHooksFactory
+from force_wfmanager.tests.utils import wait_condition
 from force_wfmanager.wfmanager_task import WfManagerTask
 from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
@@ -50,12 +42,9 @@ OS_REMOVE_PATH = 'force_wfmanager.wfmanager_task.os.remove'
 
 
 def get_wfmanager_task():
-    mock_plugin = mock.Mock(spec=FactoryRegistryPlugin)
-    mock_plugin.mco_factories = [mock.Mock(spec=DummyDakotaFactory)]
-    mock_plugin.data_source_factories = [mock.Mock(spec=CSVExtractorFactory)]
-    mock_plugin.kpi_calculator_factories = [mock.Mock(spec=KPIAdderFactory)]
-    mock_plugin.ui_hooks_factories = [ProbeUIHooksFactory(mock_plugin)]
-    wfmanager_task = WfManagerTask(factory_registry=mock_plugin)
+    plugin = ProbeFactoryRegistryPlugin()
+
+    wfmanager_task = WfManagerTask(factory_registry=plugin)
 
     wfmanager_task.window = mock.Mock(spec=TaskWindow)
     wfmanager_task.window.application = mock.Mock(spec=Application)
@@ -127,6 +116,11 @@ def mock_subprocess(*args, **kwargs):
     return mock_subprocess_module
 
 
+class ProbeFactoryRegistryWithUIHooks(ProbeFactoryRegistryPlugin):
+    def _ui_hooks_factories_default(self):
+        return [ProbeUIHooksFactory(self)]
+
+
 class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
     def setUp(self):
         super(TestWFManagerTask, self).setUp()
@@ -142,18 +136,12 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
         self.assertEqual(len(self.wfmanager_task._ui_hooks_managers), 1)
 
     def test_failed_initialization_of_ui_hooks(self):
-        mock_plugin = mock.Mock(spec=FactoryRegistryPlugin)
-        mock_plugin.mco_factories = [mock.Mock(spec=DummyDakotaFactory)]
-        mock_plugin.data_source_factories = [
-            mock.Mock(spec=CSVExtractorFactory)]
-        mock_plugin.kpi_calculator_factories = [
-            mock.Mock(spec=KPIAdderFactory)]
+        plugin = ProbeFactoryRegistryPlugin()
 
-        probe_factory = ProbeUIHooksFactory(mock_plugin)
-        mock_plugin.ui_hooks_factories = [probe_factory]
-        probe_factory.create_ui_hooks_manager_raises = True
+        plugin.ui_hooks_factories[0].create_ui_hooks_manager_raises = True
+
         with LogCapture() as capture:
-            wfmanager_task = WfManagerTask(factory_registry=mock_plugin)
+            wfmanager_task = WfManagerTask(factory_registry=plugin)
             self.assertEqual(len(wfmanager_task._ui_hooks_managers), 0)
 
         capture.check(
