@@ -1,92 +1,40 @@
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
 
-from force_bdss.api import (
-    BaseMCOParameter, BaseMCOParameterFactory,
-    BaseMCOModel, BaseMCOFactory,
-    BaseDataSourceModel, BaseDataSourceFactory, BaseDataSource,
-    BaseKPICalculatorModel, BaseKPICalculatorFactory, BaseKPICalculator)
-from force_bdss.core.slot import Slot
+from force_bdss.tests.probe_classes.mco import (
+    ProbeParameterFactory, ProbeMCOFactory)
+from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
+from force_bdss.tests.probe_classes.kpi_calculator import (
+    ProbeKPICalculatorFactory)
 from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.variable_names_registry import (
     VariableNamesRegistry)
 
 
-class DummyParameterModel(BaseMCOParameter):
-    pass
-
-
-class DummyMCOModel(BaseMCOModel):
-    pass
-
-
-class DummyDataSourceModel(BaseDataSourceModel):
-    pass
-
-
-class DummyKPIModel(BaseKPICalculatorModel):
-    pass
-
-
-def create_parameter_model():
-    factory = mock.Mock(spec=BaseMCOParameterFactory)
-    return DummyParameterModel(factory=factory)
-
-
-def create_mco_model():
-    factory = mock.Mock(spec=BaseMCOFactory)
-    return DummyMCOModel(factory=factory)
-
-
-def create_data_source_model():
-    factory = mock.Mock(spec=BaseDataSourceFactory)
-    data_source = mock.Mock(spec=BaseDataSource)
-
-    def slots(*args, **kwargs):
-        return (
-            (Slot(type='P'), ),
-            (Slot(type='T'), )
-        )
-    data_source.slots = slots
-
-    factory.create_data_source = lambda: data_source
-    return DummyDataSourceModel(factory=factory)
-
-
-def create_kpi_model():
-    factory = mock.Mock(spec=BaseKPICalculatorFactory)
-    kpi_calculator = mock.Mock(spec=BaseKPICalculator)
-
-    def slots(*args, **kwargs):
-        return (
-            (Slot(type='P'), ),
-            (Slot(type='T'), )
-        )
-    kpi_calculator.slots = slots
-
-    factory.create_kpi_calculator = lambda: kpi_calculator
-    return DummyKPIModel(factory=factory)
-
-
 class VariableNamesRegistryTest(unittest.TestCase):
     def setUp(self):
         workflow = Workflow()
 
-        mco = create_mco_model()
+        mco = ProbeMCOFactory(None).create_model()
 
-        self.param1 = create_parameter_model()
-        self.param2 = create_parameter_model()
-        self.param3 = create_parameter_model()
+        param_factory = ProbeParameterFactory(None)
+        self.param1 = param_factory.create_model()
+        self.param2 = param_factory.create_model()
+        self.param3 = param_factory.create_model()
 
-        self.data_source1 = create_data_source_model()
-        self.data_source2 = create_data_source_model()
+        data_source_factory = ProbeDataSourceFactory(
+            None,
+            input_slots_size=1,
+            output_slots_size=1)
+        self.data_source1 = data_source_factory.create_model()
+        self.data_source2 = data_source_factory.create_model()
 
-        kpi1 = create_kpi_model()
-        kpi2 = create_kpi_model()
+        kpi_factory = ProbeKPICalculatorFactory(
+            None,
+            input_slots_size=1,
+            output_slots_size=1)
+        kpi1 = kpi_factory.create_model()
+        kpi2 = kpi_factory.create_model()
 
         workflow.mco = mco
         mco.parameters = [self.param1, self.param2, self.param3]
