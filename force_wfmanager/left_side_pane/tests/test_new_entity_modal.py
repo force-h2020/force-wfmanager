@@ -1,21 +1,11 @@
 import unittest
-try:
-    import mock
-except:
-    from unittest import mock
-
-from envisage.plugin import Plugin
-
 
 from traits.api import HasTraits, Instance
 
-from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
-    DummyDakotaFactory)
-from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
-    CSVExtractorFactory)
-from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import (
-    KPIAdderFactory)
-from force_bdss.core.workflow import Workflow
+from force_bdss.tests.probe_classes.mco import ProbeMCOFactory
+from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
+from force_bdss.tests.probe_classes.kpi_calculator import (
+    ProbeKPICalculatorFactory)
 from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
                             BaseKPICalculatorModel)
 
@@ -40,15 +30,11 @@ class ModalInfoDummy(HasTraits):
 
 class TestNewEntityModal(unittest.TestCase):
     def setUp(self):
-        plugin = mock.Mock(spec=Plugin)
+        self.mcos = [ProbeMCOFactory(None)]
+        self.data_sources = [ProbeDataSourceFactory(None)]
+        self.kpi_calculators = [ProbeKPICalculatorFactory(None)]
 
-        self.mcos = [DummyDakotaFactory(plugin)]
-        self.data_sources = [CSVExtractorFactory(plugin)]
-        self.kpi_calculators = [KPIAdderFactory(plugin)]
-
-        self.workflow_mv = WorkflowModelView(
-            model=Workflow()
-        )
+        self.workflow_mv = WorkflowModelView()
 
         self.handler = ModalHandler()
 
@@ -190,7 +176,7 @@ class TestNewEntityModal(unittest.TestCase):
         self.assertIsNone(modal.current_model)
 
     def test_list_adapter(self):
-        plugin = mock.Mock(spec=Plugin)
-
-        adapter = ListAdapter(item=DummyDakotaFactory(plugin))
-        self.assertEqual(adapter.get_text({}, {}, {}), 'Dummy Dakota')
+        adapter = ListAdapter(item=ProbeMCOFactory(None))
+        self.assertEqual(
+            adapter.get_text({}, {}, {}),
+            'force.bdss.enthought.factory.test_mco')

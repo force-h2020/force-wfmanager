@@ -4,21 +4,13 @@ try:
 except ImportError:
     from unittest import mock
 
-from envisage.plugin import Plugin
+from traits.api import Instance, HasTraits, Int
 
-from traits.api import Instance, HasTraits
-
-from force_bdss.core_plugins.dummy.dummy_dakota.dakota_factory import (
-    DummyDakotaFactory)
-from force_bdss.core_plugins.dummy.csv_extractor.csv_extractor_factory import (
-    CSVExtractorFactory)
-from force_bdss.core_plugins.dummy.kpi_adder.kpi_adder_factory import (
-    KPIAdderFactory)
-from force_bdss.api import (
-    BaseMCOModel, BaseMCOFactory,
-    BaseMCOParameter, BaseMCOParameterFactory,
-    BaseDataSourceModel, BaseDataSourceFactory, BaseDataSource,
-    BaseKPICalculatorModel, BaseKPICalculatorFactory, BaseKPICalculator)
+from force_bdss.tests.probe_classes.mco import (
+    ProbeParameterFactory, ProbeMCOFactory, ProbeMCOModel)
+from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
+from force_bdss.tests.probe_classes.kpi_calculator import (
+    ProbeKPICalculatorFactory)
 from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_model_view import \
@@ -43,58 +35,42 @@ class WorkflowSettingsEditor(HasTraits):
 
 
 def get_workflow_settings():
-    plugin = mock.Mock(spec=Plugin)
     return WorkflowSettings(
-        mco_factories=[DummyDakotaFactory(plugin)],
-        data_source_factories=[CSVExtractorFactory(plugin)],
-        kpi_calculator_factories=[KPIAdderFactory(plugin)],
+        mco_factories=[ProbeMCOFactory(None)],
+        data_source_factories=[ProbeDataSourceFactory(None)],
+        kpi_calculator_factories=[ProbeKPICalculatorFactory(None)],
         workflow_m=Workflow(),
     )
 
 
-def get_data_source_model_mock():
-    data_source_model_mock = mock.Mock(spec=BaseDataSourceModel)
-    data_source_model_mock.factory = mock.Mock(spec=BaseDataSourceFactory)
-    data_source_model_mock.input_slot_maps = []
-    data_source_model_mock.output_slot_names = []
+class ProbeMCOModelEditable(ProbeMCOModel):
+    edit_traits_call_count = Int(0)
 
-    data_source_mock = mock.Mock(spec=BaseDataSource)
-    data_source_mock.slots = lambda x: ((), ())
-    data_source_model_mock.factory.create_data_source = lambda: \
-        data_source_mock
-    return data_source_model_mock
-
-
-def get_kpi_calculator_model_mock():
-    kpi_calculator_model_mock = mock.Mock(spec=BaseKPICalculatorModel)
-    kpi_calculator_model_mock.factory = mock.Mock(
-        spec=BaseKPICalculatorFactory)
-    kpi_calculator_model_mock.input_slot_maps = []
-    kpi_calculator_model_mock.output_slot_names = []
-
-    kpi_calculator_mock = mock.Mock(spec=BaseKPICalculator)
-    kpi_calculator_mock.slots = lambda x: ((), ())
-    kpi_calculator_model_mock.factory.create_kpi_calculator = lambda: \
-        kpi_calculator_mock
-    return kpi_calculator_model_mock
+    def edit_traits(self, *args, **kwargs):
+        self.edit_traits_call_count += 1
 
 
 def get_workflow_model_view():
-    mco = mock.Mock(spec=BaseMCOModel)
-    mco.factory = mock.Mock(spec=BaseMCOFactory)
-    mco.factory.parameter_factories = lambda: [
-        mock.Mock(spec=BaseMCOParameterFactory)]
-    parameter = mock.Mock(BaseMCOParameter)
+    mco_factory = ProbeMCOFactory(None, model_class=ProbeMCOModelEditable)
+    mco = mco_factory.create_model()
+
+    parameter = ProbeParameterFactory(None).create_model()
     parameter.name = ''
     mco.parameters = [parameter]
+
+    data_source_factory = ProbeDataSourceFactory(None)
+    kpi_factory = ProbeKPICalculatorFactory(None)
+
     workflow_mv = WorkflowModelView(
         model=Workflow(
             mco=mco,
-            data_sources=[get_data_source_model_mock(),
-                          get_data_source_model_mock()],
-            kpi_calculators=[get_kpi_calculator_model_mock(),
-                             get_kpi_calculator_model_mock(),
-                             get_kpi_calculator_model_mock()])
+            data_sources=[
+                data_source_factory.create_model(),
+                data_source_factory.create_model()],
+            kpi_calculators=[
+                kpi_factory.create_model(),
+                kpi_factory.create_model(),
+                kpi_factory.create_model()])
     )
     return workflow_mv
 
@@ -181,7 +157,7 @@ class TestTreeEditorHandler(unittest.TestCase):
             self.workflow.mco_representation[0])
 
         self.assertEqual(
-            self.workflow.model.mco.edit_traits.call_count,
+            self.workflow.model.mco.edit_traits_call_count,
             1
         )
 
@@ -252,6 +228,7 @@ class TestWorkflowElementNode(unittest.TestCase):
         wf_mv.valid = False
         self.assertEqual(wfelement_node.get_icon(wf_mv, False),
                          'icons/invalid.png')
+
         self.assertEqual(
             wfelement_node.get_icon(
                 wf_mv.mco_representation[0].mco_parameters_representation[0],

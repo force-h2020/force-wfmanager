@@ -1,114 +1,139 @@
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
 
-from traits.api import Instance, Str, on_trait_change
+from traits.api import TraitError
 
-from envisage.plugin import Plugin
-
-from force_bdss.api import (
-    BaseKPICalculator, BaseKPICalculatorModel, BaseKPICalculatorFactory,
-    DataValue)
-from force_bdss.core.slot import Slot
+from force_bdss.tests.probe_classes.kpi_calculator import \
+    ProbeKPICalculatorFactory
+from force_bdss.tests.probe_classes.data_source import \
+    ProbeDataSourceFactory
+from force_bdss.api import BaseKPICalculator, DataValue
 from force_bdss.core.input_slot_map import InputSlotMap
 
-from force_wfmanager.left_side_pane.evaluator_model_view import \
-    EvaluatorModelView
+from force_wfmanager.left_side_pane.kpi_calculator_model_view import \
+    KPICalculatorModelView
+from force_wfmanager.left_side_pane.data_source_model_view import \
+    DataSourceModelView
+from force_wfmanager.left_side_pane.variable_names_registry import \
+    VariableNamesRegistry
 
 
-class KPICalculatorModel(BaseKPICalculatorModel):
-    output_type = Str('PRESSURE')
-
-    @on_trait_change('output_type')
-    def update_slots(self):
-        self.changes_slots = True
-
-
-class KPICalculator(BaseKPICalculator):
-    def run(self, model, data_source_results):
-        return [DataValue(), DataValue()]
-
-    def slots(self, model):
-        return (
-            Slot(type='PRESSURE'),
-        ), (
-            Slot(type=model.output_type),
-            Slot(type='TEMPERATURE'),
-        )
-
-
-class KPICalculatorFactory(BaseKPICalculatorFactory):
-    id = Str("enthought.test.kpi")
-    name = "test_kpi"
-
-    def create_model(self, model_data=None):
-        return KPICalculatorModel(self)
-
-    def create_kpi_calculator(self):
-        return KPICalculator(self)
-
-
-class BadEvaluatorModelView(EvaluatorModelView):
-    model = Instance(KPICalculatorFactory)
+def get_run_function(nb_outputs):
+    def run(*args, **kwargs):
+        return [DataValue() for _ in range(nb_outputs)]
+    return run
 
 
 class TestEvaluatorModelView(unittest.TestCase):
     def setUp(self):
-        factory = KPICalculatorFactory(mock.Mock(spec=Plugin))
+        kpi_factory = ProbeKPICalculatorFactory(
+            None,
+            input_slots_size=1,
+            output_slots_size=2,
+            run_function=get_run_function(2))
 
-        self.model = factory.create_model()
-        self.evaluator = factory.create_kpi_calculator()
+        self.kpi_model = kpi_factory.create_model()
+        self.kpi_evaluator = kpi_factory.create_kpi_calculator()
 
-        self.evaluator_mv = EvaluatorModelView(model=self.model)
+        self.variable_names_registry = VariableNamesRegistry()
+        self.variable_names_registry.data_source_available_variables = \
+            ['P1']
+        self.variable_names_registry.kpi_calculator_available_variables = \
+            ['P1', 'P2', 'P3']
+
+        self.kpi_mv = KPICalculatorModelView(
+            model=self.kpi_model,
+            variable_names_registry=self.variable_names_registry
+        )
+
+        data_source_factory = ProbeDataSourceFactory(
+            None,
+            input_slots_size=1,
+            run_function=get_run_function(1))
+        data_source_model = data_source_factory.create_model()
+        self.data_source_mv = DataSourceModelView(
+            model=data_source_model,
+            variable_names_registry=self.variable_names_registry
+        )
 
     def test_evaluator_model_view_init(self):
-        self.assertEqual(self.evaluator_mv.label, "test_kpi")
+        self.assertEqual(self.kpi_mv.label, "test_kpi_calculator")
         self.assertIsInstance(
-            self.evaluator_mv._evaluator,
-            KPICalculator)
-        self.assertEqual(len(self.evaluator_mv.input_slots_representation), 1)
-        self.assertEqual(len(self.evaluator_mv.output_slots_representation), 2)
-        self.assertEqual(self.model.input_slot_maps[0].name, '')
-        self.assertEqual(self.model.output_slot_names[0], '')
+            self.kpi_mv._evaluator,
+            BaseKPICalculator)
+        self.assertEqual(len(self.kpi_mv.input_slots_representation), 1)
+        self.assertEqual(len(self.kpi_mv.output_slots_representation), 2)
+        self.assertEqual(self.kpi_model.input_slot_maps[0].name, '')
+        self.assertEqual(self.kpi_model.output_slot_names[0], '')
 
     def test_input_slot_update(self):
-        self.evaluator_mv.input_slots_representation[0].name = 'input'
-        self.assertEqual(self.model.input_slot_maps[0].name, 'input')
+        self.kpi_mv.input_slots_representation[0].name = 'P1'
+        self.assertEqual(self.kpi_model.input_slot_maps[0].name, 'P1')
+
+        self.variable_names_registry.kpi_calculator_available_variables = \
+            ['P2', 'P3']
+        self.assertEqual(self.kpi_model.input_slot_maps[0].name, '')
+
+        self.kpi_mv.input_slots_representation[0].name = 'P2'
+        self.assertEqual(self.kpi_model.input_slot_maps[0].name, 'P2')
+
+        with self.assertRaises(TraitError):
+            self.kpi_mv.input_slots_representation[0].name = 'P1'
 
     def test_output_slot_update(self):
-        self.evaluator_mv.output_slots_representation[0].name = 'output'
-        self.assertEqual(self.model.output_slot_names[0], 'output')
-
-    def test_bad_evaluator(self):
-        with self.assertRaisesRegexp(TypeError, "The EvaluatorModelView needs "
-                                                "a BaseDataSourceModel"):
-            BadEvaluatorModelView(
-                model=KPICalculatorFactory(mock.Mock(spec=Plugin)))
+        self.kpi_mv.output_slots_representation[0].name = 'output'
+        self.assertEqual(self.kpi_model.output_slot_names[0], 'output')
 
     def test_bad_input_slots(self):
-        input_slots, _ = self.evaluator.slots(self.model)
+        input_slots, _ = self.kpi_evaluator.slots(self.kpi_model)
 
-        self.model.input_slot_maps = [
+        self.kpi_model.input_slot_maps = [
             InputSlotMap(name='') for input_slot in range(len(input_slots) + 1)
         ]
 
         with self.assertRaisesRegexp(RuntimeError, "input slots"):
-            EvaluatorModelView(model=self.model)
+            KPICalculatorModelView(model=self.kpi_model)
 
     def test_bad_output_slots(self):
-        _, output_slots = self.evaluator.slots(self.model)
+        _, output_slots = self.kpi_evaluator.slots(self.kpi_model)
 
-        self.model.output_slot_names = (len(output_slots) + 1)*['']
+        self.kpi_model.output_slot_names = (len(output_slots) + 1)*['']
 
         with self.assertRaisesRegexp(RuntimeError, "output slots"):
-            EvaluatorModelView(model=self.model)
+            KPICalculatorModelView(model=self.kpi_model)
 
     def test_update_table(self):
-        self.model.output_type = "bar"
+        self.kpi_model.output_slots_type = "bar"
 
         self.assertEqual(
-            self.evaluator_mv.output_slots_representation[0].type,
+            self.kpi_mv.output_slots_representation[0].type,
             "bar"
+        )
+
+        self.kpi_model.output_slot_names = ['p1', 't1']
+        self.assertEqual(
+            self.kpi_mv.output_slots_representation[0].name,
+            'p1'
+        )
+        self.assertEqual(
+            self.kpi_mv.output_slots_representation[1].name,
+            't1'
+        )
+
+        self.kpi_model.input_slot_maps[0].name = 'P2'
+        self.assertEqual(
+            self.kpi_mv.input_slots_representation[0].name,
+            'P2'
+        )
+
+    def test_update_data_source_table(self):
+        slots = self.data_source_mv.input_slots_representation
+        self.assertEqual(
+            slots[0].available_variables,
+            ['P1']
+        )
+
+        self.variable_names_registry.data_source_available_variables = ['P2']
+        self.assertEqual(
+            slots[0].available_variables,
+            ['P2']
         )
