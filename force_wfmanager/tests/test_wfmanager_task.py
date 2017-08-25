@@ -23,7 +23,6 @@ from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.tests.probe_plugin_classes import ProbeUIHooksFactory
 from force_wfmanager.tests.utils import wait_condition
 from force_wfmanager.wfmanager_task import WfManagerTask
 from force_wfmanager.left_side_pane.side_pane import SidePane
@@ -114,11 +113,6 @@ def mock_subprocess(*args, **kwargs):
     mock_subprocess_module = mock.Mock(spec=subprocess)
     mock_subprocess_module.check_call = check_call
     return mock_subprocess_module
-
-
-class ProbeFactoryRegistryWithUIHooks(ProbeFactoryRegistryPlugin):
-    def _ui_hooks_factories_default(self):
-        return [ProbeUIHooksFactory(self)]
 
 
 class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
