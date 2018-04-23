@@ -1,7 +1,7 @@
 import unittest
 try:
     import mock
-except:
+except ImportError:
     from unittest import mock
 
 from envisage.plugin import Plugin
