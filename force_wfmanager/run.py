@@ -11,10 +11,11 @@ from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_wfmanager.wfmanager import WfManager
 from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
-logging.basicConfig()
-
 
 def main():
+    logging.basicConfig(filename="force_wfmanager.log")
+    log = logging.getLogger(__name__)
+
     plugins = [CorePlugin(), TasksPlugin(), FactoryRegistryPlugin(),
                WfManagerPlugin()]
 
@@ -24,13 +25,13 @@ def main():
     )
 
     def import_extensions(ext):
-        print("Found extension {}".format(ext.name))
+        log.info("Found extension {}".format(ext.name))
         plugins.append(ext.obj)
 
     try:
         mgr.map(import_extensions)
     except NoMatches:
-        print("No extensions found")
+        log.info("No extensions found")
 
     wfmanager = WfManager(plugins=plugins)
     wfmanager.run()
