@@ -13,7 +13,7 @@ from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 
 def main():
-    logging.basicConfig(filename="force_wfmanager.log")
+    logging.basicConfig(filename="force_wfmanager.log", filemode="w")
     log = logging.getLogger(__name__)
 
     plugins = [CorePlugin(), TasksPlugin(), FactoryRegistryPlugin(),
