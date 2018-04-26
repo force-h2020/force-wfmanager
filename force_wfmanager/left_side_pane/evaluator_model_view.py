@@ -49,11 +49,11 @@ class InputSlotRow(TableRow):
     def update_view(self):
         self.name = self.model.input_slot_maps[self.index].name
 
-    @on_trait_change('name')
+    @on_trait_change('name', post_init=True)
     def update_model(self):
         self.model.input_slot_maps[self.index].name = self.name
 
-    @on_trait_change('available_variables')
+    @on_trait_change('available_variables', post_init=True)
     def update_combobox_values(self):
         self._combobox_values = [''] + self.available_variables
         self.name = ('' if self.name not in self.available_variables
