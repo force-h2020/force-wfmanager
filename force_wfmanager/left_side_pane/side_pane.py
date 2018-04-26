@@ -59,7 +59,6 @@ class SidePane(TraitsDockPane):
         return WorkflowSettings(
             mco_factories=registry.mco_factories,
             data_source_factories=registry.data_source_factories,
-            kpi_calculator_factories=registry.kpi_calculator_factories,
             workflow_m=self.workflow_m)
 
     @on_trait_change('workflow_m', post_init=True)
