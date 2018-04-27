@@ -2,14 +2,13 @@ from traits.api import Instance, List, Bool, on_trait_change
 
 from traitsui.api import ModelView
 
+from force_bdss.core.execution_layer import ExecutionLayer
 from force_bdss.core.workflow import Workflow
-from force_bdss.api import (BaseMCOModel, BaseMCOParameter,
-                            BaseDataSourceModel, BaseKPICalculatorModel)
-
-from .mco_model_view import MCOModelView
-from .data_source_model_view import DataSourceModelView
-from .kpi_calculator_model_view import KPICalculatorModelView
-from .variable_names_registry import VariableNamesRegistry
+from force_wfmanager.left_side_pane.execution_layer_model_view import \
+    ExecutionLayerModelView
+from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
+from force_wfmanager.left_side_pane.variable_names_registry import \
+    VariableNamesRegistry
 
 
 class WorkflowModelView(ModelView):
@@ -17,13 +16,10 @@ class WorkflowModelView(ModelView):
     model = Instance(Workflow, allow_none=False)
 
     #: List of MCO to be displayed in the TreeEditor
-    mco_representation = List(Instance(MCOModelView))
+    mco_mv = List(Instance(MCOModelView))
 
     #: List of DataSources to be displayed in the TreeEditor
-    data_sources_representation = List(Instance(DataSourceModelView))
-
-    #: List of KPI Calculators to be displayed in the TreeEditor
-    kpi_calculators_representation = List(Instance(KPICalculatorModelView))
+    execution_layers_mv = List(Instance(ExecutionLayerModelView))
 
     #: Variable Names Registry
     variable_names_registry = Instance(VariableNamesRegistry)
@@ -31,104 +27,36 @@ class WorkflowModelView(ModelView):
     #: Defines if the Workflow is valid or not
     valid = Bool(True)
 
-    def add_entity(self, entity):
-        """ Adds an element to the workflow
+    def set_mco(self, mco_model):
+        self.model.mco = mco_model
 
-        Parameters
-        ----------
-        entity: BaseMCOModel or BaseMCOParameter or BaseDataSourceModel or
-            BaseKPICalculatorModel
-            The element to be inserted in the Workflow
+    def add_execution_layer(self):
+        """Adds a new empty execution layer"""
+        self.model.execution_layers.append(ExecutionLayer())
 
-        Raises
-        ------
-        RuntimeError:
-            If the entity is an MCO parameter but no MCO is defined for the
-            Workflow.
-        TypeError:
-            If the type of the entity is not supported by the Workflow
-        """
-        if isinstance(entity, BaseMCOModel):
-            self.model.mco = entity
-        elif isinstance(entity, BaseMCOParameter):
-            if self.model.mco is None:
-                raise(RuntimeError("Cannot add a parameter to the "
-                      "workflow if no MCO defined"))
+    def remove_execution_layer(self, layer):
+        """Removes the execution layer from the model."""
+        self.model.execution_layers.remove(layer)
 
-            self.model.mco.parameters.append(entity)
-        elif isinstance(entity, BaseDataSourceModel):
-            self.model.data_sources.append(entity)
-        elif isinstance(entity, BaseKPICalculatorModel):
-            self.model.kpi_calculators.append(entity)
-        else:
-            raise(
-                TypeError("Type {} is not supported by the workflow".format(
-                    type(entity).__name__
-                ))
-            )
-
-    def remove_entity(self, entity):
-        """ Removes an element from the workflow
-
-        Parameters
-        ----------
-        entity: BaseMCOModel or BaseMCOParameter or BaseDataSourceModel or
-            BaseKPICalculatorModel
-            The element to be removed from the Workflow
-
-        Raises
-        ------
-        ValueError:
-            If the element to be deleted is not present in the Workflow
-        """
-        if isinstance(entity, BaseMCOModel):
-            if self.model.mco is entity:
-                self.model.mco = None
-            else:
-                raise(
-                    ValueError("The MCO {} can not be removed from the"
-                               " workflow, it is not in the workflow".format(
-                                   type(entity).__name__))
-                )
-        elif isinstance(entity, BaseMCOParameter):
-            self.model.mco.parameters.remove(entity)
-        elif isinstance(entity, BaseDataSourceModel):
-            self.model.data_sources.remove(entity)
-        elif isinstance(entity, BaseKPICalculatorModel):
-            self.model.kpi_calculators.remove(entity)
-        else:
-            raise(
-                ValueError("Element of type {} can not be removed from the"
-                           " workflow".format(type(entity).__name__))
-            )
+    # Update the model views in response to changes in the model structure.
 
     @on_trait_change('model.mco')
-    def update_mco_representation(self):
+    def update_mco_mv(self):
         if self.model.mco is not None:
-            self.mco_representation = [MCOModelView(model=self.model.mco)]
+            self.mco_mv = [MCOModelView(model=self.model.mco)]
         else:
-            self.mco_representation = []
+            self.mco_mv = []
 
-    @on_trait_change('model.data_sources[]', post_init=True)
-    def update_data_sources_representation(self):
-        """ Update the data source model views """
-        self.data_sources_representation = [
-            DataSourceModelView(
-                model=data_source,
-                variable_names_registry=self.variable_names_registry
+    @on_trait_change('model.execution_layers',
+                     post_init=True)
+    def update_execution_layers_mv(self):
+        """Update the ExecutionLayer ModelViews when the model changes."""
+        self.execution_layers_mv = [
+            ExecutionLayerModelView(
+                model=execution_layer,
+                label="Layer {}".format(idx)
             )
-            for data_source in self.model.data_sources
-        ]
-
-    @on_trait_change('model.kpi_calculators[]', post_init=True)
-    def update_kpi_calculators_representation(self):
-        """ Update the kpi calculator model views """
-        self.kpi_calculators_representation = [
-            KPICalculatorModelView(
-                model=kpi_calculator,
-                variable_names_registry=self.variable_names_registry
-            )
-            for kpi_calculator in self.model.kpi_calculators
+            for idx, execution_layer in enumerate(self.model.execution_layers)
         ]
 
     def _model_default(self):
