@@ -7,7 +7,6 @@ from traitsui.list_str_adapter import ListStrAdapter
 from force_bdss.api import (
     BaseMCOModel, BaseMCOFactory,
     BaseDataSourceModel, BaseDataSourceFactory,
-    BaseKPICalculatorModel, BaseKPICalculatorFactory,
     BaseMCOParameter, BaseMCOParameterFactory)
 
 from .workflow_model_view import WorkflowModelView
@@ -36,8 +35,8 @@ class ModalHandler(Handler):
 
 
 class NewEntityModal(HasStrictTraits):
-    """ Dialog which allows the user to add a new MCO/Data Source/KPI
-    calculator to the workflow """
+    """ Dialog which allows the user to add a new MCO/Data Source
+    to the workflow """
     workflow_mv = Instance(WorkflowModelView)
 
     #: Available factories, this class is generic and can contain any factory
@@ -46,7 +45,6 @@ class NewEntityModal(HasStrictTraits):
         List(Instance(BaseMCOFactory)),
         List(Instance(BaseMCOParameterFactory)),
         List(Instance(BaseDataSourceFactory)),
-        List(Instance(BaseKPICalculatorFactory)),
     )
 
     #: Selected factory in the list
@@ -54,7 +52,6 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseMCOFactory),
         Instance(BaseMCOParameterFactory),
         Instance(BaseDataSourceFactory),
-        Instance(BaseKPICalculatorFactory)
     )
 
     add_button = Button("Add")
@@ -65,7 +62,6 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseMCOModel),
         Instance(BaseMCOParameter),
         Instance(BaseDataSourceModel),
-        Instance(BaseKPICalculatorModel)
     )
 
     #: Cache for created models, models are created when selecting a new
