@@ -1,14 +1,14 @@
 from traits.api import (HasStrictTraits, Instance, Str, List, Int,
-                        on_trait_change, Either, Enum, Bool)
+                        on_trait_change, Enum, Bool)
 
 from traitsui.api import View, Item, ModelView, TableEditor
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (
     BaseDataSourceModel, BaseDataSource,
-    BaseKPICalculatorModel, BaseKPICalculator,
     Identifier)
-from force_bdss.core.input_slot_map import InputSlotMap
+from force_bdss.core.input_slot_info import InputSlotInfo
+from force_bdss.core.output_slot_info import OutputSlotInfo
 
 from .view_utils import get_factory_name
 from .variable_names_registry import VariableNamesRegistry
@@ -22,11 +22,7 @@ class TableRow(HasStrictTraits):
     index = Int()
 
     #: Model of the evaluator
-    model = Either(
-        Instance(BaseDataSourceModel),
-        Instance(BaseKPICalculatorModel),
-        allow_none=False,
-    )
+    model = Instance(BaseDataSourceModel)
 
     def __init__(self, model, *args, **kwargs):
         self.model = model
@@ -45,13 +41,13 @@ class InputSlotRow(TableRow):
     #: one of the available variables
     _combobox_values = List(Identifier)
 
-    @on_trait_change('model.input_slot_maps.name')
+    @on_trait_change('model.input_slot_info.name')
     def update_view(self):
-        self.name = self.model.input_slot_maps[self.index].name
+        self.name = self.model.input_slot_info[self.index].name
 
     @on_trait_change('name')
     def update_model(self):
-        self.model.input_slot_maps[self.index].name = self.name
+        self.model.input_slot_info[self.index].name = self.name
 
     @on_trait_change('available_variables')
     def update_combobox_values(self):
@@ -67,13 +63,13 @@ class OutputSlotRow(TableRow):
     #: Name of the slot
     name = Identifier()
 
-    @on_trait_change('model.output_slot_names[]')
+    @on_trait_change('model.output_slot_info[]')
     def update_view(self):
-        self.name = self.model.output_slot_names[self.index]
+        self.name = self.model.output_slot_info[self.index].name
 
     @on_trait_change('name')
     def update_model(self):
-        self.model.output_slot_names[self.index] = self.name
+        self.model.output_slot_info[self.index].name = self.name
 
 
 slots_editor = TableEditor(
@@ -90,11 +86,7 @@ slots_editor = TableEditor(
 class EvaluatorModelView(ModelView):
     #: Model of the evaluator (More restrictive than the ModelView model
     #: attribute)
-    model = Either(
-        Instance(BaseDataSourceModel),
-        Instance(BaseKPICalculatorModel),
-        allow_none=False,
-    )
+    model = Instance(BaseDataSourceModel)
 
     #: Registry of the available variables
     variable_names_registry = Instance(VariableNamesRegistry)
@@ -103,10 +95,7 @@ class EvaluatorModelView(ModelView):
     label = Str()
 
     #: evaluator object, shouldn't be touched
-    _evaluator = Either(
-        Instance(BaseDataSource),
-        Instance(BaseKPICalculator),
-    )
+    _evaluator = Instance(BaseDataSource)
 
     #: Input slots representation for the table editor
     input_slots_representation = List(InputSlotRow)
@@ -153,33 +142,35 @@ class EvaluatorModelView(ModelView):
         """
         input_slots, output_slots = self._evaluator.slots(self.model)
 
-        # Initialize model.input_slot_maps if not initialized yet
-        if len(self.model.input_slot_maps) == 0:
-            self.model.input_slot_maps = [
-                InputSlotMap(name='') for _ in input_slots
+        # Initialize model.input_slot_info if not initialized yet
+        if len(self.model.input_slot_info) == 0:
+            self.model.input_slot_info = [
+                InputSlotInfo(name='') for _ in input_slots
             ]
 
-        if len(self.model.input_slot_maps) != len(input_slots):
+        if len(self.model.input_slot_info) != len(input_slots):
             raise RuntimeError(
                 "The number of input slots ({}) of the {} model doesn't match "
                 "the expected number of slots ({}). This is likely due to a "
                 "corrupted file."
                 .format(
-                    len(self.model.input_slot_maps),
+                    len(self.model.input_slot_info),
                     type(self.model).__name__,
                     len(input_slots)))
 
-        # Initialize model.output_slot_names if not initialized yet
-        if len(self.model.output_slot_names) == 0:
-            self.model.output_slot_names = len(output_slots)*['']
+        # Initialize model.output_slot_info if not initialized yet
+        if len(self.model.output_slot_info) == 0:
+            self.model.output_slot_info = [
+                OutputSlotInfo(name="") for _ in output_slots
+            ]
 
-        if len(self.model.output_slot_names) != len(output_slots):
+        if len(self.model.output_slot_info) != len(output_slots):
             raise RuntimeError(
                 "The number of output slots ({}) of the {} model doesn't "
                 "match the expected number of slots ({}). This is likely due "
                 "to a corrupted file."
                 .format(
-                    len(self.model.output_slot_names),
+                    len(self.model.output_slot_info),
                     type(self.model).__name__,
                     len(output_slots)))
 
@@ -195,8 +186,8 @@ class EvaluatorModelView(ModelView):
         input_slots, output_slots = self._evaluator.slots(self.model)
 
         #: Initialize the input slots
-        self.model.input_slot_maps = [
-            InputSlotMap(name='')
+        self.model.input_slot_info = [
+            InputSlotInfo(name='')
             for _ in input_slots
         ]
 
@@ -214,7 +205,7 @@ class EvaluatorModelView(ModelView):
             InputSlotRow(model=self.model,
                          available_variables=available_variables,
                          index=index,
-                         name=self.model.input_slot_maps[index].name,
+                         name=self.model.input_slot_info[index].name,
                          type=input_slot.type)
             for index, input_slot in enumerate(input_slots)
         ]
@@ -222,7 +213,7 @@ class EvaluatorModelView(ModelView):
         self.output_slots_representation = [
             OutputSlotRow(model=self.model,
                           index=index,
-                          name=self.model.output_slot_names[index],
+                          name=self.model.output_slot_info[index].name,
                           type=output_slot.type)
             for index, output_slot in enumerate(output_slots)
         ]
