@@ -25,6 +25,10 @@ class MCOModelView(ModelView):
         """Adds a parameter to the referred model."""
         self.model.parameters.append(parameter)
 
+    def remove_parameter(self, parameter):
+        """Removes a parameter from the referred model."""
+        self.model.parameters.remove(parameter)
+
     @on_trait_change('model.parameters[]')
     def update_mco_parameters_mv(self):
         """ Update the MCOParameterModelViews """
