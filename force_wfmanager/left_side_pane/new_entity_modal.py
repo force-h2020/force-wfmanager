@@ -9,8 +9,7 @@ from force_bdss.api import (
     BaseDataSourceModel, BaseDataSourceFactory,
     BaseMCOParameter, BaseMCOParameterFactory)
 
-from .workflow_model_view import WorkflowModelView
-from .view_utils import get_factory_name
+from force_wfmanager.left_side_pane.view_utils import get_factory_name
 
 
 class ListAdapter(ListStrAdapter):
@@ -25,20 +24,17 @@ class ListAdapter(ListStrAdapter):
 class ModalHandler(Handler):
     def object_add_button_changed(self, info):
         """ Action triggered when clicking on "Add" button in the modal """
-        if info.object.current_model is not None:
-            info.object.workflow_mv.add_entity(info.object.current_model)
-        info.ui.dispose(True)
+        info.ui.dispose()
 
     def object_cancel_button_changed(self, info):
         """ Action triggered when clicking on "Cancel" button in the modal """
-        info.ui.dispose(False)
+        info.object.current_model = None
+        info.ui.dispose()
 
 
 class NewEntityModal(HasStrictTraits):
     """ Dialog which allows the user to add a new MCO/Data Source
     to the workflow """
-    workflow_mv = Instance(WorkflowModelView)
-
     #: Available factories, this class is generic and can contain any factory
     #: which implement the create_model method
     factories = Either(
