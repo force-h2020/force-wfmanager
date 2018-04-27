@@ -21,6 +21,10 @@ class MCOModelView(ModelView):
     #: Defines if the MCO is valid or not
     valid = Bool(True)
 
+    def add_parameter(self, parameter):
+        """Adds a parameter to the referred model."""
+        self.model.parameters.append(parameter)
+
     @on_trait_change('model.parameters[]')
     def update_mco_parameters_mv(self):
         """ Update the MCOParameterModelViews """
