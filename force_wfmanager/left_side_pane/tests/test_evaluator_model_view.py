@@ -2,15 +2,11 @@ import unittest
 
 from traits.api import TraitError
 
-from force_bdss.tests.probe_classes.kpi_calculator import \
-    ProbeKPICalculatorFactory
 from force_bdss.tests.probe_classes.data_source import \
     ProbeDataSourceFactory
-from force_bdss.api import BaseKPICalculator, DataValue
-from force_bdss.core.input_slot_map import InputSlotMap
+from force_bdss.api import DataValue
+from force_bdss.core.input_slot_info import InputSlotInfo
 
-from force_wfmanager.left_side_pane.kpi_calculator_model_view import \
-    KPICalculatorModelView
 from force_wfmanager.left_side_pane.data_source_model_view import \
     DataSourceModelView
 from force_wfmanager.left_side_pane.variable_names_registry import \

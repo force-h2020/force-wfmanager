@@ -4,10 +4,7 @@ from traits.api import HasTraits, Instance
 
 from force_bdss.tests.probe_classes.mco import ProbeMCOFactory
 from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
-from force_bdss.tests.probe_classes.kpi_calculator import (
-    ProbeKPICalculatorFactory)
-from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
-                            BaseKPICalculatorModel)
+from force_bdss.api import (BaseMCOModel, BaseDataSourceModel)
 
 from force_wfmanager.left_side_pane.new_entity_modal import (
     ModalHandler, NewEntityModal, ListAdapter)
@@ -84,7 +81,7 @@ class TestNewEntityModal(unittest.TestCase):
         self.handler.object_add_button_changed(modal_info)
         self.assertNotEqual(self.workflow_mv.model.mco, old_mco)
 
-        self.assertEqual(len(self.workflow_mv.mco_representation), 1)
+        self.assertEqual(len(self.workflow_mv.mco_mv), 1)
 
     def test_add_data_source(self):
         modal, modal_info = self._get_new_data_source_dialog()

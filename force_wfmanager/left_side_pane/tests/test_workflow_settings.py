@@ -9,14 +9,12 @@ from traits.api import Instance, HasTraits, Int
 from force_bdss.tests.probe_classes.mco import (
     ProbeParameterFactory, ProbeMCOFactory, ProbeMCOModel)
 from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
-from force_bdss.tests.probe_classes.kpi_calculator import (
-    ProbeKPICalculatorFactory)
 from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
 from force_wfmanager.left_side_pane.workflow_settings import (
-    WorkflowSettings, WorkflowHandler, WorkflowElementNode)
+    WorkflowSettings, WorkflowHandler, TreeNodeWithStatus)
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 
 
@@ -154,7 +152,7 @@ class TestTreeEditorHandler(unittest.TestCase):
     def test_edit_entity(self):
         self.handler.edit_entity_handler(
             self.workflow_settings_editor,
-            self.workflow.mco_representation[0])
+            self.workflow.mco_mv[0])
 
         self.assertEqual(
             self.workflow.model.mco.edit_traits_call_count,
@@ -166,7 +164,7 @@ class TestTreeEditorHandler(unittest.TestCase):
 
         self.handler.delete_entity_handler(
             self.workflow_settings_editor,
-            self.workflow.mco_representation[0])
+            self.workflow.mco_mv[0])
 
         self.assertIsNone(
             self.workflow.model.mco)
@@ -179,7 +177,7 @@ class TestTreeEditorHandler(unittest.TestCase):
 
         self.handler.delete_entity_handler(
             self.workflow_settings_editor,
-            self.workflow.mco_representation[0].mco_parameters_representation[
+            self.workflow.mco_mv[0].mco_parameters_representation[
                 0
             ])
 
@@ -221,7 +219,7 @@ class TestTreeEditorHandler(unittest.TestCase):
 
 class TestWorkflowElementNode(unittest.TestCase):
     def test_wfelement_node(self):
-        wfelement_node = WorkflowElementNode()
+        wfelement_node = TreeNodeWithStatus()
         wf_mv = get_workflow_model_view()
         self.assertEqual(wfelement_node.get_icon(wf_mv, False),
                          'icons/valid.png')
@@ -231,6 +229,6 @@ class TestWorkflowElementNode(unittest.TestCase):
 
         self.assertEqual(
             wfelement_node.get_icon(
-                wf_mv.mco_representation[0].mco_parameters_representation[0],
+                wf_mv.mco_mv[0].mco_parameters_representation[0],
                 False),
             'icons/valid.png')

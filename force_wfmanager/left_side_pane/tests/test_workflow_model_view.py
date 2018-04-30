@@ -7,7 +7,7 @@ from force_bdss.core.workflow import Workflow
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
 
-
+# change
 class TestWorkflowModelView(unittest.TestCase):
     def setUp(self):
         self.wf_mv = WorkflowModelView(model=Workflow())

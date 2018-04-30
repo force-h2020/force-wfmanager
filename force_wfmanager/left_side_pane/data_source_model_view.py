@@ -88,6 +88,12 @@ class DataSourceModelView(ModelView):
     #: attribute)
     model = Instance(BaseDataSourceModel)
 
+    #: Link to the containing layer
+    execution_layer_mv = Instance(
+        'force_wfmanager.left_side_pane'
+        '.execution_layer_model_view.ExecutionLayerModelView'
+    )
+
     #: Registry of the available variables
     variable_names_registry = Instance(VariableNamesRegistry)
 
@@ -219,3 +225,19 @@ class DataSourceModelView(ModelView):
                           type=output_slot.type)
             for index, output_slot in enumerate(output_slots)
         ]
+
+    def __data_source_default(self):
+        return self.model.factory.create_data_source()
+
+    @on_trait_change('variable_names_registry.available_variables[]')
+    def update_data_source_input_rows(self):
+        available_variables = self._get_available_variables()
+        for input_slot_row in self.input_slots_representation:
+            input_slot_row.available_variables = available_variables
+
+    def _get_available_variables(self):
+        index = self._get_layer_index()
+        return self.variable_names_registry.available_variables[index]
+
+    def _get_layer_index(self):
+        return self.execution_layer_mv.layer_index()
