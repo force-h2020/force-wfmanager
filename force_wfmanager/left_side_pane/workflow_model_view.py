@@ -47,13 +47,14 @@ class WorkflowModelView(ModelView):
         else:
             self.mco_mv = []
 
-    @on_trait_change('model.execution_layers',
-                     post_init=True)
+    @on_trait_change('model.execution_layers', post_init=True)
     def update_execution_layers_mv(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
         self.execution_layers_mv = [
             ExecutionLayerModelView(
                 model=execution_layer,
+                workflow_mv=self,
+                variable_names_registry=self.variable_names_registry,
                 label="Layer {}".format(idx)
             )
             for idx, execution_layer in enumerate(self.model.execution_layers)
@@ -64,3 +65,7 @@ class WorkflowModelView(ModelView):
 
     def _variable_names_registry_default(self):
         return VariableNamesRegistry(workflow=self.model)
+
+    def layer_index(self, layer):
+        return self.execution_layers_mv.index(layer)
+

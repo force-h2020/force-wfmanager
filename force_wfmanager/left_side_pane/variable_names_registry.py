@@ -42,7 +42,7 @@ class VariableNamesRegistry(HasStrictTraits):
 
     @on_trait_change(
         'workflow.mco.parameters.name,'
-        'workflow.execution_layers.data_source_models.output_slot_info.name')
+        'workflow.execution_layers.data_sources.output_slot_info.name')
     def update_available_variables_stack(self):
         stack = []
 
@@ -58,7 +58,7 @@ class VariableNamesRegistry(HasStrictTraits):
 
         for layer in self.workflow.execution_layers:
             stack_entry_for_layer = []
-            for ds in layer.data_source_models:
+            for ds in layer.data_sources:
                 stack_entry_for_layer.extend([
                     info.name
                     for info in ds.output_slot_info
