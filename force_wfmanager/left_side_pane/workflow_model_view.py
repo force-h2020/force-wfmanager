@@ -18,7 +18,9 @@ class WorkflowModelView(ModelView):
     #: List of MCO to be displayed in the TreeEditor
     mco_mv = List(Instance(MCOModelView))
 
-    #: List of DataSources to be displayed in the TreeEditor
+    #: List of DataSources to be displayed in the TreeEditor.
+    #: Must be a list otherwise the tree editor will not consider it
+    #: as a child.
     execution_layers_mv = List(Instance(ExecutionLayerModelView))
 
     #: Variable Names Registry
@@ -50,10 +52,11 @@ class WorkflowModelView(ModelView):
     @on_trait_change('model.execution_layers', post_init=True)
     def update_execution_layers_mv(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
+
         self.execution_layers_mv = [
             ExecutionLayerModelView(
                 model=execution_layer,
-                workflow_mv=self,
+                layer_index=idx,
                 variable_names_registry=self.variable_names_registry,
                 label="Layer {}".format(idx)
             )
@@ -65,7 +68,3 @@ class WorkflowModelView(ModelView):
 
     def _variable_names_registry_default(self):
         return VariableNamesRegistry(workflow=self.model)
-
-    def layer_index(self, layer):
-        return self.execution_layers_mv.index(layer)
-

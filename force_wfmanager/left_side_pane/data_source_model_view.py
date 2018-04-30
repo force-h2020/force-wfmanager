@@ -100,6 +100,8 @@ class DataSourceModelView(ModelView):
     #: The human readable name of the evaluator
     label = Str()
 
+    layer_index = Int()
+
     #: evaluator object, shouldn't be touched
     _data_source = Instance(BaseDataSource)
 
@@ -236,8 +238,5 @@ class DataSourceModelView(ModelView):
             input_slot_row.available_variables = available_variables
 
     def _get_available_variables(self):
-        index = self._get_layer_index()
-        return self.variable_names_registry.available_variables[index]
-
-    def _get_layer_index(self):
-        return self.execution_layer_mv.layer_index()
+        registry = self.variable_names_registry
+        return registry.available_variables[self.layer_index]

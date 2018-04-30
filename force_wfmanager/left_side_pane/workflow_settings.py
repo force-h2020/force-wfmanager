@@ -30,7 +30,7 @@ class WorkflowHandler(Handler):
         """ Opens a dialog for creating a MCO """
         workflow_mv = editor.object.workflow_mv
 
-        modal = NewEntityModal(factories=workflow_mv.mco_factories)
+        modal = NewEntityModal(factories=editor.object.mco_factories)
         modal.edit_traits()
         result = modal.current_model
 

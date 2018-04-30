@@ -1,4 +1,4 @@
-from traits.api import Instance, String, Bool, on_trait_change, List
+from traits.api import Instance, String, Bool, on_trait_change, List, Int
 from traitsui.api import ModelView
 
 from force_bdss.core.execution_layer import ExecutionLayer
@@ -12,10 +12,7 @@ class ExecutionLayerModelView(ModelView):
     #: The model object this MV wraps
     model = Instance(ExecutionLayer)
 
-    #: Link to the containing Workflow ModelView
-    workflow_mv = Instance(
-        'force_wfmanager.left_side_pane.workflow_model_view.WorkflowModelView'
-    )
+    layer_index=Int()
 
     #: Registry of the available variables
     variable_names_registry = Instance(VariableNamesRegistry)
@@ -40,10 +37,7 @@ class ExecutionLayerModelView(ModelView):
     def update_data_sources_mv(self):
         self.data_sources_mv = [
             DataSourceModelView(
-                execution_layer_mv=self,
+                layer_index=self.layer_index,
                 model=data_source,
                 variable_names_registry=self.variable_names_registry
             ) for data_source in self.model.data_sources]
-
-    def layer_index(self):
-        return self.workflow_mv.layer_index(self)
