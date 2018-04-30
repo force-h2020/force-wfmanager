@@ -12,7 +12,7 @@ from force_wfmanager.wfmanager import WfManager
 from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 from traits.api import push_exception_handler
-push_exception_handler(reraise_exceptions=True)
+push_exception_handler(lambda *args: None, reraise_exceptions=True)
 
 
 def main():

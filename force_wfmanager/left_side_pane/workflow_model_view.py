@@ -49,7 +49,7 @@ class WorkflowModelView(ModelView):
         else:
             self.mco_mv = []
 
-    @on_trait_change('model.execution_layers', post_init=True)
+    @on_trait_change('model.execution_layers[]', post_init=True)
     def update_execution_layers_mv(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
 
