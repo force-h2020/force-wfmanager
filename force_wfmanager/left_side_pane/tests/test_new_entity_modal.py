@@ -34,101 +34,53 @@ class TestNewEntityModal(unittest.TestCase):
 
         self.handler = ModalHandler()
 
-    def _get_new_mco_dialog(self):
+    def _get_dialog(self):
         modal = NewEntityModal(
             factories=self.mcos
         )
         return modal, ModalInfoDummy(object=modal)
 
-    def _get_new_data_source_dialog(self):
-        modal = NewEntityModal(
-            factories=self.data_sources
-        )
-        return modal, ModalInfoDummy(object=modal)
-
-    def test_add_mco(self):
-        modal, modal_info = self._get_new_mco_dialog()
+    def test_add_entity(self):
+        modal, modal_info = self._get_dialog()
 
         # Simulate pressing add mco button (should do nothing, because no mco
         # is selected)
         self.handler.object_add_button_changed(modal_info)
-        self.assertIsNone(self.workflow_mv.model.mco)
+        self.assertIsNone(modal.current_model)
 
         # Simulate selecting an mco factory in the list
-        modal, modal_info = self._get_new_mco_dialog()
+        modal, modal_info = self._get_dialog()
         modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add mco button
         self.handler.object_add_button_changed(modal_info)
-        self.assertIsInstance(self.workflow_mv.model.mco, BaseMCOModel)
-        old_mco = self.workflow_mv.model.mco
+        self.assertIsNotNone(modal.current_model)
 
         # Simulate selecting an mco factory in the list
-        modal, modal_info = self._get_new_mco_dialog()
+        modal, modal_info = self._get_dialog()
         modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add mco button again to create a new mco model
-        self.handler.object_add_button_changed(modal_info)
-        self.assertNotEqual(self.workflow_mv.model.mco, old_mco)
-
-        self.assertEqual(len(self.workflow_mv.mco_mv), 1)
-
-    def test_add_data_source(self):
-        modal, modal_info = self._get_new_data_source_dialog()
-
-        # Simulate pressing add data_source button (should do nothing)
-        self.handler.object_add_button_changed(modal_info)
-        self.assertEqual(
-            len(self.workflow_mv.model.execution_layers[0].data_sources), 0)
-
-        # Simulate selecting a data_source factory in the list
-        modal, modal_info = self._get_new_data_source_dialog()
-        modal.selected_factory = modal.factories[0]
-
-        # Simulate pressing add data_source button
-        self.handler.object_add_button_changed(modal_info)
-        self.assertIsInstance(
-            self.workflow_mv.model.data_sources[0],
-            BaseDataSourceModel)
-
-        self.assertEqual(
-            len(self.workflow_mv.model.execution_layers.data_sources), 1)
-
-        # Simulate selecting a data_source factory in the list
-        modal, modal_info = self._get_new_data_source_dialog()
-        modal.selected_factory = modal.factories[0]
-
-        # Simulate pressing add data_source button again
-        self.handler.object_add_button_changed(modal_info)
-        self.assertIsInstance(
-            self.workflow_mv.model.execution_layers[0].data_sources[1],
-            BaseDataSourceModel)
-        self.assertNotEqual(
-            self.workflow_mv.model.execution_layers[0].data_sources[0],
-            self.workflow_mv.model.execution_layers[0].data_sources[1])
-
-        self.assertEqual(
-            len(self.workflow_mv.execution_layers_mv.data_sources_mv),
-            2)
-
-    def test_cancel_button(self):
-        modal, modal_info = self._get_new_mco_dialog()
-
-        # Simulate selecting a kpi_calculator factory in the list
-        modal.selected_factory = modal.factories[0]
-
-        # Simulate pressing cancel button
         self.handler.object_cancel_button_changed(modal_info)
+        self.assertIsNone(modal.current_model)
 
-    def test_selected_factory(self):
-        modal, _ = self._get_new_mco_dialog()
+    def test_caching(self):
+        modal, _ = self._get_dialog()
+        # Select a factory and
         modal.selected_factory = modal.factories[0]
 
         self.assertIsNotNone(modal.current_model)
+        first_model = modal.current_model
 
+        # Unselect the factory
         modal.selected_factory = None
 
         self.assertIsNone(modal.current_model)
+
+        # Select the same factory again and check if the model is the same
+        modal.selected_factory = modal.factories[0]
+
+        self.assertEqual(id(first_model), id(modal.current_model))
 
     def test_list_adapter(self):
         adapter = ListAdapter(item=ProbeMCOFactory(None))
