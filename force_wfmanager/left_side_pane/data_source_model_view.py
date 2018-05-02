@@ -2,6 +2,7 @@ from traits.api import (HasStrictTraits, Instance, Str, List, Int,
                         on_trait_change, Enum, Bool)
 
 from traitsui.api import View, Item, ModelView, TableEditor
+from traitsui.extras.checkbox_column import CheckboxColumn
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (
@@ -63,22 +64,40 @@ class OutputSlotRow(TableRow):
     #: Name of the slot
     name = Identifier()
 
+    is_kpi = Bool()
+
     @on_trait_change('model.output_slot_info[]')
     def update_view(self):
         self.name = self.model.output_slot_info[self.index].name
+        self.is_kpi = self.model.output_slot_info[self.index].is_kpi
 
     @on_trait_change('name')
-    def update_model(self):
+    def update_name(self):
         self.model.output_slot_info[self.index].name = self.name
 
+    @on_trait_change('is_kpi')
+    def update_is_kpi(self):
+        self.model.output_slot_info[self.index].is_kpi = self.is_kpi
 
-slots_editor = TableEditor(
+
+input_slots_editor = TableEditor(
     sortable=False,
     configurable=False,
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
         ObjectColumn(name="name", label="Variable Name", editable=True),
+    ]
+)
+
+output_slots_editor = TableEditor(
+    sortable=False,
+    configurable=False,
+    columns=[
+        ObjectColumn(name="index", label="", editable=False),
+        ObjectColumn(name="type", label="Type", editable=False),
+        ObjectColumn(name="name", label="Variable Name", editable=True),
+        CheckboxColumn(name="is_kpi", label="KPI", editable=True),
     ]
 )
 
@@ -120,12 +139,12 @@ class DataSourceModelView(ModelView):
         Item(
             "input_slots_representation",
             label="Input variables",
-            editor=slots_editor,
+            editor=input_slots_editor,
         ),
         Item(
             "output_slots_representation",
             label="Output variables",
-            editor=slots_editor,
+            editor=output_slots_editor,
         ),
         kind="subpanel",
     )
