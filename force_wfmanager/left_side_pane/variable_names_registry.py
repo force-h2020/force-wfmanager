@@ -40,6 +40,10 @@ class VariableNamesRegistry(HasStrictTraits):
     available_variables = Property(List(List(Identifier)),
                                    depends_on="available_variables_stack")
 
+    def __init__(self, workflow, *args, **kwargs):
+        self.workflow = workflow
+        super(VariableNamesRegistry, self).__init__(*args, **kwargs)
+
     @on_trait_change(
         'workflow.mco.parameters.name,'
         'workflow.execution_layers.data_sources.output_slot_info.name')

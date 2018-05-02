@@ -130,8 +130,9 @@ class DataSourceModelView(ModelView):
         kind="subpanel",
     )
 
-    def __init__(self, model, *args, **kwargs):
+    def __init__(self, model, variable_names_registry, *args, **kwargs):
         self.model = model
+        self.variable_names_registry = variable_names_registry
 
         super(DataSourceModelView, self).__init__(*args, **kwargs)
 
@@ -203,7 +204,10 @@ class DataSourceModelView(ModelView):
         ]
 
         #: Initialize the output slots
-        self.model.output_slot_info = len(output_slots)*['']
+        self.model.output_slot_info = [
+            OutputSlotInfo(name='')
+            for _ in output_slots
+        ]
 
         self._fill_slot_rows(input_slots, output_slots)
 
@@ -231,6 +235,16 @@ class DataSourceModelView(ModelView):
 
     def __data_source_default(self):
         return self.model.factory.create_data_source()
+
+    @on_trait_change("model.input_slot_info.name,model.output_slot_info.name")
+    def update_slot_info_names(self):
+        for info, row in zip(self.model.input_slot_info,
+                             self.input_slots_representation):
+            row.name = info.name
+
+        for info, row in zip(self.model.output_slot_info,
+                             self.output_slots_representation):
+            row.name = info.name
 
     @on_trait_change('variable_names_registry.available_variables[]')
     def update_data_source_input_rows(self):
