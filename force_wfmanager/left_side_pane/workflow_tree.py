@@ -10,6 +10,7 @@ from force_bdss.api import (
     BaseDataSourceFactory,
     BaseMCOParameterFactory)
 from force_bdss.core.workflow import Workflow
+from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
 from force_wfmanager.left_side_pane.execution_layer_model_view import \
     ExecutionLayerModelView
 
@@ -40,7 +41,7 @@ edit_data_source_action = Action(name='Edit...', action='edit_data_source')
 
 
 class TreeNodeWithStatus(TreeNode):
-    """ Custom TreeNode class for worklow elements """
+    """ Custom TreeNode class for workflow elements """
     def get_icon(self, object, is_expanded):
         return 'icons/valid.png' if object.valid else 'icons/invalid.png'
 
@@ -120,24 +121,16 @@ tree_editor = TreeEditor(
 )
 
 
-class WorkflowSettings(ModelView):
+class WorkflowTree(ModelView):
     """ Part of the GUI containing the tree editor displaying the Workflow """
-    #: Available MCO factories
-    mco_factories = List(Instance(BaseMCOFactory))
-
-    #: Available parameters factories
-    mco_parameter_factories = Property(
-        List(Instance(BaseMCOParameterFactory)),
-        depends_on='mco')
-
-    #: Available data source factories
-    data_source_factories = List(Instance(BaseDataSourceFactory))
+    #: The workflow model
+    model = Instance(Workflow, allow_none=False)
 
     #: The workflow model view
     workflow_mv = Instance(WorkflowModelView, allow_none=False)
 
-    #: The workflow model
-    model = Instance(Workflow, allow_none=False)
+    #: Available MCO factories
+    _factory_registry = Instance(IFactoryRegistryPlugin)
 
     traits_view = View(
         UItem(name='workflow_mv',
@@ -147,6 +140,11 @@ class WorkflowSettings(ModelView):
         height=600,
         resizable=True)
 
+    def __init__(self, model, factory_registry, *args, **kwargs):
+        super(WorkflowTree, self).__init__(*args, **kwargs)
+        self.model = model
+        self._factory_registry = factory_registry
+
     def _workflow_mv_default(self):
         return WorkflowModelView(model=self.model)
 
@@ -154,16 +152,11 @@ class WorkflowSettings(ModelView):
     def update_model_view(self):
         self.workflow_mv.model = self.model
 
-    def _get_mco_parameter_factories(self):
-        if self.model.mco is not None:
-            return self.model.mco.factory.parameter_factories()
-        return []
-
     def new_mco(self, ui_info, object):
         """ Opens a dialog for creating a MCO """
         workflow_mv = self.workflow_mv
 
-        modal = NewEntityModal(factories=self.mco_factories)
+        modal = NewEntityModal(factories=self._factory_registry.mco_factories)
         modal.edit_traits()
         result = modal.current_model
 
@@ -178,7 +171,11 @@ class WorkflowSettings(ModelView):
         self.workflow_mv.set_mco(None)
 
     def new_parameter(self, ui_info, object):
-        modal = NewEntityModal(factories=self.mco_parameter_factories)
+        parameter_factories = []
+        if self.model.mco is not None:
+            parameter_factories = self.model.mco.factory.parameter_factories()
+
+        modal = NewEntityModal(factories=parameter_factories)
         modal.edit_traits()
         result = modal.current_model
 
@@ -195,7 +192,9 @@ class WorkflowSettings(ModelView):
 
     def new_data_source(self, ui_info, object):
         """ Opens a dialog for creating a Data Source """
-        modal = NewEntityModal(factories=self.data_source_factories)
+        modal = NewEntityModal(
+            factories=self._factory_registry.data_source_factories
+        )
         modal.edit_traits()
         result = modal.current_model
 

@@ -26,7 +26,7 @@ from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.tests.utils import wait_condition
 from force_wfmanager.wfmanager_task import WfManagerTask
 from force_wfmanager.left_side_pane.side_pane import SidePane
-from force_wfmanager.left_side_pane.workflow_settings import WorkflowSettings
+from force_wfmanager.left_side_pane.workflow_tree import WorkflowTree
 
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_task.FileDialog'
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager_task.ConfirmationDialog'
@@ -124,7 +124,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
         self.assertEqual(len(self.wfmanager_task.create_dock_panes()), 1)
         self.assertIsInstance(self.wfmanager_task.side_pane, SidePane)
         self.assertIsInstance(
-            self.wfmanager_task.side_pane.workflow_settings, WorkflowSettings)
+            self.wfmanager_task.side_pane.workflow_tree, WorkflowTree)
         self.assertIsInstance(self.wfmanager_task.default_layout, TaskLayout)
         self.assertIsInstance(self.wfmanager_task.analysis_m, AnalysisModel)
         self.assertEqual(len(self.wfmanager_task._ui_hooks_managers), 1)
@@ -274,7 +274,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 self.wfmanager_task.side_pane.workflow_m)
             self.assertEqual(
                 old_workflow,
-                self.wfmanager_task.side_pane.workflow_settings.model)
+                self.wfmanager_task.side_pane.workflow_tree.model)
 
             self.wfmanager_task.open_workflow()
 
@@ -287,7 +287,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 self.wfmanager_task.side_pane.workflow_m)
             self.assertNotEqual(
                 old_workflow,
-                self.wfmanager_task.side_pane.workflow_settings.model)
+                self.wfmanager_task.side_pane.workflow_tree.model)
 
     def test_read_failure(self):
         mock_open = mock.mock_open()

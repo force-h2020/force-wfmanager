@@ -7,7 +7,7 @@ from traitsui.api import View, UItem, VGroup
 from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
 from force_bdss.core.workflow import Workflow
 
-from .workflow_settings import WorkflowSettings
+from .workflow_tree import WorkflowTree
 
 
 class SidePane(TraitsDockPane):
@@ -35,7 +35,7 @@ class SidePane(TraitsDockPane):
     workflow_m = Instance(Workflow)
 
     #: Tree editor for the Workflow
-    workflow_settings = Instance(WorkflowSettings)
+    workflow_tree = Instance(WorkflowTree)
 
     #: Run button for running the computation
     run_button = Button('Run')
@@ -45,7 +45,7 @@ class SidePane(TraitsDockPane):
     enabled = Bool(True)
 
     traits_view = View(VGroup(
-        UItem('workflow_settings',
+        UItem('workflow_tree',
               style='custom',
               enabled_when="enabled"
               ),
@@ -54,13 +54,12 @@ class SidePane(TraitsDockPane):
               )
     ))
 
-    def _workflow_settings_default(self):
-        registry = self.factory_registry
-        return WorkflowSettings(
-            mco_factories=registry.mco_factories,
-            data_source_factories=registry.data_source_factories,
-            model=self.workflow_m)
+    def _workflow_tree_default(self):
+        return WorkflowTree(
+            factory_registry=self.factory_registry,
+            model=self.workflow_m
+        )
 
     @on_trait_change('workflow_m', post_init=True)
-    def update_workflow_settings(self, *args, **kwargs):
-        self.workflow_settings.model = self.workflow_m
+    def update_workflow_tree(self, *args, **kwargs):
+        self.workflow_tree.model = self.workflow_m

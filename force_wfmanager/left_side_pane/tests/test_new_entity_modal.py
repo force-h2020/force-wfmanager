@@ -7,7 +7,7 @@ from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
 
 from force_wfmanager.left_side_pane.new_entity_modal import (
     ModalHandler, NewEntityModal, ListAdapter)
-from force_wfmanager.left_side_pane.workflow_settings import WorkflowModelView
+from force_wfmanager.left_side_pane.workflow_tree import WorkflowModelView
 
 
 class UIDummy():
