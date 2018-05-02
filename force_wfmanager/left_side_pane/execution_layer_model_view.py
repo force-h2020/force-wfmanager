@@ -12,7 +12,7 @@ class ExecutionLayerModelView(ModelView):
     #: The model object this MV wraps
     model = Instance(ExecutionLayer)
 
-    layer_index=Int()
+    layer_index = Int()
 
     #: Registry of the available variables
     variable_names_registry = Instance(VariableNamesRegistry)

@@ -108,7 +108,7 @@ tree_editor = TreeEditor(
              view=no_view,
              menu=Menu(new_data_source_action, delete_layer_action)
          ),
-         TreeNodeWithStatus(
+        TreeNodeWithStatus(
              node_for=[DataSourceModelView],
              auto_open=True,
              children='',
@@ -215,4 +215,3 @@ class WorkflowSettings(ModelView):
     def delete_layer(self, ui_info, object):
         """ Delete an element from the workflow """
         self.workflow_mv.remove_execution_layer(object.model)
-

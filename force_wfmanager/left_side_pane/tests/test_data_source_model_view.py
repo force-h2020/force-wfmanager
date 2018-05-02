@@ -96,7 +96,7 @@ class TestDataSourceModelView(unittest.TestCase):
         input_slots, _ = self.data_source.slots(self.model_1)
 
         self.model_1.input_slot_info = [
-            InputSlotInfo(name='') for _ in range(len(input_slots) + 1)
+            InputSlotInfo(name='') for _ in range(len(input_slots) + 1)  # noqa
         ]
 
         with six.assertRaisesRegex(self, RuntimeError, "input slots"):

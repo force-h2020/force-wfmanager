@@ -4,7 +4,6 @@ from traits.api import HasTraits, Instance
 
 from force_bdss.tests.probe_classes.mco import ProbeMCOFactory
 from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
-from force_bdss.api import (BaseMCOModel, BaseDataSourceModel)
 
 from force_wfmanager.left_side_pane.new_entity_modal import (
     ModalHandler, NewEntityModal, ListAdapter)
