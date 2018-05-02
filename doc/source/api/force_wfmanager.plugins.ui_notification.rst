@@ -1,5 +1,5 @@
-force\_wfmanager\.plugins\.ui\_notification package
-===================================================
+force_wfmanager.plugins.ui_notification package
+===============================================
 
 Subpackages
 -----------
@@ -11,40 +11,56 @@ Subpackages
 Submodules
 ----------
 
-force\_wfmanager\.plugins\.ui\_notification\.event\_serializer module
----------------------------------------------------------------------
+force_wfmanager.plugins.ui_notification.event_serializer module
+---------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.event_serializer
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.plugins\.ui\_notification\.ui\_notification module
---------------------------------------------------------------------
+force_wfmanager.plugins.ui_notification.ui_notification module
+--------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.ui_notification
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.plugins\.ui\_notification\.ui\_notification\_factory module
------------------------------------------------------------------------------
+force_wfmanager.plugins.ui_notification.ui_notification_factory module
+----------------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.ui_notification_factory
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.plugins\.ui\_notification\.ui\_notification\_model module
----------------------------------------------------------------------------
+force_wfmanager.plugins.ui_notification.ui_notification_hooks_factory module
+----------------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.plugins.ui_notification.ui_notification_hooks_factory
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force_wfmanager.plugins.ui_notification.ui_notification_hooks_manager module
+----------------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.plugins.ui_notification.ui_notification_hooks_manager
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force_wfmanager.plugins.ui_notification.ui_notification_model module
+--------------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.ui_notification_model
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.plugins\.ui\_notification\.ui\_notification\_plugin module
-----------------------------------------------------------------------------
+force_wfmanager.plugins.ui_notification.ui_notification_plugin module
+---------------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.ui_notification_plugin
     :members:

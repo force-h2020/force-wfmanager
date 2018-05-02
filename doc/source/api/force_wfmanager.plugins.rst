@@ -1,5 +1,5 @@
-force\_wfmanager\.plugins package
-=================================
+force_wfmanager.plugins package
+===============================
 
 Subpackages
 -----------
