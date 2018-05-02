@@ -1,27 +1,28 @@
-from traits.api import (Instance, List, Property, on_trait_change)
+from traits.api import (
+    Instance,
+    on_trait_change)
 
 from traitsui.api import (
-    TreeEditor, TreeNode, UItem, View, Menu, Action,
+    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView
 )
-from traitsui.handler import ModelView
 
-from force_bdss.api import (
-    BaseMCOFactory,
-    BaseDataSourceFactory,
-    BaseMCOParameterFactory)
 from force_bdss.core.workflow import Workflow
 from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
+from force_wfmanager.left_side_pane.data_source_model_view import \
+    DataSourceModelView
 from force_wfmanager.left_side_pane.execution_layer_model_view import \
     ExecutionLayerModelView
 
 from force_bdss.core.execution_layer import ExecutionLayer
-from .new_entity_modal import NewEntityModal
-from .workflow_model_view import WorkflowModelView
-from .mco_model_view import MCOModelView
-from .mco_parameter_model_view import MCOParameterModelView
-from .data_source_model_view import DataSourceModelView
 
 # Create an empty view and menu for objects that have no data to display:
+from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
+from force_wfmanager.left_side_pane.mco_parameter_model_view import \
+    MCOParameterModelView
+from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
+from force_wfmanager.left_side_pane.workflow_model_view import \
+    WorkflowModelView
+
 no_view = View()
 no_menu = Menu()
 
