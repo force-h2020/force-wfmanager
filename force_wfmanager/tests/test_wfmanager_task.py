@@ -424,7 +424,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                     (Exception("boom"), 'boom'),
                     (subprocess.CalledProcessError(1, "fake_command"),
                         "Command 'fake_command' returned non-zero exit "
-                        "status 1"),
+                        "status 1."),
                     (OSError("whatever"), "whatever")]:
                 self.assertEqual(
                     _check_exception_behavior(exc),

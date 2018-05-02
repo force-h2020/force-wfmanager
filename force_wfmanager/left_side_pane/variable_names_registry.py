@@ -41,8 +41,8 @@ class VariableNamesRegistry(HasStrictTraits):
                                    depends_on="available_variables_stack")
 
     def __init__(self, workflow, *args, **kwargs):
-        self.workflow = workflow
         super(VariableNamesRegistry, self).__init__(*args, **kwargs)
+        self.workflow = workflow
 
     @on_trait_change(
         'workflow.mco.parameters.name,'

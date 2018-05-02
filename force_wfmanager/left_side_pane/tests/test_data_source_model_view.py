@@ -1,4 +1,5 @@
 import unittest
+import six
 
 from traits.api import TraitError
 
@@ -95,11 +96,10 @@ class TestDataSourceModelView(unittest.TestCase):
         input_slots, _ = self.data_source.slots(self.model_1)
 
         self.model_1.input_slot_info = [
-            InputSlotInfo(name='') for input_slot in range(
-                len(input_slots) + 1)
+            InputSlotInfo(name='') for _ in range(len(input_slots) + 1)
         ]
 
-        with self.assertRaisesRegexp(RuntimeError, "input slots"):
+        with six.assertRaisesRegex(self, RuntimeError, "input slots"):
             DataSourceModelView(
                 model=self.model_1,
                 variable_names_registry=self.variable_names_registry)
@@ -111,7 +111,7 @@ class TestDataSourceModelView(unittest.TestCase):
             OutputSlotInfo(name='')
             for slot in range(len(output_slots) + 1)]
 
-        with self.assertRaisesRegexp(RuntimeError, "output slots"):
+        with six.assertRaisesRegex(self, RuntimeError, "output slots"):
             DataSourceModelView(
                 model=self.model_1,
                 variable_names_registry=self.variable_names_registry)
