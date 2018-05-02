@@ -1,5 +1,5 @@
-force\_wfmanager\.server package
-================================
+force_wfmanager.server package
+==============================
 
 Subpackages
 -----------
@@ -11,24 +11,24 @@ Subpackages
 Submodules
 ----------
 
-force\_wfmanager\.server\.event\_deserializer module
-----------------------------------------------------
+force_wfmanager.server.event_deserializer module
+------------------------------------------------
 
 .. automodule:: force_wfmanager.server.event_deserializer
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.server\.zmq\_server module
---------------------------------------------
+force_wfmanager.server.zmq_server module
+----------------------------------------
 
 .. automodule:: force_wfmanager.server.zmq_server
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.server\.zmq\_server\_config module
-----------------------------------------------------
+force_wfmanager.server.zmq_server_config module
+-----------------------------------------------
 
 .. automodule:: force_wfmanager.server.zmq_server_config
     :members:

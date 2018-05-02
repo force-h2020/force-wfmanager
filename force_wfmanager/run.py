@@ -11,6 +11,9 @@ from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_wfmanager.wfmanager import WfManager
 from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
+from traits.api import push_exception_handler
+push_exception_handler(lambda *args: None, reraise_exceptions=True)
+
 
 def main():
     logging.basicConfig(filename="force_wfmanager.log", filemode="w")

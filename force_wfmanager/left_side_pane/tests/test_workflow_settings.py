@@ -1,4 +1,9 @@
 import unittest
+
+from force_bdss.core.execution_layer import ExecutionLayer
+from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
+from force_bdss.mco.base_mco_model import BaseMCOModel
+
 try:
     import mock
 except ImportError:
@@ -9,14 +14,12 @@ from traits.api import Instance, HasTraits, Int
 from force_bdss.tests.probe_classes.mco import (
     ProbeParameterFactory, ProbeMCOFactory, ProbeMCOModel)
 from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
-from force_bdss.tests.probe_classes.kpi_calculator import (
-    ProbeKPICalculatorFactory)
 from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
 from force_wfmanager.left_side_pane.workflow_settings import (
-    WorkflowSettings, WorkflowHandler, WorkflowElementNode)
+    WorkflowSettings, TreeNodeWithStatus)
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 
 
@@ -24,10 +27,17 @@ NEW_ENTITY_MODAL_PATH = \
     "force_wfmanager.left_side_pane.workflow_settings.NewEntityModal"
 
 
-def mock_new_modal(*args, **kwargs):
-    modal = mock.Mock(NewEntityModal)
-    modal.edit_traits = lambda: None
-    return modal
+def mock_new_modal(model_type):
+    def _mock_new_modal(*args, **kwargs):
+        modal = mock.Mock(spec=NewEntityModal)
+        modal.edit_traits = lambda: None
+
+        # Any type is ok as long as it passes trait validation.
+        # We choose BaseDataSourceModel.
+        modal.current_model = model_type(factory=None)
+        return modal
+
+    return _mock_new_modal
 
 
 class WorkflowSettingsEditor(HasTraits):
@@ -38,8 +48,7 @@ def get_workflow_settings():
     return WorkflowSettings(
         mco_factories=[ProbeMCOFactory(None)],
         data_source_factories=[ProbeDataSourceFactory(None)],
-        kpi_calculator_factories=[ProbeKPICalculatorFactory(None)],
-        workflow_m=Workflow(),
+        model=Workflow(),
     )
 
 
@@ -59,18 +68,25 @@ def get_workflow_model_view():
     mco.parameters = [parameter]
 
     data_source_factory = ProbeDataSourceFactory(None)
-    kpi_factory = ProbeKPICalculatorFactory(None)
 
     workflow_mv = WorkflowModelView(
         model=Workflow(
             mco=mco,
-            data_sources=[
-                data_source_factory.create_model(),
-                data_source_factory.create_model()],
-            kpi_calculators=[
-                kpi_factory.create_model(),
-                kpi_factory.create_model(),
-                kpi_factory.create_model()])
+            execution_layers=[
+                ExecutionLayer(
+                    data_sources=[
+                        data_source_factory.create_model(),
+                        data_source_factory.create_model()
+                    ],
+                ),
+                ExecutionLayer(
+                    data_sources=[
+                        data_source_factory.create_model(),
+                        data_source_factory.create_model()
+                    ],
+                )
+            ]
+        )
     )
     return workflow_mv
 
@@ -79,7 +95,7 @@ def get_workflow_settings_editor(workflow_model_view):
     return WorkflowSettingsEditor(
         object=WorkflowSettings(
             workflow_mv=workflow_model_view,
-            workflow_m=workflow_model_view.model
+            model=workflow_model_view.model
         )
     )
 
@@ -91,137 +107,97 @@ class TestWorkflowSettings(unittest.TestCase):
         self.settings = self.workflow_settings
 
     def test_ui_initialization(self):
-        self.assertIsNone(self.settings.workflow_m.mco)
-        self.assertEqual(len(self.settings.workflow_m.data_sources), 0)
-        self.assertEqual(len(self.settings.workflow_m.kpi_calculators), 0)
-
-        self.assertEqual(len(self.settings.workflow_mv.mco_representation), 0)
-        self.assertEqual(
-            len(self.settings.workflow_mv.data_sources_representation), 0)
-        self.assertEqual(
-            len(self.settings.workflow_mv.kpi_calculators_representation), 0)
+        self.assertIsNone(self.settings.model.mco)
+        self.assertEqual(len(self.settings.model.execution_layers), 0)
+        self.assertEqual(len(self.settings.workflow_mv.mco_mv), 0)
+        self.assertEqual(len(self.settings.workflow_mv.execution_layers_mv), 0)
 
 
 class TestTreeEditorHandler(unittest.TestCase):
     def setUp(self):
-        self.handler = WorkflowHandler()
-
-        self.workflow = get_workflow_model_view()
+        self.workflow_mv = get_workflow_model_view()
 
         self.workflow_settings_editor = get_workflow_settings_editor(
-            self.workflow)
+            self.workflow_mv)
+        self.workflow_settings = self.workflow_settings_editor.object
 
     def test_new_mco(self):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_modal.side_effect = mock_new_modal
+            mock_modal.side_effect = mock_new_modal(BaseMCOModel)
+            mock_ui_info = mock.Mock()
+            mock_object = mock.Mock()
 
-            self.handler.new_mco_handler(
-                self.workflow_settings_editor,
-                None)
+            self.workflow_settings.new_mco(mock_ui_info, mock_object)
 
             mock_modal.assert_called()
 
     def test_new_mco_parameter(self):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_modal.side_effect = mock_new_modal
+            mock_modal.side_effect = mock_new_modal(BaseMCOModel)
+            mock_ui_info = mock.Mock()
+            mock_object = mock.Mock()
 
-            self.handler.new_parameter_handler(
-                self.workflow_settings_editor,
-                None)
+            self.workflow_settings.new_parameter(mock_ui_info, mock_object)
 
             mock_modal.assert_called()
+            mock_object.add_parameter.assert_called()
 
     def test_new_data_source(self):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_modal.side_effect = mock_new_modal
+            mock_modal.side_effect = mock_new_modal(BaseDataSourceModel)
+            mock_ui_info = mock.Mock()
+            mock_object = mock.Mock()
 
-            self.handler.new_data_source_handler(
-                self.workflow_settings_editor,
-                None)
-
-            mock_modal.assert_called()
-
-    def test_new_kpi_calculator(self):
-        with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_modal.side_effect = mock_new_modal
-
-            self.handler.new_kpi_calculator_handler(
-                self.workflow_settings_editor,
-                None)
+            self.workflow_settings.new_data_source(mock_ui_info, mock_object)
 
             mock_modal.assert_called()
+            mock_object.add_data_source.assert_called()
 
     def test_edit_entity(self):
-        self.handler.edit_entity_handler(
+        self.workflow_settings.edit_mco(
             self.workflow_settings_editor,
-            self.workflow.mco_representation[0])
+            self.workflow_mv.mco_mv[0])
 
         self.assertEqual(
-            self.workflow.model.mco.edit_traits_call_count,
+            self.workflow_mv.model.mco.edit_traits_call_count,
             1
         )
 
     def test_delete_mco(self):
-        self.assertIsNotNone(self.workflow.model.mco)
+        self.assertIsNotNone(self.workflow_mv.model.mco)
 
-        self.handler.delete_entity_handler(
-            self.workflow_settings_editor,
-            self.workflow.mco_representation[0])
+        mock_ui_info = mock.Mock()
+        mock_object = mock.Mock()
+        self.workflow_settings.delete_mco(mock_ui_info, mock_object)
 
-        self.assertIsNone(
-            self.workflow.model.mco)
+        self.assertIsNone(self.workflow_mv.model.mco)
 
     def test_delete_mco_parameter(self):
-        self.assertEqual(
-            len(self.workflow.model.mco.parameters),
-            1
-        )
+        self.assertEqual(len(self.workflow_mv.model.mco.parameters), 1)
 
-        self.handler.delete_entity_handler(
-            self.workflow_settings_editor,
-            self.workflow.mco_representation[0].mco_parameters_representation[
-                0
-            ])
+        mock_ui_info = mock.Mock()
+        self.workflow_settings.delete_parameter(
+            mock_ui_info,
+            self.workflow_mv.mco_mv[0].mco_parameters_mv[0])
 
-        self.assertEqual(
-            len(self.workflow.model.mco.parameters),
-            0
-        )
+        self.assertEqual(len(self.workflow_mv.model.mco.parameters), 0)
 
-    def test_delete_data_source(self):
-        first_data_source = self.workflow.data_sources_representation[0]
-        first_data_source_id = id(first_data_source)
+    def test_delete_execution_layer(self):
+        first_execution_layer = self.workflow_mv.execution_layers_mv[0]
 
-        self.assertEqual(len(self.workflow.model.data_sources), 2)
+        self.assertEqual(len(self.workflow_mv.execution_layers_mv), 2)
 
-        self.handler.delete_entity_handler(
-            self.workflow_settings_editor,
-            first_data_source)
+        mock_ui_info = mock.Mock()
+        self.workflow_settings.delete_layer(
+            mock_ui_info,
+            first_execution_layer)
 
-        self.assertEqual(len(self.workflow.model.data_sources), 1)
-        self.assertNotEqual(
-            first_data_source_id,
-            id(self.workflow.model.data_sources[0]))
-
-    def test_delete_kpi_calculator(self):
-        first_kpi_calculator = self.workflow.kpi_calculators_representation[0]
-        first_kpi_calculator_id = id(first_kpi_calculator)
-
-        self.assertEqual(len(self.workflow.model.kpi_calculators), 3)
-
-        self.handler.delete_entity_handler(
-            self.workflow_settings_editor,
-            first_kpi_calculator)
-
-        self.assertEqual(len(self.workflow.model.kpi_calculators), 2)
-        self.assertNotEqual(
-            first_kpi_calculator_id,
-            id(self.workflow.model.kpi_calculators[0]))
+        self.assertEqual(len(self.workflow_mv.execution_layers_mv), 1)
 
 
 class TestWorkflowElementNode(unittest.TestCase):
     def test_wfelement_node(self):
-        wfelement_node = WorkflowElementNode()
+        wfelement_node = TreeNodeWithStatus()
         wf_mv = get_workflow_model_view()
         self.assertEqual(wfelement_node.get_icon(wf_mv, False),
                          'icons/valid.png')
@@ -231,6 +207,6 @@ class TestWorkflowElementNode(unittest.TestCase):
 
         self.assertEqual(
             wfelement_node.get_icon(
-                wf_mv.mco_representation[0].mco_parameters_representation[0],
+                wf_mv.mco_mv[0].mco_parameters_mv[0],
                 False),
             'icons/valid.png')

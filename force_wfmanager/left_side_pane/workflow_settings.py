@@ -1,98 +1,45 @@
-from traits.api import (Instance, List, Property, HasStrictTraits,
-                        on_trait_change)
+from traits.api import (Instance, List, Property, on_trait_change)
 
-from traitsui.api import (TreeEditor, TreeNode, UItem, View, Menu, Action,
-                          Handler)
+from traitsui.api import (
+    TreeEditor, TreeNode, UItem, View, Menu, Action,
+)
+from traitsui.handler import ModelView
 
 from force_bdss.api import (
     BaseMCOFactory,
     BaseDataSourceFactory,
-    BaseKPICalculatorFactory,
     BaseMCOParameterFactory)
 from force_bdss.core.workflow import Workflow
+from force_wfmanager.left_side_pane.execution_layer_model_view import \
+    ExecutionLayerModelView
 
+from force_bdss.core.execution_layer import ExecutionLayer
 from .new_entity_modal import NewEntityModal
 from .workflow_model_view import WorkflowModelView
 from .mco_model_view import MCOModelView
 from .mco_parameter_model_view import MCOParameterModelView
 from .data_source_model_view import DataSourceModelView
-from .kpi_calculator_model_view import KPICalculatorModelView
 
 # Create an empty view and menu for objects that have no data to display:
 no_view = View()
 no_menu = Menu()
 
-
-class WorkflowHandler(Handler):
-    """ Handler for the Workflow editor, this handler will take care of events
-    on the tree editor (e.g. right click on a tree element) """
-    def new_mco_handler(self, editor, object):
-        """ Opens a dialog for creating a MCO """
-        modal = NewEntityModal(
-            workflow_mv=editor.object.workflow_mv,
-            factories=editor.object.mco_factories)
-        modal.edit_traits()
-
-    def new_parameter_handler(self, editor, object):
-        """ Opens a dialog for creating a parameter """
-        modal = NewEntityModal(
-            workflow_mv=editor.object.workflow_mv,
-            factories=editor.object.mco_parameter_factories
-        )
-        modal.edit_traits()
-
-    def new_data_source_handler(self, editor, object):
-        """ Opens a dialog for creating a Data Source """
-        modal = NewEntityModal(
-            workflow_mv=editor.object.workflow_mv,
-            factories=editor.object.data_source_factories)
-        modal.edit_traits()
-
-    def new_kpi_calculator_handler(self, editor, object):
-        """ Opens a dialog for creating a KPI Calculator """
-        modal = NewEntityModal(
-            workflow_mv=editor.object.workflow_mv,
-            factories=editor.object.kpi_calculator_factories)
-        modal.edit_traits()
-
-    def edit_entity_handler(self, editor, object):
-        """ Opens a dialog for configuring the workflow element """
-        # This is a live dialog, workaround for issue #58
-        object.model.edit_traits(kind="livemodal")
-
-    def delete_entity_handler(self, editor, object):
-        """ Delete an element from the workflow """
-        editor.object.workflow_mv.remove_entity(object.model)
+# Actions!
+new_mco_action = Action(name='New MCO...', action='new_mco')
+delete_mco_action = Action(name='Delete', action='delete_mco')
+edit_mco_action = Action(name='Edit...', action='edit_mco')
+new_parameter_action = Action(name='New Parameter...', action='new_parameter')
+edit_parameter_action = Action(name='Edit...', action='edit_parameter')
+delete_parameter_action = Action(name='Delete', action='delete_parameter')
+new_layer_action = Action(name="New Layer...", action='new_layer')
+delete_layer_action = Action(name='Delete', action='delete_layer')
+new_data_source_action = Action(name='New DataSource...',
+                                action='new_data_source')
+delete_data_source_action = Action(name='Delete', action='delete_data_source')
+edit_data_source_action = Action(name='Edit...', action='edit_data_source')
 
 
-new_mco_action = Action(
-    name='New MCO...',
-    action='handler.new_mco_handler(editor, object)')
-
-new_parameter_action = Action(
-    name='New parameter...',
-    action='handler.new_parameter_handler(editor, object)')
-
-new_data_source_action = Action(
-    name='New DataSource...',
-    action='handler.new_data_source_handler(editor, object)')
-
-new_kpi_calculator_action = Action(
-    name='New KPI Calculator...',
-    action='handler.new_kpi_calculator_handler(editor, object)')
-
-edit_entity_action = Action(
-    name='Edit...',
-    action='handler.edit_entity_handler(editor, object)'
-)
-
-delete_entity_action = Action(
-    name='Delete',
-    action='handler.delete_entity_handler(editor, object)'
-)
-
-
-class WorkflowElementNode(TreeNode):
+class TreeNodeWithStatus(TreeNode):
     """ Custom TreeNode class for worklow elements """
     def get_icon(self, object, is_expanded):
         return 'icons/valid.png' if object.valid else 'icons/invalid.png'
@@ -101,7 +48,7 @@ class WorkflowElementNode(TreeNode):
 tree_editor = TreeEditor(
     nodes=[
         # Root node "Workflow"
-        WorkflowElementNode(
+        TreeNodeWithStatus(
             node_for=[WorkflowModelView],
             auto_open=True,
             children='',
@@ -113,77 +60,67 @@ tree_editor = TreeEditor(
         TreeNode(
             node_for=[WorkflowModelView],
             auto_open=True,
-            children='mco_representation',
+            children='mco_mv',
             label='=MCO',
             view=no_view,
             menu=Menu(new_mco_action),
         ),
         # Node representing the MCO
-        WorkflowElementNode(
+        TreeNodeWithStatus(
             node_for=[MCOModelView],
             auto_open=True,
             children='',
             label='label',
             view=no_view,
-            menu=Menu(edit_entity_action, delete_entity_action),
+            menu=Menu(edit_mco_action, delete_mco_action),
         ),
         # Folder node "Parameters" containing the MCO parameters
         TreeNode(
             node_for=[MCOModelView],
             auto_open=True,
-            children='mco_parameters_representation',
+            children='mco_parameters_mv',
             label='=Parameters',
             view=no_view,
             menu=Menu(new_parameter_action),
         ),
         #: Node representing an MCO parameter
-        WorkflowElementNode(
+        TreeNodeWithStatus(
             node_for=[MCOParameterModelView],
             auto_open=True,
             children='',
             label='label',
-            menu=Menu(edit_entity_action, delete_entity_action),
+            menu=Menu(edit_parameter_action, delete_parameter_action),
         ),
-        # Folder node "Data Sources" containing the DataSources
+        #: Node representing the layers
         TreeNode(
             node_for=[WorkflowModelView],
             auto_open=True,
-            children='data_sources_representation',
-            label='=Data sources',
+            children='execution_layers_mv',
+            label='=Execution Layers',
             view=no_view,
-            menu=Menu(new_data_source_action),
+            menu=Menu(new_layer_action),
         ),
-        #: Node representing a DataSource
-        WorkflowElementNode(
-            node_for=[DataSourceModelView],
-            auto_open=True,
-            children='',
-            label='label',
-            menu=Menu(edit_entity_action, delete_entity_action),
-        ),
-        # Folder node "KPI Calculators" containing the KPI Calculators
-        TreeNode(
-            node_for=[WorkflowModelView],
-            auto_open=True,
-            children='kpi_calculators_representation',
-            label='=KPI calculators',
-            view=no_view,
-            menu=Menu(new_kpi_calculator_action),
-        ),
-        #: Node representing a KPI Calculator
-        WorkflowElementNode(
-            node_for=[KPICalculatorModelView],
-            auto_open=True,
-            children='',
-            label='label',
-            menu=Menu(edit_entity_action, delete_entity_action),
-        ),
+        TreeNodeWithStatus(
+             node_for=[ExecutionLayerModelView],
+             auto_open=True,
+             children='data_sources_mv',
+             label='label',
+             view=no_view,
+             menu=Menu(new_data_source_action, delete_layer_action)
+         ),
+        TreeNodeWithStatus(
+             node_for=[DataSourceModelView],
+             auto_open=True,
+             children='',
+             label='label',
+             menu=Menu(edit_data_source_action, delete_data_source_action),
+         ),
     ],
     orientation="vertical"
 )
 
 
-class WorkflowSettings(HasStrictTraits):
+class WorkflowSettings(ModelView):
     """ Part of the GUI containing the tree editor displaying the Workflow """
     #: Available MCO factories
     mco_factories = List(Instance(BaseMCOFactory))
@@ -191,20 +128,16 @@ class WorkflowSettings(HasStrictTraits):
     #: Available parameters factories
     mco_parameter_factories = Property(
         List(Instance(BaseMCOParameterFactory)),
-        depends_on='workflow_m.mco')
+        depends_on='mco')
 
     #: Available data source factories
     data_source_factories = List(Instance(BaseDataSourceFactory))
-
-    #: Available KPI calculator factories
-    kpi_calculator_factories = List(Instance(
-        BaseKPICalculatorFactory))
 
     #: The workflow model view
     workflow_mv = Instance(WorkflowModelView, allow_none=False)
 
     #: The workflow model
-    workflow_m = Instance(Workflow, allow_none=False)
+    model = Instance(Workflow, allow_none=False)
 
     traits_view = View(
         UItem(name='workflow_mv',
@@ -212,18 +145,73 @@ class WorkflowSettings(HasStrictTraits):
               show_label=False),
         width=800,
         height=600,
-        resizable=True,
-        handler=WorkflowHandler())
+        resizable=True)
 
     def _workflow_mv_default(self):
-        return WorkflowModelView(
-            model=self.workflow_m
-        )
+        return WorkflowModelView(model=self.model)
 
-    @on_trait_change('workflow_m', post_init=True)
+    @on_trait_change('model')
     def update_model_view(self):
-        self.workflow_mv.model = self.workflow_m
+        self.workflow_mv.model = self.model
 
     def _get_mco_parameter_factories(self):
-        mco_factory = self.workflow_m.mco.factory
-        return mco_factory.parameter_factories()
+        if self.model.mco is not None:
+            return self.model.mco.factory.parameter_factories()
+        return []
+
+    def new_mco(self, ui_info, object):
+        """ Opens a dialog for creating a MCO """
+        workflow_mv = self.workflow_mv
+
+        modal = NewEntityModal(factories=self.mco_factories)
+        modal.edit_traits()
+        result = modal.current_model
+
+        if result is not None:
+            workflow_mv.set_mco(result)
+
+    def edit_mco(self, ui_info, object):
+        object.model.edit_traits(kind="livemodal")
+
+    def delete_mco(self, ui_info, object):
+        """Deletes the MCO"""
+        self.workflow_mv.set_mco(None)
+
+    def new_parameter(self, ui_info, object):
+        modal = NewEntityModal(factories=self.mco_parameter_factories)
+        modal.edit_traits()
+        result = modal.current_model
+
+        if result is not None:
+            object.add_parameter(result)
+
+    def edit_parameter(self, ui_info, object):
+        object.model.edit_traits(kind="livemodal")
+
+    def delete_parameter(self, ui_info, object):
+        if len(self.workflow_mv.mco_mv) > 0:
+            mco_mv = self.workflow_mv.mco_mv[0]
+            mco_mv.remove_parameter(object.model)
+
+    def new_data_source(self, ui_info, object):
+        """ Opens a dialog for creating a Data Source """
+        modal = NewEntityModal(factories=self.data_source_factories)
+        modal.edit_traits()
+        result = modal.current_model
+
+        if result is not None:
+            object.add_data_source(result)
+
+    def delete_data_source(self, ui_info, object):
+        self.workflow_mv.remove_data_source(object.model)
+
+    def edit_data_source(self, ui_info, object):
+        # This is a live dialog, workaround for issue #58
+        object.model.edit_traits(kind="livemodal")
+
+    def new_layer(self, ui_info, object):
+        self.workflow_mv.add_execution_layer(ExecutionLayer())
+
+    def delete_layer(self, ui_info, object):
+        """ Delete an element from the workflow """
+        self.workflow_mv.remove_execution_layer(object.model)

@@ -1,35 +1,35 @@
-force\_wfmanager\.central\_pane\.tests package
-==============================================
+force_wfmanager.central_pane.tests package
+==========================================
 
 Submodules
 ----------
 
-force\_wfmanager\.central\_pane\.tests\.test\_analysis\_model module
---------------------------------------------------------------------
+force_wfmanager.central_pane.tests.test_analysis_model module
+-------------------------------------------------------------
 
 .. automodule:: force_wfmanager.central_pane.tests.test_analysis_model
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.central\_pane\.tests\.test\_central\_pane module
-------------------------------------------------------------------
+force_wfmanager.central_pane.tests.test_central_pane module
+-----------------------------------------------------------
 
 .. automodule:: force_wfmanager.central_pane.tests.test_central_pane
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.central\_pane\.tests\.test\_plot module
----------------------------------------------------------
+force_wfmanager.central_pane.tests.test_plot module
+---------------------------------------------------
 
 .. automodule:: force_wfmanager.central_pane.tests.test_plot
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.central\_pane\.tests\.test\_result\_table module
-------------------------------------------------------------------
+force_wfmanager.central_pane.tests.test_result_table module
+-----------------------------------------------------------
 
 .. automodule:: force_wfmanager.central_pane.tests.test_result_table
     :members:

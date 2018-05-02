@@ -16,15 +16,23 @@ class MCOModelView(ModelView):
     label = Str()
 
     #: List of MCO parameters to be displayed in the TreeEditor
-    mco_parameters_representation = List(Instance(MCOParameterModelView))
+    mco_parameters_mv = List(Instance(MCOParameterModelView))
 
     #: Defines if the MCO is valid or not
     valid = Bool(True)
 
+    def add_parameter(self, parameter):
+        """Adds a parameter to the referred model."""
+        self.model.parameters.append(parameter)
+
+    def remove_parameter(self, parameter):
+        """Removes a parameter from the referred model."""
+        self.model.parameters.remove(parameter)
+
     @on_trait_change('model.parameters[]')
-    def update_mco_parameters_representation(self):
+    def update_mco_parameters_mv(self):
         """ Update the MCOParameterModelViews """
-        self.mco_parameters_representation = [
+        self.mco_parameters_mv = [
             MCOParameterModelView(model=parameter)
             for parameter in self.model.parameters]
 

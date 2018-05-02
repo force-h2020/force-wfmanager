@@ -1,19 +1,19 @@
-force\_wfmanager\.server\.tests package
-=======================================
+force_wfmanager.server.tests package
+====================================
 
 Submodules
 ----------
 
-force\_wfmanager\.server\.tests\.test\_event\_deserializer module
------------------------------------------------------------------
+force_wfmanager.server.tests.test_event_deserializer module
+-----------------------------------------------------------
 
 .. automodule:: force_wfmanager.server.tests.test_event_deserializer
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.server\.tests\.test\_zmq\_server module
----------------------------------------------------------
+force_wfmanager.server.tests.test_zmq_server module
+---------------------------------------------------
 
 .. automodule:: force_wfmanager.server.tests.test_zmq_server
     :members:

@@ -274,7 +274,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 self.wfmanager_task.side_pane.workflow_m)
             self.assertEqual(
                 old_workflow,
-                self.wfmanager_task.side_pane.workflow_settings.workflow_m)
+                self.wfmanager_task.side_pane.workflow_settings.model)
 
             self.wfmanager_task.open_workflow()
 
@@ -287,7 +287,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 self.wfmanager_task.side_pane.workflow_m)
             self.assertNotEqual(
                 old_workflow,
-                self.wfmanager_task.side_pane.workflow_settings.workflow_m)
+                self.wfmanager_task.side_pane.workflow_settings.model)
 
     def test_read_failure(self):
         mock_open = mock.mock_open()
@@ -426,9 +426,9 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                         "Command 'fake_command' returned non-zero exit "
                         "status 1"),
                     (OSError("whatever"), "whatever")]:
-                self.assertEqual(
-                    _check_exception_behavior(exc),
-                    "Execution of BDSS failed. \n\n"+msg)
+                self.assertTrue(
+                    _check_exception_behavior(exc).startswith(
+                        "Execution of BDSS failed. \n\n"+msg))
 
     def test_run_bdss_write_failure(self):
         with mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \

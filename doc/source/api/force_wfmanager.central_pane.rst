@@ -1,5 +1,5 @@
-force\_wfmanager\.central\_pane package
-=======================================
+force_wfmanager.central_pane package
+====================================
 
 Subpackages
 -----------
@@ -11,32 +11,32 @@ Subpackages
 Submodules
 ----------
 
-force\_wfmanager\.central\_pane\.analysis\_model module
--------------------------------------------------------
+force_wfmanager.central_pane.analysis_model module
+--------------------------------------------------
 
 .. automodule:: force_wfmanager.central_pane.analysis_model
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.central\_pane\.central\_pane module
------------------------------------------------------
+force_wfmanager.central_pane.central_pane module
+------------------------------------------------
 
 .. automodule:: force_wfmanager.central_pane.central_pane
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.central\_pane\.plot module
---------------------------------------------
+force_wfmanager.central_pane.plot module
+----------------------------------------
 
 .. automodule:: force_wfmanager.central_pane.plot
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.central\_pane\.result\_table module
------------------------------------------------------
+force_wfmanager.central_pane.result_table module
+------------------------------------------------
 
 .. automodule:: force_wfmanager.central_pane.result_table
     :members:

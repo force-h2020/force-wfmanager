@@ -1,4 +1,6 @@
-from traits.api import HasStrictTraits, List, Instance, on_trait_change
+from traits.api import (
+    HasStrictTraits, List, Instance, on_trait_change, Property,
+    cached_property)
 
 from force_bdss.api import Identifier
 from force_bdss.core.workflow import Workflow
@@ -7,59 +9,77 @@ from force_bdss.core.workflow import Workflow
 class VariableNamesRegistry(HasStrictTraits):
     """ Class used for listening to the structure of the Workflow in order to
     check the available variables that can be used as inputs for each layer
-    (Datasources/KPICalculators) """
-    # NOTE: For now there is only two layers, the DataSources layer and the KPI
-    # Calculators layer. This is likely to change, we will have a list of
-    # DataSources layers, then this class will need to be adapted and will
-    # compute the available variables for each layer in the Workflow.
-
+    """
     #: Workflow model
     workflow = Instance(Workflow, allow_none=False)
 
-    #: List of available variables for the data sources (MCO parameters names)
-    data_source_available_variables = List(Identifier)
+    #: List of lists of the available variables. This is not a cumulative list.
+    #: The first entry is a list of all the variables that are visible at the
+    #: first layer.
+    #: The second entry is a list of all the variable names that the first
+    #: layer added. NOT all the variables.
+    #: For example, a situation like::
+    #:
+    #:     [["foo", "bar"], [], ["hello"]]
+    #:
+    #: means:
+    #: - the first layer has available "foo" and "bar".
+    #: - the second layer has available "foo" and "bar", because the first
+    #: layer added nothing (hence the empty second list)
+    #: - the third layer has available "foo", "bar" and "hello".
+    #:
+    #: The size of the base list should be the number of layers plus one.
+    #: the last one being the variables that are added by the last layer.
+    available_variables_stack = List(List(Identifier))
 
-    #: List of available variables for the kpi calculators (Data sources output
-    #: names and MCO parameters)
-    kpi_calculator_available_variables = List(Identifier)
+    #: Same structure as available_variables_stack, but this contains
+    #: the cumulated information. From the example above, this would contain::
+    #:
+    #:     [["foo", "bar"], ["foo", "bar"], ["foo", "bar", "hello"]]
+    #:
+    available_variables = Property(List(List(Identifier)),
+                                   depends_on="available_variables_stack")
 
-    #: List of MCO parameters
-    _mco_parameters_names = List(Identifier)
+    def __init__(self, workflow, *args, **kwargs):
+        super(VariableNamesRegistry, self).__init__(*args, **kwargs)
+        self.workflow = workflow
 
-    #: List of data sources outputs
-    _data_sources_outputs = List(Identifier)
+    @on_trait_change(
+        'workflow.mco.parameters.name,'
+        'workflow.execution_layers.data_sources.output_slot_info.name')
+    def update_available_variables_stack(self):
+        stack = []
 
-    @on_trait_change('workflow.mco.parameters.name')
-    def update__mco_parameters_names(self):
+        # At the first layer, the available variables are the MCO parameters
         if self.workflow.mco is None:
-            self._mco_parameters_names = []
-            return
+            stack.append([])
+        else:
+            stack.append([
+                p.name
+                for p in self.workflow.mco.parameters
+                if len(p.name) != 0
+            ])
 
-        self._mco_parameters_names = [
-            p.name
-            for p in self.workflow.mco.parameters
-            if len(p.name) != 0
-        ]
+        for layer in self.workflow.execution_layers:
+            stack_entry_for_layer = []
+            for ds in layer.data_sources:
+                stack_entry_for_layer.extend([
+                    info.name
+                    for info in ds.output_slot_info
+                    if info.name != ''])
+            stack.append(stack_entry_for_layer)
 
-    @on_trait_change('workflow.data_sources.output_slot_names[]')
-    def update__data_sources_outputs(self):
-        data_sources_output_names = []
+        self.available_variables_stack = stack
 
-        for data_source in self.workflow.data_sources:
-            data_sources_output_names.extend(data_source.output_slot_names)
+    @cached_property
+    def _get_available_variables(self):
+        stack = self.available_variables_stack
+        res = []
 
-        # Removes empty strings from the variable names
-        while '' in data_sources_output_names:
-            data_sources_output_names.pop(data_sources_output_names.index(''))
+        for idx in range(len(stack)):
+            cumsum = []
+            for entry in stack[0:idx+1]:
+                cumsum.extend(entry)
+            res.append(cumsum)
 
-        self._data_sources_outputs = data_sources_output_names
-
-    @on_trait_change('_mco_parameters_names')
-    def update_available_variables(self):
-        self.data_source_available_variables = self._mco_parameters_names
-        self.update_kpi_calculators_available_variables()
-
-    @on_trait_change('_data_sources_outputs')
-    def update_kpi_calculators_available_variables(self):
-        self.kpi_calculator_available_variables = \
-            self._mco_parameters_names + self._data_sources_outputs
+        return res

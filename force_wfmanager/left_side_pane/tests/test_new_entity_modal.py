@@ -4,10 +4,6 @@ from traits.api import HasTraits, Instance
 
 from force_bdss.tests.probe_classes.mco import ProbeMCOFactory
 from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
-from force_bdss.tests.probe_classes.kpi_calculator import (
-    ProbeKPICalculatorFactory)
-from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
-                            BaseKPICalculatorModel)
 
 from force_wfmanager.left_side_pane.new_entity_modal import (
     ModalHandler, NewEntityModal, ListAdapter)
@@ -15,8 +11,8 @@ from force_wfmanager.left_side_pane.workflow_settings import WorkflowModelView
 
 
 class UIDummy():
-    def dispose(self, bool):
-        return bool
+    def dispose(self):
+        pass
 
 
 class ModalInfoDummy(HasTraits):
@@ -32,148 +28,58 @@ class TestNewEntityModal(unittest.TestCase):
     def setUp(self):
         self.mcos = [ProbeMCOFactory(None)]
         self.data_sources = [ProbeDataSourceFactory(None)]
-        self.kpi_calculators = [ProbeKPICalculatorFactory(None)]
 
         self.workflow_mv = WorkflowModelView()
 
         self.handler = ModalHandler()
 
-    def _get_new_mco_dialog(self):
+    def _get_dialog(self):
         modal = NewEntityModal(
-            workflow_mv=self.workflow_mv,
             factories=self.mcos
         )
         return modal, ModalInfoDummy(object=modal)
 
-    def _get_new_data_source_dialog(self):
-        modal = NewEntityModal(
-            workflow_mv=self.workflow_mv,
-            factories=self.data_sources
-        )
-        return modal, ModalInfoDummy(object=modal)
-
-    def _get_new_kpi_calculator_dialog(self):
-        modal = NewEntityModal(
-            workflow_mv=self.workflow_mv,
-            factories=self.kpi_calculators
-        )
-        return modal, ModalInfoDummy(object=modal)
-
-    def test_add_mco(self):
-        modal, modal_info = self._get_new_mco_dialog()
+    def test_add_entity(self):
+        modal, modal_info = self._get_dialog()
 
         # Simulate pressing add mco button (should do nothing, because no mco
         # is selected)
         self.handler.object_add_button_changed(modal_info)
-        self.assertIsNone(self.workflow_mv.model.mco)
+        self.assertIsNone(modal.current_model)
 
         # Simulate selecting an mco factory in the list
-        modal, modal_info = self._get_new_mco_dialog()
+        modal, modal_info = self._get_dialog()
         modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add mco button
         self.handler.object_add_button_changed(modal_info)
-        self.assertIsInstance(self.workflow_mv.model.mco, BaseMCOModel)
-        old_mco = self.workflow_mv.model.mco
+        self.assertIsNotNone(modal.current_model)
 
         # Simulate selecting an mco factory in the list
-        modal, modal_info = self._get_new_mco_dialog()
+        modal, modal_info = self._get_dialog()
         modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add mco button again to create a new mco model
-        self.handler.object_add_button_changed(modal_info)
-        self.assertNotEqual(self.workflow_mv.model.mco, old_mco)
-
-        self.assertEqual(len(self.workflow_mv.mco_representation), 1)
-
-    def test_add_data_source(self):
-        modal, modal_info = self._get_new_data_source_dialog()
-
-        # Simulate pressing add data_source button (should do nothing)
-        self.handler.object_add_button_changed(modal_info)
-        self.assertEqual(len(self.workflow_mv.model.data_sources), 0)
-
-        # Simulate selecting a data_source factory in the list
-        modal, modal_info = self._get_new_data_source_dialog()
-        modal.selected_factory = modal.factories[0]
-
-        # Simulate pressing add data_source button
-        self.handler.object_add_button_changed(modal_info)
-        self.assertIsInstance(
-            self.workflow_mv.model.data_sources[0],
-            BaseDataSourceModel)
-
-        self.assertEqual(len(self.workflow_mv.data_sources_representation), 1)
-
-        # Simulate selecting a data_source factory in the list
-        modal, modal_info = self._get_new_data_source_dialog()
-        modal.selected_factory = modal.factories[0]
-
-        # Simulate pressing add data_source button again
-        self.handler.object_add_button_changed(modal_info)
-        self.assertIsInstance(
-            self.workflow_mv.model.data_sources[1],
-            BaseDataSourceModel)
-        self.assertNotEqual(
-            self.workflow_mv.model.data_sources[0],
-            self.workflow_mv.model.data_sources[1])
-
-        self.assertEqual(len(self.workflow_mv.data_sources_representation), 2)
-
-    def test_add_kpi_calculator(self):
-        modal, modal_info = self._get_new_kpi_calculator_dialog()
-
-        # Simulate pressing add kpi_calculator button (should do nothing)
-        self.handler.object_add_button_changed(modal_info)
-        self.assertEqual(len(self.workflow_mv.model.kpi_calculators), 0)
-
-        # Simulate selecting a kpi_calculator factory in the list
-        modal, modal_info = self._get_new_kpi_calculator_dialog()
-        modal.selected_factory = modal.factories[0]
-
-        # Simulate pressing add kpi_calculator button
-        self.handler.object_add_button_changed(modal_info)
-        self.assertIsInstance(
-            self.workflow_mv.model.kpi_calculators[0],
-            BaseKPICalculatorModel)
-
-        self.assertEqual(
-            len(self.workflow_mv.kpi_calculators_representation), 1)
-
-        # Simulate selecting a kpi_calculator factory in the list
-        modal, modal_info = self._get_new_kpi_calculator_dialog()
-        modal.selected_factory = modal.factories[0]
-
-        # Simulate pressing add kpi_calculator button again
-        self.handler.object_add_button_changed(modal_info)
-        self.assertIsInstance(
-            self.workflow_mv.model.kpi_calculators[1],
-            BaseKPICalculatorModel)
-        self.assertNotEqual(
-            self.workflow_mv.model.kpi_calculators[0],
-            self.workflow_mv.model.kpi_calculators[1])
-
-        self.assertEqual(
-            len(self.workflow_mv.kpi_calculators_representation), 2)
-
-    def test_cancel_button(self):
-        modal, modal_info = self._get_new_mco_dialog()
-
-        # Simulate selecting a kpi_calculator factory in the list
-        modal.selected_factory = modal.factories[0]
-
-        # Simulate pressing cancel button
         self.handler.object_cancel_button_changed(modal_info)
+        self.assertIsNone(modal.current_model)
 
-    def test_selected_factory(self):
-        modal, _ = self._get_new_mco_dialog()
+    def test_caching(self):
+        modal, _ = self._get_dialog()
+        # Select a factory and
         modal.selected_factory = modal.factories[0]
 
         self.assertIsNotNone(modal.current_model)
+        first_model = modal.current_model
 
+        # Unselect the factory
         modal.selected_factory = None
 
         self.assertIsNone(modal.current_model)
+
+        # Select the same factory again and check if the model is the same
+        modal.selected_factory = modal.factories[0]
+
+        self.assertEqual(id(first_model), id(modal.current_model))
 
     def test_list_adapter(self):
         adapter = ListAdapter(item=ProbeMCOFactory(None))

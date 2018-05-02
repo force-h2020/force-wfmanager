@@ -7,11 +7,9 @@ from traitsui.list_str_adapter import ListStrAdapter
 from force_bdss.api import (
     BaseMCOModel, BaseMCOFactory,
     BaseDataSourceModel, BaseDataSourceFactory,
-    BaseKPICalculatorModel, BaseKPICalculatorFactory,
     BaseMCOParameter, BaseMCOParameterFactory)
 
-from .workflow_model_view import WorkflowModelView
-from .view_utils import get_factory_name
+from force_wfmanager.left_side_pane.view_utils import get_factory_name
 
 
 class ListAdapter(ListStrAdapter):
@@ -26,27 +24,23 @@ class ListAdapter(ListStrAdapter):
 class ModalHandler(Handler):
     def object_add_button_changed(self, info):
         """ Action triggered when clicking on "Add" button in the modal """
-        if info.object.current_model is not None:
-            info.object.workflow_mv.add_entity(info.object.current_model)
-        info.ui.dispose(True)
+        info.ui.dispose()
 
     def object_cancel_button_changed(self, info):
         """ Action triggered when clicking on "Cancel" button in the modal """
-        info.ui.dispose(False)
+        info.object.current_model = None
+        info.ui.dispose()
 
 
 class NewEntityModal(HasStrictTraits):
-    """ Dialog which allows the user to add a new MCO/Data Source/KPI
-    calculator to the workflow """
-    workflow_mv = Instance(WorkflowModelView)
-
+    """ Dialog which allows the user to add a new MCO/Data Source
+    to the workflow """
     #: Available factories, this class is generic and can contain any factory
     #: which implement the create_model method
     factories = Either(
         List(Instance(BaseMCOFactory)),
         List(Instance(BaseMCOParameterFactory)),
         List(Instance(BaseDataSourceFactory)),
-        List(Instance(BaseKPICalculatorFactory)),
     )
 
     #: Selected factory in the list
@@ -54,7 +48,6 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseMCOFactory),
         Instance(BaseMCOParameterFactory),
         Instance(BaseDataSourceFactory),
-        Instance(BaseKPICalculatorFactory)
     )
 
     add_button = Button("Add")
@@ -65,7 +58,6 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseMCOModel),
         Instance(BaseMCOParameter),
         Instance(BaseDataSourceModel),
-        Instance(BaseKPICalculatorModel)
     )
 
     #: Cache for created models, models are created when selecting a new
