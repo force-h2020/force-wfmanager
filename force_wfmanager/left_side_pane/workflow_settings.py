@@ -13,6 +13,7 @@ from force_bdss.core.workflow import Workflow
 from force_wfmanager.left_side_pane.execution_layer_model_view import \
     ExecutionLayerModelView
 
+from force_bdss.core.execution_layer import ExecutionLayer
 from .new_entity_modal import NewEntityModal
 from .workflow_model_view import WorkflowModelView
 from .mco_model_view import MCOModelView
@@ -26,14 +27,16 @@ no_menu = Menu()
 # Actions!
 new_mco_action = Action(name='New MCO...', action='new_mco')
 delete_mco_action = Action(name='Delete', action='delete_mco')
+edit_mco_action = Action(name='Edit...', action='edit_mco')
 new_parameter_action = Action(name='New Parameter...', action='new_parameter')
+edit_parameter_action = Action(name='Edit...', action='edit_parameter')
 delete_parameter_action = Action(name='Delete', action='delete_parameter')
 new_layer_action = Action(name="New Layer...", action='new_layer')
 delete_layer_action = Action(name='Delete', action='delete_layer')
 new_data_source_action = Action(name='New DataSource...',
                                 action='new_data_source')
 delete_data_source_action = Action(name='Delete', action='delete_data_source')
-edit_entity_action = Action(name='Edit...', action='edit_entity')
+edit_data_source_action = Action(name='Edit...', action='edit_data_source')
 
 
 class TreeNodeWithStatus(TreeNode):
@@ -69,7 +72,7 @@ tree_editor = TreeEditor(
             children='',
             label='label',
             view=no_view,
-            menu=Menu(edit_entity_action, delete_mco_action),
+            menu=Menu(edit_mco_action, delete_mco_action),
         ),
         # Folder node "Parameters" containing the MCO parameters
         TreeNode(
@@ -86,7 +89,7 @@ tree_editor = TreeEditor(
             auto_open=True,
             children='',
             label='label',
-            menu=Menu(edit_entity_action, delete_parameter_action),
+            menu=Menu(edit_parameter_action, delete_parameter_action),
         ),
         #: Node representing the layers
         TreeNode(
@@ -110,7 +113,7 @@ tree_editor = TreeEditor(
              auto_open=True,
              children='',
              label='label',
-             menu=no_menu,
+             menu=Menu(edit_data_source_action, delete_data_source_action),
          ),
     ],
     orientation="vertical"
@@ -167,6 +170,9 @@ class WorkflowSettings(ModelView):
         if result is not None:
             workflow_mv.set_mco(result)
 
+    def edit_mco(self, ui_info, object):
+        object.model.edit_traits(kind="livemodal")
+
     def delete_mco(self, ui_info, object):
         """Deletes the MCO"""
         self.workflow_mv.set_mco(None)
@@ -179,8 +185,10 @@ class WorkflowSettings(ModelView):
         if result is not None:
             object.add_parameter(result)
 
-    def delete_parameter(self, ui_info, object):
+    def edit_parameter(self, ui_info, object):
+        object.model.edit_traits(kind="livemodal")
 
+    def delete_parameter(self, ui_info, object):
         if len(self.workflow_mv.mco_mv) > 0:
             mco_mv = self.workflow_mv.mco_mv[0]
             mco_mv.remove_parameter(object.model)
@@ -197,13 +205,12 @@ class WorkflowSettings(ModelView):
     def delete_data_source(self, ui_info, object):
         self.workflow_mv.remove_data_source(object.model)
 
-    def edit_entity_handler(self, ui_info, object):
-        """ Opens a dialog for configuring the workflow element """
+    def edit_data_source(self, ui_info, object):
         # This is a live dialog, workaround for issue #58
         object.model.edit_traits(kind="livemodal")
 
     def new_layer(self, ui_info, object):
-        self.workflow_mv.add_execution_layer()
+        self.workflow_mv.add_execution_layer(ExecutionLayer())
 
     def delete_layer(self, ui_info, object):
         """ Delete an element from the workflow """

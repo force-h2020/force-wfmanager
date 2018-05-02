@@ -22,9 +22,9 @@ class TestMCOModelView(unittest.TestCase):
 
     def test_mco_parameter_representation(self):
         self.assertEqual(
-            len(self.mco_mv.mco_parameters_representation), 1)
+            len(self.mco_mv.mco_parameters_mv), 1)
         self.assertIsInstance(
-            self.mco_mv.mco_parameters_representation[0],
+            self.mco_mv.mco_parameters_mv[0],
             MCOParameterModelView
         )
 

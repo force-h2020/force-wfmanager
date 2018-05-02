@@ -100,6 +100,7 @@ class DataSourceModelView(ModelView):
     #: The human readable name of the evaluator
     label = Str()
 
+    #: The index of the layer this data source belongs to.
     layer_index = Int()
 
     #: evaluator object, shouldn't be touched

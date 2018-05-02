@@ -2,6 +2,8 @@ import unittest
 
 from traits.api import TraitError
 
+from force_bdss.core.output_slot_info import OutputSlotInfo
+from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
 from force_bdss.tests.probe_classes.data_source import \
     ProbeDataSourceFactory
 from force_bdss.api import DataValue
@@ -19,116 +21,119 @@ def get_run_function(nb_outputs):
     return run
 
 
-class TestEvaluatorModelView(unittest.TestCase):
+class TestDataSourceModelView(unittest.TestCase):
     def setUp(self):
-        kpi_factory = ProbeKPICalculatorFactory(
+        factory = ProbeDataSourceFactory(
             None,
             input_slots_size=1,
             output_slots_size=2,
             run_function=get_run_function(2))
 
-        self.kpi_model = kpi_factory.create_model()
-        self.kpi_evaluator = kpi_factory.create_kpi_calculator()
+        self.model_1 = factory.create_model()
+        self.data_source = factory.create_data_source()
 
         self.variable_names_registry = VariableNamesRegistry()
-        self.variable_names_registry.data_source_available_variables = \
-            ['P1']
-        self.variable_names_registry.kpi_calculator_available_variables = \
-            ['P1', 'P2', 'P3']
 
-        self.kpi_mv = KPICalculatorModelView(
-            model=self.kpi_model,
+        self.data_source_mv_1 = DataSourceModelView(
+            model=self.model_1,
             variable_names_registry=self.variable_names_registry
         )
 
-        data_source_factory = ProbeDataSourceFactory(
+        factory = ProbeDataSourceFactory(
             None,
             input_slots_size=1,
             run_function=get_run_function(1))
-        data_source_model = data_source_factory.create_model()
-        self.data_source_mv = DataSourceModelView(
-            model=data_source_model,
+        self.model_2 = factory.create_model()
+        self.data_source_mv_2 = DataSourceModelView(
+            model=self.model_2,
             variable_names_registry=self.variable_names_registry
         )
 
     def test_evaluator_model_view_init(self):
-        self.assertEqual(self.kpi_mv.label, "test_kpi_calculator")
-        self.assertIsInstance(
-            self.kpi_mv._evaluator,
-            BaseKPICalculator)
-        self.assertEqual(len(self.kpi_mv.input_slots_representation), 1)
-        self.assertEqual(len(self.kpi_mv.output_slots_representation), 2)
-        self.assertEqual(self.kpi_model.input_slot_maps[0].name, '')
-        self.assertEqual(self.kpi_model.output_slot_names[0], '')
+        self.assertEqual(self.data_source_mv_1.label, "test_kpi_calculator")
+        self.assertIsInstance(self.data_source_mv_1.model, BaseDataSourceModel)
+        self.assertEqual(
+            len(self.data_source_mv_1.input_slots_representation), 1)
+        self.assertEqual(
+            len(self.data_source_mv_1.output_slots_representation), 2)
+        self.assertEqual(
+            self.data_source_mv_1.input_slot_maps[0].name, '')
+        self.assertEqual(
+            self.data_source_mv_1.output_slot_names[0], '')
 
     def test_input_slot_update(self):
-        self.kpi_mv.input_slots_representation[0].name = 'P1'
-        self.assertEqual(self.kpi_model.input_slot_maps[0].name, 'P1')
+        self.data_source_mv_1.input_slots_representation[0].name = 'P1'
+        self.assertEqual(self.model_1.input_slot_info[0].name, 'P1')
 
-        self.variable_names_registry.kpi_calculator_available_variables = \
+        self.variable_names_registry.available_variables[0] = \
             ['P2', 'P3']
-        self.assertEqual(self.kpi_model.input_slot_maps[0].name, '')
+        self.assertEqual(self.model_1.input_slot_info[0].name, '')
 
-        self.kpi_mv.input_slots_representation[0].name = 'P2'
-        self.assertEqual(self.kpi_model.input_slot_maps[0].name, 'P2')
+        self.data_source_mv_1.input_slots_representation[0].name = 'P2'
+        self.assertEqual(self.model_1.input_slot_info[0].name, 'P2')
 
         with self.assertRaises(TraitError):
-            self.kpi_mv.input_slots_representation[0].name = 'P1'
+            self.data_source_mv_1.input_slots_representation[0].name = 'P1'
 
     def test_output_slot_update(self):
-        self.kpi_mv.output_slots_representation[0].name = 'output'
-        self.assertEqual(self.kpi_model.output_slot_names[0], 'output')
+        self.data_source_mv_1.output_slots_representation[0].name = 'output'
+        self.assertEqual(self.data_source_mv_1.output_slot_names[0], 'output')
 
     def test_bad_input_slots(self):
-        input_slots, _ = self.kpi_evaluator.slots(self.kpi_model)
+        input_slots, _ = self.data_source.slots(self.model_1)
 
-        self.kpi_model.input_slot_maps = [
-            InputSlotMap(name='') for input_slot in range(len(input_slots) + 1)
+        self.model_1.input_slot_Info = [
+            InputSlotInfo(name='') for input_slot in range(
+                len(input_slots) + 1)
         ]
 
         with self.assertRaisesRegexp(RuntimeError, "input slots"):
-            KPICalculatorModelView(model=self.kpi_model)
+            DataSourceModelView(model=self.model_1)
 
     def test_bad_output_slots(self):
-        _, output_slots = self.kpi_evaluator.slots(self.kpi_model)
+        _, output_slots = self.data_source.slots(self.model_1)
 
-        self.kpi_model.output_slot_names = (len(output_slots) + 1)*['']
+        self.model_1.output_slot_info = (
+            OutputSlotInfo(name='')
+            for slot in range(len(output_slots) + 1))
 
         with self.assertRaisesRegexp(RuntimeError, "output slots"):
-            KPICalculatorModelView(model=self.kpi_model)
+            DataSourceModelView(model=self.model_1)
 
     def test_update_table(self):
-        self.kpi_model.output_slots_type = "bar"
+        self.model_1.output_slots_info[0].type = "bar"
 
         self.assertEqual(
-            self.kpi_mv.output_slots_representation[0].type,
+            self.data_source_mv_1.output_slots_representation[0].type,
             "bar"
         )
 
-        self.kpi_model.output_slot_names = ['p1', 't1']
+        self.model_1.output_slot_info[0].name = 'p1'
+        self.model_1.output_slot_info[1].name = 't1'
+
         self.assertEqual(
-            self.kpi_mv.output_slots_representation[0].name,
+            self.data_source_mv_1.output_slots_representation[0].name,
             'p1'
         )
         self.assertEqual(
-            self.kpi_mv.output_slots_representation[1].name,
+            self.data_source_mv_1.output_slots_representation[1].name,
             't1'
         )
 
-        self.kpi_model.input_slot_maps[0].name = 'P2'
+        self.model_1.input_slot_info[0].name = 'P2'
         self.assertEqual(
-            self.kpi_mv.input_slots_representation[0].name,
+            self.data_source_mv_1.input_slots_representation[0].name,
             'P2'
         )
 
     def test_update_data_source_table(self):
-        slots = self.data_source_mv.input_slots_representation
+        slots = self.data_source_mv_1.input_slots_representation
         self.assertEqual(
             slots[0].available_variables,
             ['P1']
         )
 
-        self.variable_names_registry.data_source_available_variables = ['P2']
+        self.variable_names_registry.available_variables = ['P2']
         self.assertEqual(
             slots[0].available_variables,
             ['P2']

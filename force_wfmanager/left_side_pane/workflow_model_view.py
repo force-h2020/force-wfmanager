@@ -2,7 +2,6 @@ from traits.api import Instance, List, Bool, on_trait_change
 
 from traitsui.api import ModelView
 
-from force_bdss.core.execution_layer import ExecutionLayer
 from force_bdss.core.workflow import Workflow
 from force_wfmanager.left_side_pane.execution_layer_model_view import \
     ExecutionLayerModelView
@@ -32,9 +31,9 @@ class WorkflowModelView(ModelView):
     def set_mco(self, mco_model):
         self.model.mco = mco_model
 
-    def add_execution_layer(self):
+    def add_execution_layer(self, execution_layer):
         """Adds a new empty execution layer"""
-        self.model.execution_layers.append(ExecutionLayer())
+        self.model.execution_layers.append(execution_layer)
 
     def remove_execution_layer(self, layer):
         """Removes the execution layer from the model."""
@@ -44,6 +43,7 @@ class WorkflowModelView(ModelView):
 
     @on_trait_change('model.mco')
     def update_mco_mv(self):
+        """Updates the MCO model view with the model.mco changes"""
         if self.model.mco is not None:
             self.mco_mv = [MCOModelView(model=self.model.mco)]
         else:

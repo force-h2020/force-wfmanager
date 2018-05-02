@@ -40,13 +40,13 @@ class VariableNamesRegistryTest(unittest.TestCase):
         mco.parameters = [self.param1, self.param2, self.param3]
         workflow.execution_layers.extend([
             ExecutionLayer(
-                data_source_models=[self.data_source1, self.data_source2]
+                data_sources=[self.data_source1, self.data_source2]
             ),
             ExecutionLayer(
-                data_source_models=[self.data_source3]
+                data_sources=[self.data_source3]
             ),
             ExecutionLayer(
-                data_source_models=[self.data_source3]
+                data_sources=[self.data_source3]
             )
             ]
         )

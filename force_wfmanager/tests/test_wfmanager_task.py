@@ -274,7 +274,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 self.wfmanager_task.side_pane.workflow_m)
             self.assertEqual(
                 old_workflow,
-                self.wfmanager_task.side_pane.workflow_settings.workflow_m)
+                self.wfmanager_task.side_pane.workflow_settings.model)
 
             self.wfmanager_task.open_workflow()
 
@@ -287,7 +287,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 self.wfmanager_task.side_pane.workflow_m)
             self.assertNotEqual(
                 old_workflow,
-                self.wfmanager_task.side_pane.workflow_settings.workflow_m)
+                self.wfmanager_task.side_pane.workflow_settings.model)
 
     def test_read_failure(self):
         mock_open = mock.mock_open()
