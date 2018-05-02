@@ -424,11 +424,11 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                     (Exception("boom"), 'boom'),
                     (subprocess.CalledProcessError(1, "fake_command"),
                         "Command 'fake_command' returned non-zero exit "
-                        "status 1."),
+                        "status 1"),
                     (OSError("whatever"), "whatever")]:
-                self.assertEqual(
-                    _check_exception_behavior(exc),
-                    "Execution of BDSS failed. \n\n"+msg)
+                self.assertTrue(
+                    _check_exception_behavior(exc).startswith(
+                        "Execution of BDSS failed. \n\n"+msg))
 
     def test_run_bdss_write_failure(self):
         with mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
