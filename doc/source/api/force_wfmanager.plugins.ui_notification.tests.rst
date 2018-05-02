@@ -1,51 +1,51 @@
-force_wfmanager.plugins.ui_notification.tests package
-=====================================================
+force\_wfmanager\.plugins\.ui\_notification\.tests package
+==========================================================
 
 Submodules
 ----------
 
-force_wfmanager.plugins.ui_notification.tests.test_event_serializer module
---------------------------------------------------------------------------
+force\_wfmanager\.plugins\.ui\_notification\.tests\.test\_event\_serializer module
+----------------------------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.tests.test_event_serializer
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.plugins.ui_notification.tests.test_ui_notification module
--------------------------------------------------------------------------
+force\_wfmanager\.plugins\.ui\_notification\.tests\.test\_ui\_notification module
+---------------------------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.tests.test_ui_notification
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.plugins.ui_notification.tests.test_ui_notification_factory module
----------------------------------------------------------------------------------
+force\_wfmanager\.plugins\.ui\_notification\.tests\.test\_ui\_notification\_factory module
+------------------------------------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.tests.test_ui_notification_factory
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.plugins.ui_notification.tests.test_ui_notification_hooks_factory module
----------------------------------------------------------------------------------------
+force\_wfmanager\.plugins\.ui\_notification\.tests\.test\_ui\_notification\_hooks\_factory module
+-------------------------------------------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.tests.test_ui_notification_hooks_factory
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.plugins.ui_notification.tests.test_ui_notification_hooks_manager module
----------------------------------------------------------------------------------------
+force\_wfmanager\.plugins\.ui\_notification\.tests\.test\_ui\_notification\_hooks\_manager module
+-------------------------------------------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.tests.test_ui_notification_hooks_manager
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.plugins.ui_notification.tests.test_ui_notification_plugin module
---------------------------------------------------------------------------------
+force\_wfmanager\.plugins\.ui\_notification\.tests\.test\_ui\_notification\_plugin module
+-----------------------------------------------------------------------------------------
 
 .. automodule:: force_wfmanager.plugins.ui_notification.tests.test_ui_notification_plugin
     :members:

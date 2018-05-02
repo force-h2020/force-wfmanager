@@ -1,51 +1,51 @@
-force_wfmanager.tests package
-=============================
+force\_wfmanager\.tests package
+===============================
 
 Submodules
 ----------
 
-force_wfmanager.tests.test_local_traits module
-----------------------------------------------
+force\_wfmanager\.tests\.test\_local\_traits module
+---------------------------------------------------
 
 .. automodule:: force_wfmanager.tests.test_local_traits
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.tests.test_run module
--------------------------------------
+force\_wfmanager\.tests\.test\_run module
+-----------------------------------------
 
 .. automodule:: force_wfmanager.tests.test_run
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.tests.test_wfmanager module
--------------------------------------------
+force\_wfmanager\.tests\.test\_wfmanager module
+-----------------------------------------------
 
 .. automodule:: force_wfmanager.tests.test_wfmanager
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.tests.test_wfmanager_plugin module
---------------------------------------------------
+force\_wfmanager\.tests\.test\_wfmanager\_plugin module
+-------------------------------------------------------
 
 .. automodule:: force_wfmanager.tests.test_wfmanager_plugin
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.tests.test_wfmanager_task module
-------------------------------------------------
+force\_wfmanager\.tests\.test\_wfmanager\_task module
+-----------------------------------------------------
 
 .. automodule:: force_wfmanager.tests.test_wfmanager_task
     :members:
     :undoc-members:
     :show-inheritance:
 
-force_wfmanager.tests.utils module
-----------------------------------
+force\_wfmanager\.tests\.utils module
+-------------------------------------
 
 .. automodule:: force_wfmanager.tests.utils
     :members:
