@@ -25,7 +25,7 @@ class VariableNamesRegistry(HasStrictTraits):
     #: means:
     #: - the first layer has available "foo" and "bar".
     #: - the second layer has available "foo" and "bar", because the first
-    #:   layer added nothing (hence the empty second list)
+    #: layer added nothing (hence the empty second list)
     #: - the third layer has available "foo", "bar" and "hello".
     #:
     #: The size of the base list should be the number of layers plus one.
