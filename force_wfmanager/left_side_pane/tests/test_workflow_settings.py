@@ -2,6 +2,7 @@ import unittest
 
 from force_bdss.core.execution_layer import ExecutionLayer
 from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
+from force_bdss.mco.base_mco_model import BaseMCOModel
 
 try:
     import mock
@@ -26,11 +27,17 @@ NEW_ENTITY_MODAL_PATH = \
     "force_wfmanager.left_side_pane.workflow_settings.NewEntityModal"
 
 
-def mock_new_modal(*args, **kwargs):
-    modal = mock.Mock(NewEntityModal)
-    modal.edit_traits = lambda: None
-    modal.current_model = mock.Mock(spec=BaseDataSourceModel)
-    return modal
+def mock_new_modal(model_type):
+    def _mock_new_modal(*args, **kwargs):
+        modal = mock.Mock(spec=NewEntityModal)
+        modal.edit_traits = lambda: None
+
+        # Any type is ok as long as it passes trait validation.
+        # We choose BaseDataSourceModel.
+        modal.current_model = model_type(factory=None)
+        return modal
+
+    return _mock_new_modal
 
 
 class WorkflowSettingsEditor(HasTraits):
@@ -116,29 +123,35 @@ class TestTreeEditorHandler(unittest.TestCase):
 
     def test_new_mco(self):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_modal.side_effect = mock_new_modal
+            mock_modal.side_effect = mock_new_modal(BaseMCOModel)
+            mock_ui_info = mock.Mock()
+            mock_object = mock.Mock()
 
-            self.workflow_settings.new_mco(
-                None,
-                None)
+            self.workflow_settings.new_mco(mock_ui_info, mock_object)
 
             mock_modal.assert_called()
 
     def test_new_mco_parameter(self):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_modal.side_effect = mock_new_modal
+            mock_modal.side_effect = mock_new_modal(BaseMCOModel)
+            mock_ui_info = mock.Mock()
+            mock_object = mock.Mock()
 
-            self.workflow_settings.new_parameter(None, None)
+            self.workflow_settings.new_parameter(mock_ui_info, mock_object)
 
             mock_modal.assert_called()
+            mock_object.add_parameter.assert_called()
 
     def test_new_data_source(self):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_modal.side_effect = mock_new_modal
+            mock_modal.side_effect = mock_new_modal(BaseDataSourceModel)
+            mock_ui_info = mock.Mock()
+            mock_object = mock.Mock()
 
-            self.workflow_settings.new_data_source(None, None)
+            self.workflow_settings.new_data_source(mock_ui_info, mock_object)
 
             mock_modal.assert_called()
+            mock_object.add_data_source.assert_called()
 
     def test_edit_entity(self):
         self.workflow_settings.edit_mco(
@@ -153,16 +166,18 @@ class TestTreeEditorHandler(unittest.TestCase):
     def test_delete_mco(self):
         self.assertIsNotNone(self.workflow_mv.model.mco)
 
-        self.workflow_settings.delete_mco(None, None)
+        mock_ui_info = mock.Mock()
+        mock_object = mock.Mock()
+        self.workflow_settings.delete_mco(mock_ui_info, mock_object)
 
-        self.assertIsNone(
-            self.workflow_mv.model.mco)
+        self.assertIsNone(self.workflow_mv.model.mco)
 
     def test_delete_mco_parameter(self):
         self.assertEqual(len(self.workflow_mv.model.mco.parameters), 1)
 
+        mock_ui_info = mock.Mock()
         self.workflow_settings.delete_parameter(
-            None,
+            mock_ui_info,
             self.workflow_mv.mco_mv[0].mco_parameters_mv[0])
 
         self.assertEqual(len(self.workflow_mv.model.mco.parameters), 0)
@@ -172,8 +187,9 @@ class TestTreeEditorHandler(unittest.TestCase):
 
         self.assertEqual(len(self.workflow_mv.execution_layers_mv), 2)
 
+        mock_ui_info = mock.Mock()
         self.workflow_settings.delete_layer(
-            None,
+            mock_ui_info,
             first_execution_layer)
 
         self.assertEqual(len(self.workflow_mv.execution_layers_mv), 1)
