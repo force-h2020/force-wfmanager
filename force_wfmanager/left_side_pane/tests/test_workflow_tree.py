@@ -3,8 +3,9 @@ import unittest
 from force_bdss.core.execution_layer import ExecutionLayer
 from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
 from force_bdss.mco.base_mco_model import BaseMCOModel
-from force_bdss.tests.probe_classes.factory_registry_plugin import \
+from force_bdss.tests.probe_classes.factory_registry_plugin import (
     ProbeFactoryRegistryPlugin
+)
 
 try:
     import mock
@@ -14,12 +15,15 @@ except ImportError:
 from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_tree import (
-    WorkflowTree, TreeNodeWithStatus)
+    WorkflowTree,
+    TreeNodeWithStatus
+)
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 
 
-NEW_ENTITY_MODAL_PATH = \
+NEW_ENTITY_MODAL_PATH = (
     "force_wfmanager.left_side_pane.workflow_tree.NewEntityModal"
+)
 
 
 def mock_new_modal(model_type):
