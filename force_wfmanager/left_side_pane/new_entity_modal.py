@@ -96,6 +96,10 @@ class NewEntityModal(HasStrictTraits):
         kind="livemodal"
     )
 
+    def __init__(self, factories, *args, **kwargs):
+        super(NewEntityModal, self).__init__(*args, **kwargs)
+        self.factories = factories
+
     @on_trait_change("selected_factory")
     def update_current_model(self):
         """ Update the current editable model when the selected factory has

@@ -1,4 +1,4 @@
-from traits.api import String
+from traits.api import String, Bool
 
 from force_bdss.api import factory_id, BaseNotificationListenerFactory
 
@@ -10,6 +10,8 @@ class UINotificationFactory(BaseNotificationListenerFactory):
     id = String(factory_id("enthought", "ui_notification"))
 
     name = String("UI Notification")
+
+    ui_visible = Bool(False)
 
     def create_model(self, model_data=None):
         if model_data is None:
