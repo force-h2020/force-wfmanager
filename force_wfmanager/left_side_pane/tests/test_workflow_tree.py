@@ -49,7 +49,8 @@ def get_workflow_tree():
     parameter_factory = mco_factory.parameter_factories()[0]
     mco.parameters.append(parameter_factory.create_model())
     data_source_factory = factory_registry.data_source_factories[0]
-    notification_listener_factory = factory_registry.notification_listener_factories[0]
+    notification_listener_factory = \
+        factory_registry.notification_listener_factories[0]
 
     return WorkflowTree(
         factory_registry=factory_registry,
