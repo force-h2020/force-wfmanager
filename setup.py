@@ -39,7 +39,7 @@ setup(
         "pyzmq >= 16.0.0",
         'futures >= 3.1.1',
         "six >= 1.10.0",
-        'force_bdss >= 0.1.0'
+        'force_bdss >= 0.2.0.dev0'
     ],
     packages=find_packages(),
     package_data={'force_wfmanager.left_side_pane': 'icons/*'},
