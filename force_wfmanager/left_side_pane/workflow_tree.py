@@ -206,8 +206,12 @@ class WorkflowTree(ModelView):
         """ Opens a dialog for creating a notification listener"""
         workflow_mv = self.workflow_mv
 
+        visible_factories = [
+            f for f in self._factory_registry.notification_listener_factories
+            if f.ui_visible
+        ]
         modal = NewEntityModal(
-            factories=self._factory_registry.notification_listener_factories
+            factories=visible_factories
         )
         modal.edit_traits()
         result = modal.current_model
