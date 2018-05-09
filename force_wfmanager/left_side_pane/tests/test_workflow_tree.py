@@ -3,6 +3,9 @@ import unittest
 from force_bdss.core.execution_layer import ExecutionLayer
 from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
 from force_bdss.mco.base_mco_model import BaseMCOModel
+from force_bdss.notification_listeners.base_notification_listener_model \
+    import \
+    BaseNotificationListenerModel
 from force_bdss.tests.probe_classes.factory_registry_plugin import (
     ProbeFactoryRegistryPlugin
 )
@@ -46,11 +49,16 @@ def get_workflow_tree():
     parameter_factory = mco_factory.parameter_factories()[0]
     mco.parameters.append(parameter_factory.create_model())
     data_source_factory = factory_registry.data_source_factories[0]
+    notification_listener_factory = \
+        factory_registry.notification_listener_factories[0]
 
     return WorkflowTree(
         factory_registry=factory_registry,
         model=Workflow(
             mco=mco,
+            notification_listeners=[
+                notification_listener_factory.create_model(),
+            ],
             execution_layers=[
                 ExecutionLayer(
                     data_sources=[
@@ -110,6 +118,33 @@ class TestWorkflowTree(unittest.TestCase):
 
             mock_modal.assert_called()
             mock_object.add_data_source.assert_called()
+
+    def test_new_notification_listener(self):
+        with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
+            mock_modal.side_effect = mock_new_modal(
+                BaseNotificationListenerModel
+            )
+            mock_ui_info = mock.Mock()
+            mock_object = mock.Mock()
+
+            self.tree.new_notification_listener(mock_ui_info, mock_object)
+
+            mock_modal.assert_called()
+
+    def test_delete_notification_listener(self):
+        self.assertEqual(
+            len(self.tree.workflow_mv.notification_listeners_mv), 1)
+
+        notification_listener_mv = \
+            self.tree.workflow_mv.notification_listeners_mv[0]
+
+        mock_ui_info = mock.Mock()
+        self.tree.delete_notification_listener(
+            mock_ui_info,
+            notification_listener_mv)
+
+        self.assertEqual(
+            len(self.tree.workflow_mv.notification_listeners_mv), 0)
 
     def test_edit_entity(self):
         mock_ui_info = mock.Mock()

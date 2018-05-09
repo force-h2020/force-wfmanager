@@ -7,7 +7,9 @@ from traitsui.list_str_adapter import ListStrAdapter
 from force_bdss.api import (
     BaseMCOModel, BaseMCOFactory,
     BaseDataSourceModel, BaseDataSourceFactory,
-    BaseMCOParameter, BaseMCOParameterFactory)
+    BaseMCOParameter, BaseMCOParameterFactory,
+    BaseNotificationListenerModel, BaseNotificationListenerFactory,
+)
 
 from force_wfmanager.left_side_pane.view_utils import get_factory_name
 
@@ -41,6 +43,7 @@ class NewEntityModal(HasStrictTraits):
         List(Instance(BaseMCOFactory)),
         List(Instance(BaseMCOParameterFactory)),
         List(Instance(BaseDataSourceFactory)),
+        List(Instance(BaseNotificationListenerFactory)),
     )
 
     #: Selected factory in the list
@@ -48,6 +51,7 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseMCOFactory),
         Instance(BaseMCOParameterFactory),
         Instance(BaseDataSourceFactory),
+        Instance(BaseNotificationListenerFactory),
     )
 
     add_button = Button("Add")
@@ -58,6 +62,7 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseMCOModel),
         Instance(BaseMCOParameter),
         Instance(BaseDataSourceModel),
+        Instance(BaseNotificationListenerModel),
     )
 
     #: Cache for created models, models are created when selecting a new

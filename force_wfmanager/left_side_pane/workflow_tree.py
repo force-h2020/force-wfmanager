@@ -20,6 +20,8 @@ from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
 from force_wfmanager.left_side_pane.mco_parameter_model_view import \
     MCOParameterModelView
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
+from force_wfmanager.left_side_pane.notification_listener_model_view import \
+    NotificationListenerModelView
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
 
@@ -30,6 +32,16 @@ no_menu = Menu()
 new_mco_action = Action(name='New MCO...', action='new_mco')
 delete_mco_action = Action(name='Delete', action='delete_mco')
 edit_mco_action = Action(name='Edit...', action='edit_mco')
+
+new_notification_listener_action = Action(
+    name='New Notification Listener...',
+    action='new_notification_listener')
+delete_notification_listener_action = Action(
+    name='Delete',
+    action='delete_notification_listener')
+edit_notification_listener_action = Action(
+    name='Edit...',
+    action='edit_notification_listener')
 new_parameter_action = Action(name='New Parameter...', action='new_parameter')
 edit_parameter_action = Action(name='Edit...', action='edit_parameter')
 delete_parameter_action = Action(name='Delete', action='delete_parameter')
@@ -57,6 +69,25 @@ tree_editor = TreeEditor(
             label='=Workflow',
             view=no_view,
             menu=no_menu,
+        ),
+        # Folder node "Notification" containing the Notification listeners
+        TreeNode(
+            node_for=[WorkflowModelView],
+            auto_open=True,
+            children='notification_listeners_mv',
+            label='=Notification Listeners',
+            view=no_view,
+            menu=Menu(new_notification_listener_action),
+        ),
+        # Node representing the Notification Listener
+        TreeNodeWithStatus(
+            node_for=[NotificationListenerModelView],
+            auto_open=True,
+            children='',
+            label='label',
+            view=no_view,
+            menu=Menu(edit_notification_listener_action,
+                      delete_notification_listener_action),
         ),
         # Folder node "MCO" containing the MCO
         TreeNode(
@@ -170,6 +201,26 @@ class WorkflowTree(ModelView):
     def delete_mco(self, ui_info, object):
         """Deletes the MCO"""
         self.workflow_mv.set_mco(None)
+
+    def new_notification_listener(self, ui_info, object):
+        """ Opens a dialog for creating a notification listener"""
+        workflow_mv = self.workflow_mv
+
+        modal = NewEntityModal(
+            factories=self._factory_registry.notification_listener_factories
+        )
+        modal.edit_traits()
+        result = modal.current_model
+
+        if result is not None:
+            workflow_mv.add_notification_listener(result)
+
+    def edit_notification_listener(self, ui_info, object):
+        object.model.edit_traits(kind="livemodal")
+
+    def delete_notification_listener(self, ui_info, object):
+        """Deletes the notification listener"""
+        self.workflow_mv.remove_notification_listener(object.model)
 
     def new_parameter(self, ui_info, object):
         parameter_factories = []

@@ -6,6 +6,8 @@ from force_bdss.core.workflow import Workflow
 from force_wfmanager.left_side_pane.execution_layer_model_view import \
     ExecutionLayerModelView
 from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
+from force_wfmanager.left_side_pane.notification_listener_model_view import \
+    NotificationListenerModelView
 from force_wfmanager.left_side_pane.variable_names_registry import \
     VariableNamesRegistry
 
@@ -21,6 +23,9 @@ class WorkflowModelView(ModelView):
     #: Must be a list otherwise the tree editor will not consider it
     #: as a child.
     execution_layers_mv = List(Instance(ExecutionLayerModelView))
+
+    #: The notification listeners ModelView.
+    notification_listeners_mv = List(Instance(NotificationListenerModelView))
 
     #: Variable Names Registry
     variable_names_registry = Instance(VariableNamesRegistry)
@@ -38,6 +43,14 @@ class WorkflowModelView(ModelView):
     def remove_execution_layer(self, layer):
         """Removes the execution layer from the model."""
         self.model.execution_layers.remove(layer)
+
+    def add_notification_listener(self, notification_listener):
+        """Adds a new empty execution layer"""
+        self.model.notification_listeners.append(notification_listener)
+
+    def remove_notification_listener(self, notification_listener):
+        """Removes the execution layer from the model."""
+        self.model.notification_listeners.remove(notification_listener)
 
     # Update the model views in response to changes in the model structure.
 
@@ -61,6 +74,15 @@ class WorkflowModelView(ModelView):
                 label="Layer {}".format(idx)
             )
             for idx, execution_layer in enumerate(self.model.execution_layers)
+        ]
+
+    @on_trait_change("model.notification_listeners[]")
+    def update_notification_listeners_mv(self):
+        self.notification_listeners_mv = [
+            NotificationListenerModelView(
+                model=notification_listener,
+            )
+            for notification_listener in self.model.notification_listeners
         ]
 
     def _model_default(self):
