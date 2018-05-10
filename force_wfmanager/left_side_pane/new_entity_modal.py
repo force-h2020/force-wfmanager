@@ -1,8 +1,8 @@
 from traits.api import (HasStrictTraits, Instance, List, Button, Either,
                         on_trait_change, Dict, Bool)
-from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
-                          HGroup, ListStrEditor, InstanceEditor, Group, Tabbed,
-                          Spring)
+from traitsui.api import (View, Handler, VGroup, UItem,
+                          HGroup, ListStrEditor, InstanceEditor, Group,
+                          )
 from traitsui.list_str_adapter import ListStrAdapter
 
 from force_bdss.api import (
