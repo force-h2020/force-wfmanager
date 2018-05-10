@@ -3,11 +3,9 @@ from traits.api import (
     on_trait_change)
 
 from traitsui.api import (
-    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView
+    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView,
+    InstanceEditor, Group, OKButton
 )
-from traitsui.editors import InstanceEditor
-from traitsui.group import HGroup, VGroup, Group
-from traitsui.menu import OKButton
 
 from force_bdss.core.workflow import Workflow
 from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
