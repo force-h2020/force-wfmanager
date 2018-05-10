@@ -1,7 +1,8 @@
 from traits.api import (HasStrictTraits, Instance, List, Button, Either,
                         on_trait_change, Dict, Bool)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
-                          HGroup, ListStrEditor, InstanceEditor)
+                          HGroup, ListStrEditor, InstanceEditor, Group, Tabbed,
+                          Spring)
 from traitsui.list_str_adapter import ListStrAdapter
 
 from force_bdss.api import (
@@ -72,14 +73,24 @@ class NewEntityModal(HasStrictTraits):
 
     traits_view = View(
         VGroup(
-            HSplit(
-                UItem(
-                    "factories",
-                    editor=ListStrEditor(
-                        adapter=ListAdapter(),
-                        selected="selected_factory"),
+            HGroup(
+                Group(
+                    UItem(
+                        "factories",
+                        editor=ListStrEditor(
+                            adapter=ListAdapter(),
+                            selected="selected_factory"),
+                    ),
                 ),
-                UItem('current_model', style='custom', editor=InstanceEditor())
+                Group(
+                    UItem('current_model',
+                          style='custom',
+                          editor=InstanceEditor(),
+                          ),
+                    style="custom",
+                    label="Configuration Options",
+                    show_border=True
+                ),
             ),
             HGroup(
                 UItem(
@@ -93,6 +104,7 @@ class NewEntityModal(HasStrictTraits):
         handler=ModalHandler(),
         width=800,
         height=600,
+        resizable=True,
         kind="livemodal"
     )
 
