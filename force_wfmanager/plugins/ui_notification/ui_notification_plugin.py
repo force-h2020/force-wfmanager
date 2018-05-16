@@ -1,13 +1,17 @@
-from force_bdss.api import BaseExtensionPlugin, plugin_id
+from force_bdss.api import BaseExtensionPlugin
 from .ui_notification_factory import UINotificationFactory
 from .ui_notification_hooks_factory import UINotificationHooksFactory
 
 
 class UINotificationPlugin(BaseExtensionPlugin):
-    id = plugin_id("enthought", "ui_notification")
+    def get_producer(self):
+        return "enthought"
 
-    def _notification_listener_factories_default(self):
-        return [UINotificationFactory(self)]
+    def get_identifier(self):
+        return "ui_notification"
 
-    def _ui_hooks_factories_default(self):
-        return [UINotificationHooksFactory(self)]
+    def get_factory_classes(self):
+        return [
+            UINotificationFactory,
+            UINotificationHooksFactory,
+        ]
