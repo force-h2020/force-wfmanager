@@ -12,9 +12,6 @@ The UI presents a tree view where the workflow is created. The user must specify
   should handle for our investigation.
 - the Data Sources to use during the evaluation. Data Sources are entities responsible for
   extracting, computing or generating specific values specific to our computational investigation.
-- The Key Performance Indicator calculators, additional evaluators that take the data
-  produced by the DataSource and the MCO parameters, and produce the Key Performance Indicators that
-  drive the MCO optimization process.
 
 To define each of the above entities, right click on the appropriate entries in the tree.
 A dialog will open, providing the available entities that can be added, together with entity specific
