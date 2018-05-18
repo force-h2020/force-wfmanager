@@ -2,13 +2,16 @@ import unittest
 
 from force_bdss.tests.probe_classes.notification_listener import \
     ProbeNotificationListenerFactory
+from force_bdss.tests.probe_classes.probe_extension_plugin import \
+    ProbeExtensionPlugin
 from force_wfmanager.left_side_pane.notification_listener_model_view import \
     NotificationListenerModelView
 
 
 class TestNotificationListenerModelView(unittest.TestCase):
     def setUp(self):
-        factory = ProbeNotificationListenerFactory(None)
+        self.plugin = ProbeExtensionPlugin()
+        factory = ProbeNotificationListenerFactory(self.plugin)
 
         self.notification_listener_model = factory.create_model()
         self.notification_listener_mv = NotificationListenerModelView(

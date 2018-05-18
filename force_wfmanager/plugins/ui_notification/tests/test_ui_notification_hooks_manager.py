@@ -4,14 +4,6 @@ from pyface.tasks.task import Task
 
 from force_bdss.core.workflow import Workflow
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
-from force_wfmanager.plugins.ui_notification.ui_notification_factory import \
-    UINotificationFactory
-from force_wfmanager.plugins.ui_notification.ui_notification_hooks_factory \
-    import \
-    UINotificationHooksFactory
-from force_wfmanager.plugins.ui_notification.ui_notification_hooks_manager \
-    import \
-    UINotificationHooksManager
 from force_wfmanager.plugins.ui_notification.ui_notification_model import \
     UINotificationModel
 from force_wfmanager.plugins.ui_notification.ui_notification_plugin import \
@@ -25,21 +17,24 @@ except ImportError:
 
 
 class TestUINotificationHooksManager(unittest.TestCase):
+    def setUp(self):
+        self.plugin = UINotificationPlugin()
+        self.factory = self.plugin.ui_hooks_factories[0]
+        self.nl_factory = self.plugin.notification_listener_factories[0]
+
     def test_initialization(self):
-        mock_factory = mock.Mock(spec=UINotificationHooksFactory)
-        manager = UINotificationHooksManager(factory=mock_factory)
-        self.assertEqual(manager.factory, mock_factory)
+        manager = self.factory.create_ui_hooks_manager()
+        self.assertEqual(manager.factory, self.factory)
 
     def test_before_and_after_execution(self):
-        mock_factory = mock.Mock(spec=UINotificationHooksFactory)
-        manager = UINotificationHooksManager(factory=mock_factory)
+        manager = self.factory.create_ui_hooks_manager()
 
         mock_task = mock.Mock(spec=Task)
         mock_task.zmq_server_config = ZMQServerConfig()
         mock_registry = mock.Mock(spec=FactoryRegistryPlugin)
         mock_task.factory_registry = mock_registry
         mock_registry.notification_listener_factory_by_id.return_value \
-            = UINotificationFactory(mock.Mock(spec=UINotificationPlugin))
+            = self.nl_factory
 
         workflow = Workflow()
         mock_task.workflow_m = workflow

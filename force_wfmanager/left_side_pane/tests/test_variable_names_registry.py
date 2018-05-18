@@ -6,6 +6,8 @@ from force_bdss.tests.probe_classes.mco import (
     ProbeParameterFactory, ProbeMCOFactory)
 from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
 from force_bdss.core.workflow import Workflow
+from force_bdss.tests.probe_classes.probe_extension_plugin import \
+    ProbeExtensionPlugin
 
 from force_wfmanager.left_side_pane.variable_names_registry import (
     VariableNamesRegistry)
@@ -13,17 +15,19 @@ from force_wfmanager.left_side_pane.variable_names_registry import (
 
 class VariableNamesRegistryTest(unittest.TestCase):
     def setUp(self):
+        self.plugin = ProbeExtensionPlugin()
         workflow = Workflow()
 
-        mco = ProbeMCOFactory(None).create_model()
+        mco_factory = ProbeMCOFactory(self.plugin)
+        mco = mco_factory.create_model()
 
-        param_factory = ProbeParameterFactory(None)
+        param_factory = ProbeParameterFactory(mco_factory)
         self.param1 = param_factory.create_model()
         self.param2 = param_factory.create_model()
         self.param3 = param_factory.create_model()
 
         data_source_factory = ProbeDataSourceFactory(
-            None,
+            self.plugin,
             input_slots_size=1,
             output_slots_size=1)
         # first layer

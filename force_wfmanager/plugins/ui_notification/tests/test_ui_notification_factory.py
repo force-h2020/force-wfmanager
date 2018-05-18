@@ -1,20 +1,11 @@
 import unittest
 
-from envisage.plugin import Plugin
-
 from force_wfmanager.plugins.ui_notification.ui_notification import \
     UINotification
-from force_wfmanager.plugins.ui_notification.ui_notification_factory import \
-    UINotificationFactory
 from force_wfmanager.plugins.ui_notification.ui_notification_model import \
     UINotificationModel
 from force_wfmanager.plugins.ui_notification.ui_notification_plugin import \
     UINotificationPlugin
-
-try:
-    import mock
-except ImportError:
-    from unittest import mock
 
 
 class TestUINotificationFactory(unittest.TestCase):
