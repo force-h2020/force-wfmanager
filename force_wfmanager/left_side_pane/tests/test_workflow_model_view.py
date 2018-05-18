@@ -6,6 +6,8 @@ from force_bdss.tests.probe_classes.mco import (
     ProbeMCOFactory)
 from force_bdss.tests.probe_classes.notification_listener import \
     ProbeNotificationListenerFactory
+from force_bdss.tests.probe_classes.probe_extension_plugin import \
+    ProbeExtensionPlugin
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
 
@@ -14,6 +16,7 @@ from force_wfmanager.left_side_pane.workflow_model_view import \
 class TestWorkflowModelView(unittest.TestCase):
     def setUp(self):
         self.wf_mv = WorkflowModelView(model=Workflow())
+        self.plugin = ProbeExtensionPlugin()
 
     def test_add_execution_layer(self):
         self.assertEqual(len(self.wf_mv.execution_layers_mv), 0)
@@ -32,18 +35,18 @@ class TestWorkflowModelView(unittest.TestCase):
         self.assertEqual(len(self.wf_mv.execution_layers_mv), 0)
 
     def test_set_mco(self):
-        self.wf_mv.set_mco(ProbeMCOFactory(None).create_model())
+        self.wf_mv.set_mco(ProbeMCOFactory(self.plugin).create_model())
         self.assertEqual(len(self.wf_mv.mco_mv), 1)
         self.assertIsNotNone(self.wf_mv.model.mco, None)
 
     def test_add_notification_listener(self):
         self.assertEqual(len(self.wf_mv.notification_listeners_mv), 0)
         self.wf_mv.add_notification_listener(
-            ProbeNotificationListenerFactory(None).create_model())
+            ProbeNotificationListenerFactory(self.plugin).create_model())
         self.assertEqual(len(self.wf_mv.notification_listeners_mv), 1)
 
     def test_remove_notification_listener(self):
-        model = ProbeNotificationListenerFactory(None).create_model()
+        model = ProbeNotificationListenerFactory(self.plugin).create_model()
         self.wf_mv.add_notification_listener(model)
         self.assertEqual(len(self.wf_mv.notification_listeners_mv), 1)
         self.wf_mv.remove_notification_listener(model)

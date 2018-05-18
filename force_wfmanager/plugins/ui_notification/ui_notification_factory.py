@@ -1,23 +1,22 @@
-from traits.api import String, Bool
+from traits.api import Bool
 
-from force_bdss.api import factory_id, BaseNotificationListenerFactory
+from force_bdss.api import BaseNotificationListenerFactory
 
 from .ui_notification import UINotification
 from .ui_notification_model import UINotificationModel
 
 
 class UINotificationFactory(BaseNotificationListenerFactory):
-    id = String(factory_id("enthought", "ui_notification"))
-
-    name = String("UI Notification")
-
     ui_visible = Bool(False)
 
-    def create_model(self, model_data=None):
-        if model_data is None:
-            model_data = {}
+    def get_model_class(self):
+        return UINotificationModel
 
-        return UINotificationModel(self, **model_data)
+    def get_listener_class(self):
+        return UINotification
 
-    def create_listener(self):
-        return UINotification(self)
+    def get_name(self):
+        return "UI Notification"
+
+    def get_identifier(self):
+        return "ui_notification"

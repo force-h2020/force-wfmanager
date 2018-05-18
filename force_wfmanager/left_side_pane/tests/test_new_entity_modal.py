@@ -4,6 +4,8 @@ from traits.api import HasTraits, Instance
 
 from force_bdss.tests.probe_classes.mco import ProbeMCOFactory
 from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
+from force_bdss.tests.probe_classes.probe_extension_plugin import \
+    ProbeExtensionPlugin
 
 from force_wfmanager.left_side_pane.new_entity_modal import (
     ModalHandler, NewEntityModal, ListAdapter)
@@ -26,8 +28,9 @@ class ModalInfoDummy(HasTraits):
 
 class TestNewEntityModal(unittest.TestCase):
     def setUp(self):
-        self.mcos = [ProbeMCOFactory(None)]
-        self.data_sources = [ProbeDataSourceFactory(None)]
+        self.plugin = ProbeExtensionPlugin()
+        self.mcos = [ProbeMCOFactory(self.plugin)]
+        self.data_sources = [ProbeDataSourceFactory(self.plugin)]
 
         self.workflow_mv = WorkflowModelView()
 
@@ -82,7 +85,7 @@ class TestNewEntityModal(unittest.TestCase):
         self.assertEqual(id(first_model), id(modal.current_model))
 
     def test_list_adapter(self):
-        adapter = ListAdapter(item=ProbeMCOFactory(None))
+        adapter = ListAdapter(item=ProbeMCOFactory(self.plugin))
         self.assertEqual(
             adapter.get_text({}, {}, {}),
-            'force.bdss.enthought.factory.test_mco')
+            'testmco')

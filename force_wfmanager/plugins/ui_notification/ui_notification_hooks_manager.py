@@ -4,6 +4,11 @@ from .ui_notification_model import UINotificationModel
 
 
 class UINotificationHooksManager(BaseUIHooksManager):
+    """
+    Modifies the model so that the notification for the UI is
+    properly setup.
+    When the execution ends, the added information is removed.
+    """
     def before_execution(self, task):
         model = task.workflow_m
         notification_model = None
@@ -14,7 +19,7 @@ class UINotificationHooksManager(BaseUIHooksManager):
         if notification_model is None:
             registry = task.factory_registry
             nl_factory = registry.notification_listener_factory_by_id(
-                factory_id("enthought", "ui_notification")
+                factory_id(self.factory.plugin.id, "ui_notification")
             )
             notification_model = nl_factory.create_model()
             model.notification_listeners.append(notification_model)

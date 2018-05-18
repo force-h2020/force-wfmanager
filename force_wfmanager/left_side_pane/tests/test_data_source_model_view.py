@@ -12,6 +12,8 @@ from force_bdss.tests.probe_classes.data_source import \
 from force_bdss.api import DataValue
 from force_bdss.core.input_slot_info import InputSlotInfo
 from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeParameter
+from force_bdss.tests.probe_classes.probe_extension_plugin import \
+    ProbeExtensionPlugin
 
 from force_wfmanager.left_side_pane.data_source_model_view import \
     DataSourceModelView
@@ -27,8 +29,9 @@ def get_run_function(nb_outputs):
 
 class TestDataSourceModelView(unittest.TestCase):
     def setUp(self):
+        self.plugin = ProbeExtensionPlugin()
         factory = ProbeDataSourceFactory(
-            None,
+            self.plugin,
             input_slots_size=1,
             output_slots_size=2,
             run_function=get_run_function(2))
@@ -37,13 +40,13 @@ class TestDataSourceModelView(unittest.TestCase):
         self.data_source = factory.create_data_source()
 
         factory = ProbeDataSourceFactory(
-            None,
+            self.plugin,
             input_slots_size=1,
             output_slots_size=1,
             run_function=get_run_function(1))
         self.model_2 = factory.create_model()
 
-        factory = ProbeMCOFactory(None)
+        factory = ProbeMCOFactory(self.plugin)
         mco_model = factory.create_model()
         mco_model.parameters.append(ProbeParameter(None, name='P1'))
         mco_model.parameters.append(ProbeParameter(None, name='P2'))

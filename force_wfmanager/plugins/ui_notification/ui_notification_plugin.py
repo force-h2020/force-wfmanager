@@ -4,10 +4,10 @@ from .ui_notification_hooks_factory import UINotificationHooksFactory
 
 
 class UINotificationPlugin(BaseExtensionPlugin):
-    id = plugin_id("enthought", "ui_notification")
+    id = plugin_id("enthought", "ui_notification", 0)
 
-    def _notification_listener_factories_default(self):
-        return [UINotificationFactory(self)]
-
-    def _ui_hooks_factories_default(self):
-        return [UINotificationHooksFactory(self)]
+    def get_factory_classes(self):
+        return [
+            UINotificationFactory,
+            UINotificationHooksFactory,
+        ]

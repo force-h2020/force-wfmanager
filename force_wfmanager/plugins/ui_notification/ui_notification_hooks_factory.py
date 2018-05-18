@@ -1,9 +1,13 @@
-from force_bdss.api import BaseUIHooksFactory, factory_id
+from force_bdss.api import BaseUIHooksFactory
 from .ui_notification_hooks_manager import UINotificationHooksManager
 
 
 class UINotificationHooksFactory(BaseUIHooksFactory):
-    id = factory_id("enthought", "ui_notification_hooks")
+    def get_ui_hooks_manager_class(self):
+        return UINotificationHooksManager
 
-    def create_ui_hooks_manager(self):
-        return UINotificationHooksManager(self)
+    def get_name(self):
+        return "UI Notification Hooks"
+
+    def get_identifier(self):
+        return "ui_identification_hooks"
