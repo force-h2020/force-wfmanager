@@ -7,11 +7,3 @@ def get_factory_name(factory):
         return name
     else:
         return factory.id
-
-
-def get_plugin_producer(plugin):
-    """
-    Extracts the plugin producer from the plugin. For now, this is implemented
-    rather horribly, getting it from the id. A better technique is required.
-    """
-    return plugin.id.split(".")[2].title()
