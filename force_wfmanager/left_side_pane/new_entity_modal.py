@@ -21,15 +21,11 @@ class ListAdapter(ListStrAdapter):
     can_edit = Bool(False)
 
     def get_text(self, object, trait, index):
-        if hasattr(self.item, "plugin"):
-            return (
-                get_plugin_producer(self.item.plugin) +
-                " :: " +
-                get_factory_name(self.item)
-            )
-        else:
-            return get_factory_name(self.item)
-
+        return (
+            get_plugin_producer(self.item.plugin) +
+            " :: " +
+            get_factory_name(self.item)
+        )
 
 
 class ModalHandler(Handler):
