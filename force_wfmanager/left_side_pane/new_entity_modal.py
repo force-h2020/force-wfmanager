@@ -31,6 +31,7 @@ class ListAdapter(ListStrAdapter):
             return get_factory_name(self.item)
 
 
+
 class ModalHandler(Handler):
     def object_add_button_changed(self, info):
         """ Action triggered when clicking on "Add" button in the modal """
