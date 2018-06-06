@@ -1,5 +1,5 @@
 import logging
-import argparse
+import click
 
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
@@ -16,17 +16,12 @@ from traits.api import push_exception_handler
 
 from .version import __version__
 
-
 push_exception_handler(lambda *args: None, reraise_exceptions=True)
 
 
+@click.command()
+@click.version_option(version=__version__)
 def main():
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--version', action='version',
-                        version='force_wfmanager version: '
-                                '{}'.format(__version__))
-    parser.parse_known_args()
 
     logging.basicConfig(filename="force_wfmanager.log", filemode="w")
     log = logging.getLogger(__name__)
