@@ -252,7 +252,7 @@ class WfManagerTask(Task):
                 This software is released under the BSD license.
                 """,  # noqa
             ),
-            "About WorflowManager"
+            "About WorkflowManager"
         )
 
     @on_trait_change('side_pane.run_button')
@@ -282,6 +282,9 @@ class WfManagerTask(Task):
             tmpfile_path = tempfile.mktemp()
             with open(tmpfile_path, 'w') as output:
                 WorkflowWriter().write(self.workflow_m, output)
+
+            # Clear the analysis model before attempting to run
+            self.analysis_m.clear()
 
             future = self._executor.submit(self._execute_bdss, tmpfile_path)
             future.add_done_callback(self._execution_done_callback)
