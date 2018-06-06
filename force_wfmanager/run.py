@@ -19,7 +19,8 @@ from .version import __version__
 push_exception_handler(lambda *args: None, reraise_exceptions=True)
 
 
-@click.command()
+@click.command(context_settings=dict(ignore_unknown_options=True,
+                                     allow_extra_args=True))
 @click.version_option(version=__version__)
 def main():
 
