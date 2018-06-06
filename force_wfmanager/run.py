@@ -26,7 +26,7 @@ def main():
     parser.add_argument('--version', action='version',
                         version='force_wfmanager version: '
                                 '{}'.format(__version__))
-    parser.parse_args()
+    parser.parse_known_args()
 
     logging.basicConfig(filename="force_wfmanager.log", filemode="w")
     log = logging.getLogger(__name__)
