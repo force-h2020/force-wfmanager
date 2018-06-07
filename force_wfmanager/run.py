@@ -19,11 +19,13 @@ from .version import __version__
 push_exception_handler(lambda *args: None, reraise_exceptions=True)
 
 
-@click.command(context_settings=dict(ignore_unknown_options=True,
-                                     allow_extra_args=True))
+@click.command()
 @click.version_option(version=__version__)
 def main():
+    _main()
 
+
+def _main():
     logging.basicConfig(filename="force_wfmanager.log", filemode="w")
     log = logging.getLogger(__name__)
 

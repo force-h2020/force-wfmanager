@@ -4,7 +4,7 @@ try:
 except ImportError:
     from unittest import mock
 
-from force_wfmanager.run import main
+from force_wfmanager.run import _main as main
 from force_wfmanager.wfmanager import WfManager
 
 
