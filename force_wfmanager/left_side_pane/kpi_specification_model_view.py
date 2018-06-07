@@ -36,9 +36,9 @@ class KPISpecificationModelView(ModelView):
     def _label_default(self):
         return _get_label(self.model)
 
-    @on_trait_change('variable_names_registry.available_variables[]')
+    @on_trait_change('variable_names_registry.data_source_outputs[]')
     def update_combobox_values(self):
-        available = self.variable_names_registry.available_variables[-1]
+        available = self.variable_names_registry.data_source_outputs
         self._combobox_values = [''] + available
         self.name = ('' if self.name not in available else self.name)
 

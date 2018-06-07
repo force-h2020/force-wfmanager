@@ -98,3 +98,13 @@ class VariableNamesRegistryTest(unittest.TestCase):
                 ['V2', 'V3', 'T1', 'T4'],
                 ['V2', 'V3', 'T1', 'T4']
             ])
+
+    def test_data_source_outputs(self):
+        self.param1.name = 'V1'
+        self.assertEqual(self.registry.data_source_outputs, [])
+
+        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        self.assertEqual(self.registry.data_source_outputs, ["T1"])
+
+        self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
+        self.assertEqual(self.registry.data_source_outputs, ["T1", "T2"])
