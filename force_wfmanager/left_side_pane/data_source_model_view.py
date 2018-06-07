@@ -2,7 +2,6 @@ from traits.api import (HasStrictTraits, Instance, Str, List, Int,
                         on_trait_change, Enum, Bool)
 
 from traitsui.api import View, Item, ModelView, TableEditor
-from traitsui.extras.checkbox_column import CheckboxColumn
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (
