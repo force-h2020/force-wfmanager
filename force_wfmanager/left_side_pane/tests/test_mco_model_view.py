@@ -1,10 +1,7 @@
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
 
-from force_bdss.api import BaseMCOModel, BaseMCOFactory, BaseMCOParameter
+from force_bdss.tests.dummy_classes.extension_plugin import \
+    DummyExtensionPlugin
 
 from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
 from force_wfmanager.left_side_pane.mco_parameter_model_view import \
@@ -13,12 +10,13 @@ from force_wfmanager.left_side_pane.mco_parameter_model_view import \
 
 class TestMCOModelView(unittest.TestCase):
     def setUp(self):
-        mock_model = mock.Mock(spec=BaseMCOModel)
-        mock_model.parameters = [mock.Mock(spec=BaseMCOParameter)]
-        mock_model.factory = mock.Mock(spec=BaseMCOFactory)
-        mock_model.factory.name = "baz"
+        plugin = DummyExtensionPlugin()
+        factory = plugin.mco_factories[0]
+        model = factory.create_model()
+        parameter_factory = factory.parameter_factories()[0]
+        model.parameters = [parameter_factory.create_model()]
 
-        self.mco_mv = MCOModelView(model=mock_model)
+        self.mco_mv = MCOModelView(model=model)
 
     def test_mco_parameter_representation(self):
         self.assertEqual(
@@ -29,4 +27,4 @@ class TestMCOModelView(unittest.TestCase):
         )
 
     def test_label(self):
-        self.assertEqual(self.mco_mv.label, "baz")
+        self.assertEqual(self.mco_mv.label, "Dummy MCO")

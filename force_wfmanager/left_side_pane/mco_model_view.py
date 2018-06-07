@@ -3,6 +3,8 @@ from traits.api import Instance, List, Str, on_trait_change, Bool
 from traitsui.api import ModelView
 
 from force_bdss.api import BaseMCOModel
+from force_wfmanager.left_side_pane.kpi_specification_model_view import \
+    KPISpecificationModelView
 
 from .mco_parameter_model_view import MCOParameterModelView
 from .view_utils import get_factory_name
@@ -18,6 +20,8 @@ class MCOModelView(ModelView):
     #: List of MCO parameters to be displayed in the TreeEditor
     mco_parameters_mv = List(Instance(MCOParameterModelView))
 
+    kpis_mv = List(Instance(KPISpecificationModelView))
+
     #: Defines if the MCO is valid or not
     valid = Bool(True)
 
@@ -29,12 +33,25 @@ class MCOModelView(ModelView):
         """Removes a parameter from the referred model."""
         self.model.parameters.remove(parameter)
 
+    def add_kpi(self, kpi):
+        self.model.kpis.append(kpi)
+
+    def remove_kpi(self, kpi):
+        self.model.kpis.remove(kpi)
+
     @on_trait_change('model.parameters[]')
     def update_mco_parameters_mv(self):
         """ Update the MCOParameterModelViews """
         self.mco_parameters_mv = [
             MCOParameterModelView(model=parameter)
             for parameter in self.model.parameters]
+
+    @on_trait_change('model.kpis[]')
+    def update_kpis(self):
+        self.kpis_mv = [
+            KPISpecificationModelView(model=kpi)
+            for kpi in self.model.kpis
+        ]
 
     def _label_default(self):
         return get_factory_name(self.model.factory)

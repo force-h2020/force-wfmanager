@@ -64,20 +64,13 @@ class OutputSlotRow(TableRow):
     #: Name of the slot
     name = Identifier()
 
-    is_kpi = Bool()
-
     @on_trait_change('model.output_slot_info[]')
     def update_view(self):
         self.name = self.model.output_slot_info[self.index].name
-        self.is_kpi = self.model.output_slot_info[self.index].is_kpi
 
     @on_trait_change('name')
     def update_name(self):
         self.model.output_slot_info[self.index].name = self.name
-
-    @on_trait_change('is_kpi')
-    def update_is_kpi(self):
-        self.model.output_slot_info[self.index].is_kpi = self.is_kpi
 
 
 input_slots_editor = TableEditor(
@@ -97,7 +90,6 @@ output_slots_editor = TableEditor(
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
         ObjectColumn(name="name", label="Variable Name", editable=True),
-        CheckboxColumn(name="is_kpi", label="KPI", editable=True),
     ]
 )
 
