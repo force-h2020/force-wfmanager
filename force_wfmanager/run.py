@@ -22,13 +22,12 @@ push_exception_handler(lambda *args: None, reraise_exceptions=True)
 @click.command()
 @click.version_option(version=__version__)
 def force_wfmanager():
-    """Launches the workflow manager, including arguments given
-    at the command line"""
+    """Launches the FORCE workflow manager application"""
     main()
 
 
 def main():
-    """Launches the workflow manager"""
+    """Launches the FORCE workflow manager application"""
     logging.basicConfig(filename="force_wfmanager.log", filemode="w")
     log = logging.getLogger(__name__)
 
