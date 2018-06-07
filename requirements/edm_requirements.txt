@@ -11,4 +11,3 @@ traitsui           5.1.0-2
 chaco              4.7.1-2
 # Needed by chaco
 numpy              1.13.3-3
-
