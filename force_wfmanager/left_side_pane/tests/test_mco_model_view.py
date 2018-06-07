@@ -1,5 +1,6 @@
 import unittest
 
+from force_bdss.core.kpi_specification import KPISpecification
 from force_bdss.tests.dummy_classes.extension_plugin import \
     DummyExtensionPlugin
 
@@ -28,3 +29,12 @@ class TestMCOModelView(unittest.TestCase):
 
     def test_label(self):
         self.assertEqual(self.mco_mv.label, "Dummy MCO")
+
+    def test_add_kpi(self):
+        kpi_spec = KPISpecification()
+        self.mco_mv.add_kpi(kpi_spec)
+        self.assertEqual(len(self.mco_mv.kpis_mv), 1)
+        self.assertEqual(self.mco_mv.kpis_mv[0].model, kpi_spec)
+
+        self.mco_mv.remove_kpi(kpi_spec)
+        self.assertEqual(len(self.mco_mv.kpis_mv), 0)
