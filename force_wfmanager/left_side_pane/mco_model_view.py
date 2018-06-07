@@ -5,6 +5,8 @@ from traitsui.api import ModelView
 from force_bdss.api import BaseMCOModel
 from force_wfmanager.left_side_pane.kpi_specification_model_view import \
     KPISpecificationModelView
+from force_wfmanager.left_side_pane.variable_names_registry import \
+    VariableNamesRegistry
 
 from .mco_parameter_model_view import MCOParameterModelView
 from .view_utils import get_factory_name
@@ -21,6 +23,9 @@ class MCOModelView(ModelView):
     mco_parameters_mv = List(Instance(MCOParameterModelView))
 
     kpis_mv = List(Instance(KPISpecificationModelView))
+
+    #: Registry of the available variables
+    variable_names_registry = Instance(VariableNamesRegistry)
 
     #: Defines if the MCO is valid or not
     valid = Bool(True)
@@ -49,7 +54,10 @@ class MCOModelView(ModelView):
     @on_trait_change('model.kpis[]')
     def update_kpis(self):
         self.kpis_mv = [
-            KPISpecificationModelView(model=kpi)
+            KPISpecificationModelView(
+                variable_names_registry=self.variable_names_registry,
+                model=kpi
+            )
             for kpi in self.model.kpis
         ]
 
