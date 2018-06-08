@@ -6,6 +6,7 @@ from traitsui.api import (
     TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView
 )
 
+from force_bdss.core.kpi_specification import KPISpecification
 from force_bdss.core.workflow import Workflow
 from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
 from force_wfmanager.left_side_pane.data_source_model_view import \
@@ -16,6 +17,8 @@ from force_wfmanager.left_side_pane.execution_layer_model_view import \
 from force_bdss.core.execution_layer import ExecutionLayer
 
 # Create an empty view and menu for objects that have no data to display:
+from force_wfmanager.left_side_pane.kpi_specification_model_view import \
+    KPISpecificationModelView
 from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
 from force_wfmanager.left_side_pane.mco_parameter_model_view import \
     MCOParameterModelView
@@ -45,6 +48,8 @@ edit_notification_listener_action = Action(
 new_parameter_action = Action(name='New Parameter...', action='new_parameter')
 edit_parameter_action = Action(name='Edit...', action='edit_parameter')
 delete_parameter_action = Action(name='Delete', action='delete_parameter')
+new_kpi_action = Action(name='New KPI...', action='new_kpi')
+delete_kpi_action = Action(name="Delete", action='delete_kpi')
 new_layer_action = Action(name="New Layer...", action='new_layer')
 delete_layer_action = Action(name='Delete', action='delete_layer')
 new_data_source_action = Action(name='New DataSource...',
@@ -123,6 +128,21 @@ tree_editor = TreeEditor(
             children='',
             label='label',
             menu=Menu(edit_parameter_action, delete_parameter_action),
+        ),
+        TreeNode(
+            node_for=[MCOModelView],
+            auto_open=True,
+            children='kpis_mv',
+            label='=KPIs',
+            view=no_view,
+            menu=Menu(new_kpi_action),
+        ),
+        TreeNodeWithStatus(
+            node_for=[KPISpecificationModelView],
+            auto_open=True,
+            children='',
+            label='label',
+            menu=Menu(delete_kpi_action),
         ),
         #: Node representing the layers
         TreeNode(
@@ -245,6 +265,14 @@ class WorkflowTree(ModelView):
         if len(self.workflow_mv.mco_mv) > 0:
             mco_mv = self.workflow_mv.mco_mv[0]
             mco_mv.remove_parameter(object.model)
+
+    def new_kpi(self, ui_info, object):
+        object.add_kpi(KPISpecification())
+
+    def delete_kpi(self, ui_info, object):
+        if len(self.workflow_mv.mco_mv) > 0:
+            mco_mv = self.workflow_mv.mco_mv[0]
+            mco_mv.remove_kpi(object.model)
 
     def new_data_source(self, ui_info, object):
         """ Opens a dialog for creating a Data Source """
