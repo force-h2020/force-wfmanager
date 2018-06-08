@@ -52,6 +52,12 @@ class WorkflowModelView(ModelView):
         """Removes the execution layer from the model."""
         self.model.notification_listeners.remove(notification_listener)
 
+    def remove_data_source(self, data_source):
+        """Removes the data source from the model"""
+        for execution_layer in self.model.execution_layers:
+            if data_source in execution_layer.data_sources:
+                execution_layer.data_sources.remove(data_source)
+
     # Update the model views in response to changes in the model structure.
 
     @on_trait_change('model.mco')
