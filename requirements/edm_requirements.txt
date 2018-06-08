@@ -8,6 +8,7 @@ qt                 4.8.7-8
 sip                4.17-4
 traits             4.6.0-1
 traitsui           6.0.0-1
-chaco              4.7.1-2
-# Needed by chaco
 numpy              1.13.3-3
+chaco              4.7.1-2
+envisage           4.6.0-1
+six                1.10.0-1
