@@ -58,7 +58,9 @@ class WorkflowModelView(ModelView):
     def update_mco_mv(self):
         """Updates the MCO model view with the model.mco changes"""
         if self.model.mco is not None:
-            self.mco_mv = [MCOModelView(model=self.model.mco)]
+            self.mco_mv = [MCOModelView(
+                variable_names_registry=self.variable_names_registry,
+                model=self.model.mco)]
         else:
             self.mco_mv = []
 

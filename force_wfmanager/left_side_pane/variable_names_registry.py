@@ -40,6 +40,11 @@ class VariableNamesRegistry(HasStrictTraits):
     available_variables = Property(List(List(Identifier)),
                                    depends_on="available_variables_stack")
 
+    #: Gives only the names of the variables that are produced by data sources.
+    #: It does not include MCO parameters.
+    data_source_outputs = Property(List(Identifier),
+                                   depends_on="available_variables_stack")
+
     def __init__(self, workflow, *args, **kwargs):
         super(VariableNamesRegistry, self).__init__(*args, **kwargs)
         self.workflow = workflow
@@ -81,5 +86,15 @@ class VariableNamesRegistry(HasStrictTraits):
             for entry in stack[0:idx+1]:
                 cumsum.extend(entry)
             res.append(cumsum)
+
+        return res
+
+    @cached_property
+    def _get_data_source_outputs(self):
+        stack = self.available_variables_stack
+        res = []
+
+        for entry in stack[1:]:
+            res.extend(entry)
 
         return res
