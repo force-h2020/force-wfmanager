@@ -20,8 +20,10 @@ class KPISpecificationModelView(ModelView):
     #: Defines if the KPI is valid or not
     valid = Bool(True)
 
+    #: The name of the selected KPI
     name = Enum(values='_combobox_values')
 
+    #: Values for the combobox
     _combobox_values = List(Identifier)
 
     #: Base view for the MCO parameter
