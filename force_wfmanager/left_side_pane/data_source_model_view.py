@@ -2,7 +2,6 @@ from traits.api import (HasStrictTraits, Instance, Str, List, Int,
                         on_trait_change, Enum, Bool)
 
 from traitsui.api import View, Item, ModelView, TableEditor
-from traitsui.extras.checkbox_column import CheckboxColumn
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (
@@ -64,20 +63,13 @@ class OutputSlotRow(TableRow):
     #: Name of the slot
     name = Identifier()
 
-    is_kpi = Bool()
-
     @on_trait_change('model.output_slot_info[]')
     def update_view(self):
         self.name = self.model.output_slot_info[self.index].name
-        self.is_kpi = self.model.output_slot_info[self.index].is_kpi
 
     @on_trait_change('name')
     def update_name(self):
         self.model.output_slot_info[self.index].name = self.name
-
-    @on_trait_change('is_kpi')
-    def update_is_kpi(self):
-        self.model.output_slot_info[self.index].is_kpi = self.is_kpi
 
 
 input_slots_editor = TableEditor(
@@ -97,7 +89,6 @@ output_slots_editor = TableEditor(
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
         ObjectColumn(name="name", label="Variable Name", editable=True),
-        CheckboxColumn(name="is_kpi", label="KPI", editable=True),
     ]
 )
 
@@ -235,22 +226,25 @@ class DataSourceModelView(ModelView):
         needed by the evaluator and the model slot values """
         available_variables = self._get_available_variables()
 
-        self.input_slots_representation = [
-            InputSlotRow(model=self.model,
-                         available_variables=available_variables,
-                         index=index,
-                         name=self.model.input_slot_info[index].name,
-                         type=input_slot.type)
-            for index, input_slot in enumerate(input_slots)
-        ]
+        input_representations = []
+        for index, input_slot in enumerate(input_slots):
+            slot_representation = InputSlotRow(model=self.model, index=index)
+            slot_representation.available_variables = available_variables
+            slot_representation.name = self.model.input_slot_info[index].name
+            slot_representation.type = input_slot.type
 
-        self.output_slots_representation = [
-            OutputSlotRow(model=self.model,
-                          index=index,
-                          name=self.model.output_slot_info[index].name,
-                          type=output_slot.type)
-            for index, output_slot in enumerate(output_slots)
-        ]
+            input_representations.append(slot_representation)
+
+        self.input_slots_representation[:] = input_representations
+
+        output_representation = []
+        for index, output_slot in enumerate(output_slots):
+            slot_representation = OutputSlotRow(model=self.model, index=index)
+            slot_representation.name = self.model.output_slot_info[index].name
+            slot_representation.type = output_slot.type
+            output_representation.append(slot_representation)
+
+        self.output_slots_representation[:] = output_representation
 
     def __data_source_default(self):
         return self.model.factory.create_data_source()

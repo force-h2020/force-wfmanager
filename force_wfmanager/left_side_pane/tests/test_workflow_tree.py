@@ -1,6 +1,7 @@
 import unittest
 
 from force_bdss.core.execution_layer import ExecutionLayer
+from force_bdss.core.kpi_specification import KPISpecification
 from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
 from force_bdss.mco.base_mco_model import BaseMCOModel
 from force_bdss.notification_listeners.base_notification_listener_model \
@@ -48,6 +49,7 @@ def get_workflow_tree():
     mco = mco_factory.create_model()
     parameter_factory = mco_factory.parameter_factories()[0]
     mco.parameters.append(parameter_factory.create_model())
+    mco.kpis.append(KPISpecification())
     data_source_factory = factory_registry.data_source_factories[0]
     notification_listener_factory = \
         factory_registry.notification_listener_factories[0]
@@ -187,6 +189,22 @@ class TestWorkflowTree(unittest.TestCase):
             first_execution_layer)
 
         self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 1)
+
+    def test_new_kpi(self):
+        mock_ui_info = mock.Mock()
+        mock_object = mock.Mock()
+        self.tree.new_kpi(mock_ui_info, mock_object)
+        self.assertTrue(mock_object.add_kpi.called)
+
+    def test_delete_kpi(self):
+        mco = self.tree.model.mco
+        kpi = mco.kpis[0]
+        mock_ui_info = mock.Mock()
+        mock_object = mock.Mock()
+        mock_object.model = kpi
+
+        self.tree.delete_kpi(mock_ui_info, mock_object)
+        self.assertEqual(mco.kpis, [])
 
 
 class TestWorkflowElementNode(unittest.TestCase):
