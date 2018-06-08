@@ -22,6 +22,7 @@ class MCOModelView(ModelView):
     #: List of MCO parameters to be displayed in the TreeEditor
     mco_parameters_mv = List(Instance(MCOParameterModelView))
 
+    #: List of the KPISpecificationModelView to be displayed in the TreeEditor
     kpis_mv = List(Instance(KPISpecificationModelView))
 
     #: Registry of the available variables
@@ -39,9 +40,12 @@ class MCOModelView(ModelView):
         self.model.parameters.remove(parameter)
 
     def add_kpi(self, kpi):
+        """Adds a KPISpecification to the underlying model"""
         self.model.kpis.append(kpi)
 
     def remove_kpi(self, kpi):
+        """Removes a KPISpecification from the underlying model.
+        """
         self.model.kpis.remove(kpi)
 
     @on_trait_change('model.parameters[]')
@@ -53,6 +57,8 @@ class MCOModelView(ModelView):
 
     @on_trait_change('model.kpis[]')
     def update_kpis(self):
+        """Updates the KPI modelview according to the new KPIs in the
+        model"""
         self.kpis_mv = [
             KPISpecificationModelView(
                 variable_names_registry=self.variable_names_registry,
