@@ -22,8 +22,6 @@ class KPISpecificationModelView(ModelView):
 
     name = Enum(values='_combobox_values')
 
-    available_variables = List(Identifier)
-
     _combobox_values = List(Identifier)
 
     #: Base view for the MCO parameter
@@ -33,10 +31,17 @@ class KPISpecificationModelView(ModelView):
         kind="subpanel",
     )
 
+    def __init__(self, model, variable_names_registry, **kwargs):
+        super(KPISpecificationModelView, self).__init__(
+            model=model,
+            variable_names_registry=variable_names_registry,
+            **kwargs
+        )
+
     def _label_default(self):
         return _get_label(self.model)
 
-    @on_trait_change('variable_names_registry.data_source_outputs[]')
+    @on_trait_change('variable_names_registry.data_source_outputs')
     def update_combobox_values(self):
         available = self.variable_names_registry.data_source_outputs
         self._combobox_values = [''] + available
