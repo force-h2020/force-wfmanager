@@ -4,11 +4,6 @@ from force_bdss.core.output_slot_info import OutputSlotInfo
 from force_wfmanager.left_side_pane.tests.test_variable_names_registry import \
     basic_variable_names_registry
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
-
 from force_bdss.core.kpi_specification import KPISpecification
 from force_wfmanager.left_side_pane.kpi_specification_model_view import \
     KPISpecificationModelView

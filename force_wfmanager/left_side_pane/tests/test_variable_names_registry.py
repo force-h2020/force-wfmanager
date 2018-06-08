@@ -49,7 +49,7 @@ def basic_variable_names_registry():
             data_sources=[data_source3]
         ),
         ExecutionLayer(
-            data_sources=[data_source3]
+            data_sources=[data_source4]
         )
     ]
     )
