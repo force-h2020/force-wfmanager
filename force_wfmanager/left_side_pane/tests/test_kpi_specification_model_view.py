@@ -41,3 +41,6 @@ class TestKPISpecificationModelViewTest(unittest.TestCase):
 
         self.assertEqual(self.kpi_specification_mv._combobox_values,
                          ['', 'T1', 'T2'])
+
+    def test_label(self):
+        self.assertEqual(self.kpi_specification_mv.label, "KPI")
