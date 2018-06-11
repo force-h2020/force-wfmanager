@@ -33,10 +33,10 @@ setup(
     install_requires=[
         "envisage >= 4.6.0",
         "stevedore >= 1.24.0",
-        "numpy >= 1.11.0",
+        "numpy >= 1.13.3",
         "cython >= 0.25",
-        "chaco >= 4.6.1",
-        "pyzmq >= 16.0.0",
+        "chaco >= 4.7.1",
+        "pyzmq >= 16.0.2",
         'futures >= 3.1.1',
         "six >= 1.10.0",
         'force_bdss >= 0.2.0.dev0'
@@ -45,7 +45,7 @@ setup(
     package_data={'force_wfmanager.left_side_pane': 'icons/*'},
     entry_points={
         'gui_scripts': [
-            ('force_wfmanager = force_wfmanager.run:force_wfmanager')
+            'force_wfmanager = force_wfmanager.gui.run:force_wfmanager'
         ],
         "force.bdss.extensions": [
             "ui_notification = "

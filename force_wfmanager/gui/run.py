@@ -14,7 +14,7 @@ from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 from traits.api import push_exception_handler
 
-from .version import __version__
+from force_wfmanager.version import __version__
 
 push_exception_handler(lambda *args: None, reraise_exceptions=True)
 
