@@ -45,7 +45,7 @@ setup(
     package_data={'force_wfmanager.left_side_pane': 'icons/*'},
     entry_points={
         'gui_scripts': [
-            ('force_wfmanager = force_wfmanager.cli.run:main')
+            'force_wfmanager = force_wfmanager.cli.run:force_wfmanager'
         ],
         "force.bdss.extensions": [
             "ui_notification = "
