@@ -1,4 +1,5 @@
 import logging
+import click
 
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
@@ -12,10 +13,21 @@ from force_wfmanager.wfmanager import WfManager
 from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 from traits.api import push_exception_handler
+
+from force_wfmanager.version import __version__
+
 push_exception_handler(lambda *args: None, reraise_exceptions=True)
 
 
+@click.command()
+@click.version_option(version=__version__)
+def force_wfmanager():
+    """Launches the FORCE workflow manager application"""
+    main()
+
+
 def main():
+    """Launches the FORCE workflow manager application"""
     logging.basicConfig(filename="force_wfmanager.log", filemode="w")
     log = logging.getLogger(__name__)
 

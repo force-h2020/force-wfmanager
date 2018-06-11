@@ -4,7 +4,7 @@ try:
 except ImportError:
     from unittest import mock
 
-from force_wfmanager.run import main
+from force_wfmanager.gui.run import main
 from force_wfmanager.wfmanager import WfManager
 
 
@@ -16,7 +16,7 @@ def mock_wfmanager_constructor(*args, **kwargs):
 
 class TestRun(unittest.TestCase):
     def test_main(self):
-        with mock.patch('force_wfmanager.run.WfManager') as mock_wfmanager:
+        with mock.patch('force_wfmanager.gui.run.WfManager') as mock_wfmanager:
             mock_wfmanager.side_effect = mock_wfmanager_constructor
 
             main()
