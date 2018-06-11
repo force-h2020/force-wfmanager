@@ -23,10 +23,10 @@ force\_wfmanager\.local\_traits module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.run module
-----------------------------
+force\_wfmanager\gui\.run module
+--------------------------------
 
-.. automodule:: force_wfmanager.run
+.. automodule:: force_wfmanager.gui.run
     :members:
     :undoc-members:
     :show-inheritance:
