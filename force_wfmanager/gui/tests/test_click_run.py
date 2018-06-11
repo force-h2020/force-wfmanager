@@ -19,7 +19,8 @@ class TestClickRun(unittest.TestCase):
 
     def test_click_cli_version(self):
         clirunner = CliRunner()
-        clirunner.invoke(force_wfmanager.gui.run.force_wfmanager, args="--version")
+        clirunner.invoke(force_wfmanager.gui.run.force_wfmanager,
+                         args="--version")
 
     def test_click_cli_main(self):
 
