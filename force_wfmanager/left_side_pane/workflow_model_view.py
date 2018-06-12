@@ -54,9 +54,9 @@ class WorkflowModelView(ModelView):
 
     def remove_data_source(self, data_source):
         """Removes the data source from the model"""
-        for execution_layer in self.model.execution_layers:
-            if data_source in execution_layer.data_sources:
-                execution_layer.data_sources.remove(data_source)
+        for execution_layer_mv in self.execution_layers_mv:
+            if data_source in execution_layer_mv.model.data_sources:
+                execution_layer_mv.remove_data_source(data_source)
 
     # Update the model views in response to changes in the model structure.
 
