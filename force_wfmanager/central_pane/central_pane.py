@@ -24,10 +24,9 @@ class CentralPane(TraitsTaskPane):
     plot = Instance(Plot)
 
     view = View(VGroup(
-        HSplit(
             UItem('result_table', style='custom'),
             UItem('plot', style='custom'),
-        ),
+            layout='tabbed'
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
