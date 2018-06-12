@@ -14,20 +14,20 @@ from force_wfmanager.left_side_pane.workflow_model_view import \
 from force_wfmanager.left_side_pane.variable_names_registry import \
     VariableNamesRegistry
 from force_bdss.tests.probe_classes.data_source import (ProbeDataSourceFactory,
-ProbeDataSource,ProbeDataSourceModel)
-
+                                                        ProbeDataSourceModel)
 # change
+
+
 class TestWorkflowModelView(unittest.TestCase):
     def setUp(self):
         self.wf_mv = WorkflowModelView(model=Workflow())
         workflow = Workflow()
         name_registry = VariableNamesRegistry(workflow)
-        self.wf_mv_name_registry = WorkflowModelView(model=workflow,
-                                                     variable_names_registry=
-                                                     name_registry)
+        self.wf_mv_name_registry = WorkflowModelView(
+            model=workflow, variable_names_registry=name_registry)
         self.plugin = ProbeExtensionPlugin()
-        self.datasource_model = ProbeDataSourceModel(factory=ProbeDataSourceFactory(
-            plugin=self.plugin))
+        self.datasource_model = ProbeDataSourceModel(
+            factory=ProbeDataSourceFactory(plugin=self.plugin))
 
     def test_add_execution_layer(self):
         self.assertEqual(len(self.wf_mv.execution_layers_mv), 0)
