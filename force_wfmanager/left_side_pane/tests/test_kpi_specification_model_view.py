@@ -49,4 +49,5 @@ class TestKPISpecificationModelViewTest(unittest.TestCase):
 
     def test_label(self):
         self.assertEqual(self.kpi_specification_mv.label, "KPI")
-        self.assertEqual(self.kpi_specification_mv_named.label, "KPI: NamedKPI")
+        self.assertEqual(self.kpi_specification_mv_named.label,
+                         "KPI: NamedKPI")
