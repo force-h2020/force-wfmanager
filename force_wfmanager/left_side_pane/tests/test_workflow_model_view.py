@@ -26,8 +26,9 @@ class TestWorkflowModelView(unittest.TestCase):
         self.wf_mv_name_registry = WorkflowModelView(
             model=workflow, variable_names_registry=name_registry)
         self.plugin = ProbeExtensionPlugin()
-        self.datasource_model = ProbeDataSourceModel(
+        self.datasource_models = [ProbeDataSourceModel(
             factory=ProbeDataSourceFactory(plugin=self.plugin))
+            for _ in range(2)]
 
     def test_add_execution_layer(self):
         self.assertEqual(len(self.wf_mv.execution_layers_mv), 0)
@@ -68,9 +69,12 @@ class TestWorkflowModelView(unittest.TestCase):
         self.assertEqual(len(self.wf_mv_name_registry.
                              execution_layers_mv[0].model.data_sources), 0)
         self.wf_mv_name_registry.execution_layers_mv[0].\
-            add_data_source(self.datasource_model)
+            add_data_source(self.datasource_models[0])
         self.assertEqual(len(self.wf_mv_name_registry.
                              execution_layers_mv[0].model.data_sources), 1)
-        self.wf_mv_name_registry.remove_data_source(self.datasource_model)
+        self.wf_mv_name_registry.remove_data_source(self.datasource_models[1])
+        self.assertEqual(len(self.wf_mv_name_registry.
+                             execution_layers_mv[0].model.data_sources), 1)
+        self.wf_mv_name_registry.remove_data_source(self.datasource_models[0])
         self.assertEqual(len(self.wf_mv_name_registry.
                              execution_layers_mv[0].model.data_sources), 0)
