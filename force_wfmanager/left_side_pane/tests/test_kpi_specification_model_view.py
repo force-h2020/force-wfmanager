@@ -24,6 +24,11 @@ class TestKPISpecificationModelViewTest(unittest.TestCase):
             variable_names_registry=self.registry
         )
 
+        self.kpi_specification_mv_named = KPISpecificationModelView(
+            model=KPISpecification(name='NamedKPI'),
+            variable_names_registry=self.registry
+        )
+
     def test_kpi_specification_mv_init(self):
         self.assertEqual(self.kpi_specification_mv.label, "KPI")
 
@@ -44,3 +49,4 @@ class TestKPISpecificationModelViewTest(unittest.TestCase):
 
     def test_label(self):
         self.assertEqual(self.kpi_specification_mv.label, "KPI")
+        self.assertEqual(self.kpi_specification_mv_named.label, "KPI: NamedKPI")
