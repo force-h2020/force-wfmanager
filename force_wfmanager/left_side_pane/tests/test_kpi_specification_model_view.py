@@ -1,4 +1,5 @@
 import unittest
+import mock
 
 from force_bdss.core.output_slot_info import OutputSlotInfo
 from force_wfmanager.left_side_pane.tests.test_variable_names_registry import \
@@ -8,6 +9,10 @@ from force_bdss.core.kpi_specification import KPISpecification
 from force_wfmanager.left_side_pane.kpi_specification_model_view import \
     KPISpecificationModelView
 
+def mock_kpi_no_model():
+    kpi_no_model = mock.Mock(spec=KPISpecificationModelView)
+    kpi_no_model.model = None
+    return kpi_no_model
 
 class TestKPISpecificationModelViewTest(unittest.TestCase):
     def setUp(self):
@@ -44,3 +49,12 @@ class TestKPISpecificationModelViewTest(unittest.TestCase):
 
     def test_label(self):
         self.assertEqual(self.kpi_specification_mv.label, "KPI")
+
+    def test_update_model(self):
+        self.assertEqual(self.kpi_specification_mv.model.name,
+                         self.kpi_specification_mv.name)
+        self.kpi_specification_mv._combobox_values = ['','TestName']
+        self.kpi_specification_mv.name = 'TestName'
+        self.assertEqual(self.kpi_specification_mv.model.name,
+                         self.kpi_specification_mv.name)
+        
