@@ -44,7 +44,7 @@ class KPISpecificationModelView(ModelView):
     def _label_default(self):
         return _get_label(self.model)
 
-    @on_trait_change('name',post_init=True)
+    @on_trait_change('name', post_init=True)
     def update_model(self):
         self.model.name = self.name
 
