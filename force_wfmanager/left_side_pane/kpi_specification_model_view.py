@@ -43,6 +43,11 @@ class KPISpecificationModelView(ModelView):
     def _label_default(self):
         return _get_label(self.model)
 
+    @on_trait_change('name')
+    def update_model(self):
+        if self.model is not None:
+            self.model.name = self.name
+
     @on_trait_change('variable_names_registry.data_source_outputs')
     def update_combobox_values(self):
         available = self.variable_names_registry.data_source_outputs
