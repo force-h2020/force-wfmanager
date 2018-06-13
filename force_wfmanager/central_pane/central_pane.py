@@ -2,7 +2,7 @@ from pyface.tasks.api import TraitsTaskPane
 
 from traits.api import Instance
 
-from traitsui.api import View, HSplit, VGroup, UItem
+from traitsui.api import View, VGroup, UItem
 
 from .analysis_model import AnalysisModel
 from .plot import Plot
