@@ -52,8 +52,17 @@ class InputSlotRow(TableRow):
     @on_trait_change('available_variables')
     def update_combobox_values(self):
         self._combobox_values = [''] + self.available_variables
-        self.name = ('' if self.name not in self.available_variables
-                     else self.name)
+
+        # Check for default name prevents spurious re-assignment when name is
+        # already ''. This causes problems when initialising a row from a json
+        # file, as we cannot change name without avail_vars. However, if this
+        # re-assignment occurs the corresponding model.input_slot_info name is
+        # also changed
+
+        if self.name != '':
+            self.name = ('' if self.name not in self.available_variables
+                         else self.name)
+
 
     def __combobox_values_default(self):
         return [''] + self.available_variables
