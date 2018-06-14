@@ -44,11 +44,3 @@ class TestKPISpecificationModelViewTest(unittest.TestCase):
 
     def test_label(self):
         self.assertEqual(self.kpi_specification_mv.label, "KPI")
-
-    def test_update_model(self):
-        self.assertEqual(self.kpi_specification_mv.model.name,
-                         self.kpi_specification_mv.name)
-        self.kpi_specification_mv._combobox_values = ['', 'TestName']
-        self.kpi_specification_mv.name = 'TestName'
-        self.assertEqual(self.kpi_specification_mv.model.name,
-                         self.kpi_specification_mv.name)

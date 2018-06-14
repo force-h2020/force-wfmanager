@@ -1,5 +1,5 @@
 from traits.api import Instance, Str, Bool, Enum, List, on_trait_change
-from traitsui.api import ModelView, View, Item
+from traitsui.api import ModelView, View, Item, EnumEditor
 
 from force_bdss.core.kpi_specification import KPISpecification
 from force_bdss.local_traits import Identifier
@@ -28,7 +28,7 @@ class KPISpecificationModelView(ModelView):
 
     #: Base view for the MCO parameter
     traits_view = View(
-        Item("name"),
+        Item('model.name', editor=EnumEditor(name='object._combobox_values')),
         Item("model.objective"),
         kind="subpanel",
     )
@@ -39,14 +39,9 @@ class KPISpecificationModelView(ModelView):
             variable_names_registry=variable_names_registry,
             **kwargs
         )
-        model.name = self.name
 
     def _label_default(self):
         return _get_label(self.model)
-
-    @on_trait_change('name', post_init=True)
-    def update_model(self):
-        self.model.name = self.name
 
     @on_trait_change('variable_names_registry.data_source_outputs')
     def update_combobox_values(self):
