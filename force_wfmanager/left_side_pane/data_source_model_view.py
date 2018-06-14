@@ -52,17 +52,8 @@ class InputSlotRow(TableRow):
     @on_trait_change('available_variables')
     def update_combobox_values(self):
         self._combobox_values = [''] + self.available_variables
-
-        # Check for default name prevents spurious re-assignment when name is
-        # already ''. This causes problems when initialising a row from a json
-        # file, as we cannot change name without avail_vars. However, if this
-        # re-assignment occurs the corresponding model.input_slot_info name is
-        # also changed
-
-        if self.name != '':
-            self.name = ('' if self.name not in self.available_variables
-                         else self.name)
-
+        self.name = ('' if self.name not in self.available_variables
+                     else self.name)
 
     def __combobox_values_default(self):
         return [''] + self.available_variables
@@ -234,13 +225,15 @@ class DataSourceModelView(ModelView):
         """ Fill the tables rows according to input_slots and output_slots
         needed by the evaluator and the model slot values """
         available_variables = self._get_available_variables()
-
         input_representations = []
+
         for index, input_slot in enumerate(input_slots):
+            new_name = self.model.input_slot_info[index].name
             slot_representation = InputSlotRow(model=self.model, index=index)
+            new_name = (new_name if new_name in available_variables else '')
             slot_representation.available_variables = available_variables
-            if self.model.input_slot_info[index].name in slot_representation.available_variables:
-                slot_representation.name = self.model.input_slot_info[index].name
+            slot_representation.name = new_name
+
             slot_representation.type = input_slot.type
 
             input_representations.append(slot_representation)
