@@ -1,5 +1,5 @@
 from traits.api import Instance, Str, Bool, Enum, List, on_trait_change
-from traitsui.api import ModelView, View, Item
+from traitsui.api import ModelView, View, Item, EnumEditor
 
 from force_bdss.core.kpi_specification import KPISpecification
 from force_bdss.local_traits import Identifier
@@ -28,7 +28,7 @@ class KPISpecificationModelView(ModelView):
 
     #: Base view for the MCO parameter
     traits_view = View(
-        Item("name"),
+        Item('model.name', editor=EnumEditor(name='object._combobox_values')),
         Item("model.objective"),
         kind="subpanel",
     )
