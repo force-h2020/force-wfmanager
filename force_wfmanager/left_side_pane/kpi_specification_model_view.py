@@ -49,6 +49,10 @@ class KPISpecificationModelView(ModelView):
         self._combobox_values = [''] + available
         self.name = ('' if self.name not in available else self.name)
 
+    @on_trait_change('model.name')
+    def update_label(self):
+        self.label = "KPI: {}".format(self.model.name)
+
 
 def _get_label(model):
     """Gets the label from the model object"""
