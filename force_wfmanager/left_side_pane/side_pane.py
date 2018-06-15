@@ -31,7 +31,7 @@ class SidePane(TraitsDockPane):
     #: The factory registry containing all the factories
     factory_registry = Instance(IFactoryRegistryPlugin)
 
-    #: The Worflow model
+    #: The Workflow model
     workflow_m = Instance(Workflow)
 
     #: Tree editor for the Workflow
