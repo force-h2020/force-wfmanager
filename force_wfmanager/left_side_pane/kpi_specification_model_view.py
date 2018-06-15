@@ -1,4 +1,4 @@
-from traits.api import Instance, Str, Bool, Enum, List, on_trait_change
+from traits.api import Instance, Property, Bool, Enum, List, on_trait_change
 from traitsui.api import ModelView, View, Item, EnumEditor
 
 from force_bdss.core.kpi_specification import KPISpecification
@@ -15,7 +15,7 @@ class KPISpecificationModelView(ModelView):
     variable_names_registry = Instance(VariableNamesRegistry)
 
     #: The human readable name of the KPI
-    label = Str()
+    label = Property(depends_on='model.name')
 
     #: Defines if the KPI is valid or not
     valid = Bool(True)
@@ -40,23 +40,15 @@ class KPISpecificationModelView(ModelView):
             **kwargs
         )
 
-    def _label_default(self):
-        return _get_label(self.model)
-
     @on_trait_change('variable_names_registry.data_source_outputs')
     def update_combobox_values(self):
         available = self.variable_names_registry.data_source_outputs
         self._combobox_values = [''] + available
         self.name = ('' if self.name not in available else self.name)
 
-    @on_trait_change('model.name')
-    def update_label(self):
-        self.label = _get_label(self.model)
+    def _get_label(self):
+        """Gets the label from the model object"""
+        if self.model.name == '':
+            return "KPI"
 
-
-def _get_label(model):
-    """Gets the label from the model object"""
-    if model.name == '':
-        return "KPI"
-
-    return "KPI: {}".format(model.name)
+        return "KPI: {}".format(self.model.name)
