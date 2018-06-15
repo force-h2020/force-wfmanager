@@ -44,3 +44,12 @@ class TestKPISpecificationModelViewTest(unittest.TestCase):
 
     def test_label(self):
         self.assertEqual(self.kpi_specification_mv.label, "KPI")
+
+    def test_name_change(self):
+        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        self.kpi_specification_mv.model.name = ''
+        self.assertEqual(self.kpi_specification_mv.label,
+                         'KPI')
+        self.kpi_specification_mv.model.name = 'T1'
+        self.assertEqual(self.kpi_specification_mv.label,
+                         'KPI: '+self.kpi_specification_mv.model.name)
