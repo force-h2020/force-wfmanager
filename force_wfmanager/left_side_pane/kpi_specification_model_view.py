@@ -51,7 +51,7 @@ class KPISpecificationModelView(ModelView):
 
     @on_trait_change('model.name')
     def update_label(self):
-        self.label = "KPI: {}".format(self.model.name)
+        self.label = _get_label(self.model)
 
 
 def _get_label(model):
