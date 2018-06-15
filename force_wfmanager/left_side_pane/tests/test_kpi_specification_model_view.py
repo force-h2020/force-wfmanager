@@ -25,6 +25,11 @@ class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
             variable_names_registry=self.registry
         )
 
+        self.kpi_specification_mv_named = KPISpecificationModelView(
+            model=KPISpecification(name='NamedKPI'),
+            variable_names_registry=self.registry
+        )
+
     def test_kpi_specification_mv_init(self):
         self.assertEqual(self.kpi_specification_mv.label, "KPI")
 
@@ -45,6 +50,8 @@ class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
 
     def test_label(self):
         self.assertEqual(self.kpi_specification_mv.label, "KPI")
+        self.assertEqual(self.kpi_specification_mv_named.label,
+                         "KPI: NamedKPI")
 
     def test_name_change(self):
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]

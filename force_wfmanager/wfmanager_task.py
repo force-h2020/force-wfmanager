@@ -109,7 +109,7 @@ class WfManagerTask(Task):
         ),
         SMenu(
             TaskAction(
-                name='About WorflowManager...',
+                name='About WorkflowManager...',
                 method='open_about'
             ),
             name='&Help'
