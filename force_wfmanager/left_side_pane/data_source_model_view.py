@@ -230,7 +230,7 @@ class DataSourceModelView(ModelView):
         for index, input_slot in enumerate(input_slots):
             slot_representation = InputSlotRow(model=self.model, index=index)
             new_name = self.model.input_slot_info[index].name
-            if new_name in available_variables:
+            if new_name not in available_variables:
                 new_name = ''
 
             slot_representation.available_variables = available_variables
