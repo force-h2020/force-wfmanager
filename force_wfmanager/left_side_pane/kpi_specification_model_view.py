@@ -1,4 +1,5 @@
-from traits.api import Instance, Property, Bool, Enum, List, on_trait_change
+from traits.api import (Instance, Property, Bool, Enum, List, on_trait_change,
+                        cached_property)
 from traitsui.api import ModelView, View, Item, EnumEditor
 
 from force_bdss.core.kpi_specification import KPISpecification
@@ -46,6 +47,7 @@ class KPISpecificationModelView(ModelView):
         self._combobox_values = [''] + available
         self.name = ('' if self.name not in available else self.name)
 
+    @cached_property
     def _get_label(self):
         """Gets the label from the model object"""
         if self.model.name == '':
