@@ -19,7 +19,7 @@ class WfManagerPlugin(Plugin):
 
     id = 'force_wfmanager.wfmanager_plugin'
     name = 'Workflow Manager'
-    workflow_file = '/Users/jjohnson/Force-Project-Test-Build/workflow_basic.json'
+    workflow_file = ''
 
     tasks = List(contributes_to=TASKS)
 
@@ -36,11 +36,12 @@ class WfManagerPlugin(Plugin):
 
         if self.workflow_file != '':
             if os.path.isfile(self.workflow_file) is False:
-                # Warning here
-                pass
+                # Give warning
+                print('File at path {} not found '
+                      'Q(\'.\'O)'.format(os.path.abspath(self.workflow_file)))
             else:
                 reader = WorkflowReader(factory_registry=factory_registry)
 
-                wf_manager_task.workflow_m = reader.read(open(self.workflow_file,'r'))
-
+                wf_manager_task.workflow_m = reader.read(open(
+                    self.workflow_file, 'r'))
         return wf_manager_task
