@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, Instance, List, Button, Either,
-                        on_trait_change, Dict, Bool)
+                        on_trait_change, Dict, Bool, Str)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
                           HGroup, ListStrEditor, InstanceEditor)
 from traitsui.list_str_adapter import ListStrAdapter
@@ -45,6 +45,12 @@ class NewEntityModal(HasStrictTraits):
         List(Instance(BaseDataSourceFactory)),
         List(Instance(BaseNotificationListenerFactory)),
     )
+    factory_dict = Dict(Str(),
+                        List(Either(Instance(BaseMCOFactory),
+                                    Instance(BaseMCOParameterFactory),
+                                    Instance(BaseDataSourceFactory),
+                                    Instance(BaseNotificationListenerFactory)
+                                    )))
 
     #: Selected factory in the list
     selected_factory = Either(
@@ -99,6 +105,11 @@ class NewEntityModal(HasStrictTraits):
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityModal, self).__init__(*args, **kwargs)
         self.factories = factories
+        self.factories = sorted(self.factories, key=self.get_factory_creator)
+        self.factory_group_by_creator()
+        # view = self.factory_group_view()
+        self.trait_view(name='traits_view',
+                        view_element=self.factory_group_view())
 
     @on_trait_change("selected_factory")
     def update_current_model(self):
@@ -116,3 +127,61 @@ class NewEntityModal(HasStrictTraits):
             self._cached_models[self.selected_factory] = cached_model
 
         self.current_model = cached_model
+
+    def factory_group_by_creator(self):
+        """Takes the list of factories and creates a dict with keys=
+        creator_name and values=factories. This also adds a trait named
+        ${creator_name}_factories for each creator name"""
+        self.factory_dict = {}
+        for factory in self.factories:
+            #plugin_class = str(factory.plugin.__class__)
+            plugin_creator = self.get_factory_creator(factory)
+            if plugin_creator in self.factory_dict:
+                self.factory_dict[plugin_creator].append(factory)
+            else:
+                self.factory_dict[plugin_creator] = [factory]
+
+        for key in self.factory_dict:
+            self.add_trait(str(key)+'_factories', List(self.factory_dict[key]))
+
+    def factory_group_view(self):
+        uitem_list = []
+        for key in self.factory_dict:
+            uitem_list.append(UItem(
+                "{}_factories".format(key),
+                editor=ListStrEditor(
+                    adapter=ListAdapter(),
+                    selected="selected_factory",
+                    title=str(key)
+                ),
+            ))
+        view = View(
+            VGroup(
+                HSplit(
+                    HGroup(uitem_list),
+                    UItem('current_model', style='custom',
+                          editor=InstanceEditor())
+                ),
+                HGroup(
+                    UItem(
+                        'add_button',
+                        enabled_when="selected_factory is not None"
+                    ),
+                    UItem('cancel_button')
+                )
+            ),
+            title='New Element',
+            handler=ModalHandler(),
+            width=800,
+            height=600,
+            kind="livemodal"
+        )
+        return view
+
+
+    def get_factory_creator(self,factory):
+        plugin_class = str(factory.plugin.__class__)
+        # plugin_id = factory.plugin.id
+        plugin_creator = plugin_class.split("\'")[1].split('.')[0]
+        # print (plugin_creator,plugin_id)
+        return plugin_creator
