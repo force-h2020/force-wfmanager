@@ -105,9 +105,8 @@ class NewEntityModal(HasStrictTraits):
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityModal, self).__init__(*args, **kwargs)
         self.factories = factories
-        self.factories = sorted(self.factories, key=self.get_factory_creator)
+        self.factories = sorted(self.factories, key=self.get_factory_info)
         self.factory_group_by_creator()
-        # view = self.factory_group_view()
         self.trait_view(name='traits_view',
                         view_element=self.factory_group_view())
 
@@ -134,8 +133,7 @@ class NewEntityModal(HasStrictTraits):
         ${creator_name}_factories for each creator name"""
         self.factory_dict = {}
         for factory in self.factories:
-            #plugin_class = str(factory.plugin.__class__)
-            plugin_creator = self.get_factory_creator(factory)
+            plugin_creator = self.get_factory_info(factory)
             if plugin_creator in self.factory_dict:
                 self.factory_dict[plugin_creator].append(factory)
             else:
@@ -147,12 +145,13 @@ class NewEntityModal(HasStrictTraits):
     def factory_group_view(self):
         uitem_list = []
         for key in self.factory_dict:
+            title_str = key
             uitem_list.append(UItem(
                 "{}_factories".format(key),
                 editor=ListStrEditor(
                     adapter=ListAdapter(),
                     selected="selected_factory",
-                    title=str(key)
+                    title=title_str
                 ),
             ))
         view = View(
@@ -178,10 +177,20 @@ class NewEntityModal(HasStrictTraits):
         )
         return view
 
-
-    def get_factory_creator(self,factory):
-        plugin_class = str(factory.plugin.__class__)
-        # plugin_id = factory.plugin.id
+    def get_factory_info(self, factory):
+        plugin_class = ''
+        if isinstance(factory, (BaseMCOFactory, BaseDataSourceFactory,
+                                BaseNotificationListenerFactory)):
+            plugin_class = str(factory.plugin.__class__)
+        elif isinstance(factory, BaseMCOParameterFactory):
+            plugin_class = str(factory.mco_factory.plugin.__class__)
         plugin_creator = plugin_class.split("\'")[1].split('.')[0]
-        # print (plugin_creator,plugin_id)
+
+        # if isinstance(factory, (BaseMCOFactory, BaseDataSourceFactory,
+        #                        BaseNotificationListenerFactory)):
+        #     plugin_id = factory.plugin.id.split('.')
+        # elif isinstance(factory, BaseMCOParameterFactory):
+        #     plugin_id = factory.mco_factory.plugin.id.split('.')
+        # plugin_creator = [plugin_id[2], plugin_id[4], plugin_id[5]]
+
         return plugin_creator
