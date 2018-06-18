@@ -3,6 +3,8 @@ from envisage.ui.tasks.api import TaskFactory
 
 from traits.api import List
 
+from pyface.api import confirm, YES
+
 from force_bdss.factory_registry_plugin import FACTORY_REGISTRY_PLUGIN_ID
 
 from force_wfmanager.wfmanager_task import WfManagerTask
@@ -19,7 +21,7 @@ class WfManagerPlugin(Plugin):
 
     id = 'force_wfmanager.wfmanager_plugin'
     name = 'Workflow Manager'
-    workflow_file = ''
+    workflow_file = None
 
     tasks = List(contributes_to=TASKS)
 
@@ -34,14 +36,18 @@ class WfManagerPlugin(Plugin):
 
         wf_manager_task = WfManagerTask(factory_registry=factory_registry)
 
-        if self.workflow_file != '':
+        if self.workflow_file is not None:
             if os.path.isfile(self.workflow_file) is False:
-                # Give warning
-                print('File at path {} not found '
-                      'Q(\'.\'O)'.format(os.path.abspath(self.workflow_file)))
+                result = confirm(None, 'File at path \'{}\' not found.\n'
+                                       'Load with empty workflow?'
+                                 .format(os.path.abspath(self.workflow_file)))
+                if result is not YES:
+                    quit()
+
             else:
                 reader = WorkflowReader(factory_registry=factory_registry)
 
                 wf_manager_task.workflow_m = reader.read(open(
                     self.workflow_file, 'r'))
+
         return wf_manager_task
