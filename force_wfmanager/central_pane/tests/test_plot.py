@@ -1,4 +1,5 @@
 import unittest
+import warnings
 
 from chaco.api import Plot as ChacoPlot
 
@@ -35,8 +36,9 @@ class TestPlot(unittest.TestCase):
     def test_plot(self):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
-
-        self.assertIsInstance(self.plot._plot, ChacoPlot)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.assertIsInstance(self.plot._plot, ChacoPlot)
 
     def test_push_new_evaluation_steps(self):
         self.analysis_model.value_names = ('density', 'pressure')
@@ -149,7 +151,9 @@ class TestPlot(unittest.TestCase):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
-        self.assertIsInstance(self.plot._plot, ChacoPlot)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.assertIsInstance(self.plot._plot, ChacoPlot)
 
         plot_metadata = self.plot._plot_index_datasource.metadata
 
