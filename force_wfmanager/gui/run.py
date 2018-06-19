@@ -21,18 +21,19 @@ push_exception_handler(lambda *args: None, reraise_exceptions=True)
 
 @click.command()
 @click.version_option(version=__version__)
-def force_wfmanager():
+@click.argument('workflow_file', type=click.Path(exists=True), required=False,
+                default=None,)
+def force_wfmanager(workflow_file):
     """Launches the FORCE workflow manager application"""
-    main()
+    main(workflow_file=workflow_file)
 
 
-def main():
+def main(workflow_file=None):
     """Launches the FORCE workflow manager application"""
     logging.basicConfig(filename="force_wfmanager.log", filemode="w")
     log = logging.getLogger(__name__)
-
     plugins = [CorePlugin(), TasksPlugin(), FactoryRegistryPlugin(),
-               WfManagerPlugin()]
+               WfManagerPlugin(workflow_file=workflow_file)]
 
     mgr = extension.ExtensionManager(
         namespace='force.bdss.extensions',

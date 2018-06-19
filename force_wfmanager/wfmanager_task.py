@@ -219,21 +219,25 @@ class WfManagerTask(Task):
             wildcard='JSON files (*.json)|*.json|'
         )
         result = dialog.open()
-
+        f_name = dialog.path
         if result is OK:
-            reader = WorkflowReader(self.factory_registry)
-            try:
-                with open(dialog.path, 'r') as fobj:
-                    self.workflow_m = reader.read(fobj)
-            except InvalidFileException as e:
-                error(
-                    None,
-                    'Cannot read the requested file:\n\n{}'.format(
-                        str(e)),
-                    'Error when reading file'
-                )
-            else:
-                self.current_file = dialog.path
+            self.open_workflow_file(f_name)
+
+    def open_workflow_file(self, f_name):
+        """ Opens a workflow from the specified file name"""
+        reader = WorkflowReader(self.factory_registry)
+        try:
+            with open(f_name, 'r') as fobj:
+                self.workflow_m = reader.read(fobj)
+        except InvalidFileException as e:
+            error(
+                None,
+                'Cannot read the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when reading file'
+            )
+        else:
+            self.current_file = f_name
 
     @on_trait_change('_computation_running')
     def update_side_pane_status(self):

@@ -15,6 +15,7 @@ class WfManagerPlugin(Plugin):
 
     id = 'force_wfmanager.wfmanager_plugin'
     name = 'Workflow Manager'
+    workflow_file = None
 
     tasks = List(contributes_to=TASKS)
 
@@ -27,4 +28,8 @@ class WfManagerPlugin(Plugin):
         factory_registry = self.application.get_plugin(
             FACTORY_REGISTRY_PLUGIN_ID)
 
-        return WfManagerTask(factory_registry=factory_registry)
+        wf_manager_task = WfManagerTask(factory_registry=factory_registry)
+        if self.workflow_file is not None:
+            wf_manager_task.open_workflow_file(self.workflow_file)
+
+        return wf_manager_task
