@@ -21,15 +21,14 @@ push_exception_handler(lambda *args: None, reraise_exceptions=True)
 
 @click.command()
 @click.version_option(version=__version__)
-@click.option('--file', '-f', 'workflow_file', default=None, type=click.Path(),
-              help='Loads a previously saved workflow '
-                   'from the given file path')
+@click.argument('workflow_file', type=click.Path(exists=True), required=False,
+                default=None,)
 def force_wfmanager(workflow_file):
     """Launches the FORCE workflow manager application"""
     main(workflow_file=workflow_file)
 
 
-def main(workflow_file=None):
+def main(workflow_file):
     """Launches the FORCE workflow manager application"""
     logging.basicConfig(filename="force_wfmanager.log", filemode="w")
     log = logging.getLogger(__name__)
