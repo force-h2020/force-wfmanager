@@ -28,7 +28,7 @@ def force_wfmanager(workflow_file):
     main(workflow_file=workflow_file)
 
 
-def main(workflow_file):
+def main(workflow_file=None):
     """Launches the FORCE workflow manager application"""
     logging.basicConfig(filename="force_wfmanager.log", filemode="w")
     log = logging.getLogger(__name__)
