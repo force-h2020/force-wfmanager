@@ -1,4 +1,5 @@
 import unittest
+from traits.testing.unittest_tools import UnittestTools
 
 from force_bdss.core.output_slot_info import OutputSlotInfo
 from force_wfmanager.left_side_pane.tests.test_variable_names_registry import \
@@ -9,7 +10,7 @@ from force_wfmanager.left_side_pane.kpi_specification_model_view import \
     KPISpecificationModelView
 
 
-class TestKPISpecificationModelViewTest(unittest.TestCase):
+class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
     def setUp(self):
         self.registry = basic_variable_names_registry()
         self.workflow = self.registry.workflow
@@ -21,6 +22,11 @@ class TestKPISpecificationModelViewTest(unittest.TestCase):
 
         self.kpi_specification_mv = KPISpecificationModelView(
             model=KPISpecification(),
+            variable_names_registry=self.registry
+        )
+
+        self.kpi_specification_mv_named = KPISpecificationModelView(
+            model=KPISpecification(name='NamedKPI'),
             variable_names_registry=self.registry
         )
 
@@ -44,3 +50,16 @@ class TestKPISpecificationModelViewTest(unittest.TestCase):
 
     def test_label(self):
         self.assertEqual(self.kpi_specification_mv.label, "KPI")
+        self.assertEqual(self.kpi_specification_mv_named.label,
+                         "KPI: NamedKPI")
+
+    def test_name_change(self):
+        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        with self.assertTraitChanges(self.kpi_specification_mv, 'label',
+                                     count=0):
+            self.assertEqual(self.kpi_specification_mv.label, 'KPI')
+        with self.assertTraitChanges(self.kpi_specification_mv, 'label',
+                                     count=1):
+            self.kpi_specification_mv.model.name = 'T1'
+            self.assertEqual(self.kpi_specification_mv.label,
+                             'KPI: T1')
