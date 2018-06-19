@@ -30,17 +30,6 @@ setup(
     author='FORCE, EU H2020 Project',
     description='Workflow manager',
     long_description=README_TEXT,
-    install_requires=[
-        "envisage >= 4.6.0",
-        "stevedore >= 1.24.0",
-        "numpy >= 1.13.3",
-        "cython >= 0.25",
-        "chaco >= 4.7.1",
-        "pyzmq >= 16.0.2",
-        'futures >= 3.1.1',
-        "six >= 1.10.0",
-        'force_bdss >= 0.2.0.dev0'
-    ],
     packages=find_packages(),
     package_data={'force_wfmanager.left_side_pane': 'icons/*'},
     entry_points={

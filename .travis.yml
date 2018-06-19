@@ -27,6 +27,3 @@ after_success:
     - edm run -e force-bootstrap -- pip install codecov --python-version ${PYTHON_VERSION}
     - edm run -e force-bootstrap -- codecov
     - bash <(curl -s https://codecov.io/bash)
-
-
-

@@ -8,17 +8,17 @@ ADDITIONAL_CORE_DEPS = [
     "pyface==6.0.0-1",
     "pygments==2.2.0-1",
     "pyqt==4.11.4-7",
-    "qt==4.8.7-8",
+    "qt==4.8.7-7",
     "sip==4.17-4",
     "traits==4.6.0-1",
     "traitsui==6.0.0-1",
     "numpy==1.13.3-3",
     "chaco==4.7.1-2",
-    "pyzmq==16.0.2",
+    "pyzmq==16.0.0-4",
 ]
 
-ADDITIONAL_CORE_DEPS_27 = [
-    "futures==3.1.1"
+ADDITIONAL_PIP_DEPS_27 = [
+    "futures==3.2.0"
 ]
 
 @click.group()
@@ -42,10 +42,10 @@ def install(python_version):
         "edm", "install", "-e", env_name,
         "--yes"] + ADDITIONAL_CORE_DEPS)
 
-    if python_version == "2.7":
+    if python_version == "2.7" and len(ADDITIONAL_PIP_DEPS_27):
         check_call([
-            "edm", "install", "-e", env_name,
-            "--yes"] + ADDITIONAL_CORE_DEPS_27)
+            "edm", "run", "-e", env_name, "--",
+            "pip", "install"] + ADDITIONAL_PIP_DEPS_27)
 
     check_call([
         "edm", "run", "-e", env_name, "--",
