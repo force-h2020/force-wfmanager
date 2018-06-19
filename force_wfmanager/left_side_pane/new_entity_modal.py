@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, HasTraits, Instance, List, Button,
-                        Either, on_trait_change, Dict, Bool, )
+                        Either, on_trait_change, Dict, Bool, Str)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
                           HGroup, ListStrEditor, InstanceEditor,
                           TreeEditor, TreeNode, TreeNodeObject)
@@ -37,24 +37,21 @@ class ModalHandler(Handler):
         info.object.current_model = None
         info.ui.dispose()
 
-class FactoryList(HasTraits):
-    """Trait which is a list of all factories. Maybe don't need this as factories
-    and plugins not modified during runtime so don't need to monitor for changes"""
-    factories = Either(
-        List(Instance(BaseMCOFactory)),
-        List(Instance(BaseMCOParameterFactory)),
-        List(Instance(BaseDataSourceFactory)),
-        List(Instance(BaseNotificationListenerFactory)),
-    )
 
 class FactoryPlugin(HasStrictTraits):
     """An instance of FactoryPlugin contains a plugin, along with all the factories
     which can be derived from it"""
     plugin = Instance(Plugin)
+    name = Str('plugin')
     plugin_factories = List(Either(Instance(BaseMCOFactory),
                                    Instance(BaseMCOParameterFactory),
                                    Instance(BaseDataSourceFactory),
                                    Instance(BaseNotificationListenerFactory)))
+
+
+class Root(HasStrictTraits):
+    plugins = List(FactoryPlugin)
+    name = Str("root")
 
 
 class NewEntityModal(HasStrictTraits):
@@ -71,7 +68,7 @@ class NewEntityModal(HasStrictTraits):
 
     #: List of FactoryPlugin instances, which provide a mapping between plugins
     #: factories
-    plugins = List(FactoryPlugin)
+    plugins = Instance(Root)
 
     #: Selected factory in the list
     selected_factory = Either(
@@ -124,28 +121,46 @@ class NewEntityModal(HasStrictTraits):
     )"""
 
     traits_view = View(
+        VGroup(
+        HSplit(
         UItem('plugins', editor=TreeEditor(
-            nodes=[TreeNode(
-                    node_for=[FactoryPlugin],
-                    children='plugin_factories',
-                    view=View()),
-                   TreeNode(
-                    node_for=[Either(Instance(BaseMCOFactory),
-                                    Instance(BaseMCOParameterFactory),
-                                    Instance(BaseDataSourceFactory),
-                                    Instance(BaseNotificationListenerFactory))],
-                    children='',
-                    view=View())
+            nodes=[TreeNode(node_for=[Root], children='plugins', view=View(),
+                            label='name'),
+                   TreeNode(node_for=[FactoryPlugin],
+                            children='plugin_factories', view=View(),
+                            label='name'),
+                   TreeNode(node_for=[BaseMCOFactory,BaseMCOParameterFactory,
+                                      BaseDataSourceFactory,
+                                      BaseNotificationListenerFactory],
+                            children='', view=View(), label='name')
                    ],
-            orientation="vertical"
-        ))
+            orientation="vertical",
+            selected="selected_factory",
+            hide_root=True,
+                    )
+              ),
+        UItem('current_model', style='custom', editor=InstanceEditor())
+        ),
+        HGroup(
+            UItem(
+                'add_button',
+                enabled_when="selected_factory is not None"
+                ),
+            UItem('cancel_button')
+            )
+        ),
+        title='New Element',
+        handler=ModalHandler(),
+        width=800,
+        height=600,
+        kind="livemodal"
     )
 
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityModal, self).__init__(*args, **kwargs)
         self.factory_list = factories
-        # Build up a list of plugin-factory mappings
 
+        # Build up a list of plugin-factory mappings
         plugin_dict = {}
         for factory in self.factory_list:
             plugin_from_factory = self._get_plugin(factory)
@@ -153,18 +168,12 @@ class NewEntityModal(HasStrictTraits):
                 plugin_dict[plugin_from_factory] = []
             plugin_dict[plugin_from_factory].append(factory)
 
-        #print(plugin_dict)
-
+        plugins = []
         for plugin, factory_list in zip(plugin_dict, plugin_dict.values()):
-            self.plugins.append(FactoryPlugin(plugin=plugin,
-                                              plugin_factories=factory_list))
-        #print(self.plugins)
-        for p in self.plugins:
-            print(p.plugin_factories)
-
-
-        # self.factories = sorted(self.factories, key=self.get_plugin_info)
-        # self.factory_group_by_creator()
+            plugins.append(FactoryPlugin(plugin=plugin,
+                                         plugin_factories=factory_list,
+                                         name=plugin.id))
+        self.plugins = Root(plugins=plugins)
 
     @on_trait_change("selected_factory")
     def update_current_model(self):
@@ -183,76 +192,6 @@ class NewEntityModal(HasStrictTraits):
 
         self.current_model = cached_model
 
-    def factory_group_by_creator(self):
-        """Takes the list of factories and creates a dict with keys=
-        creator_name and values=factories. This also adds a trait named
-        ${creator_name}_factories for each creator name"""
-        factory_dict = {}
-        for factory in self.factories:
-            plugin_creator = self.get_plugin_info(factory)
-            if plugin_creator in factory_dict:
-                factory_dict[plugin_creator].append(factory)
-            else:
-                factory_dict[plugin_creator] = [factory]
-                
-        #for key in self.factory_dict:
-        #    self.add_trait(str(key)+'_factories', List(factory_dict[key]))
-
-    def factory_group_view(self):
-        uitem_list = []
-        for key in self.factory_dict:
-            title_str = key
-            uitem_list.append(UItem(
-                "{}_factories".format(key),
-                editor=ListStrEditor(
-                    adapter=ListAdapter(),
-                    selected="selected_factory",
-                    title=title_str
-                ),
-            ))
-        view = View(
-            VGroup(
-                HSplit(
-                    HGroup(uitem_list),
-                    UItem('current_model', style='custom',
-                          editor=InstanceEditor())
-                ),
-                HGroup(
-                    UItem(
-                        'add_button',
-                        enabled_when="selected_factory is not None"
-                    ),
-                    UItem('cancel_button')
-                )
-            ),
-            title='New Element',
-            handler=ModalHandler(),
-            width=800,
-            height=600,
-            kind="livemodal"
-        )
-        return view
-
-    def get_plugin_info(self, factory):
-        """Returns the module name of the plugin this factory is associated
-        with"""
-        plugin_class = ''
-        if isinstance(factory, (BaseMCOFactory, BaseDataSourceFactory,
-                                BaseNotificationListenerFactory)):
-            plugin_class = str(factory.plugin.__class__)
-        elif isinstance(factory, BaseMCOParameterFactory):
-            plugin_class = str(factory.mco_factory.plugin.__class__)
-        plugin_creator = plugin_class.split("\'")[1].split('.')[0]
-
-        # if isinstance(factory, (BaseMCOFactory, BaseDataSourceFactory,
-        #                        BaseNotificationListenerFactory)):
-        #     plugin_id = factory.plugin.id.split('.')
-        # elif isinstance(factory, BaseMCOParameterFactory):
-        #     plugin_id = factory.mco_factory.plugin.id.split('.')
-        # plugin_creator = [plugin_id[2], plugin_id[4], plugin_id[5]]
-
-        return plugin_creator
-
     def _get_plugin(self, factory):
         if isinstance(factory, (BaseMCOFactory, BaseDataSourceFactory,
                                 BaseNotificationListenerFactory)):
@@ -260,3 +199,4 @@ class NewEntityModal(HasStrictTraits):
         elif isinstance(factory, BaseMCOParameterFactory):
             plugin = factory.mco_factory.plugin
         return plugin
+
