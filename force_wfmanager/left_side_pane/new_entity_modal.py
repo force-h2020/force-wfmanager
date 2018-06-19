@@ -1,8 +1,12 @@
-from traits.api import (HasStrictTraits, Instance, List, Button, Either,
-                        on_trait_change, Dict, Bool, Str)
+from traits.api import (HasStrictTraits, HasTraits, Instance, List, Button,
+                        Either, on_trait_change, Dict, Bool, )
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
-                          HGroup, ListStrEditor, InstanceEditor)
+                          HGroup, ListStrEditor, InstanceEditor,
+                          TreeEditor, TreeNode, TreeNodeObject)
 from traitsui.list_str_adapter import ListStrAdapter
+
+from envisage.plugin import Plugin
+
 
 from force_bdss.api import (
     BaseMCOModel, BaseMCOFactory,
@@ -33,18 +37,41 @@ class ModalHandler(Handler):
         info.object.current_model = None
         info.ui.dispose()
 
-
-class NewEntityModal(HasStrictTraits):
-    """ Dialog which allows the user to add a new MCO/Data Source
-    to the workflow """
-    #: Available factories, this class is generic and can contain any factory
-    #: which implement the create_model method
+class FactoryList(HasTraits):
+    """Trait which is a list of all factories. Maybe don't need this as factories
+    and plugins not modified during runtime so don't need to monitor for changes"""
     factories = Either(
         List(Instance(BaseMCOFactory)),
         List(Instance(BaseMCOParameterFactory)),
         List(Instance(BaseDataSourceFactory)),
         List(Instance(BaseNotificationListenerFactory)),
     )
+
+class FactoryPlugin(HasStrictTraits):
+    """An instance of FactoryPlugin contains a plugin, along with all the factories
+    which can be derived from it"""
+    plugin = Instance(Plugin)
+    plugin_factories = List(Either(Instance(BaseMCOFactory),
+                                   Instance(BaseMCOParameterFactory),
+                                   Instance(BaseDataSourceFactory),
+                                   Instance(BaseNotificationListenerFactory)))
+
+
+class NewEntityModal(HasStrictTraits):
+    """ Dialog which allows the user to add a new MCO/Data Source
+    to the workflow """
+    #: Available factories, this class is generic and can contain any factory
+    #: which implement the create_model method
+    factory_list = Either(
+        List(Instance(BaseMCOFactory)),
+        List(Instance(BaseMCOParameterFactory)),
+        List(Instance(BaseDataSourceFactory)),
+        List(Instance(BaseNotificationListenerFactory)),
+    )
+
+    #: List of FactoryPlugin instances, which provide a mapping between plugins
+    #: factories
+    plugins = List(FactoryPlugin)
 
     #: Selected factory in the list
     selected_factory = Either(
@@ -70,7 +97,7 @@ class NewEntityModal(HasStrictTraits):
     #: models are saved
     _cached_models = Dict()
 
-    traits_view = View(
+    """traits_view = View(
         VGroup(
             HSplit(
                 UItem(
@@ -94,15 +121,50 @@ class NewEntityModal(HasStrictTraits):
         width=800,
         height=600,
         kind="livemodal"
+    )"""
+
+    traits_view = View(
+        UItem('plugins', editor=TreeEditor(
+            nodes=[TreeNode(
+                    node_for=[FactoryPlugin],
+                    children='plugin_factories',
+                    view=View()),
+                   TreeNode(
+                    node_for=[Either(Instance(BaseMCOFactory),
+                                    Instance(BaseMCOParameterFactory),
+                                    Instance(BaseDataSourceFactory),
+                                    Instance(BaseNotificationListenerFactory))],
+                    children='',
+                    view=View())
+                   ],
+            orientation="vertical"
+        ))
     )
 
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityModal, self).__init__(*args, **kwargs)
-        self.factories = factories
+        self.factory_list = factories
+        # Build up a list of plugin-factory mappings
+
+        plugin_dict = {}
+        for factory in self.factory_list:
+            plugin_from_factory = self._get_plugin(factory)
+            if plugin_from_factory not in plugin_dict:
+                plugin_dict[plugin_from_factory] = []
+            plugin_dict[plugin_from_factory].append(factory)
+
+        #print(plugin_dict)
+
+        for plugin, factory_list in zip(plugin_dict, plugin_dict.values()):
+            self.plugins.append(FactoryPlugin(plugin=plugin,
+                                              plugin_factories=factory_list))
+        #print(self.plugins)
+        for p in self.plugins:
+            print(p.plugin_factories)
+
+
         # self.factories = sorted(self.factories, key=self.get_plugin_info)
-        self.factory_group_by_creator()
-        self.trait_view(name='traits_view',
-                        view_element=self.factory_group_view())
+        # self.factory_group_by_creator()
 
     @on_trait_change("selected_factory")
     def update_current_model(self):
@@ -190,3 +252,11 @@ class NewEntityModal(HasStrictTraits):
         # plugin_creator = [plugin_id[2], plugin_id[4], plugin_id[5]]
 
         return plugin_creator
+
+    def _get_plugin(self, factory):
+        if isinstance(factory, (BaseMCOFactory, BaseDataSourceFactory,
+                                BaseNotificationListenerFactory)):
+            plugin = factory.plugin
+        elif isinstance(factory, BaseMCOParameterFactory):
+            plugin = factory.mco_factory.plugin
+        return plugin
