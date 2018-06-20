@@ -8,7 +8,7 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 
 from force_wfmanager.left_side_pane.new_entity_modal import (
-    ModalHandler, NewEntityModal, ListAdapter)
+    ModalHandler, NewEntityModal,)
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowModelView
 
 
@@ -52,7 +52,7 @@ class TestNewEntityModal(unittest.TestCase):
 
         # Simulate selecting an mco factory in the list
         modal, modal_info = self._get_dialog()
-        modal.selected_factory = modal.factories[0]
+        modal.selected_factory = modal.factory_list[0]
 
         # Simulate pressing add mco button
         self.handler.object_add_button_changed(modal_info)
@@ -60,7 +60,7 @@ class TestNewEntityModal(unittest.TestCase):
 
         # Simulate selecting an mco factory in the list
         modal, modal_info = self._get_dialog()
-        modal.selected_factory = modal.factories[0]
+        modal.selected_factory = modal.factory_list[0]
 
         # Simulate pressing add mco button again to create a new mco model
         self.handler.object_cancel_button_changed(modal_info)
@@ -69,7 +69,7 @@ class TestNewEntityModal(unittest.TestCase):
     def test_caching(self):
         modal, _ = self._get_dialog()
         # Select a factory and
-        modal.selected_factory = modal.factories[0]
+        modal.selected_factory = modal.factory_list[0]
 
         self.assertIsNotNone(modal.current_model)
         first_model = modal.current_model
@@ -80,12 +80,6 @@ class TestNewEntityModal(unittest.TestCase):
         self.assertIsNone(modal.current_model)
 
         # Select the same factory again and check if the model is the same
-        modal.selected_factory = modal.factories[0]
+        modal.selected_factory = modal.factory_list[0]
 
         self.assertEqual(id(first_model), id(modal.current_model))
-
-    def test_list_adapter(self):
-        adapter = ListAdapter(item=ProbeMCOFactory(self.plugin))
-        self.assertEqual(
-            adapter.get_text({}, {}, {}),
-            'testmco')

@@ -1,9 +1,8 @@
-from traits.api import (HasStrictTraits, HasTraits, Instance, List, Button,
-                        Either, on_trait_change, Dict, Bool, Str)
+from traits.api import (HasStrictTraits, Instance, List, Button,
+                        Either, on_trait_change, Dict, Str)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
-                          HGroup, ListStrEditor, InstanceEditor,
-                          TreeEditor, TreeNode, TreeNodeObject)
-from traitsui.list_str_adapter import ListStrAdapter
+                          HGroup, InstanceEditor,
+                          TreeEditor, TreeNode)
 
 from envisage.plugin import Plugin
 
@@ -14,17 +13,6 @@ from force_bdss.api import (
     BaseMCOParameter, BaseMCOParameterFactory,
     BaseNotificationListenerModel, BaseNotificationListenerFactory,
 )
-
-from force_wfmanager.left_side_pane.view_utils import get_factory_name
-
-
-class ListAdapter(ListStrAdapter):
-    """ Adapter for the list of available MCOs/Data sources/KPI calculators
-    factories """
-    can_edit = Bool(False)
-
-    def get_text(self, object, trait, index):
-        return get_factory_name(self.item)
 
 
 class ModalHandler(Handler):
@@ -120,33 +108,30 @@ class NewEntityModal(HasStrictTraits):
         kind="livemodal"
     )"""
 
+    editor = TreeEditor(nodes=[
+        TreeNode(node_for=[Root], children='plugins',
+                 view=View(), label='name'),
+        TreeNode(node_for=[FactoryPlugin], children='plugin_factories',
+                 view=View(), label='name'),
+        TreeNode(node_for=[BaseMCOFactory, BaseNotificationListenerFactory,
+                           BaseDataSourceFactory, BaseMCOParameterFactory],
+                 children='', view=View(), label='name')
+            ],
+        orientation="vertical",
+        selected="selected_factory",
+        hide_root=True,
+        )
+
     traits_view = View(
         VGroup(
-        HSplit(
-        UItem('plugins', editor=TreeEditor(
-            nodes=[TreeNode(node_for=[Root], children='plugins', view=View(),
-                            label='name'),
-                   TreeNode(node_for=[FactoryPlugin],
-                            children='plugin_factories', view=View(),
-                            label='name'),
-                   TreeNode(node_for=[BaseMCOFactory,BaseMCOParameterFactory,
-                                      BaseDataSourceFactory,
-                                      BaseNotificationListenerFactory],
-                            children='', view=View(), label='name')
-                   ],
-            orientation="vertical",
-            selected="selected_factory",
-            hide_root=True,
-                    )
-              ),
-        UItem('current_model', style='custom', editor=InstanceEditor())
-        ),
-        HGroup(
-            UItem(
-                'add_button',
-                enabled_when="selected_factory is not None"
+            HSplit(
+                UItem('plugins', editor=editor),
+                UItem('current_model', style='custom', editor=InstanceEditor())
                 ),
-            UItem('cancel_button')
+            HGroup(
+                UItem('add_button',
+                      enabled_when="selected_factory is not None"),
+                UItem('cancel_button')
             )
         ),
         title='New Element',
@@ -196,7 +181,9 @@ class NewEntityModal(HasStrictTraits):
         if isinstance(factory, (BaseMCOFactory, BaseDataSourceFactory,
                                 BaseNotificationListenerFactory)):
             plugin = factory.plugin
-        elif isinstance(factory, BaseMCOParameterFactory):
+        # MCO parameter factory does not contain it's own plugin, but does
+        # contain the mco_factory it is associated with
+        else:
             plugin = factory.mco_factory.plugin
-        return plugin
 
+        return plugin
