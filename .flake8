@@ -1,2 +1,2 @@
 [flake8]
-exclude = build/*,venv/*,doc/source/*,tests/utils.py,selenium_tests/*
+exclude = build/*,venv/*,doc/source/*,tests/utils.py,selenium_tests/*,force-bdss/*
