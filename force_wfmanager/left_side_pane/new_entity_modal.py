@@ -82,32 +82,6 @@ class NewEntityModal(HasStrictTraits):
     #: models are saved
     _cached_models = Dict()
 
-    """traits_view = View(
-        VGroup(
-            HSplit(
-                UItem(
-                    "factories",
-                    editor=ListStrEditor(
-                        adapter=ListAdapter(),
-                        selected="selected_factory"),
-                ),
-                UItem('current_model', style='custom', editor=InstanceEditor())
-            ),
-            HGroup(
-                UItem(
-                    'add_button',
-                    enabled_when="selected_factory is not None"
-                ),
-                UItem('cancel_button')
-            )
-        ),
-        title='New Element',
-        handler=ModalHandler(),
-        width=800,
-        height=600,
-        kind="livemodal"
-    )"""
-
     editor = TreeEditor(nodes=[
         TreeNode(node_for=[Root], children='plugins',
                  view=View(), label='name'),
