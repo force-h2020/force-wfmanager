@@ -1,8 +1,8 @@
 from traits.api import (HasStrictTraits, Instance, List, Button,
                         Either, on_trait_change, Dict, Str)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
-                          HGroup, InstanceEditor,
-                          TreeEditor, TreeNode)
+                          InstanceEditor, OKCancelButtons,
+                          TreeEditor, TreeNode, )
 
 from envisage.plugin import Plugin
 
@@ -16,14 +16,10 @@ from force_bdss.api import (
 
 
 class ModalHandler(Handler):
-    def object_add_button_changed(self, info):
-        """ Action triggered when clicking on "Add" button in the modal """
-        info.ui.dispose()
-
-    def object_cancel_button_changed(self, info):
-        """ Action triggered when clicking on "Cancel" button in the modal """
-        info.object.current_model = None
-        info.ui.dispose()
+    def close(self, info, is_ok):
+        if is_ok is False:
+            info.object.current_model = None
+        return True
 
 
 class FactoryPlugin(HasStrictTraits):
@@ -94,7 +90,10 @@ class NewEntityModal(HasStrictTraits):
         orientation="vertical",
         selected="selected_factory",
         hide_root=True,
+        auto_open=2
         )
+
+    OKCancelButtons[0].trait_set(enabled_when="selected_factory is not None")
 
     traits_view = View(
         VGroup(
@@ -102,13 +101,9 @@ class NewEntityModal(HasStrictTraits):
                 UItem('plugins', editor=editor),
                 UItem('current_model', style='custom', editor=InstanceEditor())
                 ),
-            HGroup(
-                UItem('add_button',
-                      enabled_when="selected_factory is not None"),
-                UItem('cancel_button')
-            )
         ),
-        title='New Element',
+        buttons=OKCancelButtons,
+        title='Add New Element',
         handler=ModalHandler(),
         width=800,
         height=600,
