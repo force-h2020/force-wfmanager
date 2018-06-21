@@ -55,7 +55,7 @@ class TestNewEntityModal(unittest.TestCase):
         modal.selected_factory = modal.factory_list[0]
 
         # Simulate pressing add mco button
-        self.handler.close(modal_info,True)
+        self.handler.close(modal_info, True)
         self.assertIsNotNone(modal.current_model)
 
         # Simulate selecting an mco factory in the list
@@ -63,7 +63,7 @@ class TestNewEntityModal(unittest.TestCase):
         modal.selected_factory = modal.factory_list[0]
 
         # Simulate pressing add mco button again to create a new mco model
-        self.handler.close(modal_info,False)
+        self.handler.close(modal_info, False)
         self.assertIsNone(modal.current_model)
 
     def test_caching(self):
