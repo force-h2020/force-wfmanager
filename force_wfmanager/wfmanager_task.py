@@ -405,7 +405,12 @@ class WfManagerTask(Task):
         elif result is CANCEL:
             return
 
-        self.window.application.exit()
+        app = self.window.application
+        window = self.window
+
+        window.remove_task(self)
+        window.close()
+        app.exit()
 
     # Default initializers
 
