@@ -3,7 +3,8 @@ from traits.api import (
     on_trait_change)
 
 from traitsui.api import (
-    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView
+    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView,
+    InstanceEditor, Group, OKButton
 )
 
 from force_bdss.core.kpi_specification import KPISpecification
@@ -173,6 +174,27 @@ tree_editor = TreeEditor(
 )
 
 
+class ModelEditDialog(ModelView):
+    """Editing modelview to show the model in a nice box."""
+    traits_view = View(
+        Group(
+            UItem('model',
+                  style='custom',
+                  editor=InstanceEditor(),
+            ),
+            style="custom",
+            label="Configuration Options",
+            show_border=True
+        ),
+        title='Edit Element',
+        width=800,
+        height=600,
+        resizable=True,
+        kind="livemodal",
+        buttons=[OKButton]
+    )
+
+
 class WorkflowTree(ModelView):
     """ Part of the GUI containing the tree editor displaying the Workflow """
     #: The workflow model
@@ -216,7 +238,7 @@ class WorkflowTree(ModelView):
             workflow_mv.set_mco(result)
 
     def edit_mco(self, ui_info, object):
-        object.model.edit_traits(kind="livemodal")
+        ModelEditDialog(model=object.model).edit_traits()
 
     def delete_mco(self, ui_info, object):
         """Deletes the MCO"""
@@ -240,7 +262,7 @@ class WorkflowTree(ModelView):
             workflow_mv.add_notification_listener(result)
 
     def edit_notification_listener(self, ui_info, object):
-        object.model.edit_traits(kind="livemodal")
+        ModelEditDialog(model=object.model).edit_traits()
 
     def delete_notification_listener(self, ui_info, object):
         """Deletes the notification listener"""
@@ -259,7 +281,7 @@ class WorkflowTree(ModelView):
             object.add_parameter(result)
 
     def edit_parameter(self, ui_info, object):
-        object.model.edit_traits(kind="livemodal")
+        ModelEditDialog(model=object.model).edit_traits()
 
     def delete_parameter(self, ui_info, object):
         if len(self.workflow_mv.mco_mv) > 0:
@@ -290,7 +312,7 @@ class WorkflowTree(ModelView):
 
     def edit_data_source(self, ui_info, object):
         # This is a live dialog, workaround for issue #58
-        object.model.edit_traits(kind="livemodal")
+        ModelEditDialog(model=object.model).edit_traits()
 
     def new_layer(self, ui_info, object):
         self.workflow_mv.add_execution_layer(ExecutionLayer())

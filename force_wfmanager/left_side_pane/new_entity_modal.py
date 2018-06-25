@@ -1,11 +1,11 @@
+
 from traits.api import (HasStrictTraits, Instance, List, Button,
                         Either, on_trait_change, Dict, Str)
-from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
+from traitsui.api import (View, Handler, HSplit, VGroup, Group, UItem,
                           InstanceEditor, OKCancelButtons,
                           TreeEditor, TreeNode)
 
 from envisage.plugin import Plugin
-
 
 from force_bdss.api import (
     BaseMCOModel, BaseMCOFactory,
@@ -101,16 +101,25 @@ class NewEntityModal(HasStrictTraits):
     traits_view = View(
         VGroup(
             HSplit(
-                UItem('plugins_root', editor=editor),
-
-                UItem('current_model', style='custom', editor=InstanceEditor())
+                Group(
+                    UItem('plugins_root', editor=editor),
                 ),
+                Group(
+                    UItem('current_model', style='custom',
+                          editor=InstanceEditor()),
+                    style="custom",
+                    label="Configuration Options",
+                    show_border=True
+                )
+            )
+
         ),
         buttons=OKCancelButtons,
         title='Add New Element',
         handler=ModalHandler(),
         width=800,
         height=600,
+        resizable=True,
         kind="livemodal"
     )
 
