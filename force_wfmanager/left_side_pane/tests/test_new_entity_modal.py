@@ -52,7 +52,7 @@ class TestNewEntityModal(unittest.TestCase):
 
         # Simulate selecting an mco factory in the list
         modal, modal_info = self._get_dialog()
-        modal.selected_factory = modal.factory_list[0]
+        modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add mco button
         self.handler.close(modal_info, True)
@@ -60,7 +60,7 @@ class TestNewEntityModal(unittest.TestCase):
 
         # Simulate selecting an mco factory in the list
         modal, modal_info = self._get_dialog()
-        modal.selected_factory = modal.factory_list[0]
+        modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add mco button again to create a new mco model
         self.handler.close(modal_info, False)
@@ -69,7 +69,7 @@ class TestNewEntityModal(unittest.TestCase):
     def test_caching(self):
         modal, _ = self._get_dialog()
         # Select a factory and
-        modal.selected_factory = modal.factory_list[0]
+        modal.selected_factory = modal.factories[0]
 
         self.assertIsNotNone(modal.current_model)
         first_model = modal.current_model
@@ -80,6 +80,6 @@ class TestNewEntityModal(unittest.TestCase):
         self.assertIsNone(modal.current_model)
 
         # Select the same factory again and check if the model is the same
-        modal.selected_factory = modal.factory_list[0]
+        modal.selected_factory = modal.factories[0]
 
         self.assertEqual(id(first_model), id(modal.current_model))
