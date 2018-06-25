@@ -14,6 +14,8 @@ from force_bdss.api import (
     BaseNotificationListenerModel, BaseNotificationListenerFactory,
 )
 
+no_view = View()
+
 
 class ModalHandler(Handler):
     def close(self, info, is_ok):
@@ -27,10 +29,10 @@ class FactoryPlugin(HasStrictTraits):
     which can be derived from it"""
     plugin = Instance(Plugin)
     name = Str('plugin')
-    plugin_factories = List(Either(Instance(BaseMCOFactory),
-                                   Instance(BaseMCOParameterFactory),
-                                   Instance(BaseDataSourceFactory),
-                                   Instance(BaseNotificationListenerFactory)))
+    factories = List(Either(Instance(BaseMCOFactory),
+                            Instance(BaseMCOParameterFactory),
+                            Instance(BaseDataSourceFactory),
+                            Instance(BaseNotificationListenerFactory)))
 
 
 class Root(HasStrictTraits):
@@ -43,7 +45,7 @@ class NewEntityModal(HasStrictTraits):
     to the workflow """
     #: Available factories, this class is generic and can contain any factory
     #: which implement the create_model method
-    factory_list = Either(
+    factories = Either(
         List(Instance(BaseMCOFactory)),
         List(Instance(BaseMCOParameterFactory)),
         List(Instance(BaseDataSourceFactory)),
@@ -80,12 +82,12 @@ class NewEntityModal(HasStrictTraits):
 
     editor = TreeEditor(nodes=[
         TreeNode(node_for=[Root], children='plugins',
-                 view=View(), label='name'),
-        TreeNode(node_for=[FactoryPlugin], children='plugin_factories',
-                 view=View(), label='name'),
+                 view=no_view, label='name'),
+        TreeNode(node_for=[FactoryPlugin], children='factories',
+                 view=no_view, label='name'),
         TreeNode(node_for=[BaseMCOFactory, BaseNotificationListenerFactory,
                            BaseDataSourceFactory, BaseMCOParameterFactory],
-                 children='', view=View(), label='name')
+                 children='', view=no_view, label='name')
             ],
         orientation="vertical",
         selected="selected_factory",
@@ -93,6 +95,7 @@ class NewEntityModal(HasStrictTraits):
         auto_open=2
         )
 
+    #: Disable the OK button if no factory set
     OKCancelButtons[0].trait_set(enabled_when="selected_factory is not None")
 
     traits_view = View(
@@ -112,22 +115,23 @@ class NewEntityModal(HasStrictTraits):
 
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityModal, self).__init__(*args, **kwargs)
-        self.factory_list = factories
+        self.factories = factories
 
+    def _plugins_default(self):
         # Build up a list of plugin-factory mappings
         plugin_dict = {}
-        for factory in self.factory_list:
-            plugin_from_factory = self._get_plugin(factory)
+        for factory in self.factories:
+            plugin_from_factory = self.get_plugin_from_factory(factory)
             if plugin_from_factory not in plugin_dict:
                 plugin_dict[plugin_from_factory] = []
             plugin_dict[plugin_from_factory].append(factory)
 
         plugins = []
-        for plugin, factory_list in zip(plugin_dict, plugin_dict.values()):
+        for plugin, factories in zip(plugin_dict, plugin_dict.values()):
             plugins.append(FactoryPlugin(plugin=plugin,
-                                         plugin_factories=factory_list,
+                                         factories=factories,
                                          name=plugin.id))
-        self.plugins = Root(plugins=plugins)
+        return Root(plugins=plugins)
 
     @on_trait_change("selected_factory")
     def update_current_model(self):
@@ -146,11 +150,12 @@ class NewEntityModal(HasStrictTraits):
 
         self.current_model = cached_model
 
-    def _get_plugin(self, factory):
+    def get_plugin_from_factory(self, factory):
+        """Returns the plugin associated with a particular factory"""
         if isinstance(factory, (BaseMCOFactory, BaseDataSourceFactory,
                                 BaseNotificationListenerFactory)):
             plugin = factory.plugin
-        # MCO parameter factory does not contain it's own plugin, but does
+        # The MCO parameter factory does not contain it's own plugin, but does
         # contain the mco_factory it is associated with
         else:
             plugin = factory.mco_factory.plugin
