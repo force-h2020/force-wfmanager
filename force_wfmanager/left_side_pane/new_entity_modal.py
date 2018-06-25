@@ -11,7 +11,8 @@ from force_bdss.api import (
     BaseNotificationListenerModel, BaseNotificationListenerFactory,
 )
 
-from force_wfmanager.left_side_pane.view_utils import get_factory_name
+from force_wfmanager.left_side_pane.view_utils import get_factory_name, \
+    get_plugin_producer
 
 
 class ListAdapter(ListStrAdapter):
@@ -20,7 +21,14 @@ class ListAdapter(ListStrAdapter):
     can_edit = Bool(False)
 
     def get_text(self, object, trait, index):
-        return get_factory_name(self.item)
+        if hasattr(self.item, "plugin"):
+            return (
+                get_plugin_producer(self.item.plugin) +
+                " :: " +
+                get_factory_name(self.item)
+            )
+        else:
+            return get_factory_name(self.item)
 
 
 class ModalHandler(Handler):
