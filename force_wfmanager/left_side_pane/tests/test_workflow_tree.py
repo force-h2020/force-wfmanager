@@ -20,13 +20,17 @@ from force_bdss.core.workflow import Workflow
 
 from force_wfmanager.left_side_pane.workflow_tree import (
     WorkflowTree,
-    TreeNodeWithStatus
+    TreeNodeWithStatus,
+    ModelEditDialog
 )
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 
 
 NEW_ENTITY_MODAL_PATH = (
     "force_wfmanager.left_side_pane.workflow_tree.NewEntityModal"
+)
+MODEL_EDIT_PATH = (
+    "force_wfmanager.left_side_pane.workflow_tree.ModelEditDialog"
 )
 
 
@@ -41,6 +45,12 @@ def mock_new_modal(model_type):
         return modal
 
     return _mock_new_modal
+
+
+def mock_model_edit_dialog():
+    model_edit_dialog = mock.Mock(spec=ModelEditDialog)
+    model_edit_dialog.edit_traits = lambda: None
+    return model_edit_dialog
 
 
 def get_workflow_tree():
@@ -149,15 +159,13 @@ class TestWorkflowTree(unittest.TestCase):
             len(self.tree.workflow_mv.notification_listeners_mv), 0)
 
     def test_edit_entity(self):
-        mock_ui_info = mock.Mock()
-        self.tree.edit_mco(
-            mock_ui_info,
-            self.tree.workflow_mv.mco_mv[0])
-
-        self.assertEqual(
-            self.tree.model.mco.edit_traits_call_count,
-            1
-        )
+            with mock.patch(MODEL_EDIT_PATH) as mock_model_edit:
+                mock_model_edit.side_effect = mock_model_edit_dialog()
+                mock_ui_info = mock.Mock()
+                self.tree.edit_mco(
+                    mock_ui_info,
+                    self.tree.workflow_mv.mco_mv[0])
+                mock_model_edit.assert_called()
 
     def test_delete_mco(self):
         self.assertIsNotNone(self.tree.model.mco)
