@@ -92,7 +92,8 @@ class NewEntityModal(HasStrictTraits):
         orientation="vertical",
         selected="selected_factory",
         hide_root=True,
-        auto_open=2
+        auto_open=2,
+        editable=False
         )
 
     #: Disable the OK button if no factory set
@@ -102,6 +103,7 @@ class NewEntityModal(HasStrictTraits):
         VGroup(
             HSplit(
                 UItem('plugins', editor=editor),
+
                 UItem('current_model', style='custom', editor=InstanceEditor())
                 ),
         ),
