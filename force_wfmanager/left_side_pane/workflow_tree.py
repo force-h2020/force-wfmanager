@@ -181,18 +181,18 @@ class ModelEditDialog(ModelView):
             UItem('model',
                   style='custom',
                   editor=InstanceEditor(),
-            ),
+                  ),
             style="custom",
             label="Configuration Options",
             show_border=True
-        ),
+            ),
         title='Edit Element',
         width=800,
         height=600,
         resizable=True,
         kind="livemodal",
         buttons=[OKButton]
-    )
+        )
 
 
 class WorkflowTree(ModelView):
