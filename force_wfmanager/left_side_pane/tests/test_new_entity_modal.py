@@ -8,7 +8,7 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 
 from force_wfmanager.left_side_pane.new_entity_modal import (
-    ModalHandler, NewEntityModal,)
+    ModalHandler, NewEntityModal)
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowModelView
 
 

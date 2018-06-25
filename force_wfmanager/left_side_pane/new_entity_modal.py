@@ -2,7 +2,7 @@ from traits.api import (HasStrictTraits, Instance, List, Button,
                         Either, on_trait_change, Dict, Str)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
                           InstanceEditor, OKCancelButtons,
-                          TreeEditor, TreeNode, )
+                          TreeEditor, TreeNode)
 
 from envisage.plugin import Plugin
 
@@ -11,8 +11,7 @@ from force_bdss.api import (
     BaseMCOModel, BaseMCOFactory,
     BaseDataSourceModel, BaseDataSourceFactory,
     BaseMCOParameter, BaseMCOParameterFactory,
-    BaseNotificationListenerModel, BaseNotificationListenerFactory,
-)
+    BaseNotificationListenerModel, BaseNotificationListenerFactory)
 
 no_view = View()
 
@@ -24,9 +23,9 @@ class ModalHandler(Handler):
         return True
 
 
-class FactoryPlugin(HasStrictTraits):
-    """An instance of FactoryPlugin contains a plugin, along with all the factories
-    which can be derived from it"""
+class PluginModelView(HasStrictTraits):
+    """An instance of PluginModelView contains a plugin, along
+    with all the factories which can be derived from it"""
     plugin = Instance(Plugin)
     name = Str('plugin')
     factories = List(Either(Instance(BaseMCOFactory),
@@ -36,7 +35,7 @@ class FactoryPlugin(HasStrictTraits):
 
 
 class Root(HasStrictTraits):
-    plugins = List(FactoryPlugin)
+    plugins = List(PluginModelView)
     name = Str("root")
 
 
@@ -52,9 +51,9 @@ class NewEntityModal(HasStrictTraits):
         List(Instance(BaseNotificationListenerFactory)),
     )
 
-    #: List of FactoryPlugin instances, which provide a mapping between plugins
-    #: factories
-    plugins = Instance(Root)
+    #: List of PluginModelView instances, which provide a mapping
+    # between plugins and factories
+    plugins_root = Instance(Root)
 
     #: Selected factory in the list
     selected_factory = Either(
@@ -83,7 +82,7 @@ class NewEntityModal(HasStrictTraits):
     editor = TreeEditor(nodes=[
         TreeNode(node_for=[Root], children='plugins',
                  view=no_view, label='name'),
-        TreeNode(node_for=[FactoryPlugin], children='factories',
+        TreeNode(node_for=[PluginModelView], children='factories',
                  view=no_view, label='name'),
         TreeNode(node_for=[BaseMCOFactory, BaseNotificationListenerFactory,
                            BaseDataSourceFactory, BaseMCOParameterFactory],
@@ -102,7 +101,7 @@ class NewEntityModal(HasStrictTraits):
     traits_view = View(
         VGroup(
             HSplit(
-                UItem('plugins', editor=editor),
+                UItem('plugins_root', editor=editor),
 
                 UItem('current_model', style='custom', editor=InstanceEditor())
                 ),
@@ -119,7 +118,7 @@ class NewEntityModal(HasStrictTraits):
         super(NewEntityModal, self).__init__(*args, **kwargs)
         self.factories = factories
 
-    def _plugins_default(self):
+    def _plugins_root_default(self):
         # Build up a list of plugin-factory mappings
         plugin_dict = {}
         for factory in self.factories:
@@ -130,9 +129,9 @@ class NewEntityModal(HasStrictTraits):
 
         plugins = []
         for plugin, factories in zip(plugin_dict, plugin_dict.values()):
-            plugins.append(FactoryPlugin(plugin=plugin,
-                                         factories=factories,
-                                         name=plugin.id))
+            plugins.append(PluginModelView(plugin=plugin,
+                                           factories=factories,
+                                           name=plugin.id))
         return Root(plugins=plugins)
 
     @on_trait_change("selected_factory")
