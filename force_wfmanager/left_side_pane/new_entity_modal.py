@@ -1,7 +1,7 @@
-from traits.api import (HasStrictTraits, Instance, List, Button,
-                        Either, on_trait_change, Dict, Str)
+from traits.api import (HasStrictTraits, Instance, List, Either,
+                        on_trait_change, Dict, Str)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
-                          InstanceEditor, OKCancelButtons,
+                          InstanceEditor, OKCancelButtons, Menu,
                           TreeEditor, TreeNode)
 
 from envisage.plugin import Plugin
@@ -14,6 +14,7 @@ from force_bdss.api import (
     BaseNotificationListenerModel, BaseNotificationListenerFactory)
 
 no_view = View()
+no_menu = Menu()
 
 
 class ModalHandler(Handler):
@@ -63,9 +64,6 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseNotificationListenerFactory),
     )
 
-    add_button = Button("Add")
-    cancel_button = Button('Cancel')
-
     #: Currently editable model
     current_model = Either(
         Instance(BaseMCOModel),
@@ -81,12 +79,12 @@ class NewEntityModal(HasStrictTraits):
 
     editor = TreeEditor(nodes=[
         TreeNode(node_for=[Root], children='plugins',
-                 view=no_view, label='name'),
+                 view=no_view, label='name', menu=no_menu),
         TreeNode(node_for=[PluginModelView], children='factories',
-                 view=no_view, label='name'),
+                 view=no_view, label='name', menu=no_menu),
         TreeNode(node_for=[BaseMCOFactory, BaseNotificationListenerFactory,
                            BaseDataSourceFactory, BaseMCOParameterFactory],
-                 children='', view=no_view, label='name')
+                 children='', view=no_view, label='name', menu=no_menu)
             ],
         orientation="vertical",
         selected="selected_factory",
