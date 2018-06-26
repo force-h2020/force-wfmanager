@@ -2,8 +2,7 @@ import unittest
 
 from pyface.tasks.task import Task
 
-from force_bdss.core.workflow import Workflow
-from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
+from force_bdss.api import FactoryRegistryPlugin, Workflow
 from force_wfmanager.plugins.ui_notification.ui_notification_model import \
     UINotificationModel
 from force_wfmanager.plugins.ui_notification.ui_notification_plugin import \

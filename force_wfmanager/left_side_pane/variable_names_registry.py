@@ -2,8 +2,7 @@ from traits.api import (
     HasStrictTraits, List, Instance, on_trait_change, Property,
     cached_property)
 
-from force_bdss.api import Identifier
-from force_bdss.core.workflow import Workflow
+from force_bdss.api import Identifier, Workflow
 
 
 class VariableNamesRegistry(HasStrictTraits):

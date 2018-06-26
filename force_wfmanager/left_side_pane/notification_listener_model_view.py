@@ -1,8 +1,7 @@
 from traits.api import Instance, Str, Bool
 from traitsui.api import ModelView
 
-from force_bdss.notification_listeners.base_notification_listener_model \
-    import BaseNotificationListenerModel
+from force_bdss.api import BaseNotificationListenerModel
 from force_wfmanager.left_side_pane.view_utils import get_factory_name
 
 

@@ -4,8 +4,7 @@ from traits.api import Instance, Button, on_trait_change, Bool
 
 from traitsui.api import View, UItem, VGroup
 
-from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
-from force_bdss.core.workflow import Workflow
+from force_bdss.api import IFactoryRegistryPlugin, Workflow
 
 from .workflow_tree import WorkflowTree
 

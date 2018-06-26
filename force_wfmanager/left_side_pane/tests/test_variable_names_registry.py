@@ -1,7 +1,6 @@
 import unittest
 
-from force_bdss.core.execution_layer import ExecutionLayer
-from force_bdss.core.output_slot_info import OutputSlotInfo
+from force_bdss.api import OutputSlotInfo, ExecutionLayer
 from force_bdss.tests.probe_classes.mco import (
     ProbeParameterFactory, ProbeMCOFactory)
 from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
