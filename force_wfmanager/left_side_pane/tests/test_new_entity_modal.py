@@ -8,7 +8,7 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 
 from force_wfmanager.left_side_pane.new_entity_modal import (
-    ModalHandler, NewEntityModal, ListAdapter)
+    ModalHandler, NewEntityModal)
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowModelView
 
 
@@ -47,7 +47,7 @@ class TestNewEntityModal(unittest.TestCase):
 
         # Simulate pressing add mco button (should do nothing, because no mco
         # is selected)
-        self.handler.object_add_button_changed(modal_info)
+        self.handler.close(modal_info, True)
         self.assertIsNone(modal.current_model)
 
         # Simulate selecting an mco factory in the list
@@ -55,7 +55,7 @@ class TestNewEntityModal(unittest.TestCase):
         modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add mco button
-        self.handler.object_add_button_changed(modal_info)
+        self.handler.close(modal_info, True)
         self.assertIsNotNone(modal.current_model)
 
         # Simulate selecting an mco factory in the list
@@ -63,7 +63,7 @@ class TestNewEntityModal(unittest.TestCase):
         modal.selected_factory = modal.factories[0]
 
         # Simulate pressing add mco button again to create a new mco model
-        self.handler.object_cancel_button_changed(modal_info)
+        self.handler.close(modal_info, False)
         self.assertIsNone(modal.current_model)
 
     def test_caching(self):
@@ -83,9 +83,3 @@ class TestNewEntityModal(unittest.TestCase):
         modal.selected_factory = modal.factories[0]
 
         self.assertEqual(id(first_model), id(modal.current_model))
-
-    def test_list_adapter(self):
-        adapter = ListAdapter(item=ProbeMCOFactory(self.plugin))
-        self.assertEqual(
-            adapter.get_text({}, {}, {}),
-            'testmco')

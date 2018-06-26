@@ -1,37 +1,43 @@
-from traits.api import (HasStrictTraits, Instance, List, Button, Either,
-                        on_trait_change, Dict, Bool)
+from traits.api import (HasStrictTraits, Instance, List, Either,
+                        on_trait_change, Dict, Str)
 from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
-                          HGroup, ListStrEditor, InstanceEditor)
-from traitsui.list_str_adapter import ListStrAdapter
+                          InstanceEditor, OKCancelButtons, Menu,
+                          TreeEditor, TreeNode)
+
+from envisage.plugin import Plugin
+
 
 from force_bdss.api import (
     BaseMCOModel, BaseMCOFactory,
     BaseDataSourceModel, BaseDataSourceFactory,
     BaseMCOParameter, BaseMCOParameterFactory,
-    BaseNotificationListenerModel, BaseNotificationListenerFactory,
-)
+    BaseNotificationListenerModel, BaseNotificationListenerFactory)
 
-from force_wfmanager.left_side_pane.view_utils import get_factory_name
-
-
-class ListAdapter(ListStrAdapter):
-    """ Adapter for the list of available MCOs/Data sources/KPI calculators
-    factories """
-    can_edit = Bool(False)
-
-    def get_text(self, object, trait, index):
-        return get_factory_name(self.item)
+no_view = View()
+no_menu = Menu()
 
 
 class ModalHandler(Handler):
-    def object_add_button_changed(self, info):
-        """ Action triggered when clicking on "Add" button in the modal """
-        info.ui.dispose()
+    def close(self, info, is_ok):
+        if is_ok is False:
+            info.object.current_model = None
+        return True
 
-    def object_cancel_button_changed(self, info):
-        """ Action triggered when clicking on "Cancel" button in the modal """
-        info.object.current_model = None
-        info.ui.dispose()
+
+class PluginModelView(HasStrictTraits):
+    """An instance of PluginModelView contains a plugin, along
+    with all the factories which can be derived from it"""
+    plugin = Instance(Plugin)
+    name = Str('plugin')
+    factories = List(Either(Instance(BaseMCOFactory),
+                            Instance(BaseMCOParameterFactory),
+                            Instance(BaseDataSourceFactory),
+                            Instance(BaseNotificationListenerFactory)))
+
+
+class Root(HasStrictTraits):
+    plugins = List(PluginModelView)
+    name = Str("root")
 
 
 class NewEntityModal(HasStrictTraits):
@@ -46,6 +52,10 @@ class NewEntityModal(HasStrictTraits):
         List(Instance(BaseNotificationListenerFactory)),
     )
 
+    #: List of PluginModelView instances, which provide a mapping
+    # between plugins and factories
+    plugins_root = Instance(Root)
+
     #: Selected factory in the list
     selected_factory = Either(
         Instance(BaseMCOFactory),
@@ -53,9 +63,6 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseDataSourceFactory),
         Instance(BaseNotificationListenerFactory),
     )
-
-    add_button = Button("Add")
-    cancel_button = Button('Cancel')
 
     #: Currently editable model
     current_model = Either(
@@ -70,26 +77,35 @@ class NewEntityModal(HasStrictTraits):
     #: models are saved
     _cached_models = Dict()
 
+    editor = TreeEditor(nodes=[
+        TreeNode(node_for=[Root], children='plugins',
+                 view=no_view, label='name', menu=no_menu),
+        TreeNode(node_for=[PluginModelView], children='factories',
+                 view=no_view, label='name', menu=no_menu),
+        TreeNode(node_for=[BaseMCOFactory, BaseNotificationListenerFactory,
+                           BaseDataSourceFactory, BaseMCOParameterFactory],
+                 children='', view=no_view, label='name', menu=no_menu)
+            ],
+        orientation="vertical",
+        selected="selected_factory",
+        hide_root=True,
+        auto_open=2,
+        editable=False
+        )
+
+    #: Disable the OK button if no factory set
+    OKCancelButtons[0].trait_set(enabled_when="selected_factory is not None")
+
     traits_view = View(
         VGroup(
             HSplit(
-                UItem(
-                    "factories",
-                    editor=ListStrEditor(
-                        adapter=ListAdapter(),
-                        selected="selected_factory"),
-                ),
+                UItem('plugins_root', editor=editor),
+
                 UItem('current_model', style='custom', editor=InstanceEditor())
-            ),
-            HGroup(
-                UItem(
-                    'add_button',
-                    enabled_when="selected_factory is not None"
                 ),
-                UItem('cancel_button')
-            )
         ),
-        title='New Element',
+        buttons=OKCancelButtons,
+        title='Add New Element',
         handler=ModalHandler(),
         width=800,
         height=600,
@@ -99,6 +115,22 @@ class NewEntityModal(HasStrictTraits):
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityModal, self).__init__(*args, **kwargs)
         self.factories = factories
+
+    def _plugins_root_default(self):
+        # Build up a list of plugin-factory mappings
+        plugin_dict = {}
+        for factory in self.factories:
+            plugin_from_factory = self.get_plugin_from_factory(factory)
+            if plugin_from_factory not in plugin_dict:
+                plugin_dict[plugin_from_factory] = []
+            plugin_dict[plugin_from_factory].append(factory)
+
+        plugins = []
+        for plugin, factories in zip(plugin_dict, plugin_dict.values()):
+            plugins.append(PluginModelView(plugin=plugin,
+                                           factories=factories,
+                                           name=plugin.id))
+        return Root(plugins=plugins)
 
     @on_trait_change("selected_factory")
     def update_current_model(self):
@@ -116,3 +148,15 @@ class NewEntityModal(HasStrictTraits):
             self._cached_models[self.selected_factory] = cached_model
 
         self.current_model = cached_model
+
+    def get_plugin_from_factory(self, factory):
+        """Returns the plugin associated with a particular factory"""
+        if isinstance(factory, (BaseMCOFactory, BaseDataSourceFactory,
+                                BaseNotificationListenerFactory)):
+            plugin = factory.plugin
+        # The MCO parameter factory does not contain it's own plugin, but does
+        # contain the mco_factory it is associated with
+        else:
+            plugin = factory.mco_factory.plugin
+
+        return plugin
