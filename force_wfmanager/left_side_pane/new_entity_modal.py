@@ -1,6 +1,6 @@
 from traits.api import (HasStrictTraits, Instance, List, Either,
                         on_trait_change, Dict, Str)
-from traitsui.api import (View, Handler, HSplit, VGroup, Group, UItem,
+from traitsui.api import (View, Handler, HSplit, Group, UItem,
                           InstanceEditor, OKCancelButtons, Menu,
                           TreeEditor, TreeNode)
 
@@ -96,29 +96,30 @@ class NewEntityModal(HasStrictTraits):
     OKCancelButtons[0].trait_set(enabled_when="selected_factory is not None")
 
     traits_view = View(
-        VGroup(
             HSplit(
                 Group(
-                    UItem('plugins_root', editor=editor),
-                ),
+                    UItem('plugins_root',
+                          editor=editor)
+                    ),
                 Group(
-                    UItem('current_model', style='custom',
-                          editor=InstanceEditor()),
-                    style="custom",
-                    label="Configuration Options",
-                    show_border=True
+                    Group(
+                        UItem('current_model',
+                              style='custom',
+                              editor=InstanceEditor()),
+                        style="custom",
+                        label="Configuration Options",
+                        show_border=True,
+                    ),
                 )
+                ),
+            buttons=OKCancelButtons,
+            title='Add New Element',
+            handler=ModalHandler(),
+            width=800,
+            height=600,
+            resizable=True,
+            kind="livemodal"
             )
-
-        ),
-        buttons=OKCancelButtons,
-        title='Add New Element',
-        handler=ModalHandler(),
-        width=800,
-        height=600,
-        resizable=True,
-        kind="livemodal"
-    )
 
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityModal, self).__init__(*args, **kwargs)
