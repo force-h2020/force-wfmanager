@@ -125,6 +125,7 @@ class DataSourceModelView(ModelView):
     #: Defines if the evaluator is valid or not
     valid = Bool(True)
 
+    error_message = Str()
     #: Base view for the evaluator
     traits_view = View(
         Item(

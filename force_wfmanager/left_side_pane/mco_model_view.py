@@ -31,6 +31,8 @@ class MCOModelView(ModelView):
     #: Defines if the MCO is valid or not
     valid = Bool(True)
 
+    error_message = Str
+
     def add_parameter(self, parameter):
         """Adds a parameter to the referred model."""
         self.model.parameters.append(parameter)

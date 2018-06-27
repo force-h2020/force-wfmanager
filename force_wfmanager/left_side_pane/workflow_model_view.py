@@ -1,8 +1,9 @@
-from traits.api import Instance, List, Bool, on_trait_change
+from traits.api import Instance, List, Bool, on_trait_change, Str
 
 from traitsui.api import ModelView
 
 from force_bdss.core.workflow import Workflow
+from force_bdss.api import verify_workflow, VerifierError
 from force_wfmanager.left_side_pane.execution_layer_model_view import \
     ExecutionLayerModelView
 from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
@@ -12,12 +13,18 @@ from force_wfmanager.left_side_pane.variable_names_registry import \
     VariableNamesRegistry
 
 
+
+
+
 class WorkflowModelView(ModelView):
     #: Workflow model
     model = Instance(Workflow, allow_none=False)
 
     #: List of MCO to be displayed in the TreeEditor
     mco_mv = List(Instance(MCOModelView))
+
+    #: Message explaining why workflow is invalid
+    error_message = Str()
 
     #: List of DataSources to be displayed in the TreeEditor.
     #: Must be a list otherwise the tree editor will not consider it
@@ -32,6 +39,9 @@ class WorkflowModelView(ModelView):
 
     #: Defines if the Workflow is valid or not
     valid = Bool(True)
+
+    label = Str()
+
 
     def set_mco(self, mco_model):
         self.model.mco = mco_model
@@ -73,7 +83,6 @@ class WorkflowModelView(ModelView):
     @on_trait_change('model.execution_layers[]', post_init=True)
     def update_execution_layers_mv(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
-
         self.execution_layers_mv = [
             ExecutionLayerModelView(
                 model=execution_layer,
@@ -92,6 +101,8 @@ class WorkflowModelView(ModelView):
             )
             for notification_listener in self.model.notification_listeners
         ]
+
+
 
     def _model_default(self):
         return Workflow()

@@ -17,6 +17,8 @@ class MCOParameterModelView(ModelView):
     #: Defines if the MCO parameter is valid or not
     valid = Bool(True)
 
+    error_message = Str()
+
     #: Base view for the MCO parameter
     traits_view = View(
         Item("model.name"),

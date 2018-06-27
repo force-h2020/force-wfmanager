@@ -13,6 +13,8 @@ class NotificationListenerModelView(ModelView):
     #: Label to be used in the TreeEditor
     label = Str()
 
+    error_message = Str('')
+
     #: Defines if the Notification listener is valid or not
     valid = Bool(True)
 

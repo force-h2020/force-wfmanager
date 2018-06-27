@@ -1,4 +1,4 @@
-from traits.api import Instance, String, Bool, on_trait_change, List, Int
+from traits.api import Instance, String, Bool, on_trait_change, List, Int, Str
 from traitsui.api import ModelView
 
 from force_bdss.core.execution_layer import ExecutionLayer
@@ -25,6 +25,8 @@ class ExecutionLayerModelView(ModelView):
 
     #: True if the wrapped object is valid.
     valid = Bool(True)
+
+    error_message = Str
 
     def add_data_source(self, data_source):
         """Adds the passed data source model to the model data sources."""

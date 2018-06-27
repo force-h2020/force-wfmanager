@@ -1,5 +1,5 @@
 from traits.api import (Instance, Property, Bool, Enum, List, on_trait_change,
-                        cached_property)
+                        cached_property, Str)
 from traitsui.api import ModelView, View, Item, EnumEditor
 
 from force_bdss.core.kpi_specification import KPISpecification
@@ -20,6 +20,8 @@ class KPISpecificationModelView(ModelView):
 
     #: Defines if the KPI is valid or not
     valid = Bool(True)
+
+    error_message = Str
 
     #: The name of the selected KPI
     name = Enum(values='_combobox_values')
