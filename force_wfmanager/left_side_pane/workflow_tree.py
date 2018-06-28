@@ -193,9 +193,6 @@ class WorkflowTree(ModelView):
     #: The workflow model view
     workflow_mv = Instance(WorkflowModelView, allow_none=False)
 
-    #: List of verification errors in this view
-    verification_errors = List(Instance(VerifierError))
-
     #: Available MCO factories
     _factory_registry = Instance(IFactoryRegistryPlugin)
 
@@ -249,7 +246,13 @@ class WorkflowTree(ModelView):
 
     def _verify_workflow_event_fired(self):
         result = verify_workflow(self.model)
-        self.verification_errors = result
+        parent_child = {WorkflowModelView: ['mco_mv',
+                                            'notification_listeners_mv',
+                                            'execution_layers_mv'],
+                        MCOModelView: ['mco_parameters_mv', 'kpis_mv'],
+                        ExecutionLayerModelView: ['data_sources_mv']}
+        self.verify_tree(self.workflow_mv, parent_child,
+                         result)
 
     @on_trait_change('model')
     def update_model_view(self):
@@ -366,23 +369,8 @@ class WorkflowTree(ModelView):
         """ Delete an element from the workflow """
         self.workflow_mv.remove_execution_layer(object.model)
 
-    @on_trait_change("verification_errors")
-    def print_errors(self):
-
-        verification_subj = [v.subject for v in self.verification_errors]
-        verification_error = {v.subject: v.error for v
-                              in self.verification_errors}
-
-        parent_child = {WorkflowModelView: ['mco_mv',
-                                            'notification_listeners_mv',
-                                            'execution_layers_mv'],
-                        MCOModelView: ['mco_parameters_mv', 'kpis_mv'],
-                        ExecutionLayerModelView: ['data_sources_mv']}
-        self.verify_tree(self.workflow_mv, parent_child,
-                         verification_subj, verification_error)
-
     @staticmethod
-    def verify_tree(mv_list, mappings, error_subjects, error_messages):
+    def verify_tree(mv_list, mappings, errors):
         """ Call with a list of modelview objects to assign
         their error messages, plus the error message of
         their subsequent child modelviews.
@@ -392,16 +380,13 @@ class WorkflowTree(ModelView):
         :param mappings
         A dict containing the names of child modelview lists,
         for each type of modelview
-        :param error_subjects
-        The model instances containing errors, from verifier.py
-        :param error_messages
-        The error messages associated to the subjects in error_subjects
+        :param errors
+        A list of VerifierError, where object.error is an error message and
+        object.subject is the component of the workflow it applies to
         """
-
         if not isinstance(mv_list, list):
             mv_list = [mv_list]
 
-        # If you have any children, call this function for them
         for modelview in mv_list:
             modelview.error_message = ''
             for type, lists in mappings.items():
@@ -410,8 +395,7 @@ class WorkflowTree(ModelView):
                         child_mv_list = getattr(modelview, child_mv_list_name)
                         child_errors = WorkflowTree.verify_tree(child_mv_list,
                                                                 mappings,
-                                                                error_subjects,
-                                                                error_messages)
+                                                                errors)
                         modelview.error_message += child_errors
                         if modelview.error_message != '':
                             modelview.valid = False
@@ -419,9 +403,12 @@ class WorkflowTree(ModelView):
         errors_from_list = ''
 
         for modelview in mv_list:
-            if modelview.model in error_subjects:
-                modelview.error_message += (error_messages[modelview.model] +
-                                            '\n')
+            for error_pair in errors[:]:
+                if modelview.model == error_pair.subject:
+                    modelview.error_message += (error_pair.error +
+                                                '\n')
+                    errors.remove(error_pair)
+
             if modelview.error_message != '':
                 modelview.valid = False
             else:
