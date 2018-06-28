@@ -1,9 +1,8 @@
-from traits.api import Instance, List, Bool, on_trait_change, Str
+from traits.api import Instance, List, Bool, on_trait_change, Str, Event
 
 from traitsui.api import ModelView
 
 from force_bdss.core.workflow import Workflow
-from force_bdss.api import verify_workflow, VerifierError
 from force_wfmanager.left_side_pane.execution_layer_model_view import \
     ExecutionLayerModelView
 from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
@@ -13,18 +12,16 @@ from force_wfmanager.left_side_pane.variable_names_registry import \
     VariableNamesRegistry
 
 
-
-
-
 class WorkflowModelView(ModelView):
+
     #: Workflow model
     model = Instance(Workflow, allow_none=False)
 
     #: List of MCO to be displayed in the TreeEditor
     mco_mv = List(Instance(MCOModelView))
 
-    #: Message explaining why workflow is invalid
-    error_message = Str()
+    #: An error message for issues in this modelview
+    error_message = Str
 
     #: List of DataSources to be displayed in the TreeEditor.
     #: Must be a list otherwise the tree editor will not consider it
@@ -42,6 +39,14 @@ class WorkflowModelView(ModelView):
 
     label = Str()
 
+    #: Event to request a verification check on the workflow
+    verify_workflow_event = Event
+
+    @on_trait_change('mco_mv.verify_workflow_event,'
+                     'execution_layers_mv.verify_workflow_event,'
+                     'notification_listeners_mv.verify_workflow_event')
+    def received_verify_request(self):
+        self.verify_workflow_event = True
 
     def set_mco(self, mco_model):
         self.model.mco = mco_model
@@ -101,8 +106,6 @@ class WorkflowModelView(ModelView):
             )
             for notification_listener in self.model.notification_listeners
         ]
-
-
 
     def _model_default(self):
         return Workflow()

@@ -1,4 +1,4 @@
-from traits.api import Instance, Str, Bool
+from traits.api import Instance, Str, Bool, on_trait_change, Event
 
 from traitsui.api import View, Item, ModelView
 
@@ -17,7 +17,8 @@ class MCOParameterModelView(ModelView):
     #: Defines if the MCO parameter is valid or not
     valid = Bool(True)
 
-    error_message = Str()
+    #: An error message for issues in this modelview
+    error_message = Str
 
     #: Base view for the MCO parameter
     traits_view = View(
@@ -25,6 +26,13 @@ class MCOParameterModelView(ModelView):
         Item("model.type"),
         kind="subpanel",
     )
+
+    #: Event to request a verification check on the workflow
+    verify_workflow_event = Event
+
+    @on_trait_change('model.name, model.type')
+    def parameter_change(self):
+        self.verify_workflow_event = True
 
     def _label_default(self):
         return get_factory_name(self.model.factory)

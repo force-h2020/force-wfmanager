@@ -1,5 +1,5 @@
 from traits.api import (Instance, Property, Bool, Enum, List, on_trait_change,
-                        cached_property, Str)
+                        cached_property, Str, Event)
 from traitsui.api import ModelView, View, Item, EnumEditor
 
 from force_bdss.core.kpi_specification import KPISpecification
@@ -36,12 +36,19 @@ class KPISpecificationModelView(ModelView):
         kind="subpanel",
     )
 
+    #: Event to request a verification check on the workflow
+    verify_workflow_event = Event
+
     def __init__(self, model, variable_names_registry, **kwargs):
         super(KPISpecificationModelView, self).__init__(
             model=model,
             variable_names_registry=variable_names_registry,
             **kwargs
         )
+
+    @on_trait_change('model.name, model.objective')
+    def kpi_change(self):
+        self.verify_workflow_event = True
 
     @on_trait_change('variable_names_registry.data_source_outputs')
     def update_combobox_values(self):

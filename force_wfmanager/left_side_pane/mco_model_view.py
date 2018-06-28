@@ -1,4 +1,4 @@
-from traits.api import Instance, List, Str, on_trait_change, Bool
+from traits.api import Instance, List, Str, on_trait_change, Bool, Event
 
 from traitsui.api import ModelView
 
@@ -31,7 +31,16 @@ class MCOModelView(ModelView):
     #: Defines if the MCO is valid or not
     valid = Bool(True)
 
+    #: An error message for issues in this modelview
     error_message = Str
+
+    #: Event to request a verification check on the workflow
+    verify_workflow_event = Event
+
+    @on_trait_change('mco_parameters_mv.verify_workflow_event,'
+                     'kpis_mv.verify_workflow_event')
+    def received_verify_request(self):
+        self.verify_workflow_event = True
 
     def add_parameter(self, parameter):
         """Adds a parameter to the referred model."""

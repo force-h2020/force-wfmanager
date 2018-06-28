@@ -62,11 +62,9 @@ class SidePane(TraitsDockPane):
             model=self.workflow_m
         )
 
-    #TODO: Make Property
     @on_trait_change('workflow_tree.workflow_mv.valid')
     def enable_run(self):
         self.run_btn_enabled = self.workflow_tree.workflow_mv.valid
-
 
     @on_trait_change('workflow_m', post_init=True)
     def update_workflow_tree(self, *args, **kwargs):
