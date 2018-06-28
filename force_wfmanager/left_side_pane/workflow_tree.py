@@ -1,4 +1,4 @@
-from traits.api import Instance,  List, on_trait_change, Str, Event
+from traits.api import Instance, on_trait_change, Str, Event
 
 from traitsui.api import (
     TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView, UReadonly,
@@ -6,7 +6,7 @@ from traitsui.api import (
 )
 
 
-from force_bdss.api import verify_workflow, VerifierError
+from force_bdss.api import verify_workflow
 from force_bdss.core.kpi_specification import KPISpecification
 from force_bdss.core.workflow import Workflow
 from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
