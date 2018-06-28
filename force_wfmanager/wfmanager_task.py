@@ -18,10 +18,8 @@ from pyface.tasks.api import Task, TaskLayout, PaneItem
 
 from force_bdss.api import (
     MCOProgressEvent, MCOStartEvent, BaseUIHooksManager, Workflow,
-    IFactoryRegistryPlugin)
-
-from force_bdss.io.workflow_writer import WorkflowWriter
-from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
+    IFactoryRegistryPlugin, WorkflowReader, WorkflowWriter,
+    InvalidFileException)
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
