@@ -2,7 +2,7 @@ from traits.api import Instance, List, Bool, on_trait_change
 
 from traitsui.api import ModelView
 
-from force_bdss.core.workflow import Workflow
+from force_bdss.api import Workflow
 from force_wfmanager.left_side_pane.execution_layer_model_view import \
     ExecutionLayerModelView
 from force_wfmanager.left_side_pane.mco_model_view import MCOModelView

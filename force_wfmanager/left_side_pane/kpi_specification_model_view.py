@@ -2,8 +2,7 @@ from traits.api import (Instance, Property, Bool, Enum, List, on_trait_change,
                         cached_property)
 from traitsui.api import ModelView, View, Item, EnumEditor
 
-from force_bdss.core.kpi_specification import KPISpecification
-from force_bdss.local_traits import Identifier
+from force_bdss.api import KPISpecification, Identifier
 from force_wfmanager.left_side_pane.variable_names_registry import \
     VariableNamesRegistry
 

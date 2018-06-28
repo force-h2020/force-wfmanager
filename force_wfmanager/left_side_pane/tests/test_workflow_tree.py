@@ -1,12 +1,9 @@
 import unittest
 
-from force_bdss.core.execution_layer import ExecutionLayer
-from force_bdss.core.kpi_specification import KPISpecification
-from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
-from force_bdss.mco.base_mco_model import BaseMCOModel
-from force_bdss.notification_listeners.base_notification_listener_model \
-    import \
-    BaseNotificationListenerModel
+from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
+                            BaseNotificationListenerModel, ExecutionLayer,
+                            KPISpecification)
+
 from force_bdss.tests.probe_classes.factory_registry_plugin import (
     ProbeFactoryRegistryPlugin
 )
