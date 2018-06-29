@@ -5,17 +5,14 @@ from traitsui.api import (
     VGroup, TextEditor
 )
 
-from force_bdss.api import (verify_workflow, BaseMCOParameter,
-                            BaseDataSourceModel)
-from force_bdss.core.kpi_specification import KPISpecification
-from force_bdss.core.workflow import Workflow
-from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
+from force_bdss.api import (KPISpecification, Workflow, IFactoryRegistryPlugin,
+                            ExecutionLayer, verify_workflow,
+                            BaseMCOParameter, BaseDataSourceModel)
+
 from force_wfmanager.left_side_pane.data_source_model_view import \
     DataSourceModelView
 from force_wfmanager.left_side_pane.execution_layer_model_view import \
     ExecutionLayerModelView
-
-from force_bdss.core.execution_layer import ExecutionLayer
 
 # Create an empty view and menu for objects that have no data to display:
 from force_wfmanager.left_side_pane.kpi_specification_model_view import \
@@ -371,7 +368,6 @@ class WorkflowTree(ModelView):
     def _verify_workflow_event_fired(self):
         """Verify the workflow and update the modelviews in the workflow tree
         with any errors"""
-        print('verifying')
         result = verify_workflow(self.model)
         parent_child = {WorkflowModelView: ['mco_mv',
                                             'notification_listeners_mv',

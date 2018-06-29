@@ -17,11 +17,9 @@ from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 
 from force_bdss.api import (
-    MCOProgressEvent, MCOStartEvent, BaseUIHooksManager)
-from force_bdss.core.workflow import Workflow
-from force_bdss.factory_registry_plugin import IFactoryRegistryPlugin
-from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
-from force_bdss.io.workflow_writer import WorkflowWriter
+    MCOProgressEvent, MCOStartEvent, BaseUIHooksManager, Workflow,
+    IFactoryRegistryPlugin, WorkflowReader, WorkflowWriter,
+    InvalidFileException)
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane

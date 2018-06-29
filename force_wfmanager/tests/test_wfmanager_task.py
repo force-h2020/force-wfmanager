@@ -16,10 +16,9 @@ from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 from force_bdss.tests.probe_classes.factory_registry_plugin import \
     ProbeFactoryRegistryPlugin
-from force_bdss.core_driver_events import MCOStartEvent, MCOProgressEvent
-from force_bdss.core.workflow import Workflow
-from force_bdss.io.workflow_writer import WorkflowWriter
-from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
+from force_bdss.api import (MCOStartEvent, MCOProgressEvent, Workflow,
+                            WorkflowWriter, WorkflowReader,
+                            InvalidFileException)
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.server.zmq_server import ZMQServer

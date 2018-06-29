@@ -4,11 +4,8 @@ from traits.api import (HasStrictTraits, Instance, Str, List, Int,
 from traitsui.api import View, Item, ModelView, TableEditor
 from traitsui.table_column import ObjectColumn
 
-from force_bdss.api import (
-    BaseDataSourceModel, BaseDataSource,
-    Identifier)
-from force_bdss.core.input_slot_info import InputSlotInfo
-from force_bdss.core.output_slot_info import OutputSlotInfo
+from force_bdss.api import (BaseDataSourceModel, BaseDataSource, Identifier,
+                            InputSlotInfo, OutputSlotInfo)
 
 from .view_utils import get_factory_name
 from .variable_names_registry import VariableNamesRegistry

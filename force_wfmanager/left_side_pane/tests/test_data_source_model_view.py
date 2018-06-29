@@ -3,14 +3,10 @@ import six
 
 from traits.api import TraitError
 
-from force_bdss.core.execution_layer import ExecutionLayer
-from force_bdss.core.output_slot_info import OutputSlotInfo
-from force_bdss.core.workflow import Workflow
-from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
+from force_bdss.api import (DataValue, ExecutionLayer, OutputSlotInfo,
+                            Workflow, InputSlotInfo, BaseDataSourceModel)
 from force_bdss.tests.probe_classes.data_source import \
     ProbeDataSourceFactory
-from force_bdss.api import DataValue
-from force_bdss.core.input_slot_info import InputSlotInfo
 from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeParameter
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin

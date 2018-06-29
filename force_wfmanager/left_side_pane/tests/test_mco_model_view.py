@@ -1,6 +1,6 @@
 import unittest
 
-from force_bdss.core.kpi_specification import KPISpecification
+from force_bdss.api import KPISpecification
 from force_bdss.tests.dummy_classes.extension_plugin import \
     DummyExtensionPlugin
 
