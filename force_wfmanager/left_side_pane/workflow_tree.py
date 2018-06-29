@@ -232,38 +232,15 @@ class WorkflowTree(ModelView):
         self.model = model
         self._factory_registry = factory_registry
 
-    @on_trait_change("selected_mv,verify_workflow_event")
-    def update_selected_error(self):
-        if self.selected_mv is None:
-            self.selected_error = 'No errors'
-        elif self.selected_mv.error_message == '':
-            self.selected_error = 'No errors'
-        else:
-            self.selected_error = self.selected_mv.error_message
-
-    @on_trait_change("workflow_mv.verify_workflow_event")
-    def received_verify_request(self):
-        """Checks if the root node of workflow tree is requesting a
-        verification of the workflow"""
-        self.verify_workflow_event = True
-
-    def _verify_workflow_event_fired(self):
-        """Verify the workflow and update the modelviews in the workflow tree
-        with any errors"""
-        result = verify_workflow(self.model)
-        parent_child = {WorkflowModelView: ['mco_mv',
-                                            'notification_listeners_mv',
-                                            'execution_layers_mv'],
-                        MCOModelView: ['mco_parameters_mv', 'kpis_mv'],
-                        ExecutionLayerModelView: ['data_sources_mv']}
-        verify_tree(self.workflow_mv, parent_child, result)
-
     def _workflow_mv_default(self):
         return WorkflowModelView(model=self.model)
 
     @on_trait_change('model')
     def update_model_view(self):
+        """Update the workflow modelview's model and verify, on either loading
+        a new workflow, or an internal change to the workflow"""
         self.workflow_mv.model = self.model
+        self.verify_workflow_event = True
 
     @verify
     def new_mco(self, ui_info, object):
@@ -375,6 +352,33 @@ class WorkflowTree(ModelView):
     def delete_layer(self, ui_info, object):
         """ Delete an element from the workflow """
         self.workflow_mv.remove_execution_layer(object.model)
+
+    @on_trait_change("selected_mv,verify_workflow_event")
+    def update_selected_error(self):
+        if self.selected_mv is None:
+            self.selected_error = 'No errors'
+        elif self.selected_mv.error_message == '':
+            self.selected_error = 'No errors'
+        else:
+            self.selected_error = self.selected_mv.error_message
+
+    @on_trait_change("workflow_mv.verify_workflow_event")
+    def received_verify_request(self):
+        """Checks if the root node of workflow tree is requesting a
+        verification of the workflow"""
+        self.verify_workflow_event = True
+
+    def _verify_workflow_event_fired(self):
+        """Verify the workflow and update the modelviews in the workflow tree
+        with any errors"""
+        print('verifying')
+        result = verify_workflow(self.model)
+        parent_child = {WorkflowModelView: ['mco_mv',
+                                            'notification_listeners_mv',
+                                            'execution_layers_mv'],
+                        MCOModelView: ['mco_parameters_mv', 'kpis_mv'],
+                        ExecutionLayerModelView: ['data_sources_mv']}
+        verify_tree(self.workflow_mv, parent_child, result)
 
 
 def verify_tree(mv_list, mappings, errors):
