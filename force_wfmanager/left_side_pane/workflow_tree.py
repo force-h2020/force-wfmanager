@@ -415,7 +415,7 @@ def verify_tree(mv_list, mappings, errors):
                 error_string = error_pair.error
                 if isinstance(error_pair.subject,
                               (BaseMCOParameter, BaseDataSourceModel)):
-                    error_string += ' (Type: {})'.format(
+                    error_string += ' ({})'.format(
                         error_pair.subject.factory.name)
                 modelview.error_message += (error_string + '\n')
                 errors.remove(error_pair)
