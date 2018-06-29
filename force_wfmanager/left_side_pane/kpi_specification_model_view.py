@@ -46,7 +46,7 @@ class KPISpecificationModelView(ModelView):
             **kwargs
         )
 
-    @on_trait_change('model.name, model.objective')
+    @on_trait_change('model.name,model.objective')
     def kpi_change(self):
         self.verify_workflow_event = True
 

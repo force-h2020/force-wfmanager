@@ -63,7 +63,7 @@ class SidePane(TraitsDockPane):
         )
 
     @on_trait_change('workflow_tree.workflow_mv.valid')
-    def enable_run(self):
+    def update_run_btn_status(self):
         self.run_btn_enabled = self.workflow_tree.workflow_mv.valid
 
     @on_trait_change('workflow_m', post_init=True)

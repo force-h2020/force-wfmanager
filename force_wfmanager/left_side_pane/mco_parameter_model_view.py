@@ -30,7 +30,7 @@ class MCOParameterModelView(ModelView):
     #: Event to request a verification check on the workflow
     verify_workflow_event = Event
 
-    @on_trait_change('model.name, model.type')
+    @on_trait_change('model.name,model.type')
     def parameter_change(self):
         self.verify_workflow_event = True
 
