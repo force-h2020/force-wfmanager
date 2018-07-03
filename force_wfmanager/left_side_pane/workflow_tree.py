@@ -35,7 +35,8 @@ no_menu = Menu()
 # Actions!
 new_mco_action = Action(name='New MCO...', action='new_mco')
 delete_mco_action = Action(name='Delete', action='delete_mco')
-edit_mco_action = Action(name='Edit...', action='edit_mco')
+edit_mco_action = Action(name='Edit...', action='edit_mco',
+                         enabled_when='object.model.visible_traits() != []')
 
 new_notification_listener_action = Action(
     name='New Notification Listener...',
@@ -45,9 +46,12 @@ delete_notification_listener_action = Action(
     action='delete_notification_listener')
 edit_notification_listener_action = Action(
     name='Edit...',
-    action='edit_notification_listener')
+    action='edit_notification_listener',
+    enabled_when='object.model.visible_traits() != []')
 new_parameter_action = Action(name='New Parameter...', action='new_parameter')
-edit_parameter_action = Action(name='Edit...', action='edit_parameter')
+edit_parameter_action = Action(name='Edit...', action='edit_parameter',
+                               enabled_when=
+                               'object.model.visible_traits() != []')
 delete_parameter_action = Action(name='Delete', action='delete_parameter')
 new_kpi_action = Action(name='New KPI...', action='new_kpi')
 delete_kpi_action = Action(name="Delete", action='delete_kpi')
@@ -56,7 +60,9 @@ delete_layer_action = Action(name='Delete', action='delete_layer')
 new_data_source_action = Action(name='New DataSource...',
                                 action='new_data_source')
 delete_data_source_action = Action(name='Delete', action='delete_data_source')
-edit_data_source_action = Action(name='Edit...', action='edit_data_source')
+edit_data_source_action = Action(name='Edit...', action='edit_data_source',
+                                 enabled_when=
+                                 'object.model.visible_traits() != []')
 
 
 class TreeNodeWithStatus(TreeNode):
