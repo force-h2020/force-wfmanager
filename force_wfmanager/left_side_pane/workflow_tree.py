@@ -1,3 +1,6 @@
+import re
+from difflib import SequenceMatcher
+
 from traits.api import Instance, on_trait_change, Str, Event
 
 from traitsui.api import (
@@ -6,8 +9,7 @@ from traitsui.api import (
 )
 
 from force_bdss.api import (KPISpecification, Workflow, IFactoryRegistryPlugin,
-                            ExecutionLayer, verify_workflow,
-                            BaseMCOParameter, BaseDataSourceModel)
+                            ExecutionLayer, verify_workflow)
 
 from force_wfmanager.left_side_pane.data_source_model_view import \
     DataSourceModelView
@@ -413,10 +415,6 @@ def verify_tree(mv_list, mappings, errors):
         for error_pair in errors[:]:
             if modelview.model == error_pair.subject:
                 error_string = error_pair.error
-                if isinstance(error_pair.subject,
-                              (BaseMCOParameter, BaseDataSourceModel)):
-                    error_string += ' ({})'.format(
-                        error_pair.subject.factory.name)
                 modelview.error_message += (error_string + '\n')
                 errors.remove(error_pair)
 
@@ -424,7 +422,66 @@ def verify_tree(mv_list, mappings, errors):
             modelview.valid = False
         else:
             modelview.valid = True
-
+        modelview.error_message = collate_errors(modelview.error_message)
         errors_from_list += modelview.error_message
 
     return errors_from_list
+
+
+def collate_errors(error_message):
+    """Populates a dictionary where each key is a different type of error. The
+    value is an index by which they can be grouped"""
+
+    #: List of error messages
+    error_list = error_message.split('\n')
+    #: Dict with similar errors grouped together
+    group_errors = {}
+
+    def ignore(error_1, error_2):
+        """Pairs which definitely should not be in grouped strings"""
+        ignore_pairs = [["input", "output"]]
+        both_strings = error_1+' '+error_2
+        for pair in ignore_pairs:
+            if pair[0] in both_strings and pair[1] in both_strings:
+                return True
+        return False
+
+    #: Build a dict of error groups and indexes which share an error type
+    for error in error_list:
+        match = False
+        digit_regexp = re.search(r'\d+', error)
+        if digit_regexp is not None:
+            index = digit_regexp.group()
+        else:
+            index = None
+        for key in group_errors:
+            s = SequenceMatcher(None, key, error)
+
+            if ignore(error, key) is True:
+                pass
+            elif s.ratio() > 0.9:
+                match = True
+                group_errors[key].append(index)
+        if match is False:
+            group_errors[error] = [index]
+
+    #: Format a string from the dict of error groups
+    return_string = ''
+    for key, value in group_errors.items():
+        if None not in value:
+            repl = ''
+            if len(value) == 1:
+                repl = value[0]
+            elif abs(int(value[-1]) - int(value[0])) == len(value)-1:
+                repl = '{}-{}'.format(min(value[0], value[-1]), max(value[0],
+                                                                    value[-1]))
+            else:
+                repl = ','.join(value)
+
+            return_string += re.sub(r'\d+', repl, key, count=1)
+            return_string += '\n'
+        else:
+            return_string += key
+            return_string += '\n'
+
+    return return_string
