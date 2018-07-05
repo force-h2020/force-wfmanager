@@ -217,14 +217,15 @@ class NewEntityModal(HasStrictTraits):
 
         # A default message when no model selected
         if self.selected_factory is None or self.current_model is None:
-            return html_string.format("No Model Selected", "")
+            return html_string.format("No Model Selected", "", "")
 
         model_name = self.selected_factory.get_name()
+        model_desc = self.selected_factory.get_description()
         view_info = self.view_structure()
 
         # Message for a model without editable traits
         if view_info == []:
-            return html_string.format(model_name, "")
+            return html_string.format(model_name, model_desc, "")
 
         # Remove traits in the view which are not editable
         view_info = [trait_name for trait_name in
@@ -249,7 +250,7 @@ class NewEntityModal(HasStrictTraits):
         body_str = ''.join([title_para.format(name, desc)
                            for name, desc in view_info])
 
-        return html_string.format(model_name, body_str)
+        return html_string.format(model_name, model_desc, body_str)
 
     def view_structure(self):
         """Return a list of editable traits in the order
@@ -259,7 +260,7 @@ class NewEntityModal(HasStrictTraits):
         #: A List containing the Groups/Items in this View
         main_group_contents = current_model_view.content.content
         #: A List of items from our view in the order they appear in the view.
-        #: This function does not do anything clever for unusual view layouts
+        #: This function does not do anything clever for unusual view layouts.
         main_group_items = _item_info_from_group(main_group_contents)
         return main_group_items
 
@@ -297,6 +298,7 @@ html_string = """
         </head>
         <body>
         <h1>{}</h1>
+        <p>{}</p>
         {}
         </body>
         </html>
