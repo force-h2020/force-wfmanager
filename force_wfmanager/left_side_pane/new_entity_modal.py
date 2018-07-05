@@ -281,6 +281,7 @@ def _item_info_from_group(group_contents, item_info=None):
             item_info.append(object.name)
     return item_info
 
+
 # A generic HTML header
 html_string = """
         <html>
@@ -300,6 +301,7 @@ html_string = """
         </body>
         </html>
         """
+
 # HTML for a title and description
 title_para = """
         <div class="container">
