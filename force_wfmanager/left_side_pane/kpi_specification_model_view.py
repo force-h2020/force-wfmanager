@@ -20,6 +20,7 @@ class KPISpecificationModelView(ModelView):
     #: Defines if the KPI is valid or not
     valid = Bool(True)
 
+    #: An error message for issues in this modelview
     error_message = Str
 
     #: The name of the selected KPI

@@ -153,7 +153,7 @@ class DataSourceModelView(ModelView):
 
     @on_trait_change('input_slots_representation.name,'
                      'output_slots_representation.name')
-    def datasource_change(self):
+    def data_source_change(self):
         self.verify_workflow_event = True
 
     def _label_default(self):

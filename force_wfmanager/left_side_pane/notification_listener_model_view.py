@@ -12,6 +12,7 @@ class NotificationListenerModelView(ModelView):
     #: Label to be used in the TreeEditor
     label = Str()
 
+    #: An error message for issues in this modelview
     error_message = Str()
 
     #: Event to request a verification check on the workflow

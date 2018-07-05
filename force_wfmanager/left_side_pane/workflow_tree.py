@@ -60,7 +60,7 @@ edit_data_source_action = Action(name='Edit...', action='edit_data_source')
 
 
 #: Wrapper to call workflow verification after each method
-def verify(func):
+def verify_wkflow(func):
     def wrap(self, *args, **kwargs):
         func(self, *args, **kwargs)
         self.verify_workflow_event = True
@@ -241,7 +241,7 @@ class WorkflowTree(ModelView):
         self.workflow_mv.model = self.model
         self.verify_workflow_event = True
 
-    @verify
+    @verify_wkflow
     def new_mco(self, ui_info, object):
         """ Opens a dialog for creating a MCO """
         workflow_mv = self.workflow_mv
@@ -253,16 +253,16 @@ class WorkflowTree(ModelView):
         if result is not None:
             workflow_mv.set_mco(result)
 
-    @verify
+    @verify_wkflow
     def edit_mco(self, ui_info, object):
         object.model.edit_traits(kind="livemodal")
 
-    @verify
+    @verify_wkflow
     def delete_mco(self, ui_info, object):
         """Deletes the MCO"""
         self.workflow_mv.set_mco(None)
 
-    @verify
+    @verify_wkflow
     def new_notification_listener(self, ui_info, object):
         """ Opens a dialog for creating a notification listener"""
         workflow_mv = self.workflow_mv
@@ -280,16 +280,16 @@ class WorkflowTree(ModelView):
         if result is not None:
             workflow_mv.add_notification_listener(result)
 
-    @verify
+    @verify_wkflow
     def edit_notification_listener(self, ui_info, object):
         object.model.edit_traits(kind="livemodal")
 
-    @verify
+    @verify_wkflow
     def delete_notification_listener(self, ui_info, object):
         """Deletes the notification listener"""
         self.workflow_mv.remove_notification_listener(object.model)
 
-    @verify
+    @verify_wkflow
     def new_parameter(self, ui_info, object):
         parameter_factories = []
         if self.model.mco is not None:
@@ -302,27 +302,27 @@ class WorkflowTree(ModelView):
         if result is not None:
             object.add_parameter(result)
 
-    @verify
+    @verify_wkflow
     def edit_parameter(self, ui_info, object):
         object.model.edit_traits(kind="livemodal")
 
-    @verify
+    @verify_wkflow
     def delete_parameter(self, ui_info, object):
         if len(self.workflow_mv.mco_mv) > 0:
             mco_mv = self.workflow_mv.mco_mv[0]
             mco_mv.remove_parameter(object.model)
 
-    @verify
+    @verify_wkflow
     def new_kpi(self, ui_info, object):
         object.add_kpi(KPISpecification())
 
-    @verify
+    @verify_wkflow
     def delete_kpi(self, ui_info, object):
         if len(self.workflow_mv.mco_mv) > 0:
             mco_mv = self.workflow_mv.mco_mv[0]
             mco_mv.remove_kpi(object.model)
 
-    @verify
+    @verify_wkflow
     def new_data_source(self, ui_info, object):
         """ Opens a dialog for creating a Data Source """
         modal = NewEntityModal(
@@ -334,25 +334,25 @@ class WorkflowTree(ModelView):
         if result is not None:
             object.add_data_source(result)
 
-    @verify
+    @verify_wkflow
     def delete_data_source(self, ui_info, object):
         self.workflow_mv.remove_data_source(object.model)
 
-    @verify
+    @verify_wkflow
     def edit_data_source(self, ui_info, object):
         # This is a live dialog, workaround for issue #58
         object.model.edit_traits(kind="livemodal")
 
-    @verify
+    @verify_wkflow
     def new_layer(self, ui_info, object):
         self.workflow_mv.add_execution_layer(ExecutionLayer())
 
-    @verify
+    @verify_wkflow
     def delete_layer(self, ui_info, object):
         """ Delete an element from the workflow """
         self.workflow_mv.remove_execution_layer(object.model)
 
-    @on_trait_change("selected_mv,verify_workflow_event")
+    @on_trait_change("selected_mv")
     def update_selected_error(self):
         if self.selected_mv is None:
             self.selected_error = 'No errors'
@@ -367,94 +367,116 @@ class WorkflowTree(ModelView):
         verification of the workflow"""
         self.verify_workflow_event = True
 
+    @on_trait_change("verify_workflow_event")
     def _verify_workflow_event_fired(self):
-        """Verify the workflow and update the modelviews in the workflow tree
-        with any errors"""
-        result = verify_workflow(self.model)
-        parent_child = {WorkflowModelView: ['mco_mv',
-                                            'notification_listeners_mv',
-                                            'execution_layers_mv'],
-                        MCOModelView: ['mco_parameters_mv', 'kpis_mv'],
-                        ExecutionLayerModelView: ['data_sources_mv']}
-        verify_tree(self.workflow_mv, parent_child, result)
+        """Verify the workflow and update error_message traits of
+        every ModelView in the workflow"""
 
+        errors = verify_workflow(self.model)
 
-def verify_tree(mv_list, mappings, errors):
-    """ Call with a list of modelview objects to assign
-    their error messages, plus the error message of
-    their subsequent child modelviews.
+        # A (currently hardcoded) dictionary with the mappings between
+        # modelview lists
+        parent_child = {'WorkflowModelView': ['mco_mv',
+                                              'notification_listeners_mv',
+                                              'execution_layers_mv'],
+                        'MCOModelView': ['mco_parameters_mv', 'kpis_mv'],
+                        'ExecutionLayerModelView': ['data_sources_mv']}
 
-    :param mv_list
-    A list of ModelViews
-    :param mappings
-    A dict containing the names of child modelview lists,
-    for each type of modelview
-    :param errors
-    A list of VerifierError, where object.error is an error message and
-    object.subject is the component of the workflow it applies to
-    """
-    if not isinstance(mv_list, list):
-        mv_list = [mv_list]
+        # Communicate the verification errors to each level of the
+        # workflow tree
+        self.verify_tree(parent_child, errors)
 
-    for modelview in mv_list:
-        modelview.error_message = ''
-        for type, lists in mappings.items():
-            if isinstance(modelview, type):
-                for child_mv_list_name in lists:
-                    child_mv_list = getattr(modelview, child_mv_list_name)
-                    child_errors = verify_tree(child_mv_list,
-                                               mappings,
-                                               errors)
-                    modelview.error_message += child_errors
-                    if modelview.error_message != '':
-                        modelview.valid = False
+        # Update the message displayed in the TreeEditor, as the change
+        # which triggered verify_workflow_event may have created new errors
+        # or resolved existing errors
+        self.update_selected_error()
 
-    errors_from_list = ''
+    def verify_tree(self, mappings, errors, current_modelview=None):
+        """ Assign the errors generated by verifier.py to the appropriate
+        ModelView. Parent ModelViews also have the error messages from
+        their child ModelViews"""
 
-    for modelview in mv_list:
-        for error_pair in errors[:]:
-            if modelview.model == error_pair.subject:
+        if current_modelview is None:
+            current_modelview = self.workflow_mv
+
+        # Iterate over the names of the modelview lists contained within
+        # current_modelview
+        current_modelview.error_message = ''
+        current_modelview_type = current_modelview.__class__.__name__
+
+        if current_modelview_type in mappings:
+            # Call self.verify_tree for any child modelviews, retrieving their
+            # error messages.
+            for child_modelview_list_name in mappings[current_modelview_type]:
+
+                child_modelview_list = getattr(current_modelview,
+                                               child_modelview_list_name)
+
+                for child_modelview in child_modelview_list:
+                    child_modelview_errors = self.verify_tree(mappings, errors,
+                                                              child_modelview)
+                    current_modelview.error_message += child_modelview_errors
+                    if current_modelview.error_message != '':
+                        current_modelview.valid = False
+
+        # Check the current_modelview for errors
+        for error_pair in errors:
+            if current_modelview.model == error_pair.subject:
                 error_string = error_pair.error
-                modelview.error_message += (error_string + '\n')
-                errors.remove(error_pair)
+                current_modelview.error_message += (error_string + '\n')
 
-        if modelview.error_message != '':
-            modelview.valid = False
-        else:
-            modelview.valid = True
-        modelview.error_message = collate_errors(modelview.error_message)
-        errors_from_list += modelview.error_message
+            if current_modelview.error_message != '':
+                current_modelview.valid = False
+            else:
+                current_modelview.valid = True
 
-    return errors_from_list
+        current_modelview.error_message = collate_errors(current_modelview.
+                                                         error_message)
+
+        return current_modelview.error_message
 
 
 def collate_errors(error_message):
-    """Populates a dictionary where each key is a different type of error. The
-    value is an index by which they can be grouped"""
+    """Group together similar error messages. For example, if output
+    parameters 1,2 and 3 have undefined names display 'Output parameters 1-3
+    have undefined names', rather than 3 separate error messages."""
 
     #: List of error messages
     error_list = error_message.split('\n')
+
     #: Dict with similar errors grouped together
     group_errors = {}
 
-    def ignore(error_1, error_2):
-        """Pairs which definitely should not be in grouped strings"""
-        ignore_pairs = [["input", "output"]]
-        both_strings = error_1+' '+error_2
-        for pair in ignore_pairs:
-            if pair[0] in both_strings and pair[1] in both_strings:
-                return True
-        return False
+    #: Keywords which indicate two separate errors should not be collated,
+    #: even when they are otherwise similar
+    ignore_pairs = [["input", "output"], ["Name", "Type"]]
 
-    #: Build a dict of error groups and indexes which share an error type
+    def ignore_func(ignore_pair_list):
+        def wrap(error_1, error_2):
+            both_strings = error_1+' '+error_2
+            for pair in ignore_pair_list:
+                if pair[0] in both_strings and pair[1] in both_strings:
+                    return True
+            return False
+        return wrap
+
+    ignore = ignore_func(ignore_pairs)
+
+    #: Build a dict where keys are error messages and values are the indexes
+    #: from similar error messages.
     for error in error_list:
         match = False
+        # A regexp used to give the first number appearing in an error message
         digit_regexp = re.search(r'\d+', error)
+
         if digit_regexp is not None:
             index = digit_regexp.group()
         else:
             index = None
+
         for key in group_errors:
+            # A measure of similarity between previous error messages and
+            # this one
             s = SequenceMatcher(None, key, error)
 
             if ignore(error, key) is True:
@@ -462,19 +484,20 @@ def collate_errors(error_message):
             elif s.ratio() > 0.9:
                 match = True
                 group_errors[key].append(index)
+
         if match is False:
             group_errors[error] = [index]
 
-    #: Format a string from the dict of error groups
+    #: Format a string for each entry in group_errors
     return_string = ''
     for key, value in group_errors.items():
         if None not in value:
-            repl = ''
+            # Single, consecutive or non-consecutive
             if len(value) == 1:
                 repl = value[0]
             elif abs(int(value[-1]) - int(value[0])) == len(value)-1:
-                repl = '{}-{}'.format(min(value[0], value[-1]), max(value[0],
-                                                                    value[-1]))
+                repl = '{}-{}'.format(min(value[0], value[-1]),
+                                      max(value[0], value[-1]))
             else:
                 repl = ','.join(value)
 
