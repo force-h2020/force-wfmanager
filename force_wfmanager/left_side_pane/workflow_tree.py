@@ -3,7 +3,7 @@ from traits.api import (
     on_trait_change)
 
 from traitsui.api import (
-    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView,
+    TreeEditor, TreeNode, UItem, Item, View, Menu, Action, ModelView,
     InstanceEditor, Group, OKButton
 )
 
@@ -36,7 +36,11 @@ no_menu = Menu()
 new_mco_action = Action(name='New MCO...', action='new_mco')
 delete_mco_action = Action(name='Delete', action='delete_mco')
 edit_mco_action = Action(name='Edit...', action='edit_mco',
-                         enabled_when='object.model.visible_traits() != []')
+                         enabled_when='handler.mv_editable(object)')
+
+# For reference, in the enabled_when expression namespace, handler is
+# the WorkflowTree instance, object is the modelview for a particular node -
+# in this case an MCOModelView
 
 new_notification_listener_action = Action(
     name='New Notification Listener...',
@@ -47,11 +51,10 @@ delete_notification_listener_action = Action(
 edit_notification_listener_action = Action(
     name='Edit...',
     action='edit_notification_listener',
-    enabled_when='object.model.visible_traits() != []')
+    enabled_when='handler.mv_editable(object)')
 new_parameter_action = Action(name='New Parameter...', action='new_parameter')
 edit_parameter_action = Action(name='Edit...', action='edit_parameter',
-                               enabled_when=
-                               'object.model.visible_traits() != []')
+                               enabled_when='handler.mv_editable(object)')
 delete_parameter_action = Action(name='Delete', action='delete_parameter')
 new_kpi_action = Action(name='New KPI...', action='new_kpi')
 delete_kpi_action = Action(name="Delete", action='delete_kpi')
@@ -61,8 +64,7 @@ new_data_source_action = Action(name='New DataSource...',
                                 action='new_data_source')
 delete_data_source_action = Action(name='Delete', action='delete_data_source')
 edit_data_source_action = Action(name='Edit...', action='edit_data_source',
-                                 enabled_when=
-                                 'object.model.visible_traits() != []')
+                                 enabled_when='handler.mv_editable(object)')
 
 
 class TreeNodeWithStatus(TreeNode):
@@ -326,3 +328,38 @@ class WorkflowTree(ModelView):
     def delete_layer(self, ui_info, object):
         """ Delete an element from the workflow """
         self.workflow_mv.remove_execution_layer(object.model)
+
+    def mv_editable(self, modelview):
+        """Checks if a modelview has a non-empty,
+        editable view associated with it's model"""
+        current_view = modelview.model.trait_view()
+
+        # A list of Items and Groups
+        main_group_contents = current_view.content.content
+
+        # Names of all traits with a representation in the view
+        view_info = _item_info_from_group(main_group_contents)
+
+        # Remove any non-visible traits
+        view_info = [trait_name for trait_name in
+                     view_info if trait_name in
+                     modelview.model.visible_traits()]
+
+        if view_info == []:
+            return False
+
+        return True
+
+
+def _item_info_from_group(group_contents, item_info=None):
+    """Gets the item names from a list of groups (group_contents).
+    Returns a list of trait names corresponding to the items in the group.
+    """
+    if item_info is None:
+        item_info = []
+    for object in group_contents:
+        if isinstance(object, Group):
+            item_info = _item_info_from_group(object.content, item_info)
+        elif isinstance(object, Item):
+            item_info.append(object.name)
+    return item_info

@@ -1,8 +1,8 @@
 from traits.api import (HasStrictTraits, Instance, List, Either,
-                        on_trait_change, Dict, Str)
-from traitsui.api import (View, Handler, HSplit, Group, UItem,
+                        on_trait_change, Dict, Str, Property, HTML, Bool)
+from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem, Item,
                           InstanceEditor, OKCancelButtons, Menu,
-                          TreeEditor, TreeNode)
+                          TreeEditor, TreeNode, HTMLEditor, TextEditor)
 
 from envisage.plugin import Plugin
 
@@ -95,21 +95,43 @@ class NewEntityModal(HasStrictTraits):
     #: Disable the OK button if no factory set
     OKCancelButtons[0].trait_set(enabled_when="selected_factory is not None")
 
+    model_description_HTML = Property(HTML, depends_on="current_model")
+
+    current_model_editable = Property(Bool, depends_on='current_model')
+
+    default_text = Str('No Configuration Options')
+
     traits_view = View(
             HSplit(
                 Group(
                     UItem('plugins_root',
                           editor=editor)
                     ),
-                Group(
+                VGroup(
                     Group(
                         UItem('current_model',
                               style='custom',
-                              editor=InstanceEditor()),
+                              editor=InstanceEditor(),
+                              visible_when='current_model_editable is True'
+                              ),
+                        UItem('default_text',
+                              style='readonly',
+                              editor=TextEditor(),
+                              visible_when='current_model_editable is False'),
+                        visible_when='current_model is not None',
                         style="custom",
                         label="Configuration Options",
                         show_border=True,
+
                     ),
+                    Group(
+                         UItem('model_description_HTML',
+                               editor=HTMLEditor(),
+                               ),
+                         style="readonly",
+                         label="Description",
+                         show_border=True
+                     ),
                 )
                 ),
             buttons=OKCancelButtons,
@@ -169,3 +191,119 @@ class NewEntityModal(HasStrictTraits):
             plugin = factory.mco_factory.plugin
 
         return plugin
+
+    def _get_current_model_editable(self):
+        """A check which indicates if 1. A view with at least
+        one item exists for this model and 2. That those items
+        are actually visible to the user"""
+        if self.current_model is None:
+            return False
+
+        view_info = self.view_structure()
+
+        view_info = [trait_name for trait_name in
+                     view_info if trait_name in
+                     self.current_model.visible_traits()]
+
+        if view_info == []:
+            return False
+
+        return True
+
+    def _get_model_description_HTML(self):
+        """Format a description of the currently selected model and it's
+        parameters, using desc metadata from the traits in
+        ${model_name}_model.py"""
+
+        # A default message when no model selected
+        if self.selected_factory is None or self.current_model is None:
+            return html_string.format("No Model Selected", "")
+
+        model_name = self.selected_factory.get_name()
+        view_info = self.view_structure()
+
+        # Message for a model without editable traits
+        if view_info == []:
+            return html_string.format(model_name, "")
+
+        # Remove traits in the view which are not editable
+        view_info = [trait_name for trait_name in
+                     view_info if trait_name in
+                     self.current_model.visible_traits()]
+
+        # Retrieve descriptions from trait metadata
+        for i, trait_name in enumerate(view_info):
+            trait = self.current_model.trait(trait_name)
+            trait_desc = trait.desc
+
+            if trait_desc is not None:
+                view_info[i] = [trait_name, trait_desc]
+            else:
+                view_info[i] = [trait_name, 'No Description Available']
+
+        # Format names as in the Instance Editor
+        view_info = [[name.replace('_', ' ').capitalize(), desc]
+                     for name, desc in view_info]
+
+        # Create a HTML string with all the model's parameters
+        body_str = ''.join([title_para.format(name, desc)
+                           for name, desc in view_info])
+
+        return html_string.format(model_name, body_str)
+
+    def view_structure(self):
+        """Return a list of editable traits in the order
+        they appear in the view for the current model"""
+        #: The View of current_model
+        current_model_view = self.current_model.trait_view()
+        #: A List containing the Groups/Items in this View
+        main_group_contents = current_model_view.content.content
+        #: A List of items from our view in the order they appear in the view.
+        #: This function does not do anything clever for unusual view layouts
+        main_group_items = _item_info_from_group(main_group_contents)
+        return main_group_items
+
+
+def _item_info_from_group(group_contents, item_info=None):
+    """Gets the item names from a list of groups (group_contents).
+    Returns a list of trait names corresponding to the items in the group.
+    """
+    if item_info is None:
+        item_info = []
+
+    for object in group_contents:
+        # For a Group, call this function again - which sets the items found
+        # in any subgroups as item_info
+        if isinstance(object, Group):
+            item_info = _item_info_from_group(object.content, item_info)
+        # For an Item, add the item's name to item_info
+        elif isinstance(object, Item):
+            item_info.append(object.name)
+    return item_info
+
+# A generic HTML header
+html_string = """
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style type="text/css">
+                .container{{
+                    width: 100%;
+                    display: block;
+                }}
+            </style>
+        </head>
+        <body>
+        <h1>{}</h1>
+        {}
+        </body>
+        </html>
+        """
+# HTML for a title and description
+title_para = """
+        <div class="container">
+            <h2>{}</h2>
+            <p>{}</p>
+        </div>
+        """
