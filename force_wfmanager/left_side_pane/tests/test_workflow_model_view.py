@@ -1,7 +1,6 @@
 import unittest
 
-from force_bdss.core.execution_layer import ExecutionLayer
-from force_bdss.core.workflow import Workflow
+from force_bdss.api import ExecutionLayer, Workflow
 from force_bdss.tests.probe_classes.mco import (
     ProbeMCOFactory)
 from force_bdss.tests.probe_classes.notification_listener import \
@@ -15,7 +14,6 @@ from force_wfmanager.left_side_pane.variable_names_registry import \
     VariableNamesRegistry
 from force_bdss.tests.probe_classes.data_source import (ProbeDataSourceFactory,
                                                         ProbeDataSourceModel)
-# change
 
 
 class TestWorkflowModelView(unittest.TestCase):

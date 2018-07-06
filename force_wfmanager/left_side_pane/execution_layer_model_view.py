@@ -1,7 +1,7 @@
 from traits.api import Instance, String, Bool, on_trait_change, List, Int
 from traitsui.api import ModelView
 
-from force_bdss.core.execution_layer import ExecutionLayer
+from force_bdss.api import ExecutionLayer
 from force_wfmanager.left_side_pane.data_source_model_view import \
     DataSourceModelView
 from force_wfmanager.left_side_pane.variable_names_registry import \

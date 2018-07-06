@@ -7,7 +7,7 @@ from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem, Item,
 from envisage.plugin import Plugin
 
 from force_bdss.api import (
-    BaseMCOModel, BaseMCOFactory,
+    BaseFactory, BaseMCOModel, BaseMCOFactory,
     BaseDataSourceModel, BaseDataSourceFactory,
     BaseMCOParameter, BaseMCOParameterFactory,
     BaseNotificationListenerModel, BaseNotificationListenerFactory)
@@ -28,10 +28,7 @@ class PluginModelView(HasStrictTraits):
     with all the factories which can be derived from it"""
     plugin = Instance(Plugin)
     name = Str('plugin')
-    factories = List(Either(Instance(BaseMCOFactory),
-                            Instance(BaseMCOParameterFactory),
-                            Instance(BaseDataSourceFactory),
-                            Instance(BaseNotificationListenerFactory)))
+    factories = List(Instance(BaseFactory))
 
 
 class Root(HasStrictTraits):
@@ -44,12 +41,7 @@ class NewEntityModal(HasStrictTraits):
     to the workflow """
     #: Available factories, this class is generic and can contain any factory
     #: which implement the create_model method
-    factories = Either(
-        List(Instance(BaseMCOFactory)),
-        List(Instance(BaseMCOParameterFactory)),
-        List(Instance(BaseDataSourceFactory)),
-        List(Instance(BaseNotificationListenerFactory)),
-    )
+    factories = List(Instance(BaseFactory))
 
     #: List of PluginModelView instances, which provide a mapping
     # between plugins and factories
@@ -148,7 +140,9 @@ class NewEntityModal(HasStrictTraits):
         self.factories = factories
 
     def _plugins_root_default(self):
-        # Build up a list of plugin-factory mappings
+        """Create a root object for use in the root node of the tree editor.
+        This contains a list of PluginModelViews, which hold the plugin itself,
+        the plugin's factories and the plugin name"""
         plugin_dict = {}
         for factory in self.factories:
             plugin_from_factory = self.get_plugin_from_factory(factory)
