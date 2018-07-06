@@ -83,3 +83,25 @@ class TestNewEntityModal(unittest.TestCase):
         modal.selected_factory = modal.factories[0]
 
         self.assertEqual(id(first_model), id(modal.current_model))
+
+    def test_description(self):
+
+        modal, modal_info = self._get_dialog()
+
+        self.assertFalse(modal.current_model_editable)
+
+        self.assertIn("No Model", modal.model_description_HTML)
+
+        # Select factory
+        modal.selected_factory = modal.factories[0]
+
+        self.assertIn("testmco", modal.model_description_HTML)
+        self.assertIn("Edit traits", modal.model_description_HTML)
+
+    def test_view_structure(self):
+
+        modal, modal_info = self._get_dialog()
+
+        modal.selected_factory = modal.factories[0]
+
+        self.assertIn("edit_traits_call_count", modal.view_structure())

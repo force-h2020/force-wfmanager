@@ -211,6 +211,12 @@ class TestWorkflowTree(unittest.TestCase):
         self.tree.delete_kpi(mock_ui_info, mock_object)
         self.assertEqual(mco.kpis, [])
 
+    def test_edit_available(self):
+        mco_mv = self.tree.workflow_mv.mco_mv[0]
+        self.assertTrue(self.tree.mv_editable(mco_mv))
+        notification_mv = self.tree.workflow_mv.notification_listeners_mv[0]
+        self.assertFalse(self.tree.mv_editable(notification_mv))
+
 
 class TestWorkflowElementNode(unittest.TestCase):
     def test_wfelement_node(self):

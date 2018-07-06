@@ -1,8 +1,9 @@
 from traits.api import (HasStrictTraits, Instance, List, Either,
-                        on_trait_change, Dict, Str, Property, HTML, Bool)
+                        on_trait_change, Dict, Str, Property, HTML, Bool,
+                        ReadOnly)
 from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem, Item,
                           InstanceEditor, OKCancelButtons, Menu,
-                          TreeEditor, TreeNode, HTMLEditor, TextEditor)
+                          TreeEditor, TreeNode, HTMLEditor)
 
 from envisage.plugin import Plugin
 
@@ -91,7 +92,7 @@ class NewEntityModal(HasStrictTraits):
 
     current_model_editable = Property(Bool, depends_on='current_model')
 
-    default_text = Str('No Configuration Options')
+    no_config_options_msg = ReadOnly(HTML)
 
     traits_view = View(
             HSplit(
@@ -106,9 +107,9 @@ class NewEntityModal(HasStrictTraits):
                               editor=InstanceEditor(),
                               visible_when='current_model_editable is True'
                               ),
-                        UItem('default_text',
+                        UItem('no_config_options_msg',
                               style='readonly',
-                              editor=TextEditor(),
+                              editor=HTMLEditor(),
                               visible_when='current_model_editable is False'),
                         visible_when='current_model is not None',
                         style="custom",
@@ -157,6 +158,10 @@ class NewEntityModal(HasStrictTraits):
                                            name=plugin.id))
         return Root(plugins=plugins)
 
+    def _no_config_options_msg_default(self):
+        return html_string.format("", "", "<p>No configuration options "
+                                          "available for this selection</p>")
+
     @on_trait_change("selected_factory")
     def update_current_model(self):
         """ Update the current editable model when the selected factory has
@@ -195,6 +200,7 @@ class NewEntityModal(HasStrictTraits):
 
         view_info = self.view_structure()
 
+        # Remove any non-visible traits
         view_info = [trait_name for trait_name in
                      view_info if trait_name in
                      self.current_model.visible_traits()]
@@ -251,8 +257,10 @@ class NewEntityModal(HasStrictTraits):
         they appear in the view for the current model"""
         #: The View of current_model
         current_model_view = self.current_model.trait_view()
+
         #: A List containing the Groups/Items in this View
         main_group_contents = current_model_view.content.content
+
         #: A List of items from our view in the order they appear in the view.
         #: This function does not do anything clever for unusual view layouts.
         main_group_items = _item_info_from_group(main_group_contents)
@@ -277,7 +285,7 @@ def _item_info_from_group(group_contents, item_info=None):
     return item_info
 
 
-# A generic HTML header
+# A generic HTML header and body with title and text
 html_string = """
         <html>
         <head>
