@@ -399,8 +399,6 @@ class WorkflowTree(ModelView):
         if current_modelview is None:
             current_modelview = self.workflow_mv
 
-        # Iterate over the names of the modelview lists contained within
-        # current_modelview
         current_modelview.error_message = ''
         current_modelview_type = current_modelview.__class__.__name__
 
@@ -419,7 +417,7 @@ class WorkflowTree(ModelView):
                     if current_modelview.error_message != '':
                         current_modelview.valid = False
 
-        # Check the current_modelview for errors
+        # Check current_modelview for errors
         for error_pair in errors:
             if current_modelview.model == error_pair.subject:
                 error_string = error_pair.error
@@ -430,6 +428,7 @@ class WorkflowTree(ModelView):
             else:
                 current_modelview.valid = True
 
+        # Combine errors which refer to similar problems
         current_modelview.error_message = collate_errors(current_modelview.
                                                          error_message)
 

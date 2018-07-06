@@ -37,8 +37,6 @@ class WorkflowModelView(ModelView):
     #: Defines if the Workflow is valid or not
     valid = Bool(True)
 
-    label = Str()
-
     #: Event to request a verification check on the workflow
     verify_workflow_event = Event
 
