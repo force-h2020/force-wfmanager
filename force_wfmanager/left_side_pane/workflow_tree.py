@@ -368,7 +368,7 @@ class WorkflowTree(ModelView):
         self.verify_workflow_event = True
 
     @on_trait_change("verify_workflow_event")
-    def _verify_workflow_event_fired(self):
+    def perform_verify_workflow_event_(self):
         """Verify the workflow and update error_message traits of
         every ModelView in the workflow"""
 
@@ -453,9 +453,10 @@ def collate_errors(error_message):
 
     def ignore_func(ignore_pair_list):
         def wrap(error_1, error_2):
-            both_strings = error_1+' '+error_2
             for pair in ignore_pair_list:
-                if pair[0] in both_strings and pair[1] in both_strings:
+                check = (pair[0] in error_1 and pair[1] in error_2) or (
+                            pair[1] in error_1 and pair[0] in error_2)
+                if check is True:
                     return True
             return False
         return wrap
