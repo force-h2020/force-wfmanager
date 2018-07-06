@@ -423,14 +423,13 @@ class WorkflowTree(ModelView):
                 error_string = error_pair.error
                 current_modelview.error_message += (error_string + '\n')
 
-            if current_modelview.error_message != '':
-                current_modelview.valid = False
-            else:
-                current_modelview.valid = True
-
-        # Combine errors which refer to similar problems
-        current_modelview.error_message = collate_errors(current_modelview.
-                                                         error_message)
+        if current_modelview.error_message != '':
+            current_modelview.valid = False
+            # Combine errors which refer to similar problems
+            current_modelview.error_message = collate_errors(current_modelview.
+                                                             error_message)
+        else:
+            current_modelview.valid = True
 
         return current_modelview.error_message
 
