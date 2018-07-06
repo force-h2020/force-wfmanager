@@ -490,6 +490,8 @@ def collate_errors(error_message):
     #: Format a string for each entry in group_errors
     return_string = ''
     for key, value in group_errors.items():
+        # Errors with an index == None cannot be sensibly combined, so just
+        # leave them as they are
         if None not in value:
             # Single, consecutive or non-consecutive
             if len(value) == 1:
