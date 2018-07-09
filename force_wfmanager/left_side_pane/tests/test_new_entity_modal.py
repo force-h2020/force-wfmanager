@@ -10,6 +10,7 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
 from force_wfmanager.left_side_pane.new_entity_modal import (
     ModalHandler, NewEntityModal)
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowModelView
+from force_wfmanager.left_side_pane.view_utils import model_info
 
 
 class UIDummy():
@@ -104,4 +105,5 @@ class TestNewEntityModal(unittest.TestCase):
 
         modal.selected_factory = modal.factories[0]
 
-        self.assertIn("edit_traits_call_count", modal.view_structure())
+        self.assertIn("edit_traits_call_count", model_info(
+            modal.current_model))

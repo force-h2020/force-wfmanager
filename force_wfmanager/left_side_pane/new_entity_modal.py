@@ -1,7 +1,7 @@
 from traits.api import (HasStrictTraits, Instance, List, Either,
                         on_trait_change, Dict, Str, Property, HTML, Bool,
                         ReadOnly)
-from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem, Item,
+from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem,
                           InstanceEditor, OKCancelButtons, Menu,
                           TreeEditor, TreeNode, HTMLEditor)
 
@@ -12,6 +12,8 @@ from force_bdss.api import (
     BaseDataSourceModel, BaseDataSourceFactory,
     BaseMCOParameter, BaseMCOParameterFactory,
     BaseNotificationListenerModel, BaseNotificationListenerFactory)
+
+from force_wfmanager.left_side_pane.view_utils import model_info
 
 no_view = View()
 no_menu = Menu()
@@ -159,8 +161,8 @@ class NewEntityModal(HasStrictTraits):
         return Root(plugins=plugins)
 
     def _no_config_options_msg_default(self):
-        return html_string.format("", "", "<p>No configuration options "
-                                          "available for this selection</p>")
+        return HTML_TEMPLATE.format("", "", "<p>No configuration options "
+                                    "available for this selection</p>")
 
     @on_trait_change("selected_factory")
     def update_current_model(self):
@@ -195,20 +197,7 @@ class NewEntityModal(HasStrictTraits):
         """A check which indicates if 1. A view with at least
         one item exists for this model and 2. That those items
         are actually visible to the user"""
-        if self.current_model is None:
-            return False
-
-        view_info = self.view_structure()
-
-        # Remove any non-visible traits
-        view_info = [trait_name for trait_name in
-                     view_info if trait_name in
-                     self.current_model.visible_traits()]
-
-        if view_info == []:
-            return False
-
-        return True
+        return model_info(self.current_model) != []
 
     def _get_model_description_HTML(self):
         """Format a description of the currently selected model and it's
@@ -217,20 +206,18 @@ class NewEntityModal(HasStrictTraits):
 
         # A default message when no model selected
         if self.selected_factory is None or self.current_model is None:
-            return html_string.format("No Model Selected", "", "")
+            return HTML_TEMPLATE.format("No Model Selected", "", "")
 
         model_name = self.selected_factory.get_name()
         model_desc = self.selected_factory.get_description()
-        view_info = self.view_structure()
+        view_info = model_info(self.current_model)
 
         # Message for a model without editable traits
         if view_info == []:
-            return html_string.format(model_name, model_desc, "")
+            return HTML_TEMPLATE.format(model_name, model_desc, "")
 
-        # Remove traits in the view which are not editable
-        view_info = [trait_name for trait_name in
-                     view_info if trait_name in
-                     self.current_model.visible_traits()]
+        # A list containing trait names and descriptions
+        name_desc_pairs = []
 
         # Retrieve descriptions from trait metadata
         for i, trait_name in enumerate(view_info):
@@ -238,55 +225,24 @@ class NewEntityModal(HasStrictTraits):
             trait_desc = trait.desc
 
             if trait_desc is not None:
-                view_info[i] = [trait_name, trait_desc]
+                name_desc_pairs.append([trait_name, trait_desc])
             else:
-                view_info[i] = [trait_name, 'No Description Available']
+                name_desc_pairs.append([trait_name,
+                                        'No Description Available'])
 
         # Format names as in the Instance Editor
-        view_info = [[name.replace('_', ' ').capitalize(), desc]
-                     for name, desc in view_info]
+        name_desc_pairs = [[name.replace('_', ' ').capitalize(), desc]
+                           for name, desc in name_desc_pairs]
 
         # Create a HTML string with all the model's parameters
-        body_str = ''.join([title_para.format(name, desc)
-                           for name, desc in view_info])
+        body_str = ''.join([TITLED_PARAGRAPH.format(name, desc)
+                           for name, desc in name_desc_pairs])
 
-        return html_string.format(model_name, model_desc, body_str)
-
-    def view_structure(self):
-        """Return a list of editable traits in the order
-        they appear in the view for the current model"""
-        #: The View of current_model
-        current_model_view = self.current_model.trait_view()
-
-        #: A List containing the Groups/Items in this View
-        main_group_contents = current_model_view.content.content
-
-        #: A List of items from our view in the order they appear in the view.
-        #: This function does not do anything clever for unusual view layouts.
-        main_group_items = _item_info_from_group(main_group_contents)
-        return main_group_items
-
-
-def _item_info_from_group(group_contents, item_info=None):
-    """Gets the item names from a list of groups (group_contents).
-    Returns a list of trait names corresponding to the items in the group.
-    """
-    if item_info is None:
-        item_info = []
-
-    for object in group_contents:
-        # For a Group, call this function again - which sets the items found
-        # in any subgroups as item_info
-        if isinstance(object, Group):
-            item_info = _item_info_from_group(object.content, item_info)
-        # For an Item, add the item's name to item_info
-        elif isinstance(object, Item):
-            item_info.append(object.name)
-    return item_info
+        return HTML_TEMPLATE.format(model_name, model_desc, body_str)
 
 
 # A generic HTML header and body with title and text
-html_string = """
+HTML_TEMPLATE = """
         <html>
         <head>
         <meta charset="utf-8">
@@ -307,7 +263,7 @@ html_string = """
         """
 
 # HTML for a title and description
-title_para = """
+TITLED_PARAGRAPH = """
         <div class="container">
             <h2>{}</h2>
             <p>{}</p>

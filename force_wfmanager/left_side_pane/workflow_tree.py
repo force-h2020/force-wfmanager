@@ -3,7 +3,7 @@ from traits.api import (
     on_trait_change)
 
 from traitsui.api import (
-    TreeEditor, TreeNode, UItem, Item, View, Menu, Action, ModelView,
+    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView,
     InstanceEditor, Group, OKButton
 )
 
@@ -26,19 +26,23 @@ from force_wfmanager.left_side_pane.notification_listener_model_view import \
     NotificationListenerModelView
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
+from force_wfmanager.left_side_pane.view_utils import model_info
 
 no_view = View()
 no_menu = Menu()
 
 # Actions!
-new_mco_action = Action(name='New MCO...', action='new_mco')
-delete_mco_action = Action(name='Delete', action='delete_mco')
-edit_mco_action = Action(name='Edit...', action='edit_mco',
-                         enabled_when='handler.mv_editable(object)')
+
+call_modelview_editable = 'handler.modelview_editable(object)'
 
 # For reference, in the enabled_when expression namespace, handler is
 # the WorkflowTree instance, object is the modelview for a particular node -
 # in this case an MCOModelView
+
+new_mco_action = Action(name='New MCO...', action='new_mco')
+delete_mco_action = Action(name='Delete', action='delete_mco')
+edit_mco_action = Action(name='Edit...', action='edit_mco',
+                         enabled_when=call_modelview_editable)
 
 new_notification_listener_action = Action(
     name='New Notification Listener...',
@@ -49,10 +53,10 @@ delete_notification_listener_action = Action(
 edit_notification_listener_action = Action(
     name='Edit...',
     action='edit_notification_listener',
-    enabled_when='handler.mv_editable(object)')
+    enabled_when=call_modelview_editable)
 new_parameter_action = Action(name='New Parameter...', action='new_parameter')
 edit_parameter_action = Action(name='Edit...', action='edit_parameter',
-                               enabled_when='handler.mv_editable(object)')
+                               enabled_when=call_modelview_editable)
 delete_parameter_action = Action(name='Delete', action='delete_parameter')
 new_kpi_action = Action(name='New KPI...', action='new_kpi')
 delete_kpi_action = Action(name="Delete", action='delete_kpi')
@@ -62,7 +66,7 @@ new_data_source_action = Action(name='New DataSource...',
                                 action='new_data_source')
 delete_data_source_action = Action(name='Delete', action='delete_data_source')
 edit_data_source_action = Action(name='Edit...', action='edit_data_source',
-                                 enabled_when='handler.mv_editable(object)')
+                                 enabled_when=call_modelview_editable)
 
 
 class TreeNodeWithStatus(TreeNode):
@@ -327,37 +331,7 @@ class WorkflowTree(ModelView):
         """ Delete an element from the workflow """
         self.workflow_mv.remove_execution_layer(object.model)
 
-    def mv_editable(self, modelview):
-        """Checks if a modelview has a non-empty,
-        editable view associated with it's model"""
-        current_view = modelview.model.trait_view()
-
-        # A list of Items and Groups
-        main_group_contents = current_view.content.content
-
-        # Names of all traits with a representation in the view
-        view_info = _item_info_from_group(main_group_contents)
-
-        # Remove any non-visible traits
-        view_info = [trait_name for trait_name in
-                     view_info if trait_name in
-                     modelview.model.visible_traits()]
-
-        if view_info == []:
-            return False
-
-        return True
-
-
-def _item_info_from_group(group_contents, item_info=None):
-    """Gets the item names from a list of groups (group_contents).
-    Returns a list of trait names corresponding to the items in the group.
-    """
-    if item_info is None:
-        item_info = []
-    for object in group_contents:
-        if isinstance(object, Group):
-            item_info = _item_info_from_group(object.content, item_info)
-        elif isinstance(object, Item):
-            item_info.append(object.name)
-    return item_info
+    def modelview_editable(self, modelview):
+        """Checks if the model associated to a ModelView instance
+        has a non-empty, editable view """
+        return model_info(modelview.model) != []
