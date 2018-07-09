@@ -39,15 +39,13 @@ class ZMQServer(threading.Thread):
     #: Warning: the server will stay alive and keep processing.
     ERROR_TYPE_WARNING = 2
 
-    def __init__(self, config, on_event_callback, on_error_callback):
+    def __init__(self, on_event_callback, on_error_callback):
         """Sets up the server with the appropriate configuration.
         When the event is detected, on_event_callback will be called
         _in_the_secondary_thread_.
 
         Parameters
         ----------
-        config: ZMQServerConfig
-            The configuration options of the server
         on_event_callback: function
             A function or method to call when a new event is received.
             This function will be called by the secondary thread
@@ -59,7 +57,6 @@ class ZMQServer(threading.Thread):
         """
         super(ZMQServer, self).__init__(name="ZMQServer")
         self.daemon = True
-        self.config = config
         self.state = ZMQServer.STATE_STOPPED
         self._on_event_callback = on_event_callback
         self._on_error_callback = on_error_callback
@@ -212,11 +209,11 @@ class ZMQServer(threading.Thread):
         pub_socket = context.socket(zmq.SUB)
         pub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
         pub_socket.setsockopt(zmq.LINGER, 0)
-        pub_port = pub_socket.bind_to_random_port(self.config.pub_url)
+        pub_port = pub_socket.bind_to_random_port("tcp://*")
 
         sync_socket = context.socket(zmq.REP)
         sync_socket.setsockopt(zmq.LINGER, 0)
-        sync_port = sync_socket.bind_to_random_port(self.config.sync_url)
+        sync_port = sync_socket.bind_to_random_port("tcp://*")
 
         inproc_socket = context.socket(zmq.PAIR)
         inproc_socket.bind("inproc://stop")

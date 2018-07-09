@@ -24,10 +24,10 @@ class UINotificationHooksManager(BaseUIHooksManager):
             notification_model = nl_factory.create_model()
             model.notification_listeners.append(notification_model)
 
-        notification_model.sync_url = "tcp://127.0.0.1:"+_zmq_port(
-            task.zmq_server.sync_port)
-        notification_model.pub_url = "tcp://127.0.0.1:"+_zmq_port(
-            task.zmq_server.pub_port)
+        notification_model.sync_url = (
+                "tcp://127.0.0.1:"+str(task.zmq_server.sync_port))
+        notification_model.pub_url = (
+                "tcp://127.0.0.1:"+str(task.zmq_server.pub_port))
         notification_model.identifier = ""
 
     def after_execution(self, task):
@@ -39,7 +39,3 @@ class UINotificationHooksManager(BaseUIHooksManager):
 
         if notification_model is not None:
             model.notification_listeners.remove(notification_model)
-
-
-def _zmq_port(zmq_url):
-    return zmq_url.split(":")[-1]

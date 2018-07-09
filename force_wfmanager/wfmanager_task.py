@@ -26,7 +26,6 @@ from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.server.zmq_server_config import ZMQServerConfig
 
 log = logging.getLogger(__name__)
 
@@ -63,11 +62,8 @@ class WfManagerTask(Task):
     #: This will go to some global configuration option later.
     _bdss_executable_path = Str("force_bdss")
 
-    #: Configuration of the ZeroMQ server
-    zmq_server_config = Instance(ZMQServerConfig)
-
     #: ZeroMQ Server to receive information from the running BDSS
-    _zmq_server = Instance(ZMQServer)
+    zmq_server = Instance(ZMQServer)
 
     #: Flag which says if the computation is running or not
     _computation_running = Bool(False)
@@ -126,10 +122,10 @@ class WfManagerTask(Task):
         return [self.side_pane]
 
     def initialized(self):
-        self._zmq_server.start()
+        self.zmq_server.start()
 
     def prepare_destroy(self):
-        self._zmq_server.stop()
+        self.zmq_server.stop()
 
     def save_workflow(self):
         """ Saves the workflow into the currently used file. If there is no
@@ -434,13 +430,11 @@ class WfManagerTask(Task):
     def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)
 
-    def _zmq_server_config_default(self):
-        return ZMQServerConfig()
-
-    def __zmq_server_default(self):
-        return ZMQServer(self.zmq_server_config,
-                         on_event_callback=self._server_event_callback,
-                         on_error_callback=self._server_error_callback)
+    def _zmq_server_default(self):
+        return ZMQServer(
+            on_event_callback=self._server_event_callback,
+            on_error_callback=self._server_error_callback
+        )
 
     def __ui_hooks_managers_default(self):
         hooks_factories = self.factory_registry.ui_hooks_factories
