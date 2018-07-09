@@ -15,6 +15,7 @@ from pyface.api import (
 
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.tasks.api import Task, TaskLayout, PaneItem
+from pyface.api import MessageDialog
 
 from force_bdss.api import (
     MCOProgressEvent, MCOStartEvent, BaseUIHooksManager, Workflow,
@@ -438,7 +439,8 @@ class WfManagerTask(Task):
 
     def __zmq_server_default(self):
         return ZMQServer(self.zmq_server_config,
-                         on_event_callback=self._server_event_callback)
+                         on_event_callback=self._server_event_callback,
+                         on_error_callback=self._server_error_callback)
 
     def __ui_hooks_managers_default(self):
         hooks_factories = self.factory_registry.ui_hooks_factories
@@ -470,6 +472,10 @@ class WfManagerTask(Task):
         """
         GUI.invoke_later(self._server_event_mainthread, event)
 
+    def _server_error_callback(self, error_type, error_message):
+        if error_type == ZMQServer.ERROR_TYPE_CRITICAL:
+            GUI.invoke_later(self._show_error_dialog, error_message)
+
     def _server_event_mainthread(self, event):
         """Invoked by the main thread.
         Handles the event received by the server, dispatching its
@@ -481,3 +487,7 @@ class WfManagerTask(Task):
         elif isinstance(event, MCOProgressEvent):
             data = tuple(map(float, event.input + event.output))
             self.analysis_m.add_evaluation_step(data)
+
+    def _show_error_dialog(self, message):
+        dlg = MessageDialog(message=message, severity="error")
+        dlg.open()
