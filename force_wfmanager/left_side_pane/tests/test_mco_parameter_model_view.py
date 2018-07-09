@@ -16,4 +16,5 @@ class TestMCOParameterModelViewTest(unittest.TestCase):
             model=ProbeParameterFactory(self.mco_factory).create_model())
 
     def test_mco_parameter_mv_init(self):
-        self.assertEqual(self.mco_param_mv.label, "Probe parameter")
+        self.assertEqual(self.mco_param_mv.label,
+                         "Probe parameter (No Name, No Type)")
