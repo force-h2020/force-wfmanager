@@ -3,7 +3,8 @@ from traits.api import (
     on_trait_change)
 
 from traitsui.api import (
-    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView
+    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView,
+    InstanceEditor, Group, OKButton
 )
 
 from force_bdss.api import (KPISpecification, Workflow, IFactoryRegistryPlugin,
@@ -25,14 +26,23 @@ from force_wfmanager.left_side_pane.notification_listener_model_view import \
     NotificationListenerModelView
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
+from force_wfmanager.left_side_pane.view_utils import model_info
 
 no_view = View()
 no_menu = Menu()
 
 # Actions!
+
+call_modelview_editable = 'handler.modelview_editable(object)'
+
+# For reference, in the enabled_when expression namespace, handler is
+# the WorkflowTree instance, object is the modelview for a particular node -
+# in this case an MCOModelView
+
 new_mco_action = Action(name='New MCO...', action='new_mco')
 delete_mco_action = Action(name='Delete', action='delete_mco')
-edit_mco_action = Action(name='Edit...', action='edit_mco')
+edit_mco_action = Action(name='Edit...', action='edit_mco',
+                         enabled_when=call_modelview_editable)
 
 new_notification_listener_action = Action(
     name='New Notification Listener...',
@@ -42,9 +52,11 @@ delete_notification_listener_action = Action(
     action='delete_notification_listener')
 edit_notification_listener_action = Action(
     name='Edit...',
-    action='edit_notification_listener')
+    action='edit_notification_listener',
+    enabled_when=call_modelview_editable)
 new_parameter_action = Action(name='New Parameter...', action='new_parameter')
-edit_parameter_action = Action(name='Edit...', action='edit_parameter')
+edit_parameter_action = Action(name='Edit...', action='edit_parameter',
+                               enabled_when=call_modelview_editable)
 delete_parameter_action = Action(name='Delete', action='delete_parameter')
 new_kpi_action = Action(name='New KPI...', action='new_kpi')
 delete_kpi_action = Action(name="Delete", action='delete_kpi')
@@ -53,7 +65,8 @@ delete_layer_action = Action(name='Delete', action='delete_layer')
 new_data_source_action = Action(name='New DataSource...',
                                 action='new_data_source')
 delete_data_source_action = Action(name='Delete', action='delete_data_source')
-edit_data_source_action = Action(name='Edit...', action='edit_data_source')
+edit_data_source_action = Action(name='Edit...', action='edit_data_source',
+                                 enabled_when=call_modelview_editable)
 
 
 class TreeNodeWithStatus(TreeNode):
@@ -171,6 +184,27 @@ tree_editor = TreeEditor(
 )
 
 
+class ModelEditDialog(ModelView):
+    """Editing modelview to show the model in a nice box."""
+    traits_view = View(
+        Group(
+            UItem('model',
+                  style='custom',
+                  editor=InstanceEditor(),
+                  ),
+            style="custom",
+            label="Configuration Options",
+            show_border=True
+            ),
+        title='Edit Element',
+        width=800,
+        height=600,
+        resizable=True,
+        kind="livemodal",
+        buttons=[OKButton]
+        )
+
+
 class WorkflowTree(ModelView):
     """ Part of the GUI containing the tree editor displaying the Workflow """
     #: The workflow model
@@ -214,7 +248,7 @@ class WorkflowTree(ModelView):
             workflow_mv.set_mco(result)
 
     def edit_mco(self, ui_info, object):
-        object.model.edit_traits(kind="livemodal")
+        ModelEditDialog(model=object.model).edit_traits()
 
     def delete_mco(self, ui_info, object):
         """Deletes the MCO"""
@@ -238,7 +272,7 @@ class WorkflowTree(ModelView):
             workflow_mv.add_notification_listener(result)
 
     def edit_notification_listener(self, ui_info, object):
-        object.model.edit_traits(kind="livemodal")
+        ModelEditDialog(model=object.model).edit_traits()
 
     def delete_notification_listener(self, ui_info, object):
         """Deletes the notification listener"""
@@ -257,7 +291,7 @@ class WorkflowTree(ModelView):
             object.add_parameter(result)
 
     def edit_parameter(self, ui_info, object):
-        object.model.edit_traits(kind="livemodal")
+        ModelEditDialog(model=object.model).edit_traits()
 
     def delete_parameter(self, ui_info, object):
         if len(self.workflow_mv.mco_mv) > 0:
@@ -288,7 +322,7 @@ class WorkflowTree(ModelView):
 
     def edit_data_source(self, ui_info, object):
         # This is a live dialog, workaround for issue #58
-        object.model.edit_traits(kind="livemodal")
+        ModelEditDialog(model=object.model).edit_traits()
 
     def new_layer(self, ui_info, object):
         self.workflow_mv.add_execution_layer(ExecutionLayer())
@@ -296,3 +330,8 @@ class WorkflowTree(ModelView):
     def delete_layer(self, ui_info, object):
         """ Delete an element from the workflow """
         self.workflow_mv.remove_execution_layer(object.model)
+
+    def modelview_editable(self, modelview):
+        """Checks if the model associated to a ModelView instance
+        has a non-empty, editable view """
+        return model_info(modelview.model) != []
