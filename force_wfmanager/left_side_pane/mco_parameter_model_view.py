@@ -1,4 +1,4 @@
-from traits.api import Instance, Str, Bool, on_trait_change, Event
+from traits.api import Instance, Str, Bool, on_trait_change, Event, Property
 
 from traitsui.api import View, Item, ModelView
 
@@ -12,7 +12,7 @@ class MCOParameterModelView(ModelView):
     model = Instance(BaseMCOParameter, allow_none=False)
 
     #: The human readable name of the MCO parameter class
-    label = Str()
+    label = Property(Str, depends_on="model.name,model.type")
 
     #: Defines if the MCO parameter is valid or not
     valid = Bool(True)
@@ -33,6 +33,18 @@ class MCOParameterModelView(ModelView):
     @on_trait_change('model.name,model.type')
     def parameter_change(self):
         self.verify_workflow_event = True
+
+    def _get_label(self):
+        if self.model.name != '':
+            label_name = 'Name: '+self.model.name
+        else:
+            label_name = 'No Name'
+        if self.model.type != '':
+            label_type = 'Type: '+self.model.type
+        else:
+            label_type = 'No Type'
+
+        return self._label_default()+' ({}, {})'.format(label_name, label_type)
 
     def _label_default(self):
         return get_factory_name(self.model.factory)

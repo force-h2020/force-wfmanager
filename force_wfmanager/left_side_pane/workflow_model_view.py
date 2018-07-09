@@ -40,6 +40,9 @@ class WorkflowModelView(ModelView):
     #: Event to request a verification check on the workflow
     verify_workflow_event = Event
 
+    #: A label for the Workflow
+    label = Str("Workflow")
+
     @on_trait_change('mco_mv.verify_workflow_event,'
                      'execution_layers_mv.verify_workflow_event,'
                      'notification_listeners_mv.verify_workflow_event')
