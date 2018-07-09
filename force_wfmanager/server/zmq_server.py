@@ -61,16 +61,12 @@ class ZMQServer(threading.Thread):
         self._on_event_callback = on_event_callback
         self._on_error_callback = on_error_callback
 
-        # NOTE: technically we should protect the pub and sync port access
-        # with a lock. In practice at the moment is not likely to create
-        # problems.
         self._context = self._get_context()
         self._pub_socket = None
-        self.pub_port = None
         self._sync_socket = None
-        self.sync_port = None
         self._inproc_socket = None
         self._deserializer = EventDeserializer()
+        self.ports = None
 
     def run(self):
         if self.state != ZMQServer.STATE_STOPPED:
@@ -81,9 +77,9 @@ class ZMQServer(threading.Thread):
 
         try:
             (self._pub_socket,
-             self.pub_port,
+             pub_port,
              self._sync_socket,
-             self.sync_port,
+             sync_port,
              self._inproc_socket) = self._setup_sockets()
         except Exception as e:
             log.exception("Unable to setup sockets")
@@ -96,6 +92,8 @@ class ZMQServer(threading.Thread):
                 "receive progress information from the BDSS.".format(
                     str(e)))
             return
+
+        self.ports = (pub_port, sync_port)
 
         try:
             poller = self._get_poller()
@@ -220,19 +218,18 @@ class ZMQServer(threading.Thread):
         return pub_socket, pub_port, sync_socket, sync_port, inproc_socket
 
     def _close_network_sockets_noerror(self):
+        self.ports = None
         try:
             self._pub_socket.close()
         except:
             pass
         self._pub_socket = None
-        self.pub_port = None
 
         try:
             self._sync_socket.close()
         except:
             pass
         self._sync_socket = None
-        self.sync_port = None
 
     def _close_all_sockets_noerror(self):
         self._close_network_sockets_noerror()
