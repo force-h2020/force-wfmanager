@@ -44,8 +44,10 @@ class TestDataSourceModelView(unittest.TestCase):
 
         factory = ProbeMCOFactory(self.plugin)
         mco_model = factory.create_model()
-        mco_model.parameters.append(ProbeParameter(None, name='P1'))
-        mco_model.parameters.append(ProbeParameter(None, name='P2'))
+        mco_model.parameters.append(ProbeParameter(None, name='P1',
+                                                   type='PRESSURE'))
+        mco_model.parameters.append(ProbeParameter(None, name='P2',
+                                                   type='PRESSURE'))
 
         self.workflow = Workflow(
             mco=mco_model,

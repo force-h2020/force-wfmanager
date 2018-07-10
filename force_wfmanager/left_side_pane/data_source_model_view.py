@@ -273,8 +273,8 @@ class DataSourceModelView(ModelView):
 
     def _get_available_variables(self, var_type=None):
         registry = self.variable_names_registry
+        idx = self.layer_index
         if var_type is None:
-            return registry.available_variables[self.layer_index]
+            return registry.available_variables[idx]
         else:
-            return registry.available_variables_by_type(var_type)
-            [self.layer_index]
+            return registry.available_variables_by_type(var_type)[idx]

@@ -34,7 +34,7 @@ class VariableNamesRegistry(HasStrictTraits):
     #: The size of the base list should be the number of layers plus one.
     #: the last one being the variables that are added by the last layer.
 
-    available_variables_stack_dicts = List(List(Dict(Identifier, CUBAType)))
+    available_variables_stack = List(List(Dict(Identifier, CUBAType)))
 
     #: Same structure as available_variables_stack, but this contains
     #: the cumulated information. From the example above, this would contain::
@@ -44,12 +44,12 @@ class VariableNamesRegistry(HasStrictTraits):
     #:      ["pikachu", "squirtle", "scyther"]]
     #:
     available_variables = Property(List(List(Identifier)),
-                                   depends_on="available_variables_stack_dicts")
+                                   depends_on="available_variables_stack")
 
     #: Gives only the names of the variables that are produced by data sources.
     #: It does not include MCO parameters.
     data_source_outputs = Property(List(Identifier),
-                                   depends_on="available_variables_stack_dicts")
+                                   depends_on="available_variables_stack")
 
     def __init__(self, workflow, *args, **kwargs):
         super(VariableNamesRegistry, self).__init__(*args, **kwargs)
@@ -60,12 +60,12 @@ class VariableNamesRegistry(HasStrictTraits):
         'workflow.execution_layers.data_sources.output_slot_info.name,'
         'workflow.mco.parameters.type,'
     )
-    def update_available_variables_stack_dicts(self):
+    def update_available_variables_stack(self):
         stack = []
 
         # At the first layer, the available variables are the MCO parameters
         if self.workflow.mco is None:
-            pass
+            stack.append([])
         else:
             stack.append([{'name': p.name, 'type': p.type}
                          for p in self.workflow.mco.parameters
@@ -85,11 +85,11 @@ class VariableNamesRegistry(HasStrictTraits):
                      if ds_name != ''])
             stack.append(stack_entry_for_layer)
 
-        self.available_variables_stack_dicts = stack
+        self.available_variables_stack = stack
 
     @cached_property
     def _get_available_variables(self):
-        stack_dicts = self.available_variables_stack_dicts
+        stack_dicts = self.available_variables_stack
         res = []
 
         for idx in range(len(stack_dicts)):
@@ -102,7 +102,7 @@ class VariableNamesRegistry(HasStrictTraits):
 
     @cached_property
     def _get_data_source_outputs(self):
-        stack_dicts = self.available_variables_stack_dicts
+        stack_dicts = self.available_variables_stack
         res = []
 
         for output_info in stack_dicts[1:]:
@@ -111,7 +111,7 @@ class VariableNamesRegistry(HasStrictTraits):
         return res
 
     def available_variables_by_type(self, variable_type):
-        stack_dicts = self.available_variables_stack_dicts
+        stack_dicts = self.available_variables_stack
         res = []
 
         for idx in range(len(stack_dicts)):
