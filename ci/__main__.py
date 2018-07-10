@@ -80,7 +80,7 @@ def coverage(python_version):
 def docs(python_version):
     env_name = get_env_name(python_version)
 
-    edm_run(env_name,["make", "html"], cwd="doc")
+    edm_run(env_name, ["make", "html"], cwd="doc")
 
 
 def get_env_name(python_version):
@@ -91,8 +91,8 @@ def remove_dot(python_version):
     return "".join(python_version.split('.'))
 
 
-def edm_run(env_name, cmd):
-    check_call(["edm", "run", "-e", env_name, "--"]+cmd)
+def edm_run(env_name, cmd, cwd=None):
+    check_call(["edm", "run", "-e", env_name, "--"]+cmd, cwd=cwd)
 
 
 if __name__ == "__main__":
