@@ -44,13 +44,9 @@ def install(python_version):
         "--yes"] + ADDITIONAL_CORE_DEPS)
 
     if python_version == "2.7" and len(ADDITIONAL_PIP_DEPS_27):
-        check_call([
-            "edm", "run", "-e", env_name, "--",
-            "pip", "install"] + ADDITIONAL_PIP_DEPS_27)
+        edm_run(env_name, ["pip", "install"] + ADDITIONAL_PIP_DEPS_27)
 
-    check_call([
-        "edm", "run", "-e", env_name, "--",
-        "pip", "install", "-e", "."])
+    edm_run(env_name, ["pip", "install", "-e", "."])
 
 
 @cli.command(help="Run the tests")
@@ -58,10 +54,7 @@ def install(python_version):
 def test(python_version):
     env_name = get_env_name(python_version)
 
-    check_call([
-        "edm", "run", "-e", env_name, "--", "python", "-m", "unittest",
-        "discover"
-    ])
+    edm_run(env_name, ["python", "-m", "unittest", "discover"])
 
 
 @cli.command(help="Run flake")
@@ -69,7 +62,7 @@ def test(python_version):
 def flake8(python_version):
     env_name = get_env_name(python_version)
 
-    check_call(["edm", "run", "-e", env_name, "--", "flake8", "."])
+    edm_run(env_name, ["flake8", "."])
 
 
 @cli.command(help="Runs the coverage")
@@ -77,8 +70,9 @@ def flake8(python_version):
 def coverage(python_version):
     env_name = get_env_name(python_version)
 
-    check_call(["edm", "run", "-e", env_name, "--",
-                "coverage", "run", "-m", "unittest", "discover"])
+    edm_run(env_name, ["coverage", "run", "-m", "unittest", "discover"])
+    edm_run(env_name, ["pip", "install", "codecov"])
+    edm_run(env_name, ["codecov"])
 
 
 @cli.command(help="Builds the documentation")
@@ -86,7 +80,7 @@ def coverage(python_version):
 def docs(python_version):
     env_name = get_env_name(python_version)
 
-    check_call(["edm", "run", "-e", env_name, "--", "make", "html"], cwd="doc")
+    edm_run(env_name,["make", "html"], cwd="doc")
 
 
 def get_env_name(python_version):
@@ -95,6 +89,10 @@ def get_env_name(python_version):
 
 def remove_dot(python_version):
     return "".join(python_version.split('.'))
+
+
+def edm_run(env_name, cmd):
+    check_call(["edm", "run", "-e", env_name, "--"]+cmd)
 
 
 if __name__ == "__main__":
