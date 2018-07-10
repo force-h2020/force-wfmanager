@@ -314,13 +314,13 @@ class TestZMQServer(unittest.TestCase):
     def test_server_error_on_connect(self):
         events = []
         errors = []
-        with LogCapture(level=logging.ERROR) as capture:
-            with self.mock_server(events, errors) as server:
-                with mock.patch.object(MockSocket,
-                                       'bind_to_random_port') as rp:
-                    rp.side_effect = Exception("Boom")
+        with self.mock_server(events, errors) as server:
+            with mock.patch.object(MockSocket,
+                                   'bind_to_random_port') as rp:
+                rp.side_effect = Exception("Boom")
 
-                    server.start()
+                server.start()
+                wait_condition(lambda: len(errors) != 0)
 
         self.assertEqual(errors, [(ZMQServer.ERROR_TYPE_CRITICAL,
                                    "Unable to setup server sockets: Boom.\n"
@@ -332,12 +332,12 @@ class TestZMQServer(unittest.TestCase):
     def test_server_error_on_poller_register(self):
         events = []
         errors = []
-        with LogCapture(level=logging.ERROR) as capture:
-            with self.mock_server(events, errors) as server:
-                with mock.patch.object(MockPoller, 'register') as register:
-                    register.side_effect = Exception("Boom")
+        with self.mock_server(events, errors) as server:
+            with mock.patch.object(MockPoller, 'register') as register:
+                register.side_effect = Exception("Boom")
 
-                    server.start()
+                server.start()
+                wait_condition(lambda: len(errors) != 0)
 
         self.assertEqual(errors, [(ZMQServer.ERROR_TYPE_CRITICAL,
                                    "Unable to register sockets to poller: "
@@ -356,6 +356,7 @@ class TestZMQServer(unittest.TestCase):
                     poll.side_effect = Exception("Boom")
 
                     server.start()
+                    wait_condition(lambda: len(errors) != 0)
 
         self.assertEqual(errors, [(ZMQServer.ERROR_TYPE_CRITICAL,
                                    "Unable to poll sockets: "
