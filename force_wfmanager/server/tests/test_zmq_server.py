@@ -2,6 +2,7 @@ import json
 import logging
 import unittest
 import contextlib
+import random
 
 import six
 from testfixtures import LogCapture
@@ -17,7 +18,6 @@ import time
 
 from force_bdss.api import MCOStartEvent
 from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.server.zmq_server_config import ZMQServerConfig
 
 
 class MockPoller(object):
@@ -63,6 +63,9 @@ class MockSocket(object):
     def bind(self, where):
         pass
 
+    def bind_to_random_port(self, address):
+        return random.randint(40000, 65535)
+
     def connect(self, where):
         pass
 
@@ -75,13 +78,15 @@ class MockSocket(object):
 
 class TestZMQServer(unittest.TestCase):
     def test_start_and_stop(self):
-        config = ZMQServerConfig()
         received = []
 
         def cb(event):
             received.append(event)
 
-        server = ZMQServer(config, cb)
+        def err_cb(error_type, error_msg):
+            pass
+
+        server = ZMQServer(cb, err_cb)
 
         self.assertEqual(server.state, ZMQServer.STATE_STOPPED)
         server.start()
@@ -100,6 +105,9 @@ class TestZMQServer(unittest.TestCase):
         def cb(event):
             events_received.append(event)
 
+        def err_cb(err_type, err_msg):
+            pass
+
         with mock.patch.object(
                 ZMQServer, "_get_poller") as mock_get_poller, \
                 mock.patch.object(
@@ -112,8 +120,7 @@ class TestZMQServer(unittest.TestCase):
                                                mock_inproc_socket]
             mock_get_context.return_value = mock_context
 
-            config = ZMQServerConfig()
-            server = ZMQServer(config, cb)
+            server = ZMQServer(cb, err_cb)
             server.start()
             wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
 

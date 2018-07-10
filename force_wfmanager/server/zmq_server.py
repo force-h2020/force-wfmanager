@@ -152,8 +152,9 @@ class ZMQServer(threading.Thread):
                         "_handle_"+self.state+"_"+socket_name)
                 except AttributeError:
                     log.error("State {} cannot handle {} data. "
-                              "Discarding.".format(self.state,
-                                                   socket_name))
+                              "Discarding.".format(self.state, socket_name))
+                    continue
+
                 try:
                     handle(data)
                 except Exception as e:

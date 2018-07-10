@@ -552,11 +552,11 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
     def test_initialize_finalize(self):
         self.wfmanager_task.initialized()
         wait_condition(
-            lambda: (self.wfmanager_task._zmq_server.state ==
+            lambda: (self.wfmanager_task.zmq_server.state ==
                      ZMQServer.STATE_WAITING))
 
         self.wfmanager_task.prepare_destroy()
 
         self.assertEqual(
-            self.wfmanager_task._zmq_server.state,
+            self.wfmanager_task.zmq_server.state,
             ZMQServer.STATE_STOPPED)
