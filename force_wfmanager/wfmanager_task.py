@@ -15,7 +15,6 @@ from pyface.api import (
 
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
 from pyface.tasks.api import Task, TaskLayout, PaneItem
-from pyface.api import MessageDialog
 
 from force_bdss.api import (
     MCOProgressEvent, MCOStartEvent, BaseUIHooksManager, Workflow,
@@ -467,6 +466,7 @@ class WfManagerTask(Task):
         GUI.invoke_later(self._server_event_mainthread, event)
 
     def _server_error_callback(self, error_type, error_message):
+        """Callback in case of server error. Invoked by the secondary thread"""
         if error_type == ZMQServer.ERROR_TYPE_CRITICAL:
             GUI.invoke_later(self._show_error_dialog, error_message)
 
@@ -483,5 +483,5 @@ class WfManagerTask(Task):
             self.analysis_m.add_evaluation_step(data)
 
     def _show_error_dialog(self, message):
-        dlg = MessageDialog(message=message, severity="error")
-        dlg.open()
+        """Shows an error dialog to the user with a given message"""
+        error(None, message=message, "Server error")
