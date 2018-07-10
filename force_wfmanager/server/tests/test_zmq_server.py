@@ -97,7 +97,18 @@ class TestZMQServer(unittest.TestCase):
         wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
 
     @contextlib.contextmanager
-    def mock_server(self, events_received):
+    def mock_started_server(self, events_received, errors_received):
+            with self.mock_server(events_received, errors_received) as server:
+                server.start()
+                wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
+
+                yield server
+
+                server._inproc_socket.data = ''.encode('utf-8')
+                wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
+
+    @contextlib.contextmanager
+    def mock_server(self, events_received, errors_received):
         mock_pub_socket = MockSocket()
         mock_sync_socket = MockSocket()
         mock_inproc_socket = MockSocket()
@@ -106,7 +117,7 @@ class TestZMQServer(unittest.TestCase):
             events_received.append(event)
 
         def err_cb(err_type, err_msg):
-            pass
+            errors_received.append((err_type, err_msg))
 
         with mock.patch.object(
                 ZMQServer, "_get_poller") as mock_get_poller, \
@@ -121,18 +132,14 @@ class TestZMQServer(unittest.TestCase):
             mock_get_context.return_value = mock_context
 
             server = ZMQServer(cb, err_cb)
-            server.start()
-            wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
 
             yield server
 
-            mock_inproc_socket.data = ''.encode('utf-8')
-            wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
-
     def test_receive_info(self):
-        received = []
+        events = []
+        errors = []
 
-        with self.mock_server(received) as server:
+        with self.mock_started_server(events, errors) as server:
             server._sync_socket.data = [x.encode('utf-8')
                                         for x in ["HELLO", "xxx", "1"]]
             wait_condition(lambda: server.state == ZMQServer.STATE_RECEIVING)
@@ -153,17 +160,18 @@ class TestZMQServer(unittest.TestCase):
                         'model_data': {}
                     })]]
 
-            wait_condition(lambda: len(received) == 1)
-            self.assertIsInstance(received[0], MCOStartEvent)
+            wait_condition(lambda: len(events) == 1)
+            self.assertIsInstance(events[0], MCOStartEvent)
 
             server._sync_socket.data = [x.encode('utf-8')
                                         for x in ["GOODBYE", "xxx"]]
             wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
 
     def test_error_conditions_waiting_sync(self):
-        received = []
+        events = []
+        errors = []
         with LogCapture(level=logging.ERROR) as capture:
-            with self.mock_server(received) as server:
+            with self.mock_started_server(events, errors) as server:
                 server._sync_socket.data = ["HELLO".encode('utf-8')]
                 wait_condition(lambda: len(capture.records) == 1)
                 server._sync_socket.data = [x.encode('utf-8')
@@ -193,9 +201,10 @@ class TestZMQServer(unittest.TestCase):
                 )
 
     def test_error_conditions_receiving_sync(self):
-        received = []
+        events = []
+        errors = []
         with LogCapture(level=logging.ERROR) as capture:
-            with self.mock_server(received) as server:
+            with self.mock_started_server(events, errors) as server:
                 server._sync_socket.data = [x.encode('utf-8')
                                             for x in ["HELLO", "xxx", "1"]]
                 wait_condition(
@@ -225,9 +234,10 @@ class TestZMQServer(unittest.TestCase):
                 )
 
     def test_error_conditions_waiting_pub(self):
-        received = []
+        events = []
+        errors = []
         with LogCapture(level=logging.ERROR) as capture:
-            with self.mock_server(received) as server:
+            with self.mock_started_server(events, errors) as server:
                 server._pub_socket.data = [x.encode('utf-8')
                                            for x in ["HELLO", "xxx", "1"]]
                 wait_condition(lambda: len(capture.records) == 1)
@@ -238,8 +248,9 @@ class TestZMQServer(unittest.TestCase):
             )
 
     def test_socket_ordering(self):
-        received = []
-        with self.mock_server(received) as server:
+        events = []
+        errors = []
+        with self.mock_started_server(events, errors) as server:
             server._sync_socket.data = [x.encode('utf-8')
                                         for x in ["HELLO", "xxx", "1"]]
             wait_condition(lambda: server.state == ZMQServer.STATE_RECEIVING)
@@ -254,13 +265,14 @@ class TestZMQServer(unittest.TestCase):
             server._sync_socket.data = [x.encode('utf-8')
                                         for x in ["GOODBYE", "xxx"]]
 
-            wait_condition(lambda: len(received) == 1)
+            wait_condition(lambda: len(events) == 1)
             wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
 
     def test_error_conditions_receiving_pub(self):
-        received = []
+        events = []
+        errors = []
         with LogCapture(level=logging.ERROR) as capture:
-            with self.mock_server(received) as server:
+            with self.mock_started_server(events, errors) as server:
                 server._sync_socket.data = [x.encode('utf-8')
                                             for x in ["HELLO", "xxx", "1"]]
                 wait_condition(
@@ -298,3 +310,78 @@ class TestZMQServer(unittest.TestCase):
                     ('force_wfmanager.server.zmq_server', 'ERROR',
                      'Received invalid data. Discarding'),
                 )
+
+    def test_server_error_on_connect(self):
+        events = []
+        errors = []
+        with LogCapture(level=logging.ERROR) as capture:
+            with self.mock_server(events, errors) as server:
+                with mock.patch.object(MockSocket,
+                                       'bind_to_random_port') as rp:
+                    rp.side_effect = Exception("Boom")
+
+                    server.start()
+
+        self.assertEqual(errors, [(ZMQServer.ERROR_TYPE_CRITICAL,
+                                   "Unable to setup server sockets: Boom.\n"
+                                   "The server is now stopped. You will be "
+                                   "unable to receive progress information "
+                                   "from the BDSS.")])
+        self.assertEqual(server.state, ZMQServer.STATE_STOPPED)
+
+    def test_server_error_on_poller_register(self):
+        events = []
+        errors = []
+        with LogCapture(level=logging.ERROR) as capture:
+            with self.mock_server(events, errors) as server:
+                with mock.patch.object(MockPoller, 'register') as register:
+                    register.side_effect = Exception("Boom")
+
+                    server.start()
+
+        self.assertEqual(errors, [(ZMQServer.ERROR_TYPE_CRITICAL,
+                                   "Unable to register sockets to poller: "
+                                   "Boom.\n"
+                                   "The server is now stopped. You will be "
+                                   "unable to receive progress information "
+                                   "from the BDSS.")])
+        self.assertEqual(server.state, ZMQServer.STATE_STOPPED)
+
+    def test_server_error_unable_to_poll(self):
+        events = []
+        errors = []
+        with LogCapture(level=logging.ERROR) as capture:
+            with self.mock_server(events, errors) as server:
+                with mock.patch.object(MockPoller, 'poll') as poll:
+                    poll.side_effect = Exception("Boom")
+
+                    server.start()
+
+        self.assertEqual(errors, [(ZMQServer.ERROR_TYPE_CRITICAL,
+                                   "Unable to poll sockets: "
+                                   "Boom.\n"
+                                   "The server is now stopped. You will be "
+                                   "unable to receive progress information "
+                                   "from the BDSS.")])
+        self.assertEqual(server.state, ZMQServer.STATE_STOPPED)
+
+    def test_server_error_handler_failure(self):
+        events = []
+        errors = []
+        with LogCapture(level=logging.ERROR) as capture:
+            with self.mock_server(events, errors) as server:
+                with mock.patch.object(MockSocket, 'send_multipart') as send:
+                    send.side_effect = Exception("Boom")
+
+                    server.start()
+                    wait_condition(
+                        lambda: server.state == ZMQServer.STATE_WAITING)
+
+                    server._sync_socket.data = [x.encode('utf-8')
+                                                for x in ["HELLO", "xxx", "1"]]
+                    wait_condition(
+                        lambda: server.state != ZMQServer.STATE_WAITING)
+
+        self.assertEqual(errors[0][0], ZMQServer.ERROR_TYPE_CRITICAL)
+        self.assertIn("Handler", errors[0][1])
+        self.assertEqual(server.state, ZMQServer.STATE_STOPPED)

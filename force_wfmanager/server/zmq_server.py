@@ -187,6 +187,7 @@ class ZMQServer(threading.Thread):
         if self.state == ZMQServer.STATE_STOPPED:
             return
 
+        socket = None
         try:
             socket = self._context.socket(zmq.PAIR)
             socket.setsockopt(zmq.RCVTIMEO, 1000)
@@ -200,7 +201,8 @@ class ZMQServer(threading.Thread):
             # ignore
             log.exception("Error while attempting to stop server")
         finally:
-            socket.close()
+            if socket:
+                socket.close()
 
     def _setup_sockets(self):
         """Sets up the sockets."""
