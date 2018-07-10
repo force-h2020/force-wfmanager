@@ -1,7 +1,8 @@
 from traits.api import (HasStrictTraits, Instance, Str, List, Int,
-                        on_trait_change, Enum, Bool)
+                        on_trait_change, Enum, Bool, HTML, Property,
+                        Either)
 
-from traitsui.api import View, Item, ModelView, TableEditor
+from traitsui.api import View, Item, UItem, ModelView, TableEditor, HTMLEditor
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (BaseDataSourceModel, BaseDataSource, Identifier,
@@ -72,6 +73,7 @@ class OutputSlotRow(TableRow):
 input_slots_editor = TableEditor(
     sortable=False,
     configurable=False,
+    selected="selected_slot_row",
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
@@ -82,6 +84,7 @@ input_slots_editor = TableEditor(
 output_slots_editor = TableEditor(
     sortable=False,
     configurable=False,
+    selected="selected_slot_row",
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
@@ -116,8 +119,20 @@ class DataSourceModelView(ModelView):
     #: Input slots representation for the table editor
     input_slots_representation = List(InputSlotRow)
 
+    #: Input slot descriptions
+    input_slots_description = List(Str)
+
     #: Output slots representation for the table editor
     output_slots_representation = List(OutputSlotRow)
+
+    #: Output slot descriptions
+    output_slots_description = List(Str)
+
+    #: Currently selected slot in the table
+    selected_slot_row = Either(Instance(InputSlotRow), Instance(OutputSlotRow))
+
+    #: HTML for the selected slot description
+    HTML_selected_slot_description = Property(HTML, depends_on="selected_slot_row")
 
     #: Defines if the evaluator is valid or not
     valid = Bool(True)
@@ -133,6 +148,11 @@ class DataSourceModelView(ModelView):
             "output_slots_representation",
             label="Output variables",
             editor=output_slots_editor,
+        ),
+        Item(
+            "HTML_selected_slot_description",
+            label="Description",
+            editor=HTMLEditor(),
         ),
         kind="subpanel",
     )
@@ -222,7 +242,9 @@ class DataSourceModelView(ModelView):
         """ Fill the tables rows according to input_slots and output_slots
         needed by the evaluator and the model slot values """
         available_variables = self._get_available_variables()
+
         input_representations = []
+        input_description = []
 
         for index, input_slot in enumerate(input_slots):
             slot_representation = InputSlotRow(model=self.model, index=index)
@@ -235,17 +257,24 @@ class DataSourceModelView(ModelView):
             slot_representation.type = input_slot.type
 
             input_representations.append(slot_representation)
+            input_description.append(input_slot.description)
 
         self.input_slots_representation[:] = input_representations
+        self.input_slots_description[:] = input_description
 
         output_representation = []
+        output_description = []
+
         for index, output_slot in enumerate(output_slots):
             slot_representation = OutputSlotRow(model=self.model, index=index)
             slot_representation.name = self.model.output_slot_info[index].name
             slot_representation.type = output_slot.type
+
             output_representation.append(slot_representation)
+            output_description.append(output_slot.description)
 
         self.output_slots_representation[:] = output_representation
+        self.output_slots_description[:] = output_description
 
     def __data_source_default(self):
         return self.model.factory.create_data_source()
@@ -269,3 +298,57 @@ class DataSourceModelView(ModelView):
     def _get_available_variables(self):
         registry = self.variable_names_registry
         return registry.available_variables[self.layer_index]
+
+    def _get_HTML_selected_slot_description(self):
+        if self.selected_slot_row is None:
+            return HTML_DEFAULT_MESSAGE
+        idx = self.selected_slot_row.index
+        row_type = self.selected_slot_row.type
+        if isinstance(self.selected_slot_row, InputSlotRow):
+            desc = self.input_slots_description[idx]
+            return HTML_SLOT_DESCRIPTION.format(row_type, desc)
+        else:
+            desc = self.output_slots_description[idx]
+            return HTML_SLOT_DESCRIPTION.format(row_type, desc)
+
+
+HTML_SLOT_DESCRIPTION = """
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            .container{{
+                width: 100%;
+                display: block;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>{}</h2>
+            <p>{}</p>
+        </div>
+    </body>
+    </html>
+    """
+
+HTML_DEFAULT_MESSAGE = """
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            .container{{
+                width: 100%;
+                display: block;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <p> No Item Selected </p>
+        </div>
+    </body>
+    </html> 
+    """

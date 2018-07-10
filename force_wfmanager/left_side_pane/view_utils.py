@@ -1,5 +1,5 @@
-from traitsui.api import Group, Item
-
+from traitsui.api import Group, Item, View
+from pyface.qt import QtGui
 
 def get_factory_name(factory):
     """ Returns a factory name, given the factory. This ensure that something
@@ -44,3 +44,4 @@ def _item_info_from_group(group_contents, item_info=None):
         elif isinstance(entity, Item):
             item_info.append(entity.name)
     return item_info
+
