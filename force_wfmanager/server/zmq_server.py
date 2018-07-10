@@ -144,7 +144,7 @@ class ZMQServer(threading.Thread):
                     self._on_error_callback(
                         self.ERROR_TYPE_WARNING,
                         "Unable to retrieve data from socket: {}.".format(
-                            e.message))
+                            str(e)))
 
                 try:
                     handle = getattr(
@@ -167,7 +167,7 @@ class ZMQServer(threading.Thread):
                         "Handler {} raised exception {}\n"
                         "The server is now stopped. You will be unable to "
                         "receive progress information from the BDSS.".format(
-                            handle, e.message))
+                            handle, str(e)))
                     return
 
             if self._inproc_socket in events:

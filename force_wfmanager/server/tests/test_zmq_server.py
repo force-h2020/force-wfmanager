@@ -350,13 +350,12 @@ class TestZMQServer(unittest.TestCase):
     def test_server_error_unable_to_poll(self):
         events = []
         errors = []
-        with LogCapture(level=logging.ERROR) as capture:
-            with self.mock_server(events, errors) as server:
-                with mock.patch.object(MockPoller, 'poll') as poll:
-                    poll.side_effect = Exception("Boom")
+        with self.mock_server(events, errors) as server:
+            with mock.patch.object(MockPoller, 'poll') as poll:
+                poll.side_effect = Exception("Boom")
 
-                    server.start()
-                    wait_condition(lambda: len(errors) != 0)
+                server.start()
+                wait_condition(lambda: len(errors) != 0)
 
         self.assertEqual(errors, [(ZMQServer.ERROR_TYPE_CRITICAL,
                                    "Unable to poll sockets: "
@@ -369,19 +368,18 @@ class TestZMQServer(unittest.TestCase):
     def test_server_error_handler_failure(self):
         events = []
         errors = []
-        with LogCapture(level=logging.ERROR) as capture:
-            with self.mock_server(events, errors) as server:
-                with mock.patch.object(MockSocket, 'send_multipart') as send:
-                    send.side_effect = Exception("Boom")
+        with self.mock_server(events, errors) as server:
+            with mock.patch.object(MockSocket, 'send_multipart') as send:
+                send.side_effect = Exception("Boom")
 
-                    server.start()
-                    wait_condition(
-                        lambda: server.state == ZMQServer.STATE_WAITING)
+                server.start()
+                wait_condition(
+                    lambda: server.state == ZMQServer.STATE_WAITING)
 
-                    server._sync_socket.data = [x.encode('utf-8')
-                                                for x in ["HELLO", "xxx", "1"]]
-                    wait_condition(
-                        lambda: server.state != ZMQServer.STATE_WAITING)
+                server._sync_socket.data = [x.encode('utf-8')
+                                            for x in ["HELLO", "xxx", "1"]]
+                wait_condition(
+                    lambda: server.state != ZMQServer.STATE_WAITING)
 
         self.assertEqual(errors[0][0], ZMQServer.ERROR_TYPE_CRITICAL)
         self.assertIn("Handler", errors[0][1])
