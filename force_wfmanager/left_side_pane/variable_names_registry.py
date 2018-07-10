@@ -1,8 +1,9 @@
 from traits.api import (
     HasStrictTraits, List, Instance, on_trait_change, Property,
-    cached_property)
+    cached_property, Dict)
 
 from force_bdss.api import Identifier, Workflow
+from force_bdss.local_traits import CUBAType
 
 
 class VariableNamesRegistry(HasStrictTraits):
@@ -19,30 +20,36 @@ class VariableNamesRegistry(HasStrictTraits):
     #: layer added. NOT all the variables.
     #: For example, a situation like::
     #:
-    #:     [["foo", "bar"], [], ["hello"]]
+    #:     [[{'name': "pikachu", 'type': "electric"},
+    #:       {'name': "squirtle", 'type': "water"],
+    #:     [],
+    #      [{'name': "scyther", 'type': "bug"}]]
     #:
     #: means:
-    #: - the first layer has available "foo" and "bar".
-    #: - the second layer has available "foo" and "bar", because the first
-    #: layer added nothing (hence the empty second list)
-    #: - the third layer has available "foo", "bar" and "hello".
+    #: - the first layer has available "pikachu" and "squirtle".
+    #: - the second layer has available "pikachu" and "squirtle",
+    #: because the first layer added nothing (hence the empty second list)
+    #: - the third layer has available "pikachu", "squirtle" and "scyther".
     #:
     #: The size of the base list should be the number of layers plus one.
     #: the last one being the variables that are added by the last layer.
-    available_variables_stack = List(List(Identifier))
+
+    available_variables_stack_dicts = List(List(Dict(Identifier, CUBAType)))
 
     #: Same structure as available_variables_stack, but this contains
     #: the cumulated information. From the example above, this would contain::
     #:
-    #:     [["foo", "bar"], ["foo", "bar"], ["foo", "bar", "hello"]]
+    #:     [["pikachu", "squirtle"],
+    #:      ["pikachu", "squirtle"],
+    #:      ["pikachu", "squirtle", "scyther"]]
     #:
     available_variables = Property(List(List(Identifier)),
-                                   depends_on="available_variables_stack")
+                                   depends_on="available_variables_stack_dicts")
 
     #: Gives only the names of the variables that are produced by data sources.
     #: It does not include MCO parameters.
     data_source_outputs = Property(List(Identifier),
-                                   depends_on="available_variables_stack")
+                                   depends_on="available_variables_stack_dicts")
 
     def __init__(self, workflow, *args, **kwargs):
         super(VariableNamesRegistry, self).__init__(*args, **kwargs)
@@ -50,50 +57,68 @@ class VariableNamesRegistry(HasStrictTraits):
 
     @on_trait_change(
         'workflow.mco.parameters.name,'
-        'workflow.execution_layers.data_sources.output_slot_info.name')
-    def update_available_variables_stack(self):
+        'workflow.execution_layers.data_sources.output_slot_info.name,'
+        'workflow.mco.parameters.type,'
+    )
+    def update_available_variables_stack_dicts(self):
         stack = []
 
         # At the first layer, the available variables are the MCO parameters
         if self.workflow.mco is None:
-            stack.append([])
+            pass
         else:
-            stack.append([
-                p.name
-                for p in self.workflow.mco.parameters
-                if len(p.name) != 0
-            ])
+            stack.append([{'name': p.name, 'type': p.type}
+                         for p in self.workflow.mco.parameters
+                         if len(p.name) != 0
+                          ])
 
         for layer in self.workflow.execution_layers:
             stack_entry_for_layer = []
             for ds in layer.data_sources:
-                stack_entry_for_layer.extend([
-                    info.name
-                    for info in ds.output_slot_info
-                    if info.name != ''])
+                ds_names = [info.name for info in ds.output_slot_info]
+                ds_output_slots = ds.factory.create_data_source().slots(ds)[1]
+                ds_types = [slot.type for slot in ds_output_slots]
+
+                stack_entry_for_layer.extend(
+                    [{'name': ds_name, 'type': ds_type}
+                     for ds_name, ds_type in zip(ds_names, ds_types)
+                     if ds_name != ''])
             stack.append(stack_entry_for_layer)
 
-        self.available_variables_stack = stack
+        self.available_variables_stack_dicts = stack
 
     @cached_property
     def _get_available_variables(self):
-        stack = self.available_variables_stack
+        stack_dicts = self.available_variables_stack_dicts
         res = []
 
-        for idx in range(len(stack)):
+        for idx in range(len(stack_dicts)):
             cumsum = []
-            for entry in stack[0:idx+1]:
-                cumsum.extend(entry)
+            for output_info in stack_dicts[0:idx + 1]:
+                cumsum.extend([out_dict['name'] for out_dict in output_info])
             res.append(cumsum)
 
         return res
 
     @cached_property
     def _get_data_source_outputs(self):
-        stack = self.available_variables_stack
+        stack_dicts = self.available_variables_stack_dicts
         res = []
 
-        for entry in stack[1:]:
-            res.extend(entry)
+        for output_info in stack_dicts[1:]:
+            res.extend([out_dict['name'] for out_dict in output_info])
+
+        return res
+
+    def available_variables_by_type(self, variable_type):
+        stack_dicts = self.available_variables_stack_dicts
+        res = []
+
+        for idx in range(len(stack_dicts)):
+            cumsum = []
+            for output_info in stack_dicts[0:idx + 1]:
+                cumsum.extend([out_dict['name'] for out_dict in output_info
+                               if out_dict['type'] == variable_type])
+            res.append(cumsum)
 
         return res

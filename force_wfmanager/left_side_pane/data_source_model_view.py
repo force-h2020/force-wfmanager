@@ -260,12 +260,21 @@ class DataSourceModelView(ModelView):
                              self.output_slots_representation):
             row.name = info.name
 
-    @on_trait_change('variable_names_registry.available_variables[]')
+    @on_trait_change('variable_names_registry.available_variables[],'
+                     'output_slots_representation.name,'
+                     'output_slots_representation.type,'
+                     'input_slots_representation.name,'
+                     'input_slots_representation.type,')
     def update_data_source_input_rows(self):
-        available_variables = self._get_available_variables()
         for input_slot_row in self.input_slots_representation:
+            available_variables = self._get_available_variables(
+                input_slot_row.type)
             input_slot_row.available_variables = available_variables
 
-    def _get_available_variables(self):
+    def _get_available_variables(self, var_type=None):
         registry = self.variable_names_registry
-        return registry.available_variables[self.layer_index]
+        if var_type is None:
+            return registry.available_variables[self.layer_index]
+        else:
+            return registry.available_variables_by_type(var_type)
+            [self.layer_index]
