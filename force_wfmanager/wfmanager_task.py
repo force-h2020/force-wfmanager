@@ -484,4 +484,4 @@ class WfManagerTask(Task):
 
     def _show_error_dialog(self, message):
         """Shows an error dialog to the user with a given message"""
-        error(None, message=message, "Server error")
+        error(None, message, "Server error")
