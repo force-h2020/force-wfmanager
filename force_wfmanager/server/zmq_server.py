@@ -83,7 +83,7 @@ class ZMQServer(threading.Thread):
              self._inproc_socket) = self._setup_sockets()
         except Exception as e:
             log.exception("Unable to setup sockets")
-            self._close_all_sockets_noerror()
+            self._close_all_sockets_noexc()
             self.state = ZMQServer.STATE_STOPPED
             self._on_error_callback(
                 self.ERROR_TYPE_CRITICAL,
@@ -102,7 +102,7 @@ class ZMQServer(threading.Thread):
             poller.register(self._inproc_socket)
         except Exception as e:
             log.exception("Unable to setup sockets")
-            self._close_all_sockets_noerror()
+            self._close_all_sockets_noexc()
             self.state = ZMQServer.STATE_STOPPED
             self._on_error_callback(
                 self.ERROR_TYPE_CRITICAL,
@@ -119,7 +119,7 @@ class ZMQServer(threading.Thread):
                 events = dict(poller.poll())
             except Exception as e:
                 log.exception("Unable to poll")
-                self._close_all_sockets_noerror()
+                self._close_all_sockets_noexc()
                 self.state = ZMQServer.STATE_STOPPED
                 self._on_error_callback(
                     self.ERROR_TYPE_CRITICAL,
@@ -160,7 +160,7 @@ class ZMQServer(threading.Thread):
                 except Exception as e:
                     log.exception("Handler {} raised exception.".format(
                         handle))
-                    self._close_all_sockets_noerror()
+                    self._close_all_sockets_noexc()
                     self.state = ZMQServer.STATE_STOPPED
                     self._on_error_callback(
                         self.ERROR_TYPE_CRITICAL,
@@ -172,7 +172,7 @@ class ZMQServer(threading.Thread):
 
             if self._inproc_socket in events:
                 self._inproc_socket.recv()
-                self._close_network_sockets_noerror()
+                self._close_network_sockets_noexc()
                 self.state = ZMQServer.STATE_STOPPED
                 self._inproc_socket.send(''.encode('utf-8'))
                 self._inproc_socket.close()
@@ -220,7 +220,11 @@ class ZMQServer(threading.Thread):
         inproc_socket.bind("inproc://stop")
         return pub_socket, pub_port, sync_socket, sync_port, inproc_socket
 
-    def _close_network_sockets_noerror(self):
+    def _close_network_sockets_noexc(self):
+        """Closes all the network sockets: pub and sync sockets.
+        This method throws away all exceptions that the operation might
+        encounter, and performs closing on all sockets without halting.
+        """
         self.ports = None
         try:
             self._pub_socket.close()
@@ -234,8 +238,12 @@ class ZMQServer(threading.Thread):
             pass
         self._sync_socket = None
 
-    def _close_all_sockets_noerror(self):
-        self._close_network_sockets_noerror()
+    def _close_all_sockets_noexc(self):
+        """Close all sockets, both the network ones and the inproc one.
+        This method throws away all exceptions that the operation might
+        encounter and performs closing on all sockets without halting.
+        """
+        self._close_network_sockets_noexc()
         try:
             self._inproc_socket.close()
         except:
