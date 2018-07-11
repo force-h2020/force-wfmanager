@@ -54,7 +54,7 @@ def install(python_version):
 def test(python_version):
     env_name = get_env_name(python_version)
 
-    edm_run(env_name, ["python", "-m", "unittest", "-v" "discover"])
+    edm_run(env_name, ["python", "-m", "unittest", "-v", "discover"])
 
 
 @cli.command(help="Run flake")
