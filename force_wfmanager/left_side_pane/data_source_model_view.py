@@ -308,11 +308,11 @@ class DataSourceModelView(ModelView):
         if isinstance(self.selected_slot_row, InputSlotRow):
             desc = self.input_slots_description[idx]
             return HTML_SLOT_DESCRIPTION.format(HTML_BACKGROUND_COLOR,
-                                                row_type, desc)
+                                                row_type, 'Input', idx, desc)
         else:
             desc = self.output_slots_description[idx]
             return HTML_SLOT_DESCRIPTION.format(HTML_BACKGROUND_COLOR,
-                                                row_type, desc)
+                                                row_type, 'Output', idx, desc)
 
 
 HTML_BACKGROUND_COLOR = get_default_background_color()
@@ -331,11 +331,26 @@ HTML_SLOT_DESCRIPTION = """
                 width: 100%;
                 display: block;
             }}
+            .left-col{{
+                width: 80%;
+                display: inline-block;
+                word-wrap: break-word;
+            }}
+            .right-col{{
+                width: 15%;
+                display: inline-block;
+                word-wrap: break-word;
+            }}
         </style>
     </head>
     <body>
         <div class="container">
-            <h2>{}</h2>
+            <div class="left-col" w>
+                <h2>{}</h2>
+            </div>
+            <div class="right-col">
+                <h4>{} row {}</h4>
+            </div>
             <p>{}</p>
         </div>
     </body>
