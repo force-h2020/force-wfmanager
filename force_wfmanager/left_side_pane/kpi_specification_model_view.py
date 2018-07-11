@@ -44,7 +44,21 @@ class KPISpecificationModelView(ModelView):
     def update_combobox_values(self):
         available = self.variable_names_registry.data_source_outputs
         self._combobox_values = [''] + available
+
         self.name = ('' if self.name not in available else self.name)
+
+        # If the KPI choice is no longer valid, change the model as well as
+        # the view. This does not happen automatically when model.name is
+        # set to a value not in _combobox_values
+        if self.model is not None and self.name == '':
+            self.model.name = ''
+
+    @on_trait_change('model.name')
+    def update_name(self):
+        if self.model is None:
+            self.name = ''
+        else:
+            self.name = self.model.name
 
     @cached_property
     def _get_label(self):
