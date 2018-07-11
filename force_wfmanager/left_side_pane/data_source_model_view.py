@@ -2,13 +2,13 @@ from traits.api import (HasStrictTraits, Instance, Str, List, Int,
                         on_trait_change, Enum, Bool, HTML, Property,
                         Either)
 
-from traitsui.api import View, Item, UItem, ModelView, TableEditor, HTMLEditor
+from traitsui.api import View, Item,  ModelView, TableEditor, HTMLEditor
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (BaseDataSourceModel, BaseDataSource, Identifier,
                             InputSlotInfo, OutputSlotInfo)
 
-from .view_utils import get_factory_name
+from .view_utils import get_factory_name, get_default_background_color
 from .variable_names_registry import VariableNamesRegistry
 
 
@@ -132,7 +132,8 @@ class DataSourceModelView(ModelView):
     selected_slot_row = Either(Instance(InputSlotRow), Instance(OutputSlotRow))
 
     #: HTML for the selected slot description
-    HTML_selected_slot_description = Property(HTML, depends_on="selected_slot_row")
+    HTML_selected_slot_description = Property(HTML,
+                                              depends_on="selected_slot_row")
 
     #: Defines if the evaluator is valid or not
     valid = Bool(True)
@@ -301,15 +302,20 @@ class DataSourceModelView(ModelView):
 
     def _get_HTML_selected_slot_description(self):
         if self.selected_slot_row is None:
-            return HTML_DEFAULT_MESSAGE
+            return HTML_DEFAULT_MESSAGE.format(HTML_BACKGROUND_COLOR)
         idx = self.selected_slot_row.index
         row_type = self.selected_slot_row.type
         if isinstance(self.selected_slot_row, InputSlotRow):
             desc = self.input_slots_description[idx]
-            return HTML_SLOT_DESCRIPTION.format(row_type, desc)
+            return HTML_SLOT_DESCRIPTION.format(HTML_BACKGROUND_COLOR,
+                                                row_type, desc)
         else:
             desc = self.output_slots_description[idx]
-            return HTML_SLOT_DESCRIPTION.format(row_type, desc)
+            return HTML_SLOT_DESCRIPTION.format(HTML_BACKGROUND_COLOR,
+                                                row_type, desc)
+
+
+HTML_BACKGROUND_COLOR = get_default_background_color()
 
 
 HTML_SLOT_DESCRIPTION = """
@@ -318,6 +324,9 @@ HTML_SLOT_DESCRIPTION = """
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style type="text/css">
+            html{{
+                background: {};
+            }}
             .container{{
                 width: 100%;
                 display: block;
@@ -339,6 +348,9 @@ HTML_DEFAULT_MESSAGE = """
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style type="text/css">
+            html{{
+                background: {};
+            }}
             .container{{
                 width: 100%;
                 display: block;
@@ -350,5 +362,5 @@ HTML_DEFAULT_MESSAGE = """
             <p> No Item Selected </p>
         </div>
     </body>
-    </html> 
+    </html>
     """
