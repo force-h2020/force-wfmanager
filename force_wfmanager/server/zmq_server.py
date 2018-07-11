@@ -145,6 +145,7 @@ class ZMQServer(threading.Thread):
                         self.ERROR_TYPE_WARNING,
                         "Unable to retrieve data from socket: {}.".format(
                             str(e)))
+                    continue
 
                 try:
                     handle = getattr(
