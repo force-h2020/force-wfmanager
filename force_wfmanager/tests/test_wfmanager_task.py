@@ -37,7 +37,8 @@ WORKFLOW_READER_PATH = 'force_wfmanager.wfmanager_task.WorkflowReader'
 ERROR_PATH = 'force_wfmanager.wfmanager_task.error'
 SUBPROCESS_PATH = 'force_wfmanager.wfmanager_task.subprocess'
 OS_REMOVE_PATH = 'force_wfmanager.wfmanager_task.os.remove'
-ZMQSERVER_SETUP_SOCKETS_PATH = 'force_wfmanager.wfmanager_task.ZMQServer._setup_sockets'
+ZMQSERVER_SETUP_SOCKETS_PATH = \
+    'force_wfmanager.wfmanager_task.ZMQServer._setup_sockets'
 
 
 def get_wfmanager_task():
