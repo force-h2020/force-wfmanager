@@ -37,6 +37,8 @@ WORKFLOW_READER_PATH = 'force_wfmanager.wfmanager_task.WorkflowReader'
 ERROR_PATH = 'force_wfmanager.wfmanager_task.error'
 SUBPROCESS_PATH = 'force_wfmanager.wfmanager_task.subprocess'
 OS_REMOVE_PATH = 'force_wfmanager.wfmanager_task.os.remove'
+ZMQSERVER_SETUP_SOCKETS_PATH = \
+    'force_wfmanager.wfmanager_task.ZMQServer._setup_sockets'
 
 
 def get_wfmanager_task():
@@ -552,11 +554,19 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
     def test_initialize_finalize(self):
         self.wfmanager_task.initialized()
         wait_condition(
-            lambda: (self.wfmanager_task._zmq_server.state ==
+            lambda: (self.wfmanager_task.zmq_server.state ==
                      ZMQServer.STATE_WAITING))
 
         self.wfmanager_task.prepare_destroy()
 
         self.assertEqual(
-            self.wfmanager_task._zmq_server.state,
+            self.wfmanager_task.zmq_server.state,
             ZMQServer.STATE_STOPPED)
+
+    def test_zmq_server_failure(self):
+        with mock.patch(ZMQSERVER_SETUP_SOCKETS_PATH) as setup_sockets, \
+                mock.patch(ERROR_PATH) as mock_error, \
+                self.event_loop_until_condition(lambda: mock_error.called):
+
+            setup_sockets.side_effect = Exception("boom")
+            self.wfmanager_task.initialized()

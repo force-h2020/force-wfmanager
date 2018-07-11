@@ -31,31 +31,42 @@ class ZMQServer(threading.Thread):
     STATE_WAITING = "WAITING"
     STATE_RECEIVING = "RECEIVING"
 
-    def __init__(self, config, on_event_callback):
+    #: Error types.
+    #: Critical: when an error of this category is raised, the server will stop
+    #: and then the callback will be invoked
+    ERROR_TYPE_CRITICAL = 1
+
+    #: Warning: the server will stay alive and keep processing.
+    ERROR_TYPE_WARNING = 2
+
+    def __init__(self, on_event_callback, on_error_callback):
         """Sets up the server with the appropriate configuration.
         When the event is detected, on_event_callback will be called
         _in_the_secondary_thread_.
 
         Parameters
         ----------
-        config: ZMQServerConfig
-            The configuration options of the server
         on_event_callback: function
             A function or method to call when a new event is received.
             This function will be called by the secondary thread
             (this thread).
+        on_error_callback: function(error_type, error_message)
+            A function or method to call when an error occurs.
+            This function will be called by the secondary thread, and will
+            accept the error type and the error message arguments.
         """
         super(ZMQServer, self).__init__(name="ZMQServer")
         self.daemon = True
-        self.config = config
         self.state = ZMQServer.STATE_STOPPED
         self._on_event_callback = on_event_callback
+        self._on_error_callback = on_error_callback
 
         self._context = self._get_context()
         self._pub_socket = None
         self._sync_socket = None
         self._inproc_socket = None
         self._deserializer = EventDeserializer()
+        self.ports = None
 
     def run(self):
         if self.state != ZMQServer.STATE_STOPPED:
@@ -64,19 +75,59 @@ class ZMQServer(threading.Thread):
         # Socket to talk to server
         log.info("Server started")
 
-        (self._pub_socket,
-         self._sync_socket,
-         self._inproc_socket) = self._setup_sockets()
+        try:
+            (self._pub_socket,
+             pub_port,
+             self._sync_socket,
+             sync_port,
+             self._inproc_socket) = self._setup_sockets()
+        except Exception as e:
+            log.exception("Unable to setup sockets")
+            self._close_all_sockets_noexc()
+            self.state = ZMQServer.STATE_STOPPED
+            self._on_error_callback(
+                self.ERROR_TYPE_CRITICAL,
+                "Unable to setup server sockets: {}.\n"
+                "The server is now stopped. You will be unable to "
+                "receive progress information from the BDSS.".format(
+                    str(e)))
+            return
 
-        poller = self._get_poller()
-        poller.register(self._pub_socket)
-        poller.register(self._sync_socket)
-        poller.register(self._inproc_socket)
+        self.ports = (pub_port, sync_port)
+
+        try:
+            poller = self._get_poller()
+            poller.register(self._pub_socket)
+            poller.register(self._sync_socket)
+            poller.register(self._inproc_socket)
+        except Exception as e:
+            log.exception("Unable to setup sockets")
+            self._close_all_sockets_noexc()
+            self.state = ZMQServer.STATE_STOPPED
+            self._on_error_callback(
+                self.ERROR_TYPE_CRITICAL,
+                "Unable to register sockets to poller: {}.\n"
+                "The server is now stopped. You will be unable to "
+                "receive progress information from the BDSS.".format(
+                    str(e)))
+            return
 
         self.state = ZMQServer.STATE_WAITING
 
         while True:
-            events = dict(poller.poll())
+            try:
+                events = dict(poller.poll())
+            except Exception as e:
+                log.exception("Unable to poll")
+                self._close_all_sockets_noexc()
+                self.state = ZMQServer.STATE_STOPPED
+                self._on_error_callback(
+                    self.ERROR_TYPE_CRITICAL,
+                    "Unable to poll sockets: {}.\n"
+                    "The server is now stopped. You will be unable to "
+                    "receive progress information from the BDSS.".format(
+                        str(e)))
+                return
 
             for socket_name, socket in [
                     ("pub", self._pub_socket),
@@ -86,7 +137,15 @@ class ZMQServer(threading.Thread):
                 if socket not in events:
                     continue
 
-                data = [x.decode('utf-8') for x in socket.recv_multipart()]
+                try:
+                    data = [x.decode('utf-8') for x in socket.recv_multipart()]
+                except Exception as e:
+                    log.exception("Unable to retrieve data")
+                    self._on_error_callback(
+                        self.ERROR_TYPE_WARNING,
+                        "Unable to retrieve data from socket: {}.".format(
+                            str(e)))
+                    continue
 
                 try:
                     handle = getattr(
@@ -94,15 +153,27 @@ class ZMQServer(threading.Thread):
                         "_handle_"+self.state+"_"+socket_name)
                 except AttributeError:
                     log.error("State {} cannot handle {} data. "
-                              "Discarding.".format(self.state,
-                                                   socket_name))
-                else:
+                              "Discarding.".format(self.state, socket_name))
+                    continue
+
+                try:
                     handle(data)
+                except Exception as e:
+                    log.exception("Handler {} raised exception.".format(
+                        handle))
+                    self._close_all_sockets_noexc()
+                    self.state = ZMQServer.STATE_STOPPED
+                    self._on_error_callback(
+                        self.ERROR_TYPE_CRITICAL,
+                        "Handler {} raised exception {}\n"
+                        "The server is now stopped. You will be unable to "
+                        "receive progress information from the BDSS.".format(
+                            handle, str(e)))
+                    return
 
             if self._inproc_socket in events:
                 self._inproc_socket.recv()
-                self._pub_socket.close()
-                self._sync_socket.close()
+                self._close_network_sockets_noexc()
                 self.state = ZMQServer.STATE_STOPPED
                 self._inproc_socket.send(''.encode('utf-8'))
                 self._inproc_socket.close()
@@ -114,6 +185,10 @@ class ZMQServer(threading.Thread):
         stopped. It does however give up after a second if
         the stop sequence is not respected.
         """
+        if self.state == ZMQServer.STATE_STOPPED:
+            return
+
+        socket = None
         try:
             socket = self._context.socket(zmq.PAIR)
             socket.setsockopt(zmq.RCVTIMEO, 1000)
@@ -127,7 +202,8 @@ class ZMQServer(threading.Thread):
             # ignore
             log.exception("Error while attempting to stop server")
         finally:
-            socket.close()
+            if socket:
+                socket.close()
 
     def _setup_sockets(self):
         """Sets up the sockets."""
@@ -135,15 +211,46 @@ class ZMQServer(threading.Thread):
         pub_socket = context.socket(zmq.SUB)
         pub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
         pub_socket.setsockopt(zmq.LINGER, 0)
-        pub_socket.bind(self.config.pub_url)
+        pub_port = pub_socket.bind_to_random_port("tcp://*")
 
         sync_socket = context.socket(zmq.REP)
         sync_socket.setsockopt(zmq.LINGER, 0)
-        sync_socket.bind(self.config.sync_url)
+        sync_port = sync_socket.bind_to_random_port("tcp://*")
 
         inproc_socket = context.socket(zmq.PAIR)
         inproc_socket.bind("inproc://stop")
-        return pub_socket, sync_socket, inproc_socket
+        return pub_socket, pub_port, sync_socket, sync_port, inproc_socket
+
+    def _close_network_sockets_noexc(self):
+        """Closes all the network sockets: pub and sync sockets.
+        This method throws away all exceptions that the operation might
+        encounter, and performs closing on all sockets without halting.
+        """
+        self.ports = None
+        try:
+            self._pub_socket.close()
+        except:
+            pass
+        self._pub_socket = None
+
+        try:
+            self._sync_socket.close()
+        except:
+            pass
+        self._sync_socket = None
+
+    def _close_all_sockets_noexc(self):
+        """Close all sockets, both the network ones and the inproc one.
+        This method throws away all exceptions that the operation might
+        encounter and performs closing on all sockets without halting.
+        """
+        self._close_network_sockets_noexc()
+        try:
+            self._inproc_socket.close()
+        except:
+            pass
+
+        self._inproc_socket = None
 
     def _get_context(self):
         return zmq.Context()
@@ -168,6 +275,7 @@ class ZMQServer(threading.Thread):
             return
 
         self._sync_socket.send_multipart([x.encode('utf-8') for x in data])
+
         self.state = ZMQServer.STATE_RECEIVING
 
     def _handle_RECEIVING_sync(self, data):
@@ -182,6 +290,7 @@ class ZMQServer(threading.Thread):
             return
 
         self._sync_socket.send_multipart([x.encode('utf-8') for x in data])
+
         self.state = ZMQServer.STATE_WAITING
 
     def _handle_RECEIVING_pub(self, data):
@@ -201,4 +310,7 @@ class ZMQServer(threading.Thread):
             log.error("Received invalid data. Discarding")
             return
 
-        self._on_event_callback(event)
+        try:
+            self._on_event_callback(event)
+        except Exception:
+            log.exception("on_event_callback raised exception")
