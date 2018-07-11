@@ -10,6 +10,7 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
 from force_wfmanager.left_side_pane.new_entity_modal import (
     ModalHandler, NewEntityModal)
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowModelView
+from force_wfmanager.left_side_pane.view_utils import model_info
 
 
 class UIDummy():
@@ -83,3 +84,26 @@ class TestNewEntityModal(unittest.TestCase):
         modal.selected_factory = modal.factories[0]
 
         self.assertEqual(id(first_model), id(modal.current_model))
+
+    def test_description(self):
+
+        modal, modal_info = self._get_dialog()
+
+        self.assertFalse(modal.current_model_editable)
+
+        self.assertIn("No Model", modal.model_description_HTML)
+
+        # Select factory
+        modal.selected_factory = modal.factories[0]
+
+        self.assertIn("testmco", modal.model_description_HTML)
+        self.assertIn("Edit traits", modal.model_description_HTML)
+
+    def test_view_structure(self):
+
+        modal, modal_info = self._get_dialog()
+
+        modal.selected_factory = modal.factories[0]
+
+        self.assertIn("edit_traits_call_count", model_info(
+            modal.current_model))

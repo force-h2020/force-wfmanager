@@ -1,8 +1,9 @@
 from traits.api import (HasStrictTraits, Instance, List, Either,
-                        on_trait_change, Dict, Str)
-from traitsui.api import (View, Handler, HSplit, VGroup, UItem,
+                        on_trait_change, Dict, Str, Property, HTML, Bool,
+                        ReadOnly)
+from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem,
                           InstanceEditor, OKCancelButtons, Menu,
-                          TreeEditor, TreeNode)
+                          TreeEditor, TreeNode, HTMLEditor)
 
 from envisage.plugin import Plugin
 
@@ -11,6 +12,8 @@ from force_bdss.api import (
     BaseDataSourceModel, BaseDataSourceFactory,
     BaseMCOParameter, BaseMCOParameterFactory,
     BaseNotificationListenerModel, BaseNotificationListenerFactory)
+
+from force_wfmanager.left_side_pane.view_utils import model_info
 
 no_view = View()
 no_menu = Menu()
@@ -87,21 +90,53 @@ class NewEntityModal(HasStrictTraits):
     #: Disable the OK button if no factory set
     OKCancelButtons[0].trait_set(enabled_when="selected_factory is not None")
 
-    traits_view = View(
-        VGroup(
-            HSplit(
-                UItem('plugins_root', editor=editor),
+    model_description_HTML = Property(HTML, depends_on="current_model")
 
-                UItem('current_model', style='custom', editor=InstanceEditor())
+    current_model_editable = Property(Bool, depends_on='current_model')
+
+    no_config_options_msg = ReadOnly(HTML)
+
+    traits_view = View(
+            HSplit(
+                Group(
+                    UItem('plugins_root',
+                          editor=editor)
+                    ),
+                VGroup(
+                    Group(
+                        UItem('current_model',
+                              style='custom',
+                              editor=InstanceEditor(),
+                              visible_when='current_model_editable is True'
+                              ),
+                        UItem('no_config_options_msg',
+                              style='readonly',
+                              editor=HTMLEditor(),
+                              visible_when='current_model_editable is False'),
+                        visible_when='current_model is not None',
+                        style="custom",
+                        label="Configuration Options",
+                        show_border=True,
+
+                    ),
+                    Group(
+                         UItem('model_description_HTML',
+                               editor=HTMLEditor(),
+                               ),
+                         style="readonly",
+                         label="Description",
+                         show_border=True
+                     ),
+                )
                 ),
-        ),
-        buttons=OKCancelButtons,
-        title='Add New Element',
-        handler=ModalHandler(),
-        width=800,
-        height=600,
-        kind="livemodal"
-    )
+            buttons=OKCancelButtons,
+            title='Add New Element',
+            handler=ModalHandler(),
+            width=800,
+            height=600,
+            resizable=True,
+            kind="livemodal"
+            )
 
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityModal, self).__init__(*args, **kwargs)
@@ -124,6 +159,10 @@ class NewEntityModal(HasStrictTraits):
                                            factories=factories,
                                            name=plugin.id))
         return Root(plugins=plugins)
+
+    def _no_config_options_msg_default(self):
+        return HTML_TEMPLATE.format("", "", "<p>No configuration options "
+                                    "available for this selection</p>")
 
     @on_trait_change("selected_factory")
     def update_current_model(self):
@@ -153,3 +192,80 @@ class NewEntityModal(HasStrictTraits):
             plugin = factory.mco_factory.plugin
 
         return plugin
+
+    def _get_current_model_editable(self):
+        """A check which indicates if 1. A view with at least
+        one item exists for this model and 2. That those items
+        are actually visible to the user"""
+        return model_info(self.current_model) != []
+
+    def _get_model_description_HTML(self):
+        """Format a description of the currently selected model and it's
+        parameters, using desc metadata from the traits in
+        ${model_name}_model.py"""
+
+        # A default message when no model selected
+        if self.selected_factory is None or self.current_model is None:
+            return HTML_TEMPLATE.format("No Model Selected", "", "")
+
+        model_name = self.selected_factory.get_name()
+        model_desc = self.selected_factory.get_description()
+        view_info = model_info(self.current_model)
+
+        # Message for a model without editable traits
+        if view_info == []:
+            return HTML_TEMPLATE.format(model_name, model_desc, "")
+
+        # A list containing trait names and descriptions
+        name_desc_pairs = []
+
+        # Retrieve descriptions from trait metadata
+        for i, trait_name in enumerate(view_info):
+            trait = self.current_model.trait(trait_name)
+            trait_desc = trait.desc
+
+            if trait_desc is not None:
+                name_desc_pairs.append([trait_name, trait_desc])
+            else:
+                name_desc_pairs.append([trait_name,
+                                        'No Description Available'])
+
+        # Format names as in the Instance Editor
+        name_desc_pairs = [[name.replace('_', ' ').capitalize(), desc]
+                           for name, desc in name_desc_pairs]
+
+        # Create a HTML string with all the model's parameters
+        body_str = ''.join([TITLED_PARAGRAPH.format(name, desc)
+                           for name, desc in name_desc_pairs])
+
+        return HTML_TEMPLATE.format(model_name, model_desc, body_str)
+
+
+# A generic HTML header and body with title and text
+HTML_TEMPLATE = """
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style type="text/css">
+                .container{{
+                    width: 100%;
+                    display: block;
+                }}
+            </style>
+        </head>
+        <body>
+        <h1>{}</h1>
+        <p>{}</p>
+        {}
+        </body>
+        </html>
+        """
+
+# HTML for a title and description
+TITLED_PARAGRAPH = """
+        <div class="container">
+            <h2>{}</h2>
+            <p>{}</p>
+        </div>
+        """
