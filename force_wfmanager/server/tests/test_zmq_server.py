@@ -96,6 +96,22 @@ class TestZMQServer(unittest.TestCase):
 
         wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
 
+    def test_stop_a_stopped_server(self):
+        def cb(event):
+            pass
+
+        def err_cb(error_type, error_msg):
+            pass
+
+        server = ZMQServer(cb, err_cb)
+
+        server.start()
+        wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
+        server.stop()
+        wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
+        server.stop()
+        self.assertEqual(server.state, ZMQServer.STATE_STOPPED)
+
     @contextlib.contextmanager
     def mock_started_server(self, events_received, errors_received):
             with self.mock_server(events_received, errors_received) as server:
