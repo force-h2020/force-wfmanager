@@ -1,5 +1,5 @@
 import re
-from difflib import SequenceMatcher
+from itertools import groupby
 
 from traits.api import Instance, on_trait_change, Str, Event
 
@@ -483,25 +483,10 @@ def collate_errors(error_message):
 
     #: List of error messages
     error_list = error_message.split('\n')
+    error_list.remove('')
 
     #: Dict with similar errors grouped together
     group_errors = {}
-
-    #: Keywords which indicate two separate errors should not be collated,
-    #: even when they are otherwise similar
-    ignore_pairs = [["input", "output"], ["Name", "Type"]]
-
-    def ignore_func(ignore_pair_list):
-        def wrap(error_1, error_2):
-            for pair in ignore_pair_list:
-                check = (pair[0] in error_1 and pair[1] in error_2) or (
-                            pair[1] in error_1 and pair[0] in error_2)
-                if check is True:
-                    return True
-            return False
-        return wrap
-
-    ignore = ignore_func(ignore_pairs)
 
     #: Build a dict where keys are error messages and values are the indexes
     #: from similar error messages.
@@ -512,22 +497,22 @@ def collate_errors(error_message):
 
         if digit_regexp is not None:
             index = digit_regexp.group()
+            split = error.partition(str(index))
+            message = split[0] + '{}' + split[-1]
         else:
             index = None
+            message = error
 
         for key in group_errors:
             # A measure of similarity between previous error messages and
             # this one
-            s = SequenceMatcher(None, key, error)
 
-            if ignore(error, key) is True:
-                pass
-            elif s.ratio() > 0.9:
+            if message == key:
                 match = True
                 group_errors[key].append(index)
 
         if match is False:
-            group_errors[error] = [index]
+            group_errors[message] = [index]
 
     #: Format a string for each entry in group_errors
     return_string = ''
@@ -537,14 +522,24 @@ def collate_errors(error_message):
         if None not in value:
             # Single, consecutive or non-consecutive
             if len(value) == 1:
-                repl = value[0]
-            elif abs(int(value[-1]) - int(value[0])) == len(value)-1:
-                repl = '{}-{}'.format(min(value[0], value[-1]),
-                                      max(value[0], value[-1]))
+                repl_string = str(value[0])
             else:
-                repl = ','.join(value)
+                repl = []
+                # val = (index from enumerate, index from error messages)
+                for i, index_group in groupby(enumerate(value), lambda val:
+                                              val[0]-int(val[1])):
+                    index_list = []
+                    for enum_idx, error_idx in index_group:
+                        index_list.append(error_idx)
+                    if len(index_list) == 1:
+                        repl.append(index_list[0])
+                    else:
+                        repl.append('{}-{}'.format(index_list[0],
+                                                   index_list[-1]))
+                # Conversion from list of strings to comma separated string
+                repl_string = ', '.join(repl)
 
-            return_string += re.sub(r'\d+', repl, key, count=1)
+            return_string += key.format(repl_string)
             return_string += '\n'
         else:
             return_string += key
