@@ -51,7 +51,7 @@ def get_default_background_color():
     """Return the default background color for a Qt Application"""
     palette = QtGui.QPalette()
     rgba_color = palette.window().color().getRgb()
-    html_background_color = '#{:02x}{:02x}{:02x}'.format(rgba_color[0], 
+    html_background_color = '#{:02x}{:02x}{:02x}'.format(rgba_color[0],
                                                          rgba_color[1],
                                                          rgba_color[2])
     return html_background_color
