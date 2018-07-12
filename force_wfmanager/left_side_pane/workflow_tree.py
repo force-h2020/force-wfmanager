@@ -392,7 +392,7 @@ class WorkflowTree(ModelView):
         self.verify_workflow_event = True
 
     @on_trait_change("verify_workflow_event")
-    def perform_verify_workflow_event_(self):
+    def perform_verify_workflow_event(self):
         """Verify the workflow and update error_message traits of
         every ModelView in the workflow"""
 
@@ -445,8 +445,9 @@ class WorkflowTree(ModelView):
         if current_modelview.error_message != '':
             current_modelview.valid = False
             # Combine errors which refer to similar problems
-            current_modelview.error_message = collate_errors(current_modelview.
-                                                             error_message)
+            error_messages = current_modelview.error_message.split('\n')
+            error_messages.remove('')
+            current_modelview.error_message = collate_errors(error_messages)
         else:
             current_modelview.valid = True
 
@@ -460,15 +461,16 @@ class WorkflowTree(ModelView):
     @on_trait_change("selected_mv,selected_mv.error_message,selected_mv.label")
     def update_selected_error(self):
 
-        mv_label = self.selected_mv.label
-
+        # If nothing is currently selected, display all the errors
         if self.selected_mv is None:
-            self.selected_error = HTML_ERROR_TEMPLATE.format(
-                "No errors for {}.".format(mv_label), "")
-        elif self.selected_mv.error_message == '':
+            self.selected_mv = self.workflow_mv
+
+        if self.selected_mv.error_message == '':
+            mv_label = self.selected_mv.label
             self.selected_error = HTML_ERROR_TEMPLATE.format(
                 "No errors for {}.".format(mv_label), "")
         else:
+            mv_label = self.selected_mv.label
             error_list = self.selected_mv.error_message.split('\n')
             body_strings = ''.join([HTML_SINGLE_ERROR.format(error)
                                     for error in error_list])
@@ -476,14 +478,10 @@ class WorkflowTree(ModelView):
                 "Errors for {}:".format(mv_label), body_strings)
 
 
-def collate_errors(error_message):
+def collate_errors(error_list):
     """Group together similar error messages. For example, if output
     parameters 1,2 and 3 have undefined names display 'Output parameters 1-3
     have undefined names', rather than 3 separate error messages."""
-
-    #: List of error messages
-    error_list = error_message.split('\n')
-    error_list.remove('')
 
     #: Dict with similar errors grouped together
     group_errors = {}
@@ -494,7 +492,6 @@ def collate_errors(error_message):
         match = False
         # A regexp used to give the first number appearing in an error message
         digit_regexp = re.search(r'\d+', error)
-
         if digit_regexp is not None:
             index = digit_regexp.group()
             split = error.partition(str(index))
