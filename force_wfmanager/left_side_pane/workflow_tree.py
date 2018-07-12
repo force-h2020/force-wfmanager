@@ -1,6 +1,3 @@
-import re
-from itertools import groupby
-
 from traits.api import Instance, on_trait_change, Str, Event
 
 from traitsui.api import (
@@ -415,15 +412,19 @@ class WorkflowTree(ModelView):
         ModelView. Parent ModelViews also have the error messages from
         their child ModelViews"""
 
+        # Begin from top-level WorkflowModelView if nothing specified already
         if current_modelview is None:
             current_modelview = self.workflow_mv
 
-        current_modelview.error_message = ''
+        # Get the current modelview's class
         current_modelview_type = current_modelview.__class__.__name__
 
+        # A list of error messages
+        message_list = []
+
+        # If the current ModelView has any child modelviews..
         if current_modelview_type in mappings:
-            # Call self.verify_tree for any child modelviews, retrieving their
-            # error messages.
+            # ..retrieve their error messages by calling self.verify_tree
             for child_modelview_list_name in mappings[current_modelview_type]:
 
                 child_modelview_list = getattr(current_modelview,
@@ -432,26 +433,32 @@ class WorkflowTree(ModelView):
                 for child_modelview in child_modelview_list:
                     child_modelview_errors = self.verify_tree(mappings, errors,
                                                               child_modelview)
-                    current_modelview.error_message += child_modelview_errors
-                    if current_modelview.error_message != '':
-                        current_modelview.valid = False
 
-        # Check current_modelview for errors
-        for error_pair in errors:
-            if current_modelview.model == error_pair.subject:
-                error_string = error_pair.error
-                current_modelview.error_message += (error_string + '\n')
+                    # Add any unique error messages to the list
+                    for message in child_modelview_errors:
+                        if message not in message_list:
+                            message_list.append(message)
 
-        if current_modelview.error_message != '':
+        # A list of messages to pass to the parent ModelView
+        send_to_parent = message_list[:]
+        # Check if any errors are local to this ModelView
+        for verifier_error in errors:
+            if current_modelview.model == verifier_error.subject:
+                message_list.append(verifier_error.local_error)
+                if verifier_error.global_error != '':
+                    send_to_parent.append(verifier_error.global_error)
+
+        if len(message_list) != 0:
             current_modelview.valid = False
-            # Combine errors which refer to similar problems
-            error_messages = current_modelview.error_message.split('\n')
-            error_messages.remove('')
-            current_modelview.error_message = collate_errors(error_messages)
         else:
             current_modelview.valid = True
 
-        return current_modelview.error_message
+        # Display message so that more relevant errors
+        # to this ModelView come first
+        current_modelview.error_message = '\n'.join(reversed(message_list))
+
+        # Pass relevant error messages to parent
+        return send_to_parent
 
     def modelview_editable(self, modelview):
         """Checks if the model associated to a ModelView instance
@@ -468,7 +475,7 @@ class WorkflowTree(ModelView):
         if self.selected_mv.error_message == '':
             mv_label = self.selected_mv.label
             self.selected_error = HTML_ERROR_TEMPLATE.format(
-                "No errors for {}.".format(mv_label), "")
+                "No errors for {}".format(mv_label), "")
         else:
             mv_label = self.selected_mv.label
             error_list = self.selected_mv.error_message.split('\n')
@@ -476,73 +483,6 @@ class WorkflowTree(ModelView):
                                     for error in error_list])
             self.selected_error = HTML_ERROR_TEMPLATE.format(
                 "Errors for {}:".format(mv_label), body_strings)
-
-
-def collate_errors(error_list):
-    """Group together similar error messages. For example, if output
-    parameters 1,2 and 3 have undefined names display 'Output parameters 1-3
-    have undefined names', rather than 3 separate error messages."""
-
-    #: Dict with similar errors grouped together
-    group_errors = {}
-
-    #: Build a dict where keys are error messages and values are the indexes
-    #: from similar error messages.
-    for error in error_list:
-        match = False
-        # A regexp used to give the first number appearing in an error message
-        digit_regexp = re.search(r'\d+', error)
-        if digit_regexp is not None:
-            index = digit_regexp.group()
-            split = error.partition(str(index))
-            message = split[0] + '{}' + split[-1]
-        else:
-            index = None
-            message = error
-
-        for key in group_errors:
-            # A measure of similarity between previous error messages and
-            # this one
-
-            if message == key:
-                match = True
-                group_errors[key].append(index)
-
-        if match is False:
-            group_errors[message] = [index]
-
-    #: Format a string for each entry in group_errors
-    return_string = ''
-    for key, value in group_errors.items():
-        # Errors with an index == None cannot be sensibly combined, so just
-        # leave them as they are
-        if None not in value:
-            # Single, consecutive or non-consecutive
-            if len(value) == 1:
-                repl_string = str(value[0])
-            else:
-                repl = []
-                # val = (index from enumerate, index from error messages)
-                for i, index_group in groupby(enumerate(value), lambda val:
-                                              val[0]-int(val[1])):
-                    index_list = []
-                    for enum_idx, error_idx in index_group:
-                        index_list.append(error_idx)
-                    if len(index_list) == 1:
-                        repl.append(index_list[0])
-                    else:
-                        repl.append('{}-{}'.format(index_list[0],
-                                                   index_list[-1]))
-                # Conversion from list of strings to comma separated string
-                repl_string = ', '.join(repl)
-
-            return_string += key.format(repl_string)
-            return_string += '\n'
-        else:
-            return_string += key
-            return_string += '\n'
-
-    return return_string
 
 
 HTML_ERROR_TEMPLATE = """
