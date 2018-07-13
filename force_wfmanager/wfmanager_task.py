@@ -6,7 +6,7 @@ import textwrap
 
 from concurrent.futures import ThreadPoolExecutor
 
-from traits.api import Instance, on_trait_change, File, Str, Bool, List, Dict
+from traits.api import Instance, on_trait_change, File, Str, Bool, List
 
 from pyface.api import (
     FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, confirm,
@@ -42,11 +42,6 @@ class WfManagerTask(Task):
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(SidePane)
-
-    bindings = List(Dict)
-
-    # The list of commands to run on shell startup
-    commands = List(Str)
 
     #: Registry of the available factories
     factory_registry = Instance(IFactoryRegistryPlugin)
