@@ -27,15 +27,6 @@ force\_wfmanager\.server\.zmq\_server module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.server\.zmq\_server\_config module
-----------------------------------------------------
-
-.. automodule:: force_wfmanager.server.zmq_server_config
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
 Module contents
 ---------------
 
