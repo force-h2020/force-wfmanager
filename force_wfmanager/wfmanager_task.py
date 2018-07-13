@@ -24,7 +24,6 @@ from force_bdss.api import (
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
-from force_wfmanager.python_shell_dock_pane import PythonShellDockPane
 from force_wfmanager.server.zmq_server import ZMQServer
 
 log = logging.getLogger(__name__)
@@ -49,19 +48,11 @@ class WfManagerTask(Task):
     # The list of commands to run on shell startup
     commands = List(Str)
 
-    # the IPythonShell instance that we are interacting with
-    python_pane = Instance(PythonShellDockPane)
-
     #: Registry of the available factories
     factory_registry = Instance(IFactoryRegistryPlugin)
 
     #: Current workflow file on which the application is writing
     current_file = File()
-
-    default_layout = TaskLayout(
-        left=PaneItem("force_wfmanager.side_pane"),
-        right=PaneItem("force_wfmanager.python_shell_dock_pane", width=200)
-    )
 
     #: A list of UI hooks managers. These hold plugin injected "hook managers",
     #: classes with methods that are called when some operation is performed
@@ -132,8 +123,7 @@ class WfManagerTask(Task):
 
     def create_dock_panes(self):
         """ Creates the dock panes """
-        print("create dock panes")
-        return [self.side_pane, self.python_pane]
+        return [self.side_pane]
 
     def initialized(self):
         self.zmq_server.start()
@@ -440,15 +430,6 @@ class WfManagerTask(Task):
             factory_registry=self.factory_registry,
             workflow_m=self.workflow_m
         )
-
-    def _python_pane_default(self):
-        print("python pane default")
-        pane = PythonShellDockPane(bindings=self.bindings,
-                                   commands=self.commands
-                                   )
-        print("visible = ", pane.visible)
-        pane.show()
-        return pane
 
     def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)

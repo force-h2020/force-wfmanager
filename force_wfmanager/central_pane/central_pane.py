@@ -1,8 +1,9 @@
 from pyface.tasks.api import TraitsTaskPane
 
-from traits.api import Instance
+from traits.api import Instance, Dict
 
 from traitsui.api import View, VGroup, UItem
+from traitsui.editors import ShellEditor
 
 from .analysis_model import AnalysisModel
 from .plot import Plot
@@ -23,9 +24,12 @@ class CentralPane(TraitsTaskPane):
     #: The plot view
     plot = Instance(Plot)
 
+    console = Dict()
+
     view = View(VGroup(
             UItem('result_table', style='custom'),
             UItem('plot', style='custom'),
+            UItem("console", editor=ShellEditor()),
             layout='tabbed'
     ))
 
@@ -42,3 +46,6 @@ class CentralPane(TraitsTaskPane):
         return Plot(
             analysis_model=self.analysis_model
         )
+
+    def _console_default(self):
+        return {"task": self.task}
