@@ -132,8 +132,7 @@ class DataSourceModelView(ModelView):
     selected_slot_row = Either(Instance(InputSlotRow), Instance(OutputSlotRow))
 
     #: HTML for the selected slot description
-    HTML_selected_slot_description = Property(HTML,
-                                              depends_on="selected_slot_row")
+    selected_slot_description = Property(HTML, depends_on="selected_slot_row")
 
     #: Defines if the evaluator is valid or not
     valid = Bool(True)
@@ -151,7 +150,7 @@ class DataSourceModelView(ModelView):
             editor=output_slots_editor,
         ),
         Item(
-            "HTML_selected_slot_description",
+            "selected_slot_description",
             label="Description",
             editor=HTMLEditor(),
         ),
@@ -300,25 +299,25 @@ class DataSourceModelView(ModelView):
         registry = self.variable_names_registry
         return registry.available_variables[self.layer_index]
 
-    def _get_HTML_selected_slot_description(self):
+    def _get_selected_slot_description(self):
         if self.selected_slot_row is None:
-            return HTML_DEFAULT_MESSAGE.format(HTML_BACKGROUND_COLOR)
+            return DEFAULT_MESSAGE.format(BACKGROUND_COLOR)
         idx = self.selected_slot_row.index
         row_type = self.selected_slot_row.type
         if isinstance(self.selected_slot_row, InputSlotRow):
             desc = self.input_slots_description[idx]
-            return HTML_SLOT_DESCRIPTION.format(HTML_BACKGROUND_COLOR,
+            return SLOT_DESCRIPTION.format(BACKGROUND_COLOR,
                                                 row_type, 'Input', idx, desc)
         else:
             desc = self.output_slots_description[idx]
-            return HTML_SLOT_DESCRIPTION.format(HTML_BACKGROUND_COLOR,
+            return SLOT_DESCRIPTION.format(BACKGROUND_COLOR,
                                                 row_type, 'Output', idx, desc)
 
 
-HTML_BACKGROUND_COLOR = get_default_background_color()
+BACKGROUND_COLOR = get_default_background_color()
 
 
-HTML_SLOT_DESCRIPTION = """
+SLOT_DESCRIPTION = """
     <html>
     <head>
         <meta charset="utf-8">
@@ -357,7 +356,7 @@ HTML_SLOT_DESCRIPTION = """
     </html>
     """
 
-HTML_DEFAULT_MESSAGE = """
+DEFAULT_MESSAGE = """
     <html>
     <head>
         <meta charset="utf-8">
