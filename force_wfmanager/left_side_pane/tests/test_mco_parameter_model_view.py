@@ -17,10 +17,10 @@ class TestMCOParameterModelViewTest(unittest.TestCase):
 
     def test_mco_parameter_mv_init(self):
         self.assertEqual(self.mco_param_mv.label,
-                         "Probe parameter (No Name, No Type)")
+                         "Probe parameter")
 
     def test_mco_parameter_label(self):
         self.mco_param_mv.model.name = 'P1'
         self.mco_param_mv.model.type = 'PRESSURE'
         self.assertEqual(self.mco_param_mv.label,
-                         "Probe parameter (Name: P1, Type: PRESSURE)")
+                         "Probe parameter: PRESSURE P1")

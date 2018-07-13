@@ -35,16 +35,10 @@ class MCOParameterModelView(ModelView):
         self.verify_workflow_event = True
 
     def _get_label(self):
-        if self.model.name != '':
-            label_name = 'Name: '+self.model.name
-        else:
-            label_name = 'No Name'
-        if self.model.type != '':
-            label_type = 'Type: '+self.model.type
-        else:
-            label_type = 'No Type'
-
-        return self._label_default()+' ({}, {})'.format(label_name, label_type)
+        if self.model.name == '' and self.model.type == '':
+            return self._label_default()
+        return self._label_default()+': {} {}'.format(self.model.type,
+                                                      self.model.name)
 
     def _label_default(self):
         return get_factory_name(self.model.factory)
