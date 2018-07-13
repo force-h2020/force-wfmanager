@@ -24,12 +24,13 @@ class CentralPane(TraitsTaskPane):
     #: The plot view
     plot = Instance(Plot)
 
-    console = Dict()
+    # Namespace for the console
+    console_ns = Dict()
 
     view = View(VGroup(
             UItem('result_table', style='custom'),
             UItem('plot', style='custom'),
-            UItem("console", editor=ShellEditor()),
+            UItem("console_ns", label="Console", editor=ShellEditor()),
             layout='tabbed'
     ))
 
@@ -47,5 +48,8 @@ class CentralPane(TraitsTaskPane):
             analysis_model=self.analysis_model
         )
 
-    def _console_default(self):
-        return {"task": self.task}
+    def _console_ns_default(self):
+        return {
+            "task": self.task,
+            "app": self.task.window.application
+        }
