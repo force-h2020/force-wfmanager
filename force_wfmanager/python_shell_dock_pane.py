@@ -13,7 +13,7 @@ logger = logging.getLogger()
 class PythonShellDockPane(DockPane):
     """ A Tasks Pane containing a Pyface PythonShell
     """
-    id = 'pyface.tasks.contrib.python_shell.pane'
+    id = 'force_wfmanager.python_shell_dock_pane'
     name = 'Python Shell'
 
     editor = Instance(PythonShell)
@@ -21,23 +21,12 @@ class PythonShellDockPane(DockPane):
     bindings = List(Dict)
     commands = List(Str)
 
-    #: Remove the possibility to close the pane
-    closable = False
-
-    #: Remove the possibility to detach the pane from the GUI
-    floatable = False
-
-    #: Remove the possibility to move the pane in the GUI
-    movable = False
-
-    #: Make the pane visible by default
-    visible = True
-
     def create_contents(self, parent):
         """ Create the python shell task pane
 
         This wraps the standard pyface PythonShell
         """
+        print("create contents")
         logger.debug('PythonShellPane: creating python shell pane')
         self.editor = PythonShell(parent)
 

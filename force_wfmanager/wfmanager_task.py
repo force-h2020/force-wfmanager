@@ -58,6 +58,11 @@ class WfManagerTask(Task):
     #: Current workflow file on which the application is writing
     current_file = File()
 
+    default_layout = TaskLayout(
+        left=PaneItem("force_wfmanager.side_pane"),
+        right=PaneItem("force_wfmanager.python_shell_dock_pane", width=200)
+    )
+
     #: A list of UI hooks managers. These hold plugin injected "hook managers",
     #: classes with methods that are called when some operation is performed
     #: by the UI
@@ -127,6 +132,7 @@ class WfManagerTask(Task):
 
     def create_dock_panes(self):
         """ Creates the dock panes """
+        print("create dock panes")
         return [self.side_pane, self.python_pane]
 
     def initialized(self):
@@ -436,7 +442,13 @@ class WfManagerTask(Task):
         )
 
     def _python_pane_default(self):
-        return PythonShellDockPane(bindings=self.bindings, commands=self.commands)
+        print("python pane default")
+        pane = PythonShellDockPane(bindings=self.bindings,
+                                   commands=self.commands
+                                   )
+        print("visible = ", pane.visible)
+        pane.show()
+        return pane
 
     def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)
