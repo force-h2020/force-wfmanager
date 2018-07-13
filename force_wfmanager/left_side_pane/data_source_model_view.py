@@ -306,12 +306,12 @@ class DataSourceModelView(ModelView):
         row_type = self.selected_slot_row.type
         if isinstance(self.selected_slot_row, InputSlotRow):
             desc = self.input_slots_description[idx]
-            return SLOT_DESCRIPTION.format(BACKGROUND_COLOR,
-                                                row_type, 'Input', idx, desc)
+            return SLOT_DESCRIPTION.format(BACKGROUND_COLOR, row_type,
+                                           'Input', idx, desc)
         else:
             desc = self.output_slots_description[idx]
-            return SLOT_DESCRIPTION.format(BACKGROUND_COLOR,
-                                                row_type, 'Output', idx, desc)
+            return SLOT_DESCRIPTION.format(BACKGROUND_COLOR, row_type,
+                                           'Output', idx, desc)
 
 
 BACKGROUND_COLOR = get_default_background_color()
