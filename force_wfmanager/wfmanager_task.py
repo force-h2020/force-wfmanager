@@ -6,7 +6,7 @@ import textwrap
 
 from concurrent.futures import ThreadPoolExecutor
 
-from traits.api import Instance, on_trait_change, File, Str, Bool, List
+from traits.api import Instance, on_trait_change, File, Str, Bool, List, Dict
 
 from pyface.api import (
     FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, confirm,
@@ -24,6 +24,7 @@ from force_bdss.api import (
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
+from force_wfmanager.python_shell_dock_pane import PythonShellDockPane
 from force_wfmanager.server.zmq_server import ZMQServer
 
 log = logging.getLogger(__name__)
@@ -42,6 +43,14 @@ class WfManagerTask(Task):
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(SidePane)
+
+    bindings = List(Dict)
+
+    # The list of commands to run on shell startup
+    commands = List(Str)
+
+    # the IPythonShell instance that we are interacting with
+    python_pane = Instance(PythonShellDockPane)
 
     #: Registry of the available factories
     factory_registry = Instance(IFactoryRegistryPlugin)
@@ -118,7 +127,7 @@ class WfManagerTask(Task):
 
     def create_dock_panes(self):
         """ Creates the dock panes """
-        return [self.side_pane]
+        return [self.side_pane, self.python_pane]
 
     def initialized(self):
         self.zmq_server.start()
@@ -425,6 +434,9 @@ class WfManagerTask(Task):
             factory_registry=self.factory_registry,
             workflow_m=self.workflow_m
         )
+
+    def _python_pane_default(self):
+        return PythonShellDockPane(bindings=self.bindings, commands=self.commands)
 
     def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)
