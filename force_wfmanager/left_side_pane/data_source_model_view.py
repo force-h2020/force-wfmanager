@@ -123,7 +123,7 @@ class DataSourceModelView(ModelView):
     valid = Bool(True)
 
     #: An error message for issues in this modelview
-    error_message = Str
+    error_message = Str()
 
     #: Event to request a verification check on the workflow
     verify_workflow_event = Event
