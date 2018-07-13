@@ -221,7 +221,7 @@ class DataSourceModelView(ModelView):
     def _fill_slot_rows(self, input_slots, output_slots):
         """ Fill the tables rows according to input_slots and output_slots
         needed by the evaluator and the model slot values """
-        available_variables = self._get_available_variables()
+        available_variables = self._available_variables()
         input_representations = []
 
         for index, input_slot in enumerate(input_slots):
@@ -264,17 +264,22 @@ class DataSourceModelView(ModelView):
                      'output_slots_representation.name,'
                      'output_slots_representation.type,'
                      'input_slots_representation.name,'
-                     'input_slots_representation.type,')
+                     'input_slots_representation.type')
     def update_data_source_input_rows(self):
         for input_slot_row in self.input_slots_representation:
-            available_variables = self._get_available_variables(
+            available_variables = self._available_variables_by_type(
                 input_slot_row.type)
             input_slot_row.available_variables = available_variables
 
-    def _get_available_variables(self, var_type=None):
+    def _available_variables(self):
         registry = self.variable_names_registry
         idx = self.layer_index
-        if var_type is None or var_type == '':
-            return registry.available_variables[idx]
-        else:
-            return registry.available_variables_by_type(var_type)[idx]
+
+        return registry.available_variables[idx]
+
+    def _available_variables_by_type(self, variable_type):
+        registry = self.variable_names_registry
+        idx = self.layer_index
+
+        return registry.available_variables_by_type[idx][variable_type]
+
