@@ -85,10 +85,10 @@ class TreeNodeWithStatus(TreeNode):
     def get_icon(self, object, is_expanded):
         return 'icons/valid.png' if object.valid else 'icons/invalid.png'
 
-    original_label_changed = TreeNode.when_label_changed
-
     def when_label_changed(self, object, listener, remove):
-        self.original_label_changed(object, listener, remove)
+        super(TreeNodeWithStatus, self).when_label_changed(
+            object, listener, remove
+        )
         object.on_trait_change(listener, 'valid')
 
 
