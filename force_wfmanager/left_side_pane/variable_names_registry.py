@@ -12,10 +12,6 @@ class VariableNamesRegistry(HasStrictTraits):
     #: Workflow model
     workflow = Instance(Workflow, allow_none=False)
 
-
-
-    #available_variables_stack = List(List(Dict(Identifier, CUBAType)))
-
     # For each execution layer, there will be a list of (name, type) pairs
     # representing the output variables produced by that execution layer
     exec_layer_output = List(Tuple(Identifier, CUBAType))
@@ -76,7 +72,6 @@ class VariableNamesRegistry(HasStrictTraits):
     )
     def update_available_variables_stack(self):
         stack = []
-
         # At the first layer, the available variables are the MCO parameters
         if self.workflow.mco is None:
             stack.append([])
