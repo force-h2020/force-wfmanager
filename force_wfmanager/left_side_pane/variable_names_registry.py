@@ -72,7 +72,7 @@ class VariableNamesRegistry(HasStrictTraits):
     @on_trait_change(
         'workflow.mco.parameters.name,'
         'workflow.execution_layers.data_sources.output_slot_info.name,'
-        'workflow.mco.parameters.type,'
+        'workflow.mco.parameters.type'
     )
     def update_available_variables_stack(self):
         stack = []
