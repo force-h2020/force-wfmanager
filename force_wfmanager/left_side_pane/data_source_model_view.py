@@ -294,4 +294,3 @@ class DataSourceModelView(ModelView):
         if variable_type in registry.available_variables_by_type[idx]:
             return registry.available_variables_by_type[idx][variable_type]
         return []
-

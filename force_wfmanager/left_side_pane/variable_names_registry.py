@@ -1,9 +1,13 @@
 from traits.api import (
     HasStrictTraits, List, Instance, on_trait_change, Property,
     cached_property, Dict, Tuple)
+import logging
 
 from force_bdss.api import Identifier, Workflow
 from force_bdss.local_traits import CUBAType
+
+log = logging.getLogger(__name__)
+
 
 class VariableNamesRegistry(HasStrictTraits):
     """ Class used for listening to the structure of the Workflow in order to
@@ -83,10 +87,25 @@ class VariableNamesRegistry(HasStrictTraits):
 
         for layer in self.workflow.execution_layers:
             stack_entry_for_layer = []
-            for ds in layer.data_sources:
-                ds_names = [info.name for info in ds.output_slot_info]
+            for ds_model in layer.data_sources:
+                ds_names = [info.name for info in ds_model.output_slot_info]
 
-                ds_output_slots = ds.factory.create_data_source().slots(ds)[1]
+                # This try-except is also in execute.py in force_bdss, so if
+                # this fails the workflow would not be able to run anyway.
+
+                try:
+                    ds = ds_model.factory.create_data_source()
+
+                    # ds.slots() returns (input_slots, output_slots)
+                    ds_output_slots = ds.slots(ds_model)[1]
+                except Exception:
+                    log.exception(
+                        "Unable to create data source from factory '{}' "
+                        "in plugin '{}'. This may indicate a programming "
+                        "error in the plugin".format(
+                            ds_model.factory.id,
+                            ds_model.factory.plugin.id))
+                    raise
 
                 ds_types = [slot.type for slot in ds_output_slots]
 
