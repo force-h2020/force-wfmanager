@@ -211,11 +211,25 @@ class TestWorkflowTree(unittest.TestCase):
         self.tree.delete_kpi(mock_ui_info, mock_object)
         self.assertEqual(mco.kpis, [])
 
-    def test_edit_available(self):
+    def test_edit_menu_option_available(self):
         mco_mv = self.tree.workflow_mv.mco_mv[0]
         self.assertTrue(self.tree.modelview_editable(mco_mv))
         notification_mv = self.tree.workflow_mv.notification_listeners_mv[0]
         self.assertFalse(self.tree.modelview_editable(notification_mv))
+
+    def test_error_messaging(self):
+        self.assertIsNone(self.tree.selected_mv)
+        self.assertIn("No Item Selected", self.tree.selected_error)
+        self.tree.selected_mv = self.tree.workflow_mv
+
+        self.assertIn("An output parameter is undefined",
+                      self.tree.selected_error)
+        param_mv = self.tree.workflow_mv.mco_mv[0].mco_parameters_mv[0]
+        self.tree.selected_mv = param_mv
+
+        param_mv.model.name = 'P1'
+        param_mv.model.type = 'PRESSURE'
+        self.assertIn("No errors", self.tree.selected_error)
 
 
 class TestWorkflowElementNode(unittest.TestCase):
