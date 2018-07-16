@@ -49,7 +49,12 @@ class CentralPane(TraitsTaskPane):
         )
 
     def _console_ns_default(self):
-        return {
-            "task": self.task,
-            "app": self.task.window.application
+        namespace = {
+            "task": self.task
         }
+        try:
+            namespace["app"] = self.task.window.application
+        except AttributeError:
+            namespace["app"] = None
+
+        return namespace
