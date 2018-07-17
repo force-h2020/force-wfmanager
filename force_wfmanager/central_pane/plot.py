@@ -47,7 +47,9 @@ class Plot(HasStrictTraits):
             Item('y'),
         ),
         UItem('_plot', editor=ComponentEditor()),
-        UItem('reset_plot', enabled_when='reset_enabled')
+        VGroup(
+            UItem('reset_plot', enabled_when='reset_enabled')
+        )
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
@@ -180,16 +182,21 @@ class Plot(HasStrictTraits):
         x_index = self.analysis_model.value_names.index(self.x)
         y_index = self.analysis_model.value_names.index(self.y)
 
-        self._plot_data.set_data('x', self._data_arrays[x_index])
-        self._plot_data.set_data('y', self._data_arrays[y_index])
+        if self._data_arrays != []:
+            self._plot_data.set_data('x', self._data_arrays[x_index])
+            self._plot_data.set_data('y', self._data_arrays[y_index])
 
-        self.resize_plot()
+            self.resize_plot()
 
     def resize_plot(self):
 
+        if self.x is None or self.y is None:
+            return
+
         x_data = self._plot_data.get_data('x')
         y_data = self._plot_data.get_data('y')
-
+        if x_data is None:
+            return
         if len(x_data) > 1:
             x_max = max(x_data)
             x_min = min(x_data)
@@ -232,6 +239,9 @@ class Plot(HasStrictTraits):
         self.resize_plot()
 
     def _get_reset_enabled(self):
-        if len(self._plot_data.get_data('x')) > 1:
+        x_data = self._plot_data.get_data('x')
+        if x_data is None:
+            return False
+        if len(x_data) > 1:
             return True
         return False
