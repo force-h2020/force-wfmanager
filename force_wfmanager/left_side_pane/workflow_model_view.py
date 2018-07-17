@@ -61,11 +61,11 @@ class WorkflowModelView(ModelView):
         self.model.execution_layers.remove(layer)
 
     def add_notification_listener(self, notification_listener):
-        """Adds a new empty execution layer"""
+        """Adds a new notification listener"""
         self.model.notification_listeners.append(notification_listener)
 
     def remove_notification_listener(self, notification_listener):
-        """Removes the execution layer from the model."""
+        """Removes the notification listener from the model."""
         self.model.notification_listeners.remove(notification_listener)
 
     def remove_data_source(self, data_source):
@@ -101,11 +101,14 @@ class WorkflowModelView(ModelView):
 
     @on_trait_change("model.notification_listeners[]")
     def update_notification_listeners_mv(self):
+        """Updates the modelviews for the notification listeners, but ignoring
+        any which are non UI visible"""
         self.notification_listeners_mv = [
             NotificationListenerModelView(
                 model=notification_listener,
             )
             for notification_listener in self.model.notification_listeners
+            if notification_listener.factory.ui_visible is True
         ]
 
     def _model_default(self):
