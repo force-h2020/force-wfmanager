@@ -43,6 +43,7 @@ def mock_new_modal(model_type, factory=None):
 
     return _mock_new_modal
 
+
 def mock_notification_listener_factory():
     mock_factory = mock.Mock(spec=BaseNotificationListenerFactory)
     mock_factory.ui_visible = True
@@ -137,7 +138,7 @@ class TestWorkflowTree(unittest.TestCase):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
             mock_factory = mock_notification_listener_factory()
             mock_modal.side_effect = mock_new_modal(
-                BaseNotificationListenerModel,factory=mock_factory
+                BaseNotificationListenerModel, factory=mock_factory
             )
             mock_ui_info = mock.Mock()
             mock_object = mock.Mock()
