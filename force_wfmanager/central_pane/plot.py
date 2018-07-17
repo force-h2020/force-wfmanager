@@ -189,14 +189,18 @@ class Plot(HasStrictTraits):
             self.resize_plot()
 
     def resize_plot(self):
-
+        """Sets the size of the current plot to have some spacing between the
+        largest/smallest value and the plot edge. Also returns the new values
+        (X min, X max, Y min, Y max) if the plot area changes or None if it
+         does not."""
         if self.x is None or self.y is None:
-            return
+            return None
 
         x_data = self._plot_data.get_data('x')
         y_data = self._plot_data.get_data('y')
         if x_data is None:
-            return
+            return None
+
         if len(x_data) > 1:
             x_max = max(x_data)
             x_min = min(x_data)
@@ -214,6 +218,9 @@ class Plot(HasStrictTraits):
             self._plot.range2d.x_range.high = x_max
             self._plot.range2d.y_range.low = y_min
             self._plot.range2d.y_range.high = y_max
+
+            return x_min, x_max, y_min, y_max
+        return None
 
     @on_trait_change('analysis_model.selected_step_index')
     def update_selected_point(self):
