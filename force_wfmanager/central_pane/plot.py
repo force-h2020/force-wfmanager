@@ -187,9 +187,6 @@ class Plot(HasStrictTraits):
 
     def resize_plot(self):
 
-        print(self.analysis_model)
-        print(self.analysis_model.value_names)
-
         x_data = self._plot_data.get_data('x')
         y_data = self._plot_data.get_data('y')
 
