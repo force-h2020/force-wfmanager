@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, List, Instance, Enum, Tuple,
-                        on_trait_change)
+                        on_trait_change, Button, Bool, Property)
 
 from traitsui.api import View, UItem, Item, VGroup, HGroup
 
@@ -36,12 +36,18 @@ class Plot(HasStrictTraits):
     #: Datasource of the plot (used for selection handling)
     _plot_index_datasource = Instance(ArrayDataSource)
 
+    #: Button to reset plot view
+    reset_plot = Button('Reset View')
+
+    reset_enabled = Property(Bool(False), depends_on="_plot_data")
+
     view = View(VGroup(
         HGroup(
             Item('x'),
             Item('y'),
         ),
         UItem('_plot', editor=ComponentEditor()),
+        UItem('reset_plot', enabled_when='reset_enabled')
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
@@ -177,6 +183,34 @@ class Plot(HasStrictTraits):
         self._plot_data.set_data('x', self._data_arrays[x_index])
         self._plot_data.set_data('y', self._data_arrays[y_index])
 
+        self.resize_plot()
+
+    def resize_plot(self):
+
+        print(self.analysis_model)
+        print(self.analysis_model.value_names)
+
+        x_data = self._plot_data.get_data('x')
+        y_data = self._plot_data.get_data('y')
+
+        if len(x_data) > 1:
+            x_max = max(x_data)
+            x_min = min(x_data)
+            x_size = abs(x_max - x_min)
+            x_max = x_max + 0.1 * x_size
+            x_min = x_min - 0.1 * x_size
+
+            y_max = max(y_data)
+            y_min = min(y_data)
+            y_size = abs(y_max - y_min)
+            y_max = y_max + 0.1 * abs(y_size)
+            y_min = y_min - 0.1 * abs(y_size)
+
+            self._plot.range2d.x_range.low = x_min
+            self._plot.range2d.x_range.high = x_max
+            self._plot.range2d.y_range.low = y_min
+            self._plot.range2d.y_range.high = y_max
+
     @on_trait_change('analysis_model.selected_step_index')
     def update_selected_point(self):
         """ Updates the selected point in the plot according to the model """
@@ -195,3 +229,12 @@ class Plot(HasStrictTraits):
             self.analysis_model.selected_step_index = None
         else:
             self.analysis_model.selected_step_index = selected_indices[0]
+
+    @on_trait_change('reset_plot')
+    def reset_pressed(self):
+        self.resize_plot()
+
+    def _get_reset_enabled(self):
+        if len(self._plot_data.get_data('x')) > 1:
+            return True
+        return False
