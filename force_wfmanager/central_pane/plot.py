@@ -116,6 +116,12 @@ class Plot(HasStrictTraits):
         if len(self._value_names) > 1:
             self.y = self._value_names[1]
 
+        # If there are no available value names, set the plot view to a default
+        # state. This occurs when the analysis model is cleared.
+
+        if self._value_names == ():
+            self.set_plot_range(-1, 1, -1, 1)
+
     @on_trait_change('analysis_model.evaluation_steps[]')
     def update_data_arrays(self):
         """ Update the data arrays used by the plot. It assumes that the
@@ -213,10 +219,7 @@ class Plot(HasStrictTraits):
             y_max = y_max + 0.1 * abs(y_size)
             y_min = y_min - 0.1 * abs(y_size)
 
-            self._plot.range2d.x_range.low = x_min
-            self._plot.range2d.x_range.high = x_max
-            self._plot.range2d.y_range.low = y_min
-            self._plot.range2d.y_range.high = y_max
+            self.set_plot_range(x_min, x_max, y_min, y_max)
 
             return x_min, x_max, y_min, y_max
         return None
@@ -249,3 +252,10 @@ class Plot(HasStrictTraits):
         if len(x_data) > 1:
             return True
         return False
+
+    def set_plot_range(self, x_low, x_high, y_low, y_high):
+        """Helper method to set the size of the current _plot"""
+        self._plot.range2d.x_range.low = x_low
+        self._plot.range2d.x_range.high = x_high
+        self._plot.range2d.y_range.low = y_low
+        self._plot.range2d.y_range.high = y_high
