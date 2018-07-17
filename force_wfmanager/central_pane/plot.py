@@ -199,8 +199,6 @@ class Plot(HasStrictTraits):
 
         x_data = self._plot_data.get_data('x')
         y_data = self._plot_data.get_data('y')
-        if x_data is None:
-            return None
 
         if len(x_data) > 1:
             x_max = max(x_data)
@@ -248,8 +246,6 @@ class Plot(HasStrictTraits):
 
     def _get_reset_enabled(self):
         x_data = self._plot_data.get_data('x')
-        if x_data is None:
-            return False
         if len(x_data) > 1:
             return True
         return False

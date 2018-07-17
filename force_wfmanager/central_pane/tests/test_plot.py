@@ -6,6 +6,7 @@ from chaco.api import Plot as ChacoPlot
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.plot import Plot
 from traits.api import push_exception_handler
+
 push_exception_handler(reraise_exceptions=True)
 
 
@@ -193,3 +194,6 @@ class TestPlot(unittest.TestCase):
         result = self.plot.resize_plot()
         self.assertEqual(result, (1.9, 3.1, 2.9, 4.1))
         self.assertTrue(self.plot._get_reset_enabled())
+        self.plot._plot.range2d.x_range.low = -10
+        self.plot.reset_plot = True
+        self.assertEqual(self.plot._plot.range2d.x_range.low, 1.9)
