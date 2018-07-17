@@ -189,10 +189,11 @@ class Plot(HasStrictTraits):
             self.resize_plot()
 
     def resize_plot(self):
-        """Sets the size of the current plot to have some spacing between the
+        """ Sets the size of the current plot to have some spacing between the
         largest/smallest value and the plot edge. Also returns the new values
         (X min, X max, Y min, Y max) if the plot area changes or None if it
-         does not."""
+        does not.
+        """
         if self.x is None or self.y is None:
             return None
 
