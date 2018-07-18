@@ -180,7 +180,7 @@ class Plot(HasStrictTraits):
         """Set the plot data model to the appropriate arrays so that they
         can be displayed when either X or Y selections have been changed.
         """
-        if self.x is None or self.y is None:
+        if self.x is None or self.y is None or self._data_arrays == []:
             self._plot_data.set_data('x', [])
             self._plot_data.set_data('y', [])
             return
@@ -188,11 +188,10 @@ class Plot(HasStrictTraits):
         x_index = self.analysis_model.value_names.index(self.x)
         y_index = self.analysis_model.value_names.index(self.y)
 
-        if self._data_arrays != []:
-            self._plot_data.set_data('x', self._data_arrays[x_index])
-            self._plot_data.set_data('y', self._data_arrays[y_index])
+        self._plot_data.set_data('x', self._data_arrays[x_index])
+        self._plot_data.set_data('y', self._data_arrays[y_index])
 
-            self.resize_plot()
+        self.resize_plot()
 
     def resize_plot(self):
         """ Sets the size of the current plot to have some spacing between the
@@ -220,6 +219,14 @@ class Plot(HasStrictTraits):
             y_min = y_min - 0.1 * abs(y_size)
 
             self.set_plot_range(x_min, x_max, y_min, y_max)
+
+            # Replace the old ZoomTool as retaining the same one can lead
+            # to issues where the zoom out/in limit is not reset on
+            # resizing the plot.
+
+            for idx, overlay in enumerate(self._plot.overlays):
+                if isinstance(overlay, ZoomTool):
+                    self._plot.overlays[idx] = ZoomTool(self._plot)
 
             return x_min, x_max, y_min, y_max
         return None
