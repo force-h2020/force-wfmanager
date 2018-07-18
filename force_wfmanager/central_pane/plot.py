@@ -39,7 +39,7 @@ class Plot(HasStrictTraits):
     #: Button to reset plot view
     reset_plot = Button('Reset View')
 
-    reset_enabled = Property(Bool(False), depends_on="_plot_data")
+    reset_enabled = Property(Bool(), depends_on="_plot_data")
 
     view = View(VGroup(
         HGroup(
