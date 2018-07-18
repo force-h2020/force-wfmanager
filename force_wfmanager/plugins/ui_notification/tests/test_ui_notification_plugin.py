@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import unittest
 
 from force_wfmanager.plugins.ui_notification.ui_notification_factory import \
@@ -19,3 +20,9 @@ class TestUINotificationPlugin(unittest.TestCase):
         self.assertIsInstance(
             plugin.ui_hooks_factories[0],
             UINotificationHooksFactory)
+
+        self.assertEqual(plugin.get_name(), "Workflow Manager support")
+        self.assertEqual(plugin.get_description(),
+                         "Plugin required to support the workflow "
+                         "manager UI interface.")
+        self.assertEqual(plugin.get_version(), 0)
