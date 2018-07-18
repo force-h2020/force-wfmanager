@@ -262,7 +262,7 @@ class Plot(HasStrictTraits):
 
     def set_plot_range(self, x_low, x_high, y_low, y_high):
         """Helper method to set the size of the current _plot"""
-        self._plot.range2d.x_range.low = x_low
-        self._plot.range2d.x_range.high = x_high
-        self._plot.range2d.y_range.low = y_low
-        self._plot.range2d.y_range.high = y_high
+        self._plot.range2d.x_range.low_setting = x_low
+        self._plot.range2d.x_range.high_setting = x_high
+        self._plot.range2d.y_range.low_setting = y_low
+        self._plot.range2d.y_range.high_setting = y_high
