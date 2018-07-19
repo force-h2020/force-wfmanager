@@ -7,7 +7,7 @@ from force_wfmanager.plugins.ui_notification.ui_notification_model import \
     UINotificationModel
 from force_wfmanager.plugins.ui_notification.ui_notification_plugin import \
     UINotificationPlugin
-from force_wfmanager.server.zmq_server_config import ZMQServerConfig
+from force_wfmanager.server.zmq_server import ZMQServer
 
 try:
     import mock
@@ -29,9 +29,11 @@ class TestUINotificationHooksManager(unittest.TestCase):
         manager = self.factory.create_ui_hooks_manager()
 
         mock_task = mock.Mock(spec=Task)
-        mock_task.zmq_server_config = ZMQServerConfig()
         mock_registry = mock.Mock(spec=FactoryRegistryPlugin)
         mock_task.factory_registry = mock_registry
+        mock_server = mock.Mock(spec=ZMQServer)
+        mock_server.ports = (54537, 54538)
+        mock_task.zmq_server = mock_server
         mock_registry.notification_listener_factory_by_id.return_value \
             = self.nl_factory
 
@@ -49,8 +51,8 @@ class TestUINotificationHooksManager(unittest.TestCase):
         self.assertEqual(model, workflow.notification_listeners[0])
         self.assertIsInstance(model, UINotificationModel)
 
-        self.assertEqual(model.sync_url, "tcp://127.0.0.1:54538")
         self.assertEqual(model.pub_url, "tcp://127.0.0.1:54537")
+        self.assertEqual(model.sync_url, "tcp://127.0.0.1:54538")
 
         manager.after_execution(mock_task)
 
