@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 import unittest
 import testfixtures
+from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from traits.api import HasTraits, Instance
 
 from force_bdss.base_extension_plugin import BaseExtensionPlugin
@@ -49,7 +50,8 @@ class Plugin2(BaseExtensionPlugin):
         raise Exception("Boom")
 
 
-class TestPluginDialog(unittest.TestCase):
+class TestPluginDialog(GuiTestAssistant, unittest.TestCase):
+
     def test_htmlformat(self):
         self.assertIn("<h1>xxx</h1>", htmlformat("xxx"))
         self.assertIn("foo", htmlformat(
@@ -72,3 +74,15 @@ class TestPluginDialog(unittest.TestCase):
         modal.selected_plugin = modal.plugins[1]
 
         self.assertIn("Boom", modal.selected_plugin_HTML)
+
+    def test_show(self):
+        modal, modal_info = self._get_dialog()
+
+        def condition(*args, **kwargs):
+            return modal.selected_plugin is not None
+
+        with self.event_loop():
+            ui = modal.edit_traits()
+
+        with self.delete_widget(ui.control):
+            ui.dispose()
