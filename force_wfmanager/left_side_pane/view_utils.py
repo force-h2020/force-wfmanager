@@ -1,4 +1,5 @@
 from traitsui.api import Group, Item
+from pyface.qt import QtGui
 
 
 def get_factory_name(factory):
@@ -44,3 +45,13 @@ def _item_info_from_group(group_contents, item_info=None):
         elif isinstance(entity, Item):
             item_info.append(entity.name)
     return item_info
+
+
+def get_default_background_color():
+    """Return the default background color for a Qt Application"""
+    palette = QtGui.QPalette()
+    rgba_color = palette.window().color().getRgb()
+    html_background_color = '#{:02x}{:02x}{:02x}'.format(rgba_color[0],
+                                                         rgba_color[1],
+                                                         rgba_color[2])
+    return html_background_color
