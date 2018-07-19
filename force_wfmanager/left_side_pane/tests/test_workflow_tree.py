@@ -13,7 +13,7 @@ try:
 except ImportError:
     from unittest import mock
 
-from force_bdss.core.workflow import Workflow
+from force_bdss.api import Workflow, BaseNotificationListenerFactory
 
 from force_wfmanager.left_side_pane.workflow_tree import (
     WorkflowTree,
@@ -31,17 +31,23 @@ MODEL_EDIT_PATH = (
 )
 
 
-def mock_new_modal(model_type):
+def mock_new_modal(model_type, factory=None):
     def _mock_new_modal(*args, **kwargs):
         modal = mock.Mock(spec=NewEntityModal)
         modal.edit_traits = lambda: None
 
         # Any type is ok as long as it passes trait validation.
         # We choose BaseDataSourceModel.
-        modal.current_model = model_type(factory=None)
+        modal.current_model = model_type(factory=factory)
         return modal
 
     return _mock_new_modal
+
+
+def mock_notification_listener_factory():
+    mock_factory = mock.Mock(spec=BaseNotificationListenerFactory)
+    mock_factory.ui_visible = True
+    return mock_factory
 
 
 def mock_model_edit_dialog():
@@ -130,8 +136,9 @@ class TestWorkflowTree(unittest.TestCase):
 
     def test_new_notification_listener(self):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
+            mock_factory = mock_notification_listener_factory()
             mock_modal.side_effect = mock_new_modal(
-                BaseNotificationListenerModel
+                BaseNotificationListenerModel, factory=mock_factory
             )
             mock_ui_info = mock.Mock()
             mock_object = mock.Mock()
