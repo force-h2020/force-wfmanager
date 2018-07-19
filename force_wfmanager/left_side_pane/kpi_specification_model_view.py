@@ -1,5 +1,5 @@
 from traits.api import (Instance, Property, Bool, Enum, List, on_trait_change,
-                        cached_property)
+                        cached_property, Str, Event)
 from traitsui.api import ModelView, View, Item, EnumEditor
 
 from force_bdss.api import KPISpecification, Identifier
@@ -20,6 +20,9 @@ class KPISpecificationModelView(ModelView):
     #: Defines if the KPI is valid or not
     valid = Bool(True)
 
+    #: An error message for issues in this modelview
+    error_message = Str
+
     #: The name of the selected KPI
     name = Enum(values='_combobox_values')
 
@@ -33,12 +36,19 @@ class KPISpecificationModelView(ModelView):
         kind="subpanel",
     )
 
+    #: Event to request a verification check on the workflow
+    verify_workflow_event = Event
+
     def __init__(self, model, variable_names_registry, **kwargs):
         super(KPISpecificationModelView, self).__init__(
             model=model,
             variable_names_registry=variable_names_registry,
             **kwargs
         )
+
+    @on_trait_change('model.name,model.objective')
+    def kpi_change(self):
+        self.verify_workflow_event = True
 
     @on_trait_change('variable_names_registry.data_source_outputs')
     def update_combobox_values(self):
@@ -65,5 +75,7 @@ class KPISpecificationModelView(ModelView):
         """Gets the label from the model object"""
         if self.model.name == '':
             return "KPI"
+        elif self.model.objective == '':
+            return "KPI: {}".format(self.model.name)
 
-        return "KPI: {}".format(self.model.name)
+        return "KPI: {} ({})".format(self.model.name, self.model.objective)

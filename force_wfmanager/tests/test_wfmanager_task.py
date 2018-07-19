@@ -329,7 +329,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             hook_manager = self.wfmanager_task._ui_hooks_managers[0]
 
-            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+            self.assertTrue(self.wfmanager_task.side_pane.ui_enabled)
             self.assertFalse(hook_manager.before_execution_called)
             self.assertFalse(hook_manager.after_execution_called)
 
@@ -338,7 +338,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 self.wfmanager_task.run_bdss()
 
             with self.event_loop_until_condition(
-                    lambda: self.wfmanager_task.side_pane.enabled):
+                    lambda: self.wfmanager_task.side_pane.ui_enabled):
                 pass
 
             self.assertTrue(hook_manager.before_execution_called)
@@ -385,9 +385,9 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
         with mock.patch(CONFIRM_PATH) as mock_confirm:
             mock_confirm.side_effect = mock_confirm_function(CANCEL)
 
-            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+            self.assertTrue(self.wfmanager_task.side_pane.ui_enabled)
             self.wfmanager_task.run_bdss()
-            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+            self.assertTrue(self.wfmanager_task.side_pane.ui_enabled)
 
             mock_confirm.assert_called_with(
                 None,
@@ -409,14 +409,14 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             def _check_exception_behavior(exception):
                 mock_check_call.side_effect = exception
 
-                self.assertTrue(self.wfmanager_task.side_pane.enabled)
+                self.assertTrue(self.wfmanager_task.side_pane.ui_enabled)
 
                 with self.event_loop_until_condition(
                         lambda: mock_check_call.called):
                     self.wfmanager_task.run_bdss()
 
                 with self.event_loop_until_condition(
-                        lambda: self.wfmanager_task.side_pane.enabled):
+                        lambda: self.wfmanager_task.side_pane.ui_enabled):
                     pass
 
                 return mock_error.call_args[0][1]
@@ -439,11 +439,11 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
             mock_writer.return_value = workflow_writer
             mock_error.side_effect = mock_show_error
 
-            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+            self.assertTrue(self.wfmanager_task.side_pane.ui_enabled)
 
             self.wfmanager_task.run_bdss()
 
-            self.assertTrue(self.wfmanager_task.side_pane.enabled)
+            self.assertTrue(self.wfmanager_task.side_pane.ui_enabled)
 
             self.assertEqual(
                 mock_error.call_args[0][1],

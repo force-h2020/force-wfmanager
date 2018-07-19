@@ -41,23 +41,31 @@ class SidePane(TraitsDockPane):
 
     #: Enable or disable the contained entities.
     #: Used when the computation is running
-    enabled = Bool(True)
+    ui_enabled = Bool(True)
+
+    run_btn_enabled = Bool(True)
 
     traits_view = View(VGroup(
         UItem('workflow_tree',
               style='custom',
-              enabled_when="enabled"
+              enabled_when="ui_enabled"
               ),
         UItem('run_button',
-              enabled_when="enabled"
+              enabled_when="ui_enabled and run_btn_enabled"
               )
     ))
 
     def _workflow_tree_default(self):
-        return WorkflowTree(
+        wf_tree = WorkflowTree(
             factory_registry=self.factory_registry,
             model=self.workflow_m
         )
+        self.run_btn_enabled = wf_tree.workflow_mv.valid
+        return wf_tree
+
+    @on_trait_change('workflow_tree.workflow_mv.valid')
+    def update_run_btn_status(self):
+        self.run_btn_enabled = self.workflow_tree.workflow_mv.valid
 
     @on_trait_change('workflow_m', post_init=True)
     def update_workflow_tree(self, *args, **kwargs):

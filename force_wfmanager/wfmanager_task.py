@@ -235,7 +235,7 @@ class WfManagerTask(Task):
 
     @on_trait_change('_computation_running')
     def update_side_pane_status(self):
-        self.side_pane.enabled = not self._computation_running
+        self.side_pane.ui_enabled = not self._computation_running
         self._menu_enabled = not self._computation_running
 
     def open_about(self):
