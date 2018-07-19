@@ -25,7 +25,6 @@ from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.server.zmq_server_config import ZMQServerConfig
 
 log = logging.getLogger(__name__)
 
@@ -62,11 +61,8 @@ class WfManagerTask(Task):
     #: This will go to some global configuration option later.
     _bdss_executable_path = Str("force_bdss")
 
-    #: Configuration of the ZeroMQ server
-    zmq_server_config = Instance(ZMQServerConfig)
-
     #: ZeroMQ Server to receive information from the running BDSS
-    _zmq_server = Instance(ZMQServer)
+    zmq_server = Instance(ZMQServer)
 
     #: Flag which says if the computation is running or not
     _computation_running = Bool(False)
@@ -125,10 +121,10 @@ class WfManagerTask(Task):
         return [self.side_pane]
 
     def initialized(self):
-        self._zmq_server.start()
+        self.zmq_server.start()
 
     def prepare_destroy(self):
-        self._zmq_server.stop()
+        self.zmq_server.stop()
 
     def save_workflow(self):
         """ Saves the workflow into the currently used file. If there is no
@@ -239,7 +235,7 @@ class WfManagerTask(Task):
 
     @on_trait_change('_computation_running')
     def update_side_pane_status(self):
-        self.side_pane.enabled = not self._computation_running
+        self.side_pane.ui_enabled = not self._computation_running
         self._menu_enabled = not self._computation_running
 
     def open_about(self):
@@ -433,12 +429,11 @@ class WfManagerTask(Task):
     def __executor_default(self):
         return ThreadPoolExecutor(max_workers=1)
 
-    def _zmq_server_config_default(self):
-        return ZMQServerConfig()
-
-    def __zmq_server_default(self):
-        return ZMQServer(self.zmq_server_config,
-                         on_event_callback=self._server_event_callback)
+    def _zmq_server_default(self):
+        return ZMQServer(
+            on_event_callback=self._server_event_callback,
+            on_error_callback=self._server_error_callback
+        )
 
     def __ui_hooks_managers_default(self):
         hooks_factories = self.factory_registry.ui_hooks_factories
@@ -470,6 +465,11 @@ class WfManagerTask(Task):
         """
         GUI.invoke_later(self._server_event_mainthread, event)
 
+    def _server_error_callback(self, error_type, error_message):
+        """Callback in case of server error. Invoked by the secondary thread"""
+        if error_type == ZMQServer.ERROR_TYPE_CRITICAL:
+            GUI.invoke_later(self._show_error_dialog, error_message)
+
     def _server_event_mainthread(self, event):
         """Invoked by the main thread.
         Handles the event received by the server, dispatching its
@@ -481,3 +481,7 @@ class WfManagerTask(Task):
         elif isinstance(event, MCOProgressEvent):
             data = tuple(map(float, event.input + event.output))
             self.analysis_m.add_evaluation_step(data)
+
+    def _show_error_dialog(self, message):
+        """Shows an error dialog to the user with a given message"""
+        error(None, message, "Server error")

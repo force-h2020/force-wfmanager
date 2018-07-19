@@ -1,6 +1,6 @@
 from traits.api import (HasStrictTraits, Instance, Str, List, Int,
                         on_trait_change, Enum, Bool, HTML, Property,
-                        Either)
+                        Either, Event)
 
 from traitsui.api import View, Item,  ModelView, TableEditor, HTMLEditor
 from traitsui.table_column import ObjectColumn
@@ -137,6 +137,12 @@ class DataSourceModelView(ModelView):
     #: Defines if the evaluator is valid or not
     valid = Bool(True)
 
+    #: An error message for issues in this modelview
+    error_message = Str()
+
+    #: Event to request a verification check on the workflow
+    verify_workflow_event = Event
+
     #: Base view for the evaluator
     traits_view = View(
         Item(
@@ -164,6 +170,11 @@ class DataSourceModelView(ModelView):
         super(DataSourceModelView, self).__init__(*args, **kwargs)
 
         self._create_slots_tables()
+
+    @on_trait_change('input_slots_representation.name,'
+                     'output_slots_representation.name')
+    def data_source_change(self):
+        self.verify_workflow_event = True
 
     def _label_default(self):
         return get_factory_name(self.model.factory)
