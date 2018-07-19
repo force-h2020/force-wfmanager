@@ -76,6 +76,7 @@ class PluginDialog(HasStrictTraits):
     def _selected_plugin_HTML_default(self):
         return htmlformat("No plugin selected")
 
+
 def htmlformat(title, version=None,
                description=None,
                error_msg=None,
