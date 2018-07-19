@@ -75,6 +75,10 @@ class TestPluginDialog(GuiTestAssistant, unittest.TestCase):
 
         self.assertIn("Boom", modal.selected_plugin_HTML)
 
+        modal.selected_plugin = None
+
+        self.assertIn("No plugin selected", modal.selected_plugin_HTML)
+
     def test_show(self):
         modal, modal_info = self._get_dialog()
 
