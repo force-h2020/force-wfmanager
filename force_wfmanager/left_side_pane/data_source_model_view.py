@@ -2,7 +2,7 @@ from traits.api import (HasStrictTraits, Instance, Str, List, Int,
                         on_trait_change, Enum, Bool, HTML, Property,
                         Either, Event)
 
-from traitsui.api import View, Item,  ModelView, TableEditor, HTMLEditor
+from traitsui.api import View, Item, ModelView, TableEditor, HTMLEditor
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (BaseDataSourceModel, BaseDataSource, Identifier,
