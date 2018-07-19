@@ -346,7 +346,7 @@ SLOT_DESCRIPTION = """
     </head>
     <body>
         <div class="container">
-            <div class="left-col" w>
+            <div class="left-col">
                 <h2>{}</h2>
             </div>
             <div class="right-col">
