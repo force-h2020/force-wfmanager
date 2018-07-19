@@ -72,7 +72,7 @@ class Plot(HasStrictTraits):
             marker_size=4,
             bgcolor="white")[0]
 
-        plot.set(title="Plot", padding=50, line_width=1)
+        plot.set(title="Plot", padding=75, line_width=1)
 
         # Add pan and zoom tools
         plot.tools.append(PanTool(plot))
