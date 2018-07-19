@@ -232,6 +232,8 @@ class Plot(HasStrictTraits):
 
             self.set_plot_range(x_min, x_max, y_min, y_max)
 
+            return x_min, x_max, y_min, y_max
+
         elif len(x_data) == 1:
             self.set_plot_range(x_data[0] - 0.5, x_data[0] + 0.5,
                                 y_data[0] - 0.5, y_data[0] + 0.5)
@@ -244,7 +246,8 @@ class Plot(HasStrictTraits):
                 if isinstance(overlay, ZoomTool):
                     self._plot.overlays[idx] = ZoomTool(self._plot)
 
-            return x_min, x_max, y_min, y_max
+            return (x_data[0] - 0.5, x_data[0] + 0.5, y_data[0] - 0.5,
+                    y_data[0] + 0.5)
         return None
 
     @on_trait_change('analysis_model.selected_step_index')

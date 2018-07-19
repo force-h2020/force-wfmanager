@@ -186,8 +186,8 @@ class TestPlot(unittest.TestCase):
         self.analysis_model.value_names = ('x', 'y')
         self.analysis_model.add_evaluation_step((2, 3))
         result = self.plot.resize_plot()
-        self.assertIsNone(result)
-        self.assertFalse(self.plot._get_reset_enabled())
+        self.assertEqual(result, (1.5, 2.5, 2.5, 3.5))
+        self.assertTrue(self.plot._get_reset_enabled())
 
         # More than 1 data point
         self.analysis_model.add_evaluation_step((3, 4))
