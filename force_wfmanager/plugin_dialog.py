@@ -21,6 +21,9 @@ class PluginAdapter(ListStrAdapter):
 
 
 class PluginDialog(HasStrictTraits):
+    """Displays a list of the available plugins, together with their
+    description.
+    """
     plugins = List(Instance(BaseExtensionPlugin))
 
     selected_plugin = Instance(BaseExtensionPlugin)
@@ -53,7 +56,7 @@ class PluginDialog(HasStrictTraits):
         plugin = self.selected_plugin
         if plugin is None:
             self.selected_plugin_HTML = htmlformat(
-                title="Please select a plugin")
+                title="No plugin selected")
             return
 
         if plugin.broken:
@@ -70,6 +73,8 @@ class PluginDialog(HasStrictTraits):
             description=plugin.description
         )
 
+    def _selected_plugin_HTML_default(self):
+        return htmlformat("No plugin selected")
 
 def htmlformat(title, version=None,
                description=None,
