@@ -1,6 +1,6 @@
 from traits.api import (HasStrictTraits, Instance, Str, List, Int,
                         on_trait_change, Enum, Bool, HTML, Property,
-                        Either, Event)
+                        Either, Event, Unicode)
 
 from traitsui.api import View, Item, ModelView, TableEditor, HTMLEditor
 from traitsui.table_column import ObjectColumn
@@ -21,6 +21,8 @@ class TableRow(HasStrictTraits):
 
     #: Model of the evaluator
     model = Instance(BaseDataSourceModel)
+
+    description = Unicode()
 
     def __init__(self, model, *args, **kwargs):
         self.model = model
@@ -119,14 +121,8 @@ class DataSourceModelView(ModelView):
     #: Input slots representation for the table editor
     input_slots_representation = List(InputSlotRow)
 
-    #: Input slot descriptions
-    input_slots_description = List(Str)
-
     #: Output slots representation for the table editor
     output_slots_representation = List(OutputSlotRow)
-
-    #: Output slot descriptions
-    output_slots_description = List(Str)
 
     #: Currently selected slot in the table
     selected_slot_row = Either(Instance(InputSlotRow), Instance(OutputSlotRow))
@@ -255,7 +251,6 @@ class DataSourceModelView(ModelView):
         available_variables = self._get_available_variables()
 
         input_representations = []
-        input_description = []
 
         for index, input_slot in enumerate(input_slots):
             slot_representation = InputSlotRow(model=self.model, index=index)
@@ -266,26 +261,22 @@ class DataSourceModelView(ModelView):
             slot_representation.available_variables = available_variables
             slot_representation.name = new_name
             slot_representation.type = input_slot.type
-
+            slot_representation.description = input_slot.description
             input_representations.append(slot_representation)
-            input_description.append(input_slot.description)
 
         self.input_slots_representation[:] = input_representations
-        self.input_slots_description[:] = input_description
 
         output_representation = []
-        output_description = []
 
         for index, output_slot in enumerate(output_slots):
             slot_representation = OutputSlotRow(model=self.model, index=index)
             slot_representation.name = self.model.output_slot_info[index].name
             slot_representation.type = output_slot.type
+            slot_representation.description = output_slot.description
 
             output_representation.append(slot_representation)
-            output_description.append(output_slot.description)
 
         self.output_slots_representation[:] = output_representation
-        self.output_slots_description[:] = output_description
 
     def __data_source_default(self):
         return self.model.factory.create_data_source()
@@ -313,16 +304,16 @@ class DataSourceModelView(ModelView):
     def _get_selected_slot_description(self):
         if self.selected_slot_row is None:
             return DEFAULT_MESSAGE.format(BACKGROUND_COLOR)
+
         idx = self.selected_slot_row.index
         row_type = self.selected_slot_row.type
-        if isinstance(self.selected_slot_row, InputSlotRow):
-            desc = self.input_slots_description[idx]
-            return SLOT_DESCRIPTION.format(BACKGROUND_COLOR, row_type,
-                                           'Input', idx, desc)
-        else:
-            desc = self.output_slots_description[idx]
-            return SLOT_DESCRIPTION.format(BACKGROUND_COLOR, row_type,
-                                           'Output', idx, desc)
+        description = self.selected_slot_row.description
+
+        type_text = (
+            "Input" if isinstance(self.selected_slot_row, InputSlotRow)
+            else "Output")
+        return SLOT_DESCRIPTION.format(
+            BACKGROUND_COLOR, row_type, type_text, idx, description)
 
 
 BACKGROUND_COLOR = get_default_background_color()
