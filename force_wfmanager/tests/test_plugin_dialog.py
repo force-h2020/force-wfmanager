@@ -78,9 +78,6 @@ class TestPluginDialog(GuiTestAssistant, unittest.TestCase):
     def test_show(self):
         modal, modal_info = self._get_dialog()
 
-        def condition(*args, **kwargs):
-            return modal.selected_plugin is not None
-
         with self.event_loop():
             ui = modal.edit_traits()
 
