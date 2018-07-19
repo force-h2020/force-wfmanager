@@ -111,16 +111,24 @@ class Plot(HasStrictTraits):
     @on_trait_change('analysis_model.value_names')
     def update_value_names(self):
         self._value_names = self.analysis_model.value_names
+        self._data_arrays = self.__data_arrays_default()
         # If there is more than one value names, we select the second one for
         # the y axis
         if len(self._value_names) > 1:
             self.y = self._value_names[1]
+        elif len(self._value_names) == 1:
+            self.y = self._value_names[0]
 
         # If there are no available value names, set the plot view to a default
         # state. This occurs when the analysis model is cleared.
 
         if self._value_names == ():
             self.set_plot_range(-1, 1, -1, 1)
+            # Unset the axis labels
+            self._plot.x_axis.title = ""
+            self._plot.y_axis.title = ""
+
+        self._update_plot_data()
 
     @on_trait_change('analysis_model.evaluation_steps[]')
     def update_data_arrays(self):
@@ -188,6 +196,10 @@ class Plot(HasStrictTraits):
         x_index = self.analysis_model.value_names.index(self.x)
         y_index = self.analysis_model.value_names.index(self.y)
 
+        # Set the axis labels
+        self._plot.x_axis.title = self.x
+        self._plot.y_axis.title = self.y
+
         self._plot_data.set_data('x', self._data_arrays[x_index])
         self._plot_data.set_data('y', self._data_arrays[y_index])
 
@@ -219,6 +231,10 @@ class Plot(HasStrictTraits):
             y_min = y_min - 0.1 * abs(y_size)
 
             self.set_plot_range(x_min, x_max, y_min, y_max)
+
+        elif len(x_data) == 1:
+            self.set_plot_range(x_data[0] - 0.5, x_data[0] + 0.5,
+                                y_data[0] - 0.5, y_data[0] + 0.5)
 
             # Replace the old ZoomTool as retaining the same one can lead
             # to issues where the zoom out/in limit is not reset on
@@ -256,7 +272,7 @@ class Plot(HasStrictTraits):
 
     def _get_reset_enabled(self):
         x_data = self._plot_data.get_data('x')
-        if len(x_data) > 1:
+        if len(x_data) > 0:
             return True
         return False
 
