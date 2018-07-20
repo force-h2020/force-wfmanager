@@ -262,6 +262,10 @@ class WfManagerTask(Task):
         plugins = [plugin
                    for plugin in self.window.application.plugin_manager
                    if isinstance(plugin, BaseExtensionPlugin)]
+
+        # Plugins guaranteed to have an id, so sort by that if name is not set
+        plugins.sort(key=lambda s: s.name if s.name not in ('', None)
+                     else s.id)
         dlg = PluginDialog(plugins)
         dlg.edit_traits()
 
