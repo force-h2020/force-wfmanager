@@ -1,4 +1,3 @@
-from collections import OrderedDict
 
 from traits.api import (HasStrictTraits, Instance, List, Either,
                         on_trait_change, Dict, Str, Property, HTML, Bool,
@@ -157,11 +156,11 @@ class NewEntityModal(HasStrictTraits):
 
         # Order the dictionary alphabetically by plugin name
 
-        plugin_dict = OrderedDict(sorted(plugin_dict.items(),
-                                         key=lambda p: p[0].name))
+        ordered_keys = sorted(plugin_dict.keys(), key=lambda p: p.name)
 
         plugins = []
-        for plugin, factories in plugin_dict.items():
+        for plugin in ordered_keys:
+            factories = plugin_dict[plugin]
             plugins.append(PluginModelView(plugin=plugin,
                                            factories=factories,
                                            name=plugin.name))
