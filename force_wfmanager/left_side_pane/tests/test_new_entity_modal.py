@@ -1,9 +1,5 @@
 import unittest
-import testfixtures
-from force_bdss.base_extension_plugin import BaseExtensionPlugin
-from force_bdss.core.base_factory import BaseFactory
 
-from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from traits.api import HasTraits, Instance
 
 from force_bdss.tests.probe_classes.mco import ProbeMCOFactory
@@ -30,21 +26,6 @@ class ModalInfoDummy(HasTraits):
     def _ui_default(self):
         return UIDummy()
 
-class Plugin1(BaseExtensionPlugin):
-    def get_name(self):
-        return "Plugin1"
-
-    def get_description(self):
-        return "Plugin1 description"
-
-    def get_version(self):
-        return 0
-
-    def get_factory_classes(self):
-        return []
-
-
-
 
 class TestNewEntityModal(unittest.TestCase):
     def setUp(self):
@@ -57,12 +38,10 @@ class TestNewEntityModal(unittest.TestCase):
         self.handler = ModalHandler()
 
     def _get_dialog(self):
-        with testfixtures.LogCapture():
-            modal = NewEntityModal(
-                factories=self.mcos
-            )
+        modal = NewEntityModal(
+            factories=self.mcos
+        )
         return modal, ModalInfoDummy(object=modal)
-
 
     def test_add_entity(self):
         modal, modal_info = self._get_dialog()
@@ -128,36 +107,3 @@ class TestNewEntityModal(unittest.TestCase):
 
         self.assertIn("edit_traits_call_count", model_info(
             modal.current_model))
-
-    def test_tree_order(self):
-
-        factory = BaseFactory(plugin=Plugin1())
-
-
-
-
-
-class TestNewEntityModalGUI(GuiTestAssistant, unittest.TestCase):
-
-    def _get_dialog(self):
-        with testfixtures.LogCapture():
-            modal = NewEntityModal(
-                factories=[self.mcos]
-            )
-        return modal, ModalInfoDummy(object=modal)
-
-    def test_show(self):
-
-        self.plugin = ProbeExtensionPlugin()
-        self.mcos = [ProbeMCOFactory(self.plugin)]
-        self.workflow_mv = WorkflowModelView()
-
-        self.handler = ModalHandler()
-
-        modal, modal_info = self._get_dialog()
-
-        with self.event_loop():
-            ui = modal.edit_traits()
-
-        with self.delete_widget(ui.control):
-            ui.dispose()
