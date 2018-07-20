@@ -1,3 +1,4 @@
+
 from traits.api import (HasStrictTraits, Instance, List, Either,
                         on_trait_change, Dict, Str, Property, HTML, Bool,
                         ReadOnly)
@@ -153,11 +154,16 @@ class NewEntityModal(HasStrictTraits):
                 plugin_dict[plugin_from_factory] = []
             plugin_dict[plugin_from_factory].append(factory)
 
+        # Order the dictionary alphabetically by plugin name
+
+        ordered_keys = sorted(plugin_dict.keys(), key=lambda p: p.name)
+
         plugins = []
-        for plugin, factories in zip(plugin_dict, plugin_dict.values()):
+        for plugin in ordered_keys:
+            factories = plugin_dict[plugin]
             plugins.append(PluginModelView(plugin=plugin,
                                            factories=factories,
-                                           name=plugin.id))
+                                           name=plugin.name))
         return Root(plugins=plugins)
 
     def _no_config_options_msg_default(self):
@@ -228,7 +234,7 @@ class NewEntityModal(HasStrictTraits):
                 name_desc_pairs.append([trait_name, trait_desc])
             else:
                 name_desc_pairs.append([trait_name,
-                                        'No Description Available'])
+                                        'No description available.'])
 
         # Format names as in the Instance Editor
         name_desc_pairs = [[name.replace('_', ' ').capitalize(), desc]
