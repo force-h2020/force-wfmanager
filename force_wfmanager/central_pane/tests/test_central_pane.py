@@ -31,6 +31,9 @@ class TestCentralPane(unittest.TestCase):
             self.pane.result_table.analysis_model.value_names,
             self.pane.analysis_model.value_names
         )
+        self.assertIsInstance(self.pane.console_ns, dict)
+        self.assertIn("app", self.pane.console_ns)
+        self.assertIn("task", self.pane.console_ns)
 
     def test_evaluation_steps_update(self):
         self.pane.analysis_model.value_names = ['x', 'y', 'z']

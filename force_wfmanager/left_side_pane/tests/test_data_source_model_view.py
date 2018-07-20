@@ -135,3 +135,19 @@ class TestDataSourceModelView(unittest.TestCase):
             self.data_source_mv_1.input_slots_representation[0].name,
             'P2'
         )
+
+    def test_HTML_description(self):
+        self.assertIn("No Item Selected",
+                      self.data_source_mv_1.selected_slot_description)
+        out_slot = self.data_source_mv_1.output_slots_representation[0]
+        self.data_source_mv_1.selected_slot_row = out_slot
+        self.assertIn("Output row 0",
+                      self.data_source_mv_1.selected_slot_description)
+        self.assertIn("PRESSURE",
+                      self.data_source_mv_1.selected_slot_description)
+        in_slot = self.data_source_mv_1.input_slots_representation[0]
+        self.data_source_mv_1.selected_slot_row = in_slot
+        self.assertIn("Input row 0",
+                      self.data_source_mv_1.selected_slot_description)
+        self.assertIn("PRESSURE",
+                      self.data_source_mv_1.selected_slot_description)

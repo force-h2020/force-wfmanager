@@ -1,13 +1,14 @@
 from traits.api import (HasStrictTraits, Instance, Str, List, Int,
-                        on_trait_change, Enum, Bool, Event)
+                        on_trait_change, Enum, Bool, HTML, Property,
+                        Either, Event, Unicode)
 
-from traitsui.api import View, Item, ModelView, TableEditor
+from traitsui.api import View, Item, ModelView, TableEditor, HTMLEditor
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (BaseDataSourceModel, BaseDataSource, Identifier,
                             InputSlotInfo, OutputSlotInfo)
 
-from .view_utils import get_factory_name
+from .view_utils import get_factory_name, get_default_background_color
 from .variable_names_registry import VariableNamesRegistry
 
 
@@ -20,6 +21,8 @@ class TableRow(HasStrictTraits):
 
     #: Model of the evaluator
     model = Instance(BaseDataSourceModel)
+
+    description = Unicode()
 
     def __init__(self, model, *args, **kwargs):
         self.model = model
@@ -72,6 +75,7 @@ class OutputSlotRow(TableRow):
 input_slots_editor = TableEditor(
     sortable=False,
     configurable=False,
+    selected="selected_slot_row",
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
@@ -82,6 +86,7 @@ input_slots_editor = TableEditor(
 output_slots_editor = TableEditor(
     sortable=False,
     configurable=False,
+    selected="selected_slot_row",
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
@@ -119,6 +124,12 @@ class DataSourceModelView(ModelView):
     #: Output slots representation for the table editor
     output_slots_representation = List(OutputSlotRow)
 
+    #: Currently selected slot in the table
+    selected_slot_row = Either(Instance(InputSlotRow), Instance(OutputSlotRow))
+
+    #: HTML for the selected slot description
+    selected_slot_description = Property(HTML, depends_on="selected_slot_row")
+
     #: Defines if the evaluator is valid or not
     valid = Bool(True)
 
@@ -139,6 +150,11 @@ class DataSourceModelView(ModelView):
             "output_slots_representation",
             label="Output variables",
             editor=output_slots_editor,
+        ),
+        Item(
+            "selected_slot_description",
+            label="Description",
+            editor=HTMLEditor(),
         ),
         kind="subpanel",
     )
@@ -244,16 +260,19 @@ class DataSourceModelView(ModelView):
             slot_representation.available_variables = available_variables
             slot_representation.name = new_name
             slot_representation.type = input_slot.type
-
+            slot_representation.description = input_slot.description
             input_representations.append(slot_representation)
 
         self.input_slots_representation[:] = input_representations
 
         output_representation = []
+
         for index, output_slot in enumerate(output_slots):
             slot_representation = OutputSlotRow(model=self.model, index=index)
             slot_representation.name = self.model.output_slot_info[index].name
             slot_representation.type = output_slot.type
+            slot_representation.description = output_slot.description
+
             output_representation.append(slot_representation)
 
         self.output_slots_representation[:] = output_representation
@@ -294,3 +313,83 @@ class DataSourceModelView(ModelView):
         if variable_type in registry.available_variables_by_type[idx]:
             return registry.available_variables_by_type[idx][variable_type]
         return []
+
+    def _get_selected_slot_description(self):
+        if self.selected_slot_row is None:
+            return DEFAULT_MESSAGE.format(BACKGROUND_COLOR)
+
+        idx = self.selected_slot_row.index
+        row_type = self.selected_slot_row.type
+        description = self.selected_slot_row.description
+
+        type_text = (
+            "Input" if isinstance(self.selected_slot_row, InputSlotRow)
+            else "Output")
+        return SLOT_DESCRIPTION.format(
+            BACKGROUND_COLOR, row_type, type_text, idx, description)
+
+
+BACKGROUND_COLOR = get_default_background_color()
+
+
+SLOT_DESCRIPTION = """
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            html{{
+                background: {};
+            }}
+            .container{{
+                width: 100%;
+                display: block;
+            }}
+            .left-col{{
+                width: 80%;
+                display: inline-block;
+                word-wrap: break-word;
+            }}
+            .right-col{{
+                width: 15%;
+                display: inline-block;
+                word-wrap: break-word;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="left-col">
+                <h2>{}</h2>
+            </div>
+            <div class="right-col">
+                <h4>{} row {}</h4>
+            </div>
+            <p>{}</p>
+        </div>
+    </body>
+    </html>
+    """
+
+DEFAULT_MESSAGE = """
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            html{{
+                background: {};
+            }}
+            .container{{
+                width: 100%;
+                display: block;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <p> No Item Selected </p>
+        </div>
+    </body>
+    </html>
+    """

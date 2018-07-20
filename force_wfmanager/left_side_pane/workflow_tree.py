@@ -270,7 +270,7 @@ class WorkflowTree(ModelView):
     def update_model_view(self):
         """Update the workflow modelview's model and verify, on either loading
         a new workflow, or an internal change to the workflow"""
-        self.workflow_mv.model = self.model
+        self.workflow_mv = WorkflowModelView(model=self.model)
         self.verify_workflow_event = True
 
     @triggers_verify
