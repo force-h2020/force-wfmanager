@@ -107,3 +107,11 @@ class TestNewEntityModal(unittest.TestCase):
 
         self.assertIn("edit_traits_call_count", model_info(
             modal.current_model))
+
+    def test_plugins_root_default(self):
+
+        modal, modal_info = self._get_dialog()
+        root = modal._plugins_root_default()
+
+        self.assertEqual(len(root.plugins), 1)
+        self.assertEqual(root.plugins[0].plugin, self.plugin)
