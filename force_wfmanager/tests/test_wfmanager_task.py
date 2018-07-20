@@ -576,6 +576,6 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
         plugins = [ProbeExtensionPlugin(), ProbeExtensionPlugin()]
         self.wfmanager_task.window.application.plugin_manager = plugins
-        
+
         with self.event_loop():
             self.wfmanager_task.open_plugins()
