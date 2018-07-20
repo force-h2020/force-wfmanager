@@ -19,11 +19,12 @@ from pyface.tasks.api import Task, TaskLayout, PaneItem
 from force_bdss.api import (
     MCOProgressEvent, MCOStartEvent, BaseUIHooksManager, Workflow,
     IFactoryRegistryPlugin, WorkflowReader, WorkflowWriter,
-    InvalidFileException)
+    InvalidFileException, BaseExtensionPlugin)
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.central_pane import CentralPane
 from force_wfmanager.left_side_pane.side_pane import SidePane
+from force_wfmanager.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
 
 log = logging.getLogger(__name__)
@@ -98,6 +99,10 @@ class WfManagerTask(Task):
                 method='save_workflow_as',
                 enabled_name='_menu_enabled',
                 accelerator='Shift+Ctrl+S',
+            ),
+            TaskAction(
+                name='Plugins...',
+                method='open_plugins'
             ),
             name='&File'
         ),
@@ -252,6 +257,13 @@ class WfManagerTask(Task):
             ),
             "About WorkflowManager"
         )
+
+    def open_plugins(self):
+        plugins = [plugin
+                   for plugin in self.window.application.plugin_manager
+                   if isinstance(plugin, BaseExtensionPlugin)]
+        dlg = PluginDialog(plugins)
+        dlg.edit_traits()
 
     @on_trait_change('side_pane.run_button')
     def run_bdss(self):

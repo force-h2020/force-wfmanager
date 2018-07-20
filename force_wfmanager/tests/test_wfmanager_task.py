@@ -48,6 +48,7 @@ def get_wfmanager_task():
 
     wfmanager_task.window = mock.Mock(spec=TaskWindow)
     wfmanager_task.window.application = mock.Mock(spec=Application)
+    wfmanager_task.window.application.plugin_manager = []
     wfmanager_task.window.application.exit = mock.Mock()
 
     wfmanager_task.create_central_pane()
@@ -570,3 +571,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             setup_sockets.side_effect = Exception("boom")
             self.wfmanager_task.initialized()
+
+    def test_open_plugin_dialog(self):
+        with self.event_loop():
+            self.wfmanager_task.open_plugins()
