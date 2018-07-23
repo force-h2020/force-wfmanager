@@ -9,11 +9,8 @@ from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem,
 
 from envisage.plugin import Plugin
 
-from force_bdss.api import (
-    BaseFactory, BaseMCOModel, BaseMCOFactory,
-    BaseDataSourceModel, BaseDataSourceFactory,
-    BaseMCOParameter, BaseMCOParameterFactory,
-    BaseNotificationListenerModel, BaseNotificationListenerFactory)
+from force_bdss.api import (BaseFactory, BaseMCOModel, BaseDataSourceModel,
+                            BaseMCOParameter, BaseNotificationListenerModel)
 
 from force_wfmanager.left_side_pane.view_utils import model_info
 
@@ -197,6 +194,7 @@ class NewEntityModal(HasStrictTraits):
         one item exists for this model and 2. That those items
         are actually visible to the user"""
         return model_info(self.current_model) != []
+
     def _get_model_description_HTML(self):
         """Format a description of the currently selected model and it's
         parameters, using desc metadata from the traits in
@@ -272,13 +270,14 @@ def htmlformat(factory_title=None, factory_description=None,
         body = []
 
     if factory_description is not None:
-        body.append("<p>{description}</p>".format(description=
-                                                  factory_description))
+        body.append("<p>{description}</p>".format(
+            description=factory_description)
+        )
     if parameter_info is not None:
         for name, description in parameter_info:
-            parameter_html = titled_paragraph.format(name=name,
-                                                     description=description)
+            parameter_html = titled_paragraph.format(
+                name=name, description=description
+            )
             body.append(parameter_html)
 
     return html.format(body="".join(body))
-
