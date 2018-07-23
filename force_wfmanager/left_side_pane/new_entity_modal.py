@@ -1,6 +1,7 @@
 
+from __future__ import unicode_literals
 from traits.api import (HasStrictTraits, Instance, List, Either,
-                        on_trait_change, Dict, Str, Property, HTML, Bool,
+                        on_trait_change, Dict, Property, Unicode, Bool,
                         ReadOnly)
 from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem,
                           InstanceEditor, OKCancelButtons, Menu,
@@ -31,13 +32,13 @@ class PluginModelView(HasStrictTraits):
     """An instance of PluginModelView contains a plugin, along
     with all the factories which can be derived from it"""
     plugin = Instance(Plugin)
-    name = Str('plugin')
+    name = Unicode("plugin")
     factories = List(Instance(BaseFactory))
 
 
 class Root(HasStrictTraits):
     plugins = List(PluginModelView)
-    name = Str("root")
+    name = Unicode("root")
 
 
 class NewEntityModal(HasStrictTraits):
@@ -52,12 +53,7 @@ class NewEntityModal(HasStrictTraits):
     plugins_root = Instance(Root)
 
     #: Selected factory in the list
-    selected_factory = Either(
-        Instance(BaseMCOFactory),
-        Instance(BaseMCOParameterFactory),
-        Instance(BaseDataSourceFactory),
-        Instance(BaseNotificationListenerFactory),
-    )
+    selected_factory = Instance(BaseFactory)
 
     #: Currently editable model
     current_model = Either(
@@ -73,13 +69,12 @@ class NewEntityModal(HasStrictTraits):
     _cached_models = Dict()
 
     editor = TreeEditor(nodes=[
-        TreeNode(node_for=[Root], children='plugins',
-                 view=no_view, label='name', menu=no_menu),
-        TreeNode(node_for=[PluginModelView], children='factories',
-                 view=no_view, label='name', menu=no_menu),
-        TreeNode(node_for=[BaseMCOFactory, BaseNotificationListenerFactory,
-                           BaseDataSourceFactory, BaseMCOParameterFactory],
-                 children='', view=no_view, label='name', menu=no_menu)
+        TreeNode(node_for=[Root], children="plugins",
+                 view=no_view, label="name", menu=no_menu),
+        TreeNode(node_for=[PluginModelView], children="factories",
+                 view=no_view, label="name", menu=no_menu),
+        TreeNode(node_for=[BaseFactory],
+                 children="", view=no_view, label="name", menu=no_menu)
             ],
         orientation="vertical",
         selected="selected_factory",
@@ -91,37 +86,37 @@ class NewEntityModal(HasStrictTraits):
     #: Disable the OK button if no factory set
     OKCancelButtons[0].trait_set(enabled_when="selected_factory is not None")
 
-    model_description_HTML = Property(HTML, depends_on="current_model")
+    model_description_HTML = Property(Unicode, depends_on="current_model")
 
-    current_model_editable = Property(Bool, depends_on='current_model')
+    current_model_editable = Property(Bool, depends_on="current_model")
 
-    no_config_options_msg = ReadOnly(HTML)
+    no_config_options_msg = ReadOnly(Unicode)
 
     traits_view = View(
             HSplit(
                 Group(
-                    UItem('plugins_root',
+                    UItem("plugins_root",
                           editor=editor)
                     ),
                 VGroup(
                     Group(
-                        UItem('current_model',
-                              style='custom',
+                        UItem("current_model",
+                              style="custom",
                               editor=InstanceEditor(),
-                              visible_when='current_model_editable is True'
+                              visible_when="current_model_editable is True"
                               ),
-                        UItem('no_config_options_msg',
-                              style='readonly',
+                        UItem("no_config_options_msg",
+                              style="readonly",
                               editor=HTMLEditor(),
-                              visible_when='current_model_editable is False'),
-                        visible_when='current_model is not None',
+                              visible_when="current_model_editable is False"),
+                        visible_when="current_model is not None",
                         style="custom",
                         label="Configuration Options",
                         show_border=True,
 
                     ),
                     Group(
-                         UItem('model_description_HTML',
+                         UItem("model_description_HTML",
                                editor=HTMLEditor(),
                                ),
                          style="readonly",
@@ -131,7 +126,7 @@ class NewEntityModal(HasStrictTraits):
                 )
                 ),
             buttons=OKCancelButtons,
-            title='Add New Element',
+            title="Add New Element",
             handler=ModalHandler(),
             width=800,
             height=600,
@@ -147,15 +142,18 @@ class NewEntityModal(HasStrictTraits):
         """Create a root object for use in the root node of the tree editor.
         This contains a list of PluginModelViews, which hold the plugin itself,
         the plugin's factories and the plugin name"""
+
+        #: A dict with Plugin instances as keys and their associated factories
+        #: as values.
         plugin_dict = {}
+
         for factory in self.factories:
-            plugin_from_factory = self.get_plugin_from_factory(factory)
-            if plugin_from_factory not in plugin_dict:
-                plugin_dict[plugin_from_factory] = []
-            plugin_dict[plugin_from_factory].append(factory)
+            plugin = self.get_plugin_from_factory(factory)
+            if plugin not in plugin_dict:
+                plugin_dict[plugin] = []
+            plugin_dict[plugin].append(factory)
 
-        # Order the dictionary alphabetically by plugin name
-
+        # Order the keys alphabetically by plugin name
         ordered_keys = sorted(plugin_dict.keys(), key=lambda p: p.name)
 
         plugins = []
@@ -167,8 +165,8 @@ class NewEntityModal(HasStrictTraits):
         return Root(plugins=plugins)
 
     def _no_config_options_msg_default(self):
-        return HTML_TEMPLATE.format("", "", "<p>No configuration options "
-                                    "available for this selection</p>")
+        return htmlformat(body="<p>No configuration options "
+                          "available for this selection</p>")
 
     @on_trait_change("selected_factory")
     def update_current_model(self):
@@ -189,22 +187,16 @@ class NewEntityModal(HasStrictTraits):
 
     def get_plugin_from_factory(self, factory):
         """Returns the plugin associated with a particular factory"""
-        if isinstance(factory, (BaseMCOFactory, BaseDataSourceFactory,
-                                BaseNotificationListenerFactory)):
+        if isinstance(factory, BaseFactory):
             plugin = factory.plugin
-        # The MCO parameter factory does not contain it's own plugin, but does
-        # contain the mco_factory it is associated with
-        else:
-            plugin = factory.mco_factory.plugin
-
-        return plugin
+            return plugin
+        return None
 
     def _get_current_model_editable(self):
         """A check which indicates if 1. A view with at least
         one item exists for this model and 2. That those items
         are actually visible to the user"""
         return model_info(self.current_model) != []
-
     def _get_model_description_HTML(self):
         """Format a description of the currently selected model and it's
         parameters, using desc metadata from the traits in
@@ -212,7 +204,7 @@ class NewEntityModal(HasStrictTraits):
 
         # A default message when no model selected
         if self.selected_factory is None or self.current_model is None:
-            return HTML_TEMPLATE.format("No Model Selected", "", "")
+            return htmlformat("No Model Selected")
 
         model_name = self.selected_factory.get_name()
         model_desc = self.selected_factory.get_description()
@@ -220,7 +212,7 @@ class NewEntityModal(HasStrictTraits):
 
         # Message for a model without editable traits
         if view_info == []:
-            return HTML_TEMPLATE.format(model_name, model_desc, "")
+            return htmlformat(model_name, model_desc)
 
         # A list containing trait names and descriptions
         name_desc_pairs = []
@@ -234,21 +226,20 @@ class NewEntityModal(HasStrictTraits):
                 name_desc_pairs.append([trait_name, trait_desc])
             else:
                 name_desc_pairs.append([trait_name,
-                                        'No description available.'])
+                                        "No description available."])
 
         # Format names as in the Instance Editor
-        name_desc_pairs = [[name.replace('_', ' ').capitalize(), desc]
+        name_desc_pairs = [[name.replace("_", " ").capitalize(), desc]
                            for name, desc in name_desc_pairs]
 
         # Create a HTML string with all the model's parameters
-        body_str = ''.join([TITLED_PARAGRAPH.format(name, desc)
-                           for name, desc in name_desc_pairs])
-
-        return HTML_TEMPLATE.format(model_name, model_desc, body_str)
+        return htmlformat(model_name, model_desc, name_desc_pairs)
 
 
 # A generic HTML header and body with title and text
-HTML_TEMPLATE = """
+def htmlformat(factory_title=None, factory_description=None,
+               parameter_info=None, body=None):
+    html = """
         <html>
         <head>
         <meta charset="utf-8">
@@ -261,17 +252,33 @@ HTML_TEMPLATE = """
             </style>
         </head>
         <body>
-        <h1>{}</h1>
-        <p>{}</p>
-        {}
+            {body}
         </body>
         </html>
         """
 
-# HTML for a title and description
-TITLED_PARAGRAPH = """
+    titled_paragraph = """
         <div class="container">
-            <h2>{}</h2>
-            <p>{}</p>
+            <h2>{name}</h2>
+            <p>{description}</p>
         </div>
         """
+    if body is not None:
+        return html.format(body=body)
+
+    if factory_title is not None:
+        body = ["<h1>{factory_title}</h1>".format(factory_title=factory_title)]
+    else:
+        body = []
+
+    if factory_description is not None:
+        body.append("<p>{description}</p>".format(description=
+                                                  factory_description))
+    if parameter_info is not None:
+        for name, description in parameter_info:
+            parameter_html = titled_paragraph.format(name=name,
+                                                     description=description)
+            body.append(parameter_html)
+
+    return html.format(body="".join(body))
+
