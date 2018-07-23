@@ -1,12 +1,13 @@
 import unittest
 
-from traits.api import HasTraits, Instance
+from traits.api import HasTraits, Instance, Int
 
 from force_bdss.tests.probe_classes.mco import ProbeMCOFactory
 from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
-
+from force_bdss.tests.dummy_classes.data_source import DummyDataSourceModel
+from force_bdss.api import BaseDataSourceModel
 from force_wfmanager.left_side_pane.new_entity_modal import (
     ModalHandler, NewEntityModal)
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowModelView
@@ -27,6 +28,11 @@ class ModalInfoDummy(HasTraits):
         return UIDummy()
 
 
+class DataSourceModelDescription(BaseDataSourceModel):
+
+    test_trait = Int(13, desc='Test trait')
+
+
 class TestNewEntityModal(unittest.TestCase):
     def setUp(self):
         self.plugin = ProbeExtensionPlugin()
@@ -40,6 +46,12 @@ class TestNewEntityModal(unittest.TestCase):
     def _get_dialog(self):
         modal = NewEntityModal(
             factories=self.mcos
+        )
+        return modal, ModalInfoDummy(object=modal)
+
+    def _get_dialog_data(self):
+        modal = NewEntityModal(
+            factories=self.data_sources
         )
         return modal, ModalInfoDummy(object=modal)
 
@@ -85,7 +97,7 @@ class TestNewEntityModal(unittest.TestCase):
 
         self.assertEqual(id(first_model), id(modal.current_model))
 
-    def test_description(self):
+    def test_description_mco_modal(self):
 
         modal, modal_info = self._get_dialog()
 
@@ -115,3 +127,23 @@ class TestNewEntityModal(unittest.TestCase):
 
         self.assertEqual(len(root.plugins), 1)
         self.assertEqual(root.plugins[0].plugin, self.plugin)
+
+    def test_description_editable_data_source(self):
+        modal, modal_info = self._get_dialog_data()
+        modal.selected_factory = modal.factories[0]
+        modal.current_model = DataSourceModelDescription(
+            modal.selected_factory)
+
+        self.assertIn("Test trait",
+                      modal.model_description_HTML)
+
+    def test_description_non_editable_datasource(self):
+
+        modal, modal_info = self._get_dialog_data()
+        modal.selected_factory = self.data_sources[0]
+        # An empty DataSourceModel with no editable traits
+        modal.current_model = DummyDataSourceModel(self.data_sources[0])
+        self.assertFalse(modal.current_model_editable)
+        self.assertIn("No description available", modal.model_description_HTML)
+        self.assertIn("No configuration options available",
+                      modal.no_config_options_msg)
