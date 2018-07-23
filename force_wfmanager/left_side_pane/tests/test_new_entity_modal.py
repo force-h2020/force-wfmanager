@@ -27,7 +27,8 @@ class ModalInfoDummy(HasTraits):
     def _ui_default(self):
         return UIDummy()
 
-class DataSourceModelDesc(BaseDataSourceModel):
+
+class DataSourceModelDescription(BaseDataSourceModel):
 
     test_trait = Int(13, desc='Test trait')
 
@@ -130,7 +131,8 @@ class TestNewEntityModal(unittest.TestCase):
     def test_description_editable_data_source(self):
         modal, modal_info = self._get_dialog_data()
         modal.selected_factory = modal.factories[0]
-        modal.current_model = DataSourceModelDesc(modal.selected_factory)
+        modal.current_model = DataSourceModelDescription(
+            modal.selected_factory)
 
         self.assertIn("Test trait",
                       modal.model_description_HTML)
