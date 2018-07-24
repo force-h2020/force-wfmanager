@@ -13,12 +13,14 @@ class WfManager(TasksApplication):
             size=(800, 600)
         )]
 
+    # FIXME: This isn't needed if the bug in traitsui/qt4/ui_panel.py is fixed
     def _prepare_exit(self):
         """Same functionality as TasksApplication._prepare_exit(), but
         _save_state is called before application_exiting is fired"""
         self._save_state()
         self.application_exiting = self
 
+    # FIXME: This isn't needed if the bug in traitsui/qt4/ui_panel.py is fixed
     def _application_exiting_fired(self):
         for window in self.windows:
             tasks = window.tasks
