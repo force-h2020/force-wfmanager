@@ -416,10 +416,6 @@ class WfManagerTask(Task):
             return
 
         app = self.window.application
-        window = self.window
-
-        window.remove_task(self)
-        window.close()
         app.exit()
 
     # Default initializers
