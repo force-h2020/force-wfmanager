@@ -6,6 +6,7 @@ from chaco.api import Plot as ChacoPlot
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.plot import Plot
 from traits.api import push_exception_handler
+
 push_exception_handler(reraise_exceptions=True)
 
 
@@ -173,3 +174,26 @@ class TestPlot(unittest.TestCase):
 
         self.analysis_model.selected_step_index = None
         self.assertEqual(plot_metadata['selections'], [])
+
+    def test_resize_plot(self):
+
+        # No data
+        result = self.plot.resize_plot()
+        self.assertIsNone(result)
+        self.assertFalse(self.plot._get_reset_enabled())
+
+        # One data point
+        self.analysis_model.value_names = ('x', 'y')
+        self.analysis_model.add_evaluation_step((2, 3))
+        result = self.plot.resize_plot()
+        self.assertEqual(result, (1.5, 2.5, 2.5, 3.5))
+        self.assertTrue(self.plot._get_reset_enabled())
+
+        # More than 1 data point
+        self.analysis_model.add_evaluation_step((3, 4))
+        result = self.plot.resize_plot()
+        self.assertEqual(result, (1.9, 3.1, 2.9, 4.1))
+        self.assertTrue(self.plot._get_reset_enabled())
+        self.plot._plot.range2d.x_range.low = -10
+        self.plot.reset_plot = True
+        self.assertEqual(self.plot._plot.range2d.x_range.low, 1.9)

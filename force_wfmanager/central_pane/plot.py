@@ -1,5 +1,5 @@
 from traits.api import (HasStrictTraits, List, Instance, Enum, Tuple,
-                        on_trait_change)
+                        on_trait_change, Button, Bool, Property)
 
 from traitsui.api import View, UItem, Item, VGroup, HGroup
 
@@ -36,12 +36,20 @@ class Plot(HasStrictTraits):
     #: Datasource of the plot (used for selection handling)
     _plot_index_datasource = Instance(ArrayDataSource)
 
+    #: Button to reset plot view
+    reset_plot = Button('Reset View')
+
+    reset_enabled = Property(Bool(), depends_on="_plot_data")
+
     view = View(VGroup(
         HGroup(
             Item('x'),
             Item('y'),
         ),
         UItem('_plot', editor=ComponentEditor()),
+        VGroup(
+            UItem('reset_plot', enabled_when='reset_enabled')
+        )
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
@@ -64,7 +72,7 @@ class Plot(HasStrictTraits):
             marker_size=4,
             bgcolor="white")[0]
 
-        plot.set(title="Plot", padding=50, line_width=1)
+        plot.set(title="Plot", padding=75, line_width=1)
 
         # Add pan and zoom tools
         plot.tools.append(PanTool(plot))
@@ -103,10 +111,24 @@ class Plot(HasStrictTraits):
     @on_trait_change('analysis_model.value_names')
     def update_value_names(self):
         self._value_names = self.analysis_model.value_names
+        self._data_arrays = self.__data_arrays_default()
         # If there is more than one value names, we select the second one for
         # the y axis
         if len(self._value_names) > 1:
             self.y = self._value_names[1]
+        elif len(self._value_names) == 1:
+            self.y = self._value_names[0]
+
+        # If there are no available value names, set the plot view to a default
+        # state. This occurs when the analysis model is cleared.
+
+        if self._value_names == ():
+            self.set_plot_range(-1, 1, -1, 1)
+            # Unset the axis labels
+            self._plot.x_axis.title = ""
+            self._plot.y_axis.title = ""
+
+        self._update_plot_data()
 
     @on_trait_change('analysis_model.evaluation_steps[]')
     def update_data_arrays(self):
@@ -166,7 +188,7 @@ class Plot(HasStrictTraits):
         """Set the plot data model to the appropriate arrays so that they
         can be displayed when either X or Y selections have been changed.
         """
-        if self.x is None or self.y is None:
+        if self.x is None or self.y is None or self._data_arrays == []:
             self._plot_data.set_data('x', [])
             self._plot_data.set_data('y', [])
             return
@@ -174,8 +196,59 @@ class Plot(HasStrictTraits):
         x_index = self.analysis_model.value_names.index(self.x)
         y_index = self.analysis_model.value_names.index(self.y)
 
+        # Set the axis labels
+        self._plot.x_axis.title = self.x
+        self._plot.y_axis.title = self.y
+
         self._plot_data.set_data('x', self._data_arrays[x_index])
         self._plot_data.set_data('y', self._data_arrays[y_index])
+
+        self.resize_plot()
+
+    def resize_plot(self):
+        """ Sets the size of the current plot to have some spacing between the
+        largest/smallest value and the plot edge. Also returns the new values
+        (X min, X max, Y min, Y max) if the plot area changes or None if it
+        does not.
+        """
+        if self.x is None or self.y is None:
+            return None
+
+        x_data = self._plot_data.get_data('x')
+        y_data = self._plot_data.get_data('y')
+
+        if len(x_data) > 1:
+            x_max = max(x_data)
+            x_min = min(x_data)
+            x_size = abs(x_max - x_min)
+            x_max = x_max + 0.1 * x_size
+            x_min = x_min - 0.1 * x_size
+
+            y_max = max(y_data)
+            y_min = min(y_data)
+            y_size = abs(y_max - y_min)
+            y_max = y_max + 0.1 * abs(y_size)
+            y_min = y_min - 0.1 * abs(y_size)
+
+            self.set_plot_range(x_min, x_max, y_min, y_max)
+
+            return x_min, x_max, y_min, y_max
+
+        elif len(x_data) == 1:
+            self.set_plot_range(x_data[0] - 0.5, x_data[0] + 0.5,
+                                y_data[0] - 0.5, y_data[0] + 0.5)
+
+            # Replace the old ZoomTool as retaining the same one can lead
+            # to issues where the zoom out/in limit is not reset on
+            # resizing the plot.
+
+            for idx, overlay in enumerate(self._plot.overlays):
+                if isinstance(overlay, ZoomTool):
+                    self._plot.overlays[idx] = ZoomTool(self._plot)
+
+            return (x_data[0] - 0.5, x_data[0] + 0.5, y_data[0] - 0.5,
+                    y_data[0] + 0.5)
+        return None
 
     @on_trait_change('analysis_model.selected_step_index')
     def update_selected_point(self):
@@ -195,3 +268,20 @@ class Plot(HasStrictTraits):
             self.analysis_model.selected_step_index = None
         else:
             self.analysis_model.selected_step_index = selected_indices[0]
+
+    @on_trait_change('reset_plot')
+    def reset_pressed(self):
+        self.resize_plot()
+
+    def _get_reset_enabled(self):
+        x_data = self._plot_data.get_data('x')
+        if len(x_data) > 0:
+            return True
+        return False
+
+    def set_plot_range(self, x_low, x_high, y_low, y_high):
+        """Helper method to set the size of the current _plot"""
+        self._plot.range2d.x_range.low_setting = x_low
+        self._plot.range2d.x_range.high_setting = x_high
+        self._plot.range2d.y_range.low_setting = y_low
+        self._plot.range2d.y_range.high_setting = y_high
