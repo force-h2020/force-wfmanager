@@ -14,6 +14,14 @@ def mock_run_constructor(*args, **kwargs):
     mock_wf_run = mock.Mock(spec=force_wfmanager.gui.run)
     mock_wf_run.main = lambda: None
 
+class MockWfManager(object):
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def run(self):
+        pass
+
 
 class TestClickRun(unittest.TestCase):
 
@@ -30,3 +38,8 @@ class TestClickRun(unittest.TestCase):
             force_wfmanager.gui.run.force_wfmanager()
 
             mock_run.force_wfmanager.assert_called()
+
+    def test_run_with_debug(self):
+        with mock.patch('force_wfmanager.gui.run.WfManager') as mock_wf:
+            mock_wf.return_value = MockWfManager()
+            force_wfmanager.gui.run.main(debug=True)
