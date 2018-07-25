@@ -2,7 +2,7 @@ import os
 from setuptools import setup, find_packages
 
 # Setup version
-VERSION = '0.2.0.dev0'
+VERSION = '0.2.0'
 
 
 # Read description
