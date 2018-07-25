@@ -14,6 +14,7 @@ def mock_run_constructor(*args, **kwargs):
     mock_wf_run = mock.Mock(spec=force_wfmanager.gui.run)
     mock_wf_run.main = lambda: None
 
+
 class MockWfManager(object):
 
     def __init__(self, *args, **kwargs):
