@@ -1,8 +1,8 @@
 import click
 from subprocess import check_call
 
-DEFAULT_PYTHON_VERSION = "2.7"
-PYTHON_VERSIONS = ["2.7", "3.5"]
+DEFAULT_PYTHON_VERSION = "3.5"
+PYTHON_VERSIONS = ["3.5"]
 
 ADDITIONAL_CORE_DEPS = [
     "pyface==6.0.0-1",
@@ -15,10 +15,6 @@ ADDITIONAL_CORE_DEPS = [
     "numpy==1.13.3-3",
     "chaco==4.7.1-2",
     "pyzmq==16.0.0-4",
-]
-
-ADDITIONAL_PIP_DEPS_27 = [
-    "futures==3.2.0"
 ]
 
 
@@ -42,9 +38,6 @@ def install(python_version):
     check_call([
         "edm", "install", "-e", env_name,
         "--yes"] + ADDITIONAL_CORE_DEPS)
-
-    if python_version == "2.7" and len(ADDITIONAL_PIP_DEPS_27):
-        edm_run(env_name, ["pip", "install"] + ADDITIONAL_PIP_DEPS_27)
 
     edm_run(env_name, ["pip", "install", "-e", "."])
 
