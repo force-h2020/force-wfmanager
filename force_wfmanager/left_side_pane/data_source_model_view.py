@@ -148,13 +148,11 @@ class DataSourceModelView(ModelView):
                     "input_slots_representation",
                     label="Input variables",
                     editor=input_slots_editor,
-                    height=900
                 ),
                 Item(
                     "output_slots_representation",
                     label="Output variables",
                     editor=output_slots_editor,
-                    height=100
                 )
             ),
             VGroup(
