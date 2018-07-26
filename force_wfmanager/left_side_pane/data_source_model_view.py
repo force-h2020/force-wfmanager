@@ -174,36 +174,6 @@ class DataSourceModelView(ModelView):
         super(DataSourceModelView, self).__init__(*args, **kwargs)
 
         self._create_slots_tables()
-        # TODO: Make this set up the traits view, based on how many slots the
-        # datasource has
-        # self.setup_traits_view()
-
-    # def _traits_view_default(self):
-    #
-    #     view = View(
-    #         VGroup(
-    #             Item(
-    #                 "input_slots_representation",
-    #                 label="Input variables",
-    #                 editor=input_slots_editor,
-    #                 height=200
-    #             ),
-    #             Item(
-    #                 "output_slots_representation",
-    #                 label="Output variables",
-    #                 editor=output_slots_editor,
-    #                 height=100
-    #             ),
-    #             Item(
-    #                 "selected_slot_description",
-    #                 label="Description",
-    #                 editor=HTMLEditor(),
-    #                 height=100
-    #                 )
-    #         ),
-    #         kind="subpanel",
-    #     )
-    #     return view
 
     @on_trait_change('input_slots_representation.name,'
                      'output_slots_representation.name')
