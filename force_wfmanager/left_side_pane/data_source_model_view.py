@@ -2,7 +2,8 @@ from traits.api import (HasStrictTraits, Instance, Str, List, Int,
                         on_trait_change, Enum, Bool, HTML, Property,
                         Either, Event, Unicode)
 
-from traitsui.api import View, Item, ModelView, TableEditor, HTMLEditor
+from traitsui.api import (View, Item, ModelView, TableEditor, VGroup,
+                          TextEditor, UReadonly)
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (BaseDataSourceModel, BaseDataSource, Identifier,
@@ -141,23 +142,32 @@ class DataSourceModelView(ModelView):
 
     #: Base view for the evaluator
     traits_view = View(
-        Item(
-            "input_slots_representation",
-            label="Input variables",
-            editor=input_slots_editor,
-        ),
-        Item(
-            "output_slots_representation",
-            label="Output variables",
-            editor=output_slots_editor,
-        ),
-        Item(
-            "selected_slot_description",
-            label="Description",
-            editor=HTMLEditor(),
+        VGroup(
+            VGroup(
+                Item(
+                    "input_slots_representation",
+                    label="Input variables",
+                    editor=input_slots_editor,
+                    height=900
+                ),
+                Item(
+                    "output_slots_representation",
+                    label="Output variables",
+                    editor=output_slots_editor,
+                    height=100
+                )
+            ),
+            VGroup(
+                UReadonly(
+                    "selected_slot_description",
+                    editor=TextEditor(),
+                    ),
+                label="Selected parameter description",
+                show_border=True
+            ),
         ),
         kind="subpanel",
-    )
+        )
 
     def __init__(self, model, variable_names_registry, *args, **kwargs):
         self.model = model
@@ -166,6 +176,36 @@ class DataSourceModelView(ModelView):
         super(DataSourceModelView, self).__init__(*args, **kwargs)
 
         self._create_slots_tables()
+        # TODO: Make this set up the traits view, based on how many slots the
+        # datasource has
+        # self.setup_traits_view()
+
+    # def _traits_view_default(self):
+    #
+    #     view = View(
+    #         VGroup(
+    #             Item(
+    #                 "input_slots_representation",
+    #                 label="Input variables",
+    #                 editor=input_slots_editor,
+    #                 height=200
+    #             ),
+    #             Item(
+    #                 "output_slots_representation",
+    #                 label="Output variables",
+    #                 editor=output_slots_editor,
+    #                 height=100
+    #             ),
+    #             Item(
+    #                 "selected_slot_description",
+    #                 label="Description",
+    #                 editor=HTMLEditor(),
+    #                 height=100
+    #                 )
+    #         ),
+    #         kind="subpanel",
+    #     )
+    #     return view
 
     @on_trait_change('input_slots_representation.name,'
                      'output_slots_representation.name')
@@ -316,7 +356,7 @@ class DataSourceModelView(ModelView):
 
     def _get_selected_slot_description(self):
         if self.selected_slot_row is None:
-            return DEFAULT_MESSAGE.format(BACKGROUND_COLOR)
+            return DEFAULT_MESSAGE
 
         idx = self.selected_slot_row.index
         row_type = self.selected_slot_row.type
@@ -325,8 +365,7 @@ class DataSourceModelView(ModelView):
         type_text = (
             "Input" if isinstance(self.selected_slot_row, InputSlotRow)
             else "Output")
-        return SLOT_DESCRIPTION.format(
-            BACKGROUND_COLOR, row_type, type_text, idx, description)
+        return SLOT_DESCRIPTION.format(row_type, type_text, idx, description)
 
 
 BACKGROUND_COLOR = get_default_background_color()
@@ -337,36 +376,11 @@ SLOT_DESCRIPTION = """
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style type="text/css">
-            html{{
-                background: {};
-            }}
-            .container{{
-                width: 100%;
-                display: block;
-            }}
-            .left-col{{
-                width: 80%;
-                display: inline-block;
-                word-wrap: break-word;
-            }}
-            .right-col{{
-                width: 15%;
-                display: inline-block;
-                word-wrap: break-word;
-            }}
-        </style>
     </head>
     <body>
-        <div class="container">
-            <div class="left-col">
-                <h2>{}</h2>
-            </div>
-            <div class="right-col">
-                <h4>{} row {}</h4>
-            </div>
-            <p>{}</p>
-        </div>
+        <h2>{}</h2>
+        <h4>{} row {}</h4>
+        <p>{}</p>
     </body>
     </html>
     """
@@ -376,15 +390,6 @@ DEFAULT_MESSAGE = """
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style type="text/css">
-            html{{
-                background: {};
-            }}
-            .container{{
-                width: 100%;
-                display: block;
-            }}
-        </style>
     </head>
     <body>
         <div class="container">

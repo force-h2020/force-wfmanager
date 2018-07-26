@@ -243,19 +243,25 @@ class WorkflowTree(ModelView):
     verify_workflow_event = Event
 
     traits_view = View(
-        VGroup(
-            UItem(name='workflow_mv',
-                  editor=tree_editor,
-                  show_label=False
-                  ),
-            UReadonly(
-                name='selected_error',
-                editor=TextEditor(),
+        Group(
+            VGroup(
+                UItem(name='workflow_mv',
+                      editor=tree_editor,
+                      show_label=False
+                      ),
+                ),
+            VGroup(
+                UReadonly(
+                    name='selected_error',
+                    editor=TextEditor(),
+                    ),
+                label='Workflow Errors',
+                show_border=True
                 ),
             ),
         width=800,
         height=600,
-        resizable=True
+        resizable=True,
         )
 
     def __init__(self, model, factory_registry, *args, **kwargs):
