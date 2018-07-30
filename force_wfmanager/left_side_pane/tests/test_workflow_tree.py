@@ -107,7 +107,7 @@ class TestWorkflowTree(unittest.TestCase):
 
             self.tree.new_mco(mock_ui_info, mock_object)
 
-            mock_modal.assert_called()
+            self.assertTrue(mock_modal.called)
 
     def test_new_mco_parameter(self):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
@@ -117,8 +117,8 @@ class TestWorkflowTree(unittest.TestCase):
 
             self.tree.new_parameter(mock_ui_info, mock_object)
 
-            mock_modal.assert_called()
-            mock_object.add_parameter.assert_called()
+            self.assertTrue(mock_modal.called)
+            self.assertTrue(mock_object.add_parameter.called)
 
     def test_new_data_source(self):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
@@ -128,8 +128,8 @@ class TestWorkflowTree(unittest.TestCase):
 
             self.tree.new_data_source(mock_ui_info, mock_object)
 
-            mock_modal.assert_called()
-            mock_object.add_data_source.assert_called()
+            self.assertTrue(mock_modal.called)
+            self.assertTrue(mock_object.add_data_source.called)
 
     def test_new_notification_listener(self):
         with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
@@ -142,7 +142,7 @@ class TestWorkflowTree(unittest.TestCase):
 
             self.tree.new_notification_listener(mock_ui_info, mock_object)
 
-            mock_modal.assert_called()
+            self.assertTrue(mock_modal.called)
 
     def test_delete_notification_listener(self):
         self.assertEqual(
@@ -166,7 +166,7 @@ class TestWorkflowTree(unittest.TestCase):
                 self.tree.edit_mco(
                     mock_ui_info,
                     self.tree.workflow_mv.mco_mv[0])
-                mock_model_edit.assert_called()
+                self.assertTrue(mock_model_edit.called)
 
     def test_delete_mco(self):
         self.assertIsNotNone(self.tree.model.mco)

@@ -1,4 +1,5 @@
-from traits.api import Instance, Unicode, Bool, on_trait_change, Event, Property
+from traits.api import (
+    Instance, Unicode, Bool, on_trait_change, Event, Property)
 
 from traitsui.api import View, Item, ModelView
 

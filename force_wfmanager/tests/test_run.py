@@ -18,4 +18,4 @@ class TestRun(unittest.TestCase):
 
             main()
 
-            mock_wfmanager.assert_called()
+            self.assertTrue(mock_wfmanager.called)

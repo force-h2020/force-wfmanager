@@ -99,7 +99,7 @@ class TestDataSourceModelView(unittest.TestCase):
             InputSlotInfo(name='') for _ in range(len(input_slots) + 1)  # noqa
         ]
 
-        with self.assertRaisesRegex(self, RuntimeError, "input slots"):
+        with self.assertRaisesRegex(RuntimeError, "input slots"):
             DataSourceModelView(
                 model=self.model_1,
                 variable_names_registry=self.variable_names_registry)
@@ -111,7 +111,7 @@ class TestDataSourceModelView(unittest.TestCase):
             OutputSlotInfo(name='')
             for slot in range(len(output_slots) + 1)]
 
-        with self.assertRaisesRegex(self, RuntimeError, "output slots"):
+        with self.assertRaisesRegex(RuntimeError, "output slots"):
             DataSourceModelView(
                 model=self.model_1,
                 variable_names_registry=self.variable_names_registry)

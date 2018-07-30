@@ -26,4 +26,4 @@ class TestClickRun(unittest.TestCase):
 
             force_wfmanager.gui.run.force_wfmanager()
 
-            mock_run.force_wfmanager.assert_called()
+            self.assertTrue(mock_run.force_wfmanager.called)
