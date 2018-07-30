@@ -1,4 +1,4 @@
-from traits.api import (HasUnicodeictTraits, Instance, Unicode, List, Int,
+from traits.api import (HasStrictTraits, Instance, List, Int,
                         on_trait_change, Enum, Bool, HTML, Property,
                         Either, Event, Unicode)
 
@@ -12,7 +12,7 @@ from .view_utils import get_factory_name, get_default_background_color
 from .variable_names_registry import VariableNamesRegistry
 
 
-class TableRow(HasUnicodeictTraits):
+class TableRow(HasStrictTraits):
     #: Type of the slot
     type = Unicode()
 
