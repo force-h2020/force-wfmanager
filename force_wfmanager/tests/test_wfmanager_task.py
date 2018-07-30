@@ -2,10 +2,7 @@ import unittest
 
 from testfixtures import LogCapture
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 import subprocess
 
 from envisage.api import Application

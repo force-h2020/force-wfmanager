@@ -1,8 +1,5 @@
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 from force_wfmanager.gui.run import main
 from force_wfmanager.wfmanager import WfManager

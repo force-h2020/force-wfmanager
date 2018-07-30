@@ -1,9 +1,6 @@
 import unittest
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 from click.testing import CliRunner
 

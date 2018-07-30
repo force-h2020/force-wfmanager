@@ -1,4 +1,4 @@
-from traits.api import (HasStrictTraits, Instance, Str, List, Int,
+from traits.api import (HasUnicodeictTraits, Instance, Unicode, List, Int,
                         on_trait_change, Enum, Bool, HTML, Property,
                         Either, Event, Unicode)
 
@@ -12,9 +12,9 @@ from .view_utils import get_factory_name, get_default_background_color
 from .variable_names_registry import VariableNamesRegistry
 
 
-class TableRow(HasStrictTraits):
+class TableRow(HasUnicodeictTraits):
     #: Type of the slot
-    type = Str()
+    type = Unicode()
 
     #: Index of the slot in the slot list
     index = Int()
@@ -110,7 +110,7 @@ class DataSourceModelView(ModelView):
     variable_names_registry = Instance(VariableNamesRegistry)
 
     #: The human readable name of the evaluator
-    label = Str()
+    label = Unicode()
 
     #: The index of the layer this data source belongs to.
     layer_index = Int()
@@ -134,7 +134,7 @@ class DataSourceModelView(ModelView):
     valid = Bool(True)
 
     #: An error message for issues in this modelview
-    error_message = Str()
+    error_message = Unicode()
 
     #: Event to request a verification check on the workflow
     verify_workflow_event = Event

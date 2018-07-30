@@ -9,10 +9,7 @@ from force_wfmanager.plugins.ui_notification.ui_notification_plugin import \
     UINotificationPlugin
 from force_wfmanager.server.zmq_server import ZMQServer
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 
 class TestUINotificationHooksManager(unittest.TestCase):

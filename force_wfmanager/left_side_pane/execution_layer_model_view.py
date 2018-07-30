@@ -1,5 +1,5 @@
-from traits.api import (Instance, String, Bool, on_trait_change, List, Int,
-                        Str, Event)
+from traits.api import (Instance, Unicode, Bool, on_trait_change, List, Int,
+                        Event)
 from traitsui.api import ModelView
 
 from force_bdss.api import ExecutionLayer
@@ -22,16 +22,16 @@ class ExecutionLayerModelView(ModelView):
     data_sources_mv = List(Instance(DataSourceModelView))
 
     #: The label to display in the list
-    label = String()
+    label = Unicode()
 
     #: True if the wrapped object is valid.
     valid = Bool(True)
 
     #: An error message for issues in this modelview
-    error_message = Str
+    error_message = Unicode()
 
     #: Event to request a verification check on the workflow
-    verify_workflow_event = Event
+    verify_workflow_event = Event()
 
     @on_trait_change('data_sources_mv.verify_workflow_event')
     def received_verify_request(self):

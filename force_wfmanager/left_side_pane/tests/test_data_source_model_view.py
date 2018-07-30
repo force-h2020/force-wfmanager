@@ -1,5 +1,4 @@
 import unittest
-import six
 
 from traits.api import TraitError
 
@@ -100,7 +99,7 @@ class TestDataSourceModelView(unittest.TestCase):
             InputSlotInfo(name='') for _ in range(len(input_slots) + 1)  # noqa
         ]
 
-        with six.assertRaisesRegex(self, RuntimeError, "input slots"):
+        with self.assertRaisesRegex(self, RuntimeError, "input slots"):
             DataSourceModelView(
                 model=self.model_1,
                 variable_names_registry=self.variable_names_registry)
@@ -112,7 +111,7 @@ class TestDataSourceModelView(unittest.TestCase):
             OutputSlotInfo(name='')
             for slot in range(len(output_slots) + 1)]
 
-        with six.assertRaisesRegex(self, RuntimeError, "output slots"):
+        with self.assertRaisesRegex(self, RuntimeError, "output slots"):
             DataSourceModelView(
                 model=self.model_1,
                 variable_names_registry=self.variable_names_registry)

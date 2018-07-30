@@ -14,7 +14,7 @@ from force_wfmanager.left_side_pane.workflow_tree import WorkflowModelView
 from force_wfmanager.left_side_pane.view_utils import model_info
 
 
-class UIDummy():
+class UIDummy:
     def dispose(self):
         pass
 
