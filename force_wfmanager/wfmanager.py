@@ -44,7 +44,7 @@ class TaskWindowClosePrompt(TaskWindow):
         fails, the application is not closed so he has a chance to try to
         save again. Overrides close from pyface.tasks.task_window """
 
-        # The attached wfmanager_task for save_methods
+        # The attached wfmanager_task for saving methods
         wfmanager_task = self.tasks[0]
 
         # Pop up for user input
@@ -61,9 +61,11 @@ class TaskWindowClosePrompt(TaskWindow):
         # Save
         if result is YES:
             save_result = wfmanager_task.save_workflow()
-            # On failed save, don't close the window
+
+            # On a failed save, don't close the window
             if not save_result:
                 return False
+
             close_result = super(TaskWindowClosePrompt, self).close()
             return close_result
 
