@@ -9,8 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from traits.api import Instance, on_trait_change, File, Str, Bool, List
 
 from pyface.api import (
-    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, confirm,
-    information
+    FileDialog, OK, error, YES, GUI, confirm, information
 )
 
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
@@ -393,30 +392,10 @@ class WfManagerTask(Task):
             )
 
     def exit(self):
-        """ Exit the application. It first asks the user to save the current
-        Worklfow. The user can accept to save, ignore the request, or
-        cancel the quit. If the user wants to save, but the save fails, the
-        application is not closed so he has a chance to try to save again. """
-        dialog = ConfirmationDialog(
-            parent=None,
-            message='Do you want to save before exiting the Workflow '
-                    'Manager ?',
-            cancel=True,
-            yes_label='Save',
-            no_label='Don\'t save',
-        )
+        """ Exit the main window via TaskWindowClosePrompt's window.close(),
+        which opens a dialog with the option to save the current workflow."""
 
-        result = dialog.open()
-
-        if result is YES:
-            save_result = self.save_workflow()
-            if not save_result:
-                return
-        elif result is CANCEL:
-            return
-
-        app = self.window.application
-        app.exit()
+        self.window.close()
 
     # Default initializers
 
