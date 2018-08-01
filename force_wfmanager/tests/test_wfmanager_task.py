@@ -25,7 +25,6 @@ from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowTree
 
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_task.FileDialog'
-CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
 INFORMATION_PATH = 'force_wfmanager.wfmanager_task.information'
 CONFIRM_PATH = 'force_wfmanager.wfmanager_task.confirm'
 FILE_OPEN_PATH = 'force_wfmanager.wfmanager_task.open'
