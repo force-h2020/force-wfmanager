@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import unittest
 
 from force_wfmanager.plugins.ui_notification.ui_notification_factory import \

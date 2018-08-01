@@ -1,6 +1,6 @@
-from __future__ import unicode_literals
 import unittest
 import testfixtures
+
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from traits.api import HasTraits, Instance
 
@@ -8,7 +8,7 @@ from force_bdss.base_extension_plugin import BaseExtensionPlugin
 from force_wfmanager.plugin_dialog import htmlformat, PluginDialog
 
 
-class UIDummy():
+class UIDummy:
     def dispose(self):
         pass
 

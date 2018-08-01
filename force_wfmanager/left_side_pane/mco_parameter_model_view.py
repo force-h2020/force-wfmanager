@@ -1,4 +1,5 @@
-from traits.api import Instance, Str, Bool, on_trait_change, Event, Property
+from traits.api import (
+    Instance, Unicode, Bool, on_trait_change, Event, Property)
 
 from traitsui.api import View, Item, ModelView
 
@@ -12,13 +13,13 @@ class MCOParameterModelView(ModelView):
     model = Instance(BaseMCOParameter, allow_none=False)
 
     #: The human readable name of the MCO parameter class
-    label = Property(Str, depends_on="model.name,model.type")
+    label = Property(Unicode(), depends_on="model.name,model.type")
 
     #: Defines if the MCO parameter is valid or not
     valid = Bool(True)
 
     #: An error message for issues in this modelview
-    error_message = Str
+    error_message = Unicode()
 
     #: Base view for the MCO parameter
     traits_view = View(

@@ -1,8 +1,5 @@
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 from envisage.api import Application
 
@@ -33,7 +30,7 @@ class TestWfManagerPlugin(unittest.TestCase):
             mock_task.side_effect = mock_wfmanager_task_constructor
 
             self.wfmanager_plugin._create_task()
-            mock_task.assert_called()
+            self.assertTrue(mock_task.called)
 
     def test_file_load(self):
 
@@ -48,4 +45,4 @@ class TestWfManagerPlugin(unittest.TestCase):
             mock_task.side_effect = mock_wfmanager_task_constructor
 
             mock_task = self.wfmanager_plugin_file._create_task()
-            mock_task.open_workflow_file.assert_called()
+            self.assertTrue(mock_task.open_workflow_file.called)
