@@ -28,6 +28,9 @@ class WfManager(TasksApplication):
 
     # FIXME: This isn't needed if the bug in traitsui/qt4/ui_panel.py is fixed
     def _application_exiting_fired(self):
+        self._remove_tasks()
+
+    def _remove_tasks(self):
         for window in self.windows:
             tasks = window.tasks
             for task in tasks:

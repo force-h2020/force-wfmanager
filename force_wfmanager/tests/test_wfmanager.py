@@ -1,12 +1,15 @@
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+import unittest.mock as mock
 
+from envisage.core_plugin import CorePlugin
+from envisage.ui.tasks.tasks_plugin import TasksPlugin
+
+from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
+
+from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.wfmanager import WfManager, TaskWindowClosePrompt
 from force_wfmanager.wfmanager_task import WfManagerTask
-from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
+
 
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
 
@@ -20,11 +23,26 @@ def mock_dialog(dialog_class, result, path=''):
     return mock_dialog_call
 
 
+def dummy_wfmanager():
+
+    plugins = [CorePlugin(), TasksPlugin(), WfManagerPlugin()]
+    wfmanager = WfManager(plugins=plugins)
+    wfmanager.run = wfmanager._create_windows
+    return wfmanager
+
+
 class TestWfManager(unittest.TestCase):
 
     def test_wfmanager(self):
         wfmanager = WfManager()
         self.assertEqual(len(wfmanager.default_layout), 1)
+
+    def test_remove_tasks_on_application_exiting(self):
+        mock_wfmanager = dummy_wfmanager()
+        mock_wfmanager.run()
+        self.assertEqual(len(mock_wfmanager.windows[0].tasks), 1)
+        mock_wfmanager.application_exiting = True
+        self.assertEqual(len(mock_wfmanager.windows[0].tasks), 0)
 
 
 class TestTaskWindowClosePrompt(unittest.TestCase):
