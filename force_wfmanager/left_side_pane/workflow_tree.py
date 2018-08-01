@@ -1,4 +1,4 @@
-from traits.api import Instance, on_trait_change, Str, Event, Property
+from traits.api import Instance, on_trait_change, Unicode, Event, Property
 
 from traitsui.api import (
     TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView, UReadonly,
@@ -235,9 +235,10 @@ class WorkflowTree(ModelView):
     selected_mv = Instance(ModelView)
 
     #: The error message relating to selected_mv
-    selected_error = Property(Str, depends_on="selected_mv,"
-                                              "selected_mv.error_message,"
-                                              "selected_mv.label")
+    selected_error = Property(Unicode(),
+                              depends_on="selected_mv,"
+                                         "selected_mv.error_message,"
+                                         "selected_mv.label")
 
     #: An event which runs a verification check on the current workflow
     verify_workflow_event = Event

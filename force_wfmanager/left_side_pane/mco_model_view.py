@@ -1,4 +1,4 @@
-from traits.api import Instance, List, Str, on_trait_change, Bool, Event
+from traits.api import Instance, List, Unicode, on_trait_change, Bool, Event
 
 from traitsui.api import ModelView
 
@@ -17,7 +17,7 @@ class MCOModelView(ModelView):
     model = Instance(BaseMCOModel)
 
     #: Label to be used in the TreeEditor
-    label = Str()
+    label = Unicode()
 
     #: List of MCO parameters to be displayed in the TreeEditor
     mco_parameters_mv = List(Instance(MCOParameterModelView))
@@ -32,10 +32,10 @@ class MCOModelView(ModelView):
     valid = Bool(True)
 
     #: An error message for issues in this modelview
-    error_message = Str
+    error_message = Unicode()
 
     #: Event to request a verification check on the workflow
-    verify_workflow_event = Event
+    verify_workflow_event = Event()
 
     @on_trait_change('mco_parameters_mv.verify_workflow_event,'
                      'kpis_mv.verify_workflow_event')

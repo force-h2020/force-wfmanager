@@ -1,4 +1,4 @@
-from traits.api import Instance, List, Bool, on_trait_change, Str, Event
+from traits.api import Instance, List, Bool, on_trait_change, Unicode, Event
 
 from traitsui.api import ModelView
 
@@ -21,7 +21,7 @@ class WorkflowModelView(ModelView):
     mco_mv = List(Instance(MCOModelView))
 
     #: An error message for issues in this modelview
-    error_message = Str
+    error_message = Unicode()
 
     #: List of DataSources to be displayed in the TreeEditor.
     #: Must be a list otherwise the tree editor will not consider it
@@ -41,7 +41,7 @@ class WorkflowModelView(ModelView):
     verify_workflow_event = Event
 
     #: A label for the Workflow
-    label = Str("Workflow")
+    label = Unicode("Workflow")
 
     @on_trait_change('mco_mv.verify_workflow_event,'
                      'execution_layers_mv.verify_workflow_event,'

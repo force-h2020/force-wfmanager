@@ -1,8 +1,5 @@
 import unittest
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 from force_wfmanager.gui.run import main
 from force_wfmanager.wfmanager import WfManager
@@ -21,4 +18,4 @@ class TestRun(unittest.TestCase):
 
             main()
 
-            mock_wfmanager.assert_called()
+            self.assertTrue(mock_wfmanager.called)

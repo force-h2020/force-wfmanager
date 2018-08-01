@@ -2,10 +2,7 @@ import unittest
 
 from testfixtures import LogCapture
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 import subprocess
 
 from envisage.api import Application
@@ -161,9 +158,9 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.save_workflow()
 
-            mock_writer.assert_called()
-            mock_open.assert_called()
-            mock_file_dialog.assert_called()
+            self.assertTrue(mock_writer.called)
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_file_dialog.called)
 
             self.assertEqual(self.wfmanager_task.current_file, 'file_path')
             self.assertTrue(hook_manager.before_save_called)
@@ -188,9 +185,9 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.save_workflow()
 
-            mock_writer.assert_called()
-            mock_open.assert_called()
-            mock_file_dialog.assert_not_called()
+            self.assertTrue(mock_writer.called)
+            self.assertTrue(mock_open.called)
+            self.assertFalse(mock_file_dialog.called)
 
     def test_save_workflow_failure(self):
         mock_open = mock.mock_open()
@@ -223,7 +220,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 ''
             )
 
-            mock_error.assert_called()
+            self.assertTrue(mock_error.called)
 
     def test_close_saving_dialog(self):
         mock_open = mock.mock_open()
@@ -242,7 +239,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.open_about()
 
-            mock_information.assert_called()
+            self.assertTrue(mock_information.called)
 
     def test_open_failure(self):
         mock_open = mock.mock_open()
@@ -255,7 +252,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.save_workflow_as()
 
-            mock_open.assert_called()
+            self.assertTrue(mock_open.called)
             mock_error.assert_called_with(
                 None,
                 'Cannot save in the requested file:\n\nOUPS',
@@ -280,8 +277,8 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.open_workflow()
 
-            mock_open.assert_called()
-            mock_reader.assert_called()
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_reader.called)
 
             self.assertNotEqual(old_workflow, self.wfmanager_task.workflow_m)
             self.assertNotEqual(
@@ -305,8 +302,8 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.open_workflow()
 
-            mock_open.assert_called()
-            mock_reader.assert_called()
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_reader.called)
             mock_error.assert_called_with(
                 None,
                 'Cannot read the requested file:\n\nOUPS',

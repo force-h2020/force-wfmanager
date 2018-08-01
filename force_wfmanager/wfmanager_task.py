@@ -6,7 +6,7 @@ import textwrap
 
 from concurrent.futures import ThreadPoolExecutor
 
-from traits.api import Instance, on_trait_change, File, Str, Bool, List
+from traits.api import Instance, on_trait_change, File, Unicode, Bool, List
 
 from pyface.api import (
     FileDialog, OK, error, YES, GUI, confirm, information
@@ -59,7 +59,7 @@ class WfManagerTask(Task):
 
     #: Path to spawn for the BDSS CLI executable.
     #: This will go to some global configuration option later.
-    _bdss_executable_path = Str("force_bdss")
+    _bdss_executable_path = Unicode("force_bdss")
 
     #: ZeroMQ Server to receive information from the running BDSS
     zmq_server = Instance(ZMQServer)
@@ -167,7 +167,7 @@ class WfManagerTask(Task):
 
         Parameters
         ----------
-        file_path: String
+        file_path: str
             The file_path pointing to the file in which you want to write the
             workflow
 
