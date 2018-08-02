@@ -8,7 +8,7 @@ import subprocess
 from envisage.api import Application
 
 from pyface.tasks.api import TaskLayout, TaskWindow
-from pyface.api import FileDialog, OK, ConfirmationDialog, YES, NO, CANCEL
+from pyface.api import FileDialog, OK, YES, CANCEL
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 from force_bdss.tests.probe_classes.factory_registry_plugin import \
@@ -25,7 +25,6 @@ from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowTree
 
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_task.FileDialog'
-CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager_task.ConfirmationDialog'
 INFORMATION_PATH = 'force_wfmanager.wfmanager_task.information'
 CONFIRM_PATH = 'force_wfmanager.wfmanager_task.confirm'
 FILE_OPEN_PATH = 'force_wfmanager.wfmanager_task.open'
@@ -447,87 +446,10 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 mock_error.call_args[0][1],
                 'Unable to run BDSS: write failed')
 
-    def test_exit_application_with_saving(self):
-        mock_open = mock.mock_open()
-        with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog, \
-                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_dialog(
-                ConfirmationDialog, YES)
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_writer.side_effect = mock_file_writer
+    def test_exit(self):
 
-            self.wfmanager_task.exit()
-
-            self.assertTrue(mock_confirm_dialog.called)
-            self.assertTrue(mock_file_dialog.called)
-            self.assertTrue(mock_open.called)
-            self.assertTrue(mock_writer.called)
-            self.assertTrue(
-                self.wfmanager_task.window.application.exit.called)
-
-    def test_exit_application_with_saving_failure(self):
-        mock_open = mock.mock_open()
-        mock_open.side_effect = Exception("OUPS")
-        with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog, \
-                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(ERROR_PATH) as mock_error, \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_dialog(
-                ConfirmationDialog, YES)
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
-            mock_writer.side_effect = mock_file_writer
-
-            self.wfmanager_task.exit()
-
-            self.assertTrue(mock_confirm_dialog.called)
-            self.assertTrue(mock_file_dialog.called)
-            self.assertTrue(mock_open.called)
-            self.assertFalse(mock_writer.write.called)
-            self.assertFalse(
-                self.wfmanager_task.window.application.exit.called)
-
-    def test_exit_application_without_saving(self):
-        mock_open = mock.mock_open()
-        with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog, \
-                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_dialog(
-                ConfirmationDialog, NO)
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_writer.side_effect = mock_file_writer
-
-            self.wfmanager_task.exit()
-
-            self.assertTrue(mock_confirm_dialog.called)
-            self.assertFalse(mock_file_dialog.called)
-            self.assertFalse(mock_open.called)
-            self.assertFalse(mock_writer.write.called)
-            self.assertTrue(self.wfmanager_task.window.application.exit.called)
-
-    def test_cancel_exit_application(self):
-        mock_open = mock.mock_open()
-        with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog, \
-                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_dialog(
-                ConfirmationDialog, CANCEL)
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_writer.side_effect = mock_file_writer
-
-            self.wfmanager_task.exit()
-
-            self.assertTrue(mock_confirm_dialog.called)
-            self.assertFalse(mock_file_dialog.called)
-            self.assertFalse(mock_open.called)
-            self.assertFalse(mock_writer.write.called)
-            self.assertFalse(
-                self.wfmanager_task.window.application.exit.called)
+        self.wfmanager_task.exit()
+        self.assertTrue(self.wfmanager_task.window.close.called)
 
     def test_dispatch_mco_event(self):
         send_event = self.wfmanager_task._server_event_callback
