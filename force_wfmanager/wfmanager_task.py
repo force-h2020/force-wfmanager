@@ -488,10 +488,17 @@ class WfManagerTask(Task):
         action appropriately according to the type"""
         if isinstance(event, MCOStartEvent):
             self.analysis_m.clear()
-            self.analysis_m.value_names = (
-                event.input_names + event.output_names)
+            value_names = list(event.parameter_names)
+            for kpi_name in event.kpi_names:
+                value_names.extend([kpi_name, kpi_name+" weight"])
+            self.analysis_m.value_names = tuple(value_names)
+
         elif isinstance(event, MCOProgressEvent):
-            data = tuple(map(float, event.input + event.output))
+            data = [dv.value for dv in event.optimal_point]
+            for kpi, weight in zip(event.optimal_kpis, event.weights):
+                data.extend([kpi.value, weight])
+
+            data = tuple(map(float, data))
             self.analysis_m.add_evaluation_step(data)
 
     def _show_error_dialog(self, message):
