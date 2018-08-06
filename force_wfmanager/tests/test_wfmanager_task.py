@@ -15,7 +15,7 @@ from force_bdss.tests.probe_classes.factory_registry_plugin import \
     ProbeFactoryRegistryPlugin, ProbeExtensionPlugin
 from force_bdss.api import (MCOStartEvent, MCOProgressEvent, Workflow,
                             WorkflowWriter, WorkflowReader,
-                            InvalidFileException)
+                            InvalidFileException, DataValue)
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.server.zmq_server import ZMQServer
@@ -534,19 +534,25 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
         self.assertEqual(self.wfmanager_task.analysis_m.value_names, ())
         with self.event_loop():
             send_event(MCOStartEvent(
-                input_names=("x",),
-                output_names=("y",)
-            ))
+                parameter_names=["x"],
+                kpi_names=["y"])
+            )
 
         self.assertEqual(
             len(self.wfmanager_task.analysis_m.evaluation_steps),
             0)
         self.assertEqual(
             self.wfmanager_task.analysis_m.value_names,
-            ('x', 'y'))
+            ('x', 'y', 'y weight'))
 
         with self.event_loop():
-            send_event(MCOProgressEvent(input=["1.0"], output=["2.0"]))
+            send_event(MCOProgressEvent(
+                optimal_point=[
+                    DataValue(value=1.0)],
+                optimal_kpis=[
+                    DataValue(value=2.0)
+                ],
+                weights=[1.0]))
 
         self.assertEqual(
             len(self.wfmanager_task.analysis_m.evaluation_steps),

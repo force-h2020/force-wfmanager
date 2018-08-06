@@ -13,23 +13,23 @@ class TestEventDeserializer(unittest.TestCase):
         data = json.dumps({
             "type": "MCOStartEvent",
             "model_data": {
-                "input_names": ["a", "b"],
-                "output_names": ["c", "d"]
+                "parameter_names": ["a", "b"],
+                "kpi_names": ["c", "d"]
             }
         })
 
         event = EventDeserializer().deserialize(data)
         self.assertIsInstance(event, MCOStartEvent)
-        self.assertEqual(event.input_names, event.input_names)
-        self.assertEqual(event.output_names, event.output_names)
+        self.assertEqual(event.parameter_names, event.parameter_names)
+        self.assertEqual(event.kpi_names, event.kpi_names)
 
     def test_invalid_cases(self):
         invalid_cases = [
             {
                 "type": "Foo",
                 "model_data": {
-                    "input_names": ["a", "b"],
-                    "output_names": ["c", "d"]
+                    "parameter_names": ["a", "b"],
+                    "kpi_names": ["c", "d"]
                 }
             },
             {
