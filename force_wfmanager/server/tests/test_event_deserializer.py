@@ -55,7 +55,6 @@ class TestEventDeserializer(unittest.TestCase):
 
         self.assertEqual(event.weights, [1.0])
 
-
     def test_invalid_cases(self):
         invalid_cases = [
             {
