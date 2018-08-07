@@ -1,5 +1,5 @@
 import json
-from force_bdss.api import BaseDriverEvent
+from force_bdss.api import BaseDriverEvent, pop_recursive
 
 
 class SerializerError(Exception):
@@ -18,7 +18,9 @@ class EventSerializer(object):
                                   "from BaseDriverEvent")
         data = json.dumps(
             {"type": event.__class__.__name__,
-             "model_data": event.__getstate__()
+             "model_data": pop_recursive(
+                 event.__getstate__(),
+                 "__traits_version__")
              }
         )
 

@@ -76,6 +76,7 @@ class UINotification(BaseNotificationListener):
             raise TypeError("Event is not a BaseDriverEvent")
 
         data = self._serializer.serialize(event)
+
         self._pub_socket.send_multipart(
             [x.encode('utf-8') for x in ["MESSAGE", self._identifier, data]])
 
