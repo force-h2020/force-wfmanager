@@ -1,5 +1,3 @@
-
-from __future__ import unicode_literals
 from traits.api import (HasStrictTraits, Instance, List, Either,
                         on_trait_change, Dict, Property, Unicode, Bool,
                         ReadOnly)

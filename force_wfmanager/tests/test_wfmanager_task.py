@@ -2,23 +2,20 @@ import unittest
 
 from testfixtures import LogCapture
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 import subprocess
 
 from envisage.api import Application
 
 from pyface.tasks.api import TaskLayout, TaskWindow
-from pyface.api import FileDialog, OK, ConfirmationDialog, YES, NO, CANCEL
+from pyface.api import FileDialog, OK, YES, CANCEL
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 from force_bdss.tests.probe_classes.factory_registry_plugin import \
     ProbeFactoryRegistryPlugin, ProbeExtensionPlugin
 from force_bdss.api import (MCOStartEvent, MCOProgressEvent, Workflow,
                             WorkflowWriter, WorkflowReader,
-                            InvalidFileException)
+                            InvalidFileException, DataValue)
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.server.zmq_server import ZMQServer
@@ -28,7 +25,6 @@ from force_wfmanager.left_side_pane.side_pane import SidePane
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowTree
 
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_task.FileDialog'
-CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager_task.ConfirmationDialog'
 INFORMATION_PATH = 'force_wfmanager.wfmanager_task.information'
 CONFIRM_PATH = 'force_wfmanager.wfmanager_task.confirm'
 FILE_OPEN_PATH = 'force_wfmanager.wfmanager_task.open'
@@ -161,9 +157,9 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.save_workflow()
 
-            mock_writer.assert_called()
-            mock_open.assert_called()
-            mock_file_dialog.assert_called()
+            self.assertTrue(mock_writer.called)
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_file_dialog.called)
 
             self.assertEqual(self.wfmanager_task.current_file, 'file_path')
             self.assertTrue(hook_manager.before_save_called)
@@ -188,9 +184,9 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.save_workflow()
 
-            mock_writer.assert_called()
-            mock_open.assert_called()
-            mock_file_dialog.assert_not_called()
+            self.assertTrue(mock_writer.called)
+            self.assertTrue(mock_open.called)
+            self.assertFalse(mock_file_dialog.called)
 
     def test_save_workflow_failure(self):
         mock_open = mock.mock_open()
@@ -223,7 +219,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 ''
             )
 
-            mock_error.assert_called()
+            self.assertTrue(mock_error.called)
 
     def test_close_saving_dialog(self):
         mock_open = mock.mock_open()
@@ -242,7 +238,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.open_about()
 
-            mock_information.assert_called()
+            self.assertTrue(mock_information.called)
 
     def test_open_failure(self):
         mock_open = mock.mock_open()
@@ -255,7 +251,7 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.save_workflow_as()
 
-            mock_open.assert_called()
+            self.assertTrue(mock_open.called)
             mock_error.assert_called_with(
                 None,
                 'Cannot save in the requested file:\n\nOUPS',
@@ -280,8 +276,8 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.open_workflow()
 
-            mock_open.assert_called()
-            mock_reader.assert_called()
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_reader.called)
 
             self.assertNotEqual(old_workflow, self.wfmanager_task.workflow_m)
             self.assertNotEqual(
@@ -305,8 +301,8 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
 
             self.wfmanager_task.open_workflow()
 
-            mock_open.assert_called()
-            mock_reader.assert_called()
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_reader.called)
             mock_error.assert_called_with(
                 None,
                 'Cannot read the requested file:\n\nOUPS',
@@ -450,103 +446,36 @@ class TestWFManagerTask(GuiTestAssistant, unittest.TestCase):
                 mock_error.call_args[0][1],
                 'Unable to run BDSS: write failed')
 
-    def test_exit_application_with_saving(self):
-        mock_open = mock.mock_open()
-        with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog, \
-                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_dialog(
-                ConfirmationDialog, YES)
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_writer.side_effect = mock_file_writer
+    def test_exit(self):
 
-            self.wfmanager_task.exit()
-
-            mock_confirm_dialog.assert_called()
-            mock_file_dialog.assert_called()
-            mock_open.assert_called()
-            mock_writer.assert_called()
-            self.wfmanager_task.window.application.exit.assert_called()
-
-    def test_exit_application_with_saving_failure(self):
-        mock_open = mock.mock_open()
-        mock_open.side_effect = Exception("OUPS")
-        with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog, \
-                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(ERROR_PATH) as mock_error, \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_dialog(
-                ConfirmationDialog, YES)
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
-            mock_writer.side_effect = mock_file_writer
-
-            self.wfmanager_task.exit()
-
-            mock_confirm_dialog.assert_called()
-            mock_file_dialog.assert_called()
-            mock_open.assert_called()
-            mock_writer.write.assert_not_called()
-            self.wfmanager_task.window.application.exit.assert_not_called()
-
-    def test_exit_application_without_saving(self):
-        mock_open = mock.mock_open()
-        with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog, \
-                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_dialog(
-                ConfirmationDialog, NO)
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_writer.side_effect = mock_file_writer
-
-            self.wfmanager_task.exit()
-
-            mock_confirm_dialog.assert_called()
-            mock_file_dialog.assert_not_called()
-            mock_open.assert_not_called()
-            mock_writer.write.assert_not_called()
-            self.wfmanager_task.window.application.exit.assert_called()
-
-    def test_cancel_exit_application(self):
-        mock_open = mock.mock_open()
-        with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog, \
-                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_confirm_dialog.side_effect = mock_dialog(
-                ConfirmationDialog, CANCEL)
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_writer.side_effect = mock_file_writer
-
-            self.wfmanager_task.exit()
-
-            mock_confirm_dialog.assert_called()
-            mock_file_dialog.assert_not_called()
-            mock_open.assert_not_called()
-            mock_writer.write.assert_not_called()
-            self.wfmanager_task.window.application.exit.assert_not_called()
+        self.wfmanager_task.exit()
+        self.assertTrue(self.wfmanager_task.window.close.called)
 
     def test_dispatch_mco_event(self):
         send_event = self.wfmanager_task._server_event_callback
         self.assertEqual(self.wfmanager_task.analysis_m.value_names, ())
         with self.event_loop():
             send_event(MCOStartEvent(
-                input_names=("x",),
-                output_names=("y",)
-            ))
+                parameter_names=["x"],
+                kpi_names=["y"])
+            )
 
         self.assertEqual(
             len(self.wfmanager_task.analysis_m.evaluation_steps),
             0)
         self.assertEqual(
             self.wfmanager_task.analysis_m.value_names,
-            ('x', 'y'))
+            ('x', 'y', 'y weight'))
 
         with self.event_loop():
-            send_event(MCOProgressEvent(input=["1.0"], output=["2.0"]))
+            send_event(MCOProgressEvent(
+                optimal_point=[
+                    DataValue(value=1.0)
+                ],
+                optimal_kpis=[
+                    DataValue(value=2.0)
+                ],
+                weights=[1.0]))
 
         self.assertEqual(
             len(self.wfmanager_task.analysis_m.evaluation_steps),

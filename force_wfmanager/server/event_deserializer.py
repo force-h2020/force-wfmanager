@@ -1,5 +1,7 @@
 import json
 
+from force_bdss.api import DataValue, MCOProgressEvent
+
 
 class DeserializerError(Exception):
     """Raised when the deserialization cannot be performed for any reason."""
@@ -58,4 +60,11 @@ class EventDeserializer(object):
             raise DeserializerError("Unable to find model data for "
                                     "type {}".format(class_name))
 
-        return cls(**d["model_data"])
+        model_data = d["model_data"]
+        if cls == MCOProgressEvent:
+            model_data["optimal_point"] = [
+                DataValue(**data) for data in model_data["optimal_point"]]
+            model_data["optimal_kpis"] = [
+                DataValue(**data) for data in model_data["optimal_kpis"]]
+
+        return cls(**model_data)

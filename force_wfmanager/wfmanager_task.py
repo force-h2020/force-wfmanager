@@ -6,11 +6,10 @@ import textwrap
 
 from concurrent.futures import ThreadPoolExecutor
 
-from traits.api import Instance, on_trait_change, File, Str, Bool, List
+from traits.api import Instance, on_trait_change, File, Unicode, Bool, List
 
 from pyface.api import (
-    FileDialog, OK, error, ConfirmationDialog, YES, CANCEL, GUI, confirm,
-    information
+    FileDialog, OK, error, YES, GUI, confirm, information
 )
 
 from pyface.tasks.action.api import SMenu, SMenuBar, TaskAction
@@ -60,7 +59,7 @@ class WfManagerTask(Task):
 
     #: Path to spawn for the BDSS CLI executable.
     #: This will go to some global configuration option later.
-    _bdss_executable_path = Str("force_bdss")
+    _bdss_executable_path = Unicode("force_bdss")
 
     #: ZeroMQ Server to receive information from the running BDSS
     zmq_server = Instance(ZMQServer)
@@ -168,7 +167,7 @@ class WfManagerTask(Task):
 
         Parameters
         ----------
-        file_path: String
+        file_path: str
             The file_path pointing to the file in which you want to write the
             workflow
 
@@ -393,30 +392,10 @@ class WfManagerTask(Task):
             )
 
     def exit(self):
-        """ Exit the application. It first asks the user to save the current
-        Worklfow. The user can accept to save, ignore the request, or
-        cancel the quit. If the user wants to save, but the save fails, the
-        application is not closed so he has a chance to try to save again. """
-        dialog = ConfirmationDialog(
-            parent=None,
-            message='Do you want to save before exiting the Workflow '
-                    'Manager ?',
-            cancel=True,
-            yes_label='Save',
-            no_label='Don\'t save',
-        )
+        """ Exit the main window via TaskWindowClosePrompt's window.close(),
+        which opens a dialog with the option to save the current workflow."""
 
-        result = dialog.open()
-
-        if result is YES:
-            save_result = self.save_workflow()
-            if not save_result:
-                return
-        elif result is CANCEL:
-            return
-
-        app = self.window.application
-        app.exit()
+        self.window.close()
 
     # Default initializers
 
@@ -488,10 +467,17 @@ class WfManagerTask(Task):
         action appropriately according to the type"""
         if isinstance(event, MCOStartEvent):
             self.analysis_m.clear()
-            self.analysis_m.value_names = (
-                event.input_names + event.output_names)
+            value_names = list(event.parameter_names)
+            for kpi_name in event.kpi_names:
+                value_names.extend([kpi_name, kpi_name+" weight"])
+            self.analysis_m.value_names = tuple(value_names)
+
         elif isinstance(event, MCOProgressEvent):
-            data = tuple(map(float, event.input + event.output))
+            data = [dv.value for dv in event.optimal_point]
+            for kpi, weight in zip(event.optimal_kpis, event.weights):
+                data.extend([kpi.value, weight])
+
+            data = tuple(map(float, data))
             self.analysis_m.add_evaluation_step(data)
 
     def _show_error_dialog(self, message):

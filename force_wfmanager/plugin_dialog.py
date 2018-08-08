@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from traitsui.editors import HTMLEditor
 from traitsui.list_str_adapter import ListStrAdapter
 

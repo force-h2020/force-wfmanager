@@ -4,15 +4,11 @@ import unittest
 import contextlib
 import random
 
-import six
 from testfixtures import LogCapture
 
 from force_wfmanager.tests.utils import wait_condition
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 import time
 
@@ -197,24 +193,14 @@ class TestZMQServer(unittest.TestCase):
                                             for x in ["HELLO", 'xxx', '3']]
                 wait_condition(lambda: len(capture.records) == 3)
 
-            if six.PY2:
-                capture.check(
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown request received [u'HELLO']"),
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown msg request received WHATEVER"),
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown protocol received 3")
-                )
-            else:
-                capture.check(
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown request received ['HELLO']"),
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown msg request received WHATEVER"),
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown protocol received 3")
-                )
+            capture.check(
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "Unknown request received ['HELLO']"),
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "Unknown msg request received WHATEVER"),
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "Unknown protocol received 3")
+            )
 
     def test_error_conditions_receiving_sync(self):
         events = []
@@ -234,20 +220,12 @@ class TestZMQServer(unittest.TestCase):
                                             for x in ["HELLO", 'xxx']]
                 wait_condition(lambda: len(capture.records) == 2)
 
-            if six.PY2:
-                capture.check(
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown request received [u'HELLO', u'xxx', u'1']"),
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown msg request received HELLO"),
-                )
-            else:
-                capture.check(
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown request received ['HELLO', 'xxx', '1']"),
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown msg request received HELLO"),
-                )
+            capture.check(
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "Unknown request received ['HELLO', 'xxx', '1']"),
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "Unknown msg request received HELLO"),
+            )
 
     def test_error_conditions_waiting_pub(self):
         events = []
@@ -308,24 +286,14 @@ class TestZMQServer(unittest.TestCase):
                                                      "bonkers"]]
                 wait_condition(lambda: len(capture.records) == 3)
 
-            if six.PY2:
-                capture.check(
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown request received [u'MESSAGE', u'xxx']"),
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown msg request received WHATEVER"),
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     'Received invalid data. Discarding'),
-                )
-            else:
-                capture.check(
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown request received ['MESSAGE', 'xxx']"),
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     "Unknown msg request received WHATEVER"),
-                    ('force_wfmanager.server.zmq_server', 'ERROR',
-                     'Received invalid data. Discarding'),
-                )
+            capture.check(
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "Unknown request received ['MESSAGE', 'xxx']"),
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 "Unknown msg request received WHATEVER"),
+                ('force_wfmanager.server.zmq_server', 'ERROR',
+                 'Received invalid data. Discarding'),
+            )
 
     def test_server_error_on_connect(self):
         events = []

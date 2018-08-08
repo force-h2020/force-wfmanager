@@ -1,5 +1,5 @@
 from traits.api import (Instance, Property, Bool, Enum, List, on_trait_change,
-                        cached_property, Str, Event)
+                        cached_property, Unicode, Event)
 from traitsui.api import ModelView, View, Item, EnumEditor
 
 from force_bdss.api import KPISpecification, Identifier
@@ -21,7 +21,7 @@ class KPISpecificationModelView(ModelView):
     valid = Bool(True)
 
     #: An error message for issues in this modelview
-    error_message = Str
+    error_message = Unicode()
 
     #: The name of the selected KPI
     name = Enum(values='_combobox_values')

@@ -1,9 +1,6 @@
 import unittest
 
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 from click.testing import CliRunner
 
@@ -38,7 +35,7 @@ class TestClickRun(unittest.TestCase):
 
             force_wfmanager.gui.run.force_wfmanager()
 
-            mock_run.force_wfmanager.assert_called()
+            self.assertTrue(mock_run.force_wfmanager.called)
 
     def test_run_with_debug(self):
         with mock.patch('force_wfmanager.gui.run.WfManager') as mock_wf:

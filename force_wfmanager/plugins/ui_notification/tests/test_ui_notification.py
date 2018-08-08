@@ -1,9 +1,8 @@
 import unittest
 from testfixtures import LogCapture
-import six
 
 from force_bdss.api import MCOStartEvent, MCOProgressEvent, \
-    MCOFinishEvent
+    MCOFinishEvent, DataValue
 from force_wfmanager.plugins.ui_notification.ui_notification import \
     UINotification
 from force_wfmanager.plugins.ui_notification.ui_notification_factory import \
@@ -54,7 +53,11 @@ class TestUINotification(unittest.TestCase):
             self.pub_socket.send_multipart.call_args[0][0][0:2],
             [x.encode('utf-8') for x in ['MESSAGE', 'an_id']])
 
-        listener.deliver(MCOProgressEvent(input=(1, 2, 3), output=(4, 5)))
+        listener.deliver(MCOProgressEvent(
+            optimal_point=[DataValue(value=1),
+                           DataValue(value=2),
+                           DataValue(value=3)],
+            optimal_kpis=[DataValue(value=4), DataValue(value=5)]))
         self.assertEqual(
             self.pub_socket.send_multipart.call_args[0][0][0:2],
             [x.encode('utf-8') for x in ['MESSAGE', 'an_id']])
@@ -106,22 +109,13 @@ class TestUINotification(unittest.TestCase):
 
         with LogCapture() as capture:
             listener.initialize(self.model)
-            if six.PY2:
-                capture.check(
-                    ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
-                     "ERROR",
-                     "Unexpected reply in sync negotiation with UI server. "
-                     "'[u'HELLO', u'not_the_right_id', u'1']'"  # noqa
-                     ),
-                )
-            else:
-                capture.check(
-                    ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
-                     "ERROR",
-                     "Unexpected reply in sync negotiation with UI server. "
-                     "'['HELLO', 'not_the_right_id', '1']'"  # noqa
-                     ),
-                )
+            capture.check(
+                ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
+                 "ERROR",
+                 "Unexpected reply in sync negotiation with UI server. "
+                 "'['HELLO', 'not_the_right_id', '1']'"  # noqa
+                 ),
+            )
 
         self.assertIsNone(listener._context)
 
@@ -160,22 +154,13 @@ class TestUINotification(unittest.TestCase):
 
         with LogCapture() as capture:
             listener.finalize()
-            if six.PY2:
-                capture.check(
-                    ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
-                     "ERROR",
-                     "Unexpected reply in goodbye sync negotiation with UI server. "  # noqa
-                     "'[u'GOODBYE', u'not_the_right_id']'"  # noqa
-                     ),
-                )
-            else:
-                capture.check(
-                    ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
-                     "ERROR",
-                     "Unexpected reply in goodbye sync negotiation with UI server. "  # noqa
-                     "'['GOODBYE', 'not_the_right_id']'"  # noqa
-                     ),
-                )
+            capture.check(
+                ("force_wfmanager.plugins.ui_notification.ui_notification",  # noqa
+                 "ERROR",
+                 "Unexpected reply in goodbye sync negotiation with UI server. "  # noqa
+                 "'['GOODBYE', 'not_the_right_id']'"  # noqa
+                 ),
+            )
 
         self.assertIsNone(listener._context)
 
