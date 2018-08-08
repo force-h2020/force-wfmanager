@@ -4,6 +4,8 @@ Changelog
 Release 0.3.0
 -------------
 
+- Added debug logging option
+
 Release 0.2.0
 -------------
 
