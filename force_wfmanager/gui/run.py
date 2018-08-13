@@ -39,7 +39,7 @@ def main(workflow_file=None, debug=False):
     log = logging.getLogger(__name__)
 
     plugins = [CorePlugin(), TasksPlugin(), FactoryRegistryPlugin(),
-               WfManagerPlugin(workflow_file=workflow_file)]
+               WfManagerPlugin()]
 
     mgr = extension.ExtensionManager(
         namespace='force.bdss.extensions',
@@ -55,5 +55,5 @@ def main(workflow_file=None, debug=False):
     except NoMatches:
         log.info("No extensions found")
 
-    wfmanager = WfManager(plugins=plugins)
+    wfmanager = WfManager(plugins=plugins, workflow_file=workflow_file)
     wfmanager.run()

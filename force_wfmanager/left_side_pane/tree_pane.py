@@ -9,10 +9,10 @@ from force_bdss.api import IFactoryRegistryPlugin, Workflow
 from .workflow_tree import WorkflowTree
 
 
-class SidePane(TraitsDockPane):
+class TreePane(TraitsDockPane):
     """ Side pane which contains the WorkflowSettings (Tree editor for the
     Workflow) and the Run button """
-    id = 'force_wfmanager.side_pane'
+    id = 'force_wfmanager.tree_pane'
     name = 'Workflow'
 
     #: Remove the possibility to close the pane

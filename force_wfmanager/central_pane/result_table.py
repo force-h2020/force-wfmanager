@@ -37,6 +37,10 @@ class ResultTable(HasStrictTraits):
         ))
     )
 
+    def __init__(self, analysis_model):
+        super(ResultTable, self).__init__()
+        self.analysis_model = analysis_model
+
     def _get_rows(self):
         return self.analysis_model.evaluation_steps
 

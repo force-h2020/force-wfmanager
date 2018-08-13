@@ -10,21 +10,21 @@ class UINotificationHooksManager(BaseUIHooksManager):
     When the execution ends, the added information is removed.
     """
     def before_execution(self, task):
-        model = task.workflow_m
+        model = task.app.workflow_m
         notification_model = None
         for listener_model in model.notification_listeners:
             if isinstance(listener_model, UINotificationModel):
                 notification_model = listener_model
 
         if notification_model is None:
-            registry = task.factory_registry
+            registry = task.app.factory_registry
             nl_factory = registry.notification_listener_factory_by_id(
                 factory_id(self.factory.plugin.id, "ui_notification")
             )
             notification_model = nl_factory.create_model()
             model.notification_listeners.append(notification_model)
 
-        pub_port, sync_port = task.zmq_server.ports
+        pub_port, sync_port = task.app.zmq_server.ports
         notification_model.sync_url = (
                 "tcp://127.0.0.1:"+str(sync_port))
         notification_model.pub_url = (
@@ -32,7 +32,7 @@ class UINotificationHooksManager(BaseUIHooksManager):
         notification_model.identifier = ""
 
     def after_execution(self, task):
-        model = task.workflow_m
+        model = task.app.workflow_m
         notification_model = None
         for listener_model in model.notification_listeners:
             if isinstance(listener_model, UINotificationModel):
