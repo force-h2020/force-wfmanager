@@ -55,7 +55,7 @@ force\_wfmanager\.wfmanager\_plugin module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.wfmanager\_task module
+force\_wfmanager\.wfmanager\_setup\_task module
 ----------------------------------------
 
 .. automodule:: force_wfmanager.wfmanager_task
@@ -63,6 +63,13 @@ force\_wfmanager\.wfmanager\_task module
     :undoc-members:
     :show-inheritance:
 
+force\_wfmanager\.wfmanager\_results\_task module
+----------------------------------------
+
+.. automodule:: force_wfmanager.wfmanager_task
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------

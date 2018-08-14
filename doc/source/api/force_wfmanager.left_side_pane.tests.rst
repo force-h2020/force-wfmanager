@@ -20,6 +20,14 @@ force\_wfmanager\.left\_side\_pane\.tests\.test\_factory\_name module
     :undoc-members:
     :show-inheritance:
 
+force\_wfmanager\.left\_side\_pane\.tests\.test\_result\_pane module
+---------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.left_side_pane.tests.test_result_pane
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 force\_wfmanager\.left\_side\_pane\.tests\.test\_mco\_model\_view module
 ------------------------------------------------------------------------
 
