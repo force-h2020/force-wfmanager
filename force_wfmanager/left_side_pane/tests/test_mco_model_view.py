@@ -18,7 +18,7 @@ class TestMCOModelView(unittest.TestCase):
         plugin = DummyExtensionPlugin()
         factory = plugin.mco_factories[0]
         model = factory.create_model()
-        parameter_factory = factory.parameter_factories()[0]
+        parameter_factory = factory.parameter_factories[0]
         model.parameters = [parameter_factory.create_model()]
         var_names = VariableNamesRegistry(workflow=Workflow())
         self.mco_mv = MCOModelView(model=model,

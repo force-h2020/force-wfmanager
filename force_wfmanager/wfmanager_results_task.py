@@ -36,7 +36,6 @@ class WfManagerResultsTask(Task):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        print(self.app.analysis_m)
         return GraphPane(self.app.analysis_m)
 
     def create_dock_panes(self):

@@ -40,7 +40,6 @@ class ResultsPane(TraitsDockPane):
     ))
 
     def _result_table_default(self):
-        print('Res. Pane:', self.analysis_model)
         return ResultTable(
             analysis_model=self.analysis_model
         )

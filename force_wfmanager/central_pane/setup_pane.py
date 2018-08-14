@@ -20,8 +20,8 @@ class SetupPane(TraitsTaskPane):
 
     view = View(VGroup(
             UItem("console_ns", label="Console", editor=ShellEditor()),
-            layout='tabbed'
-    ))
+    ),
+    )
 
     def __init__(self, analysis_model, *args, **kwargs):
         super(SetupPane, self).__init__(*args, **kwargs)

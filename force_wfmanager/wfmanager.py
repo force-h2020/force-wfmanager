@@ -9,7 +9,7 @@ from traits.api import Instance, File, Unicode, Bool, List
 
 from pyface.api import (ConfirmationDialog, YES, NO, CANCEL, FileDialog, OK,
                         error, GUI, information)
-from pyface.tasks.api import TaskWindowLayout
+from pyface.tasks.api import TaskWindowLayout, Task
 
 from force_bdss.api import (
     MCOProgressEvent, MCOStartEvent, BaseUIHooksManager, Workflow,
@@ -37,6 +37,9 @@ class WfManager(TasksApplication):
     #: Registry of the available factories
     factory_registry = Instance(IFactoryRegistryPlugin)
 
+    #: The tasks associated with this TasksApplication
+    tasks = List(Instance(Task))
+
     #: Current workflow file on which the application is writing
     current_file = File()
 
@@ -61,14 +64,24 @@ class WfManager(TasksApplication):
     #: Flag which says if the computation is running or not
     computation_running = Bool(False)
 
+    #: The
+
     def __init__(self, plugins, workflow_file):
         super(WfManager, self).__init__(plugins=plugins)
         if workflow_file is not None:
             self.open_workflow_file(workflow_file)
 
     def _factory_registry_default(self):
+        """The envisage plugin containing all of the mco, datasource and
+        notification listener factories defined in external (non-envisage!)
+        plugins"""
         factory_registry = self.get_plugin(FACTORY_REGISTRY_PLUGIN_ID)
         return factory_registry
+
+    def _get_tasks(self):
+        """All tasks associated to the window(s) of this TasksApplication"""
+        tasks = [task for window in self.windows for task in window.tasks]
+        return tasks
 
     def save_workflow(self):
         """ Saves the workflow into the currently used file. If there is no
@@ -116,7 +129,7 @@ class WfManager(TasksApplication):
         Boolean:
             True if it was a success to write in the file, False otherwise
         """
-        for hook_manager in self._ui_hooks_managers:
+        for hook_manager in self.ui_hooks_managers:
             try:
                 hook_manager.before_save(self)
             except Exception:
@@ -209,7 +222,6 @@ class WfManager(TasksApplication):
 
     def _ui_hooks_managers_default(self):
         hooks_factories = self.factory_registry.ui_hooks_factories
-
         managers = []
         for factory in hooks_factories:
             try:
@@ -319,7 +331,7 @@ class TaskWindowClosePrompt(TaskWindow):
         save again. Overrides close from pyface.tasks.task_window """
 
         # The attached wfmanager_task for saving methods
-        wfmanager_task = self.tasks[0]
+        wfmanager = self.application
 
         # Pop up for user input
         dialog = ConfirmationDialog(
@@ -334,7 +346,7 @@ class TaskWindowClosePrompt(TaskWindow):
 
         # Save
         if result is YES:
-            save_result = wfmanager_task.save_workflow()
+            save_result = wfmanager.save_workflow()
 
             # On a failed save, don't close the window
             if not save_result:

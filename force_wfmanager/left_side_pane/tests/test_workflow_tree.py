@@ -57,7 +57,7 @@ def get_workflow_tree():
     factory_registry = ProbeFactoryRegistryPlugin()
     mco_factory = factory_registry.mco_factories[0]
     mco = mco_factory.create_model()
-    parameter_factory = mco_factory.parameter_factories()[0]
+    parameter_factory = mco_factory.parameter_factories[0]
     mco.parameters.append(parameter_factory.create_model())
     mco.kpis.append(KPISpecification())
     data_source_factory = factory_registry.data_source_factories[0]
