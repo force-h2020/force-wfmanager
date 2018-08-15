@@ -41,9 +41,9 @@ ZMQSERVER_SETUP_SOCKETS_PATH = \
 
 def get_wfmanager_task(task_name):
     if task_name == "Setup":
-        wfmanager_task = WfManagerSetupTask(shared_menu_bar=None)
+        wfmanager_task = WfManagerSetupTask()
     elif task_name == "Results":
-        wfmanager_task = WfManagerResultsTask(shared_menu_bar=None)
+        wfmanager_task = WfManagerResultsTask()
     else:
         raise ValueError
     wfmanager_task.window = mock.Mock(spec=TaskWindow)

@@ -93,9 +93,9 @@ def dummy_wfmanager():
     wfmanager = WfManager(plugins=plugins, workflow_file=None)
     wfmanager.run = wfmanager._create_windows
     wfmanager.factory_registry = ProbeFactoryRegistryPlugin()
-    setup_task = WfManagerSetupTask(shared_menu_bar=None)
+    setup_task = WfManagerSetupTask()
     setup_task.window = mock_window(wfmanager)
-    results_task = WfManagerResultsTask(shared_menu_bar=None)
+    results_task = WfManagerResultsTask()
     results_task.window = mock_window(wfmanager)
     wfmanager.tasks = [setup_task, results_task]
     return wfmanager
