@@ -13,17 +13,9 @@ force\_wfmanager\.central\_pane\.tests\.test\_analysis\_model module
     :show-inheritance:
 
 force\_wfmanager\.central\_pane\.tests\.test\_graph\_pane module
-------------------------------------------------------------------
+----------------------------------------------------------------
 
 .. automodule:: force_wfmanager.central_pane.tests.test_graph_pane
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-force\_wfmanager\.central\_pane\.tests\.test\_setup\_pane module
-------------------------------------------------------------------
-
-.. automodule:: force_wfmanager.central_pane.tests.test_setup_pane
     :members:
     :undoc-members:
     :show-inheritance:
