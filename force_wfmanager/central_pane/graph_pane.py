@@ -1,9 +1,8 @@
 from pyface.tasks.api import TraitsTaskPane
 
-from traits.api import Instance, Dict
+from traits.api import Instance
 
 from traitsui.api import View, VGroup, UItem
-from traitsui.editors import ShellEditor
 
 from .analysis_model import AnalysisModel
 from .plot import Plot
@@ -19,13 +18,8 @@ class GraphPane(TraitsTaskPane):
     #: The plot view
     plot = Instance(Plot)
 
-    # Namespace for the console
-    console_ns = Dict()
-
     view = View(VGroup(
             UItem('plot', style='custom'),
-            UItem("console_ns", label="Console", editor=ShellEditor()),
-            layout='tabbed'
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
@@ -36,14 +30,3 @@ class GraphPane(TraitsTaskPane):
         return Plot(
             analysis_model=self.analysis_model
         )
-
-    def _console_ns_default(self):
-        namespace = {
-            "task": self.task
-        }
-        try:
-            namespace["app"] = self.task.window.application
-        except AttributeError:
-            namespace["app"] = None
-
-        return namespace
