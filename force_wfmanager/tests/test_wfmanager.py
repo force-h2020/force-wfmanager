@@ -25,6 +25,7 @@ from force_bdss.api import (MCOStartEvent, MCOProgressEvent, Workflow,
 
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.tests.utils import wait_condition
+from force_wfmanager.tests import fixtures
 
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager.FileDialog'
@@ -105,13 +106,6 @@ def dummy_wfmanager(filename=None):
     wfmanager = WfManager(plugins=plugins, workflow_file=filename)
     wfmanager.run = wfmanager._create_windows
     wfmanager.factory_registry = ProbeFactoryRegistryPlugin()
-    setup_task = WfManagerSetupTask(analysis_m=wfmanager.analysis_m,
-                                    workflow_m=wfmanager.workflow_m)
-    setup_task.window = mock_window(wfmanager)
-    results_task = WfManagerResultsTask(analysis_m=wfmanager.analysis_m,
-                                        workflow_m=wfmanager.workflow_m)
-    results_task.window = mock_window(wfmanager)
-    wfmanager.tasks = [setup_task, results_task]
     return wfmanager
 
 
@@ -133,7 +127,22 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
         self.assertIsInstance(self.wfmanager.workflow_m, Workflow)
         self.assertEqual(len(self.wfmanager.ui_hooks_managers), 1)
 
-    # get back to init with file != None
+    def test_init_with_file(self):
+        with mock.patch(WORKFLOW_READER_PATH) as mock_reader:
+            mock_reader.side_effect = mock_file_reader
+            self.wfmanager = dummy_wfmanager(fixtures.get('evaluation-4.json'))
+            self.assertEqual(self.wfmanager.current_file.split('/')[-1],
+                             'evaluation-4.json')
+            self.assertEqual(mock_reader.call_count, 1)
+
+    def test_zmq_start(self):
+        self.wfmanager.zmq_server = mock.Mock(spec=ZMQServer)
+        self.wfmanager.application_initialized = True
+        self.assertTrue(self.wfmanager.zmq_server.start.called)
+
+    def test_task_attribute(self):
+        self.wfmanager.run()
+        self.assertEqual(len(self.wfmanager.tasks), 2)
 
     def test_remove_tasks_on_application_exiting(self):
         self.wfmanager.run()
@@ -274,6 +283,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
             )
 
     def test_open_workflow(self):
+        self.wfmanager.run()
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
@@ -380,6 +390,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
             self.wfmanager.open_plugins()
 
     def test_run_bdss(self):
+        self.wfmanager.run()
         self.wfmanager.analysis_m.value_names = ('x', )
         self.wfmanager.analysis_m.add_evaluation_step((2.0, ))
         mock_open = mock.mock_open()
@@ -446,6 +457,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
             )
 
     def test_run_bdss_cancel(self):
+        self.wfmanager.run()
         self.wfmanager.analysis_m.value_names = ('x', )
         self.wfmanager.analysis_m.add_evaluation_step((2.0, ))
         with mock.patch(CONFIRM_PATH) as mock_confirm:
@@ -462,6 +474,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
             )
 
     def test_run_bdss_failure(self):
+        self.wfmanager.run()
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
@@ -498,6 +511,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
                         "Execution of BDSS failed. \n\n"+msg))
 
     def test_run_bdss_write_failure(self):
+        self.wfmanager.run()
         with mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
                 mock.patch(ERROR_PATH) as mock_error:
             workflow_writer = mock.Mock(spec=WorkflowWriter)
