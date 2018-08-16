@@ -12,8 +12,6 @@ from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 
 from force_wfmanager.wfmanager import WfManager, TaskWindowClosePrompt
-from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
-from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_bdss.tests.probe_classes.factory_registry_plugin import (
     ProbeFactoryRegistryPlugin
