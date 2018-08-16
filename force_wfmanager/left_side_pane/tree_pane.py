@@ -43,7 +43,8 @@ class TreePane(TraitsDockPane):
     #: Used when the computation is running
     ui_enabled = Bool(True)
 
-    run_btn_enabled = Bool(True)
+    #: Enable or disable the run button .
+    run_enabled = Bool(True)
 
     traits_view = View(VGroup(
         UItem('workflow_tree',
@@ -51,7 +52,7 @@ class TreePane(TraitsDockPane):
               enabled_when="ui_enabled"
               ),
         UItem('run_button',
-              enabled_when="ui_enabled and run_btn_enabled"
+              enabled_when="run_enabled"
               )
     ))
 
@@ -60,12 +61,13 @@ class TreePane(TraitsDockPane):
             factory_registry=self.factory_registry,
             model=self.workflow_m
         )
-        self.run_btn_enabled = wf_tree.workflow_mv.valid
+        self.run_enabled = wf_tree.workflow_mv.valid
         return wf_tree
 
     @on_trait_change('workflow_tree.workflow_mv.valid')
     def update_run_btn_status(self):
-        self.run_btn_enabled = self.workflow_tree.workflow_mv.valid
+        self.run_enabled = (self.workflow_tree.workflow_mv.valid and
+                            self.ui_enabled)
 
     @on_trait_change('workflow_m', post_init=True)
     def update_workflow_tree(self, *args, **kwargs):

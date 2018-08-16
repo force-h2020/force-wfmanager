@@ -1,5 +1,5 @@
-import logging
 import click
+import logging
 
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
@@ -12,7 +12,6 @@ from traits.api import push_exception_handler
 from force_bdss.api import FactoryRegistryPlugin
 
 from force_wfmanager.wfmanager import WfManager
-from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.version import __version__
 
 push_exception_handler(lambda *args: None, reraise_exceptions=True)
@@ -38,8 +37,7 @@ def main(workflow_file=None, debug=False):
                             level=logging.DEBUG)
     log = logging.getLogger(__name__)
 
-    plugins = [CorePlugin(), TasksPlugin(), FactoryRegistryPlugin(),
-               WfManagerPlugin()]
+    plugins = [CorePlugin(), TasksPlugin(), FactoryRegistryPlugin()]
 
     mgr = extension.ExtensionManager(
         namespace='force.bdss.extensions',

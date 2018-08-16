@@ -3,8 +3,8 @@ from envisage.ui.tasks.api import TaskFactory
 
 from traits.api import List
 
-from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
+from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
 
 class WfManagerPlugin(Plugin):
@@ -17,6 +17,10 @@ class WfManagerPlugin(Plugin):
 
     tasks = List(contributes_to=TASKS)
 
+    def __init__(self, shared_items):
+        super(WfManagerPlugin, self).__init__()
+        self.shared_items = shared_items
+
     def _tasks_default(self):
         return [TaskFactory(id='force_wfmanager.wfmanager_setup_task',
                             name='Workflow Manager (Setup)',
@@ -27,9 +31,9 @@ class WfManagerPlugin(Plugin):
                 ]
 
     def _create_setup_task(self):
-        wf_manager_setup_task = WfManagerSetupTask()
+        wf_manager_setup_task = WfManagerSetupTask(**self.shared_items)
         return wf_manager_setup_task
 
     def _create_results_task(self):
-        wf_manager_results_task = WfManagerResultsTask()
+        wf_manager_results_task = WfManagerResultsTask(**self.shared_items)
         return wf_manager_results_task

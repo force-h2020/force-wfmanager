@@ -1,21 +1,25 @@
 import logging
+import os
+import subprocess
+import tempfile
 import textwrap
 
 from concurrent.futures import ThreadPoolExecutor
 
 from envisage.ui.tasks.api import TasksApplication, TaskWindow
 
-from traits.api import Instance, File, Unicode, Bool, List
-
-from pyface.api import (ConfirmationDialog, YES, NO, CANCEL, FileDialog, OK,
-                        error, GUI, information)
+from pyface.api import (CANCEL, confirm, ConfirmationDialog, error, FileDialog,
+                        GUI, information, NO, OK, YES)
 from pyface.tasks.api import TaskWindowLayout, Task
+
+from traits.api import Bool, File, Instance, List, Unicode
 
 from force_bdss.api import (
     MCOProgressEvent, MCOStartEvent, BaseUIHooksManager, Workflow,
     IFactoryRegistryPlugin, WorkflowReader, WorkflowWriter,
     InvalidFileException, BaseExtensionPlugin, FACTORY_REGISTRY_PLUGIN_ID)
 
+from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
@@ -37,7 +41,7 @@ class WfManager(TasksApplication):
     #: Registry of the available factories
     factory_registry = Instance(IFactoryRegistryPlugin)
 
-    #: The tasks associated with this TasksApplication
+    #: The tasks belonging to this application
     tasks = List(Instance(Task))
 
     #: Current workflow file on which the application is writing
@@ -55,21 +59,29 @@ class WfManager(TasksApplication):
     #: This will go to some global configuration option later.
     bdss_executable_path = Unicode("force_bdss")
 
-    #: Flag which says if the menus should be disabled or not
-    save_load_enabled = Bool(True)
-
     #: ZeroMQ Server to receive information from the running BDSS
     zmq_server = Instance(ZMQServer)
 
     #: Flag which says if the computation is running or not
     computation_running = Bool(False)
 
-    #: The
+    #: Flag indicating if the current workflow is ready to run
+    run_enabled = Bool(True)
 
     def __init__(self, plugins, workflow_file):
         super(WfManager, self).__init__(plugins=plugins)
         if workflow_file is not None:
             self.open_workflow_file(workflow_file)
+        # Things to be shared between both the tasks. In order to keep this
+        # link, the objects in the tasks should react to trait changes at
+        # the application level.
+        shared_items = {
+            'analysis_m': self.analysis_m,
+            'workflow_m': self.workflow_m,
+            'factory_registry': self.factory_registry,
+                        }
+        wfmanager_plugin = WfManagerPlugin(shared_items)
+        self.add_plugin(wfmanager_plugin)
 
     def _factory_registry_default(self):
         """The envisage plugin containing all of the mco, datasource and
@@ -77,11 +89,6 @@ class WfManager(TasksApplication):
         plugins"""
         factory_registry = self.get_plugin(FACTORY_REGISTRY_PLUGIN_ID)
         return factory_registry
-
-    def _get_tasks(self):
-        """All tasks associated to the window(s) of this TasksApplication"""
-        tasks = [task for window in self.windows for task in window.tasks]
-        return tasks
 
     def save_workflow(self):
         """ Saves the workflow into the currently used file. If there is no
@@ -205,6 +212,129 @@ class WfManager(TasksApplication):
             "About WorkflowManager"
         )
 
+    def run_bdss(self):
+        """ Run the BDSS computation """
+        if len(self.analysis_m.evaluation_steps) != 0:
+            result = confirm(
+                None,
+                "Are you sure you want to run the computation and "
+                "empty the result table?")
+            if result is not YES:
+                return
+
+        self.computation_running = True
+        try:
+            for hook_manager in self.ui_hooks_managers:
+                try:
+                    hook_manager.before_execution(self)
+                except Exception:
+                    log.exception(
+                        "Failed before_execution hook "
+                        "for hook manager {}".format(
+                            hook_manager.__class__.__name__)
+                    )
+
+            # Creates a temporary file containing the workflow
+            tmpfile_path = tempfile.mktemp()
+            with open(tmpfile_path, 'w') as output:
+                WorkflowWriter().write(self.workflow_m, output)
+
+            # Clear the analysis model before attempting to run
+            self.analysis_m.clear()
+
+            future = self.executor.submit(self._execute_bdss, tmpfile_path)
+            future.add_done_callback(self._execution_done_callback)
+        except Exception as e:
+            logging.exception("Unable to run BDSS.")
+            error(None,
+                  "Unable to run BDSS: {}".format(e),
+                  'Error when running BDSS'
+                  )
+            self.computation_running = False
+
+    def _execute_bdss(self, workflow_path):
+        """Secondary thread executor routine.
+        This executes the BDSS and wait for its completion.
+        """
+        try:
+            subprocess.check_call([self.bdss_executable_path,
+                                   workflow_path])
+        except OSError as e:
+            log.exception("Error while executing force_bdss executable. "
+                          " Is force_bdss in your path?")
+            self._clean_tmp_workflow(workflow_path, silent=True)
+            raise e
+        except subprocess.CalledProcessError as e:
+            # Ignore any error of execution.
+            log.exception("force_bdss returned a "
+                          "non-zero value after execution")
+            self._clean_tmp_workflow(workflow_path, silent=True)
+            raise e
+        except Exception as e:
+            log.exception("Unknown exception occurred "
+                          "while invoking force bdss executable.")
+            self._clean_tmp_workflow(workflow_path, silent=True)
+            raise e
+
+        self._clean_tmp_workflow(workflow_path)
+
+    def _clean_tmp_workflow(self, workflow_path, silent=False):
+        """Removes the temporary file for the workflow.
+
+        Parameters
+        ----------
+        workflow_path: str
+            The path of the workflow
+        silent: bool
+            If true, any exception encountered will be discarded (but logged).
+            If false, the exception will be re-raised
+        """
+        try:
+            os.remove(workflow_path)
+        except OSError as e:
+            # Ignore deletion errors, in case the file magically
+            # vanished in the meantime
+            log.exception("Unable to delete temporary "
+                          "workflow file at {}".format(workflow_path))
+            if not silent:
+                raise e
+
+    def _execution_done_callback(self, future):
+        """Secondary thread code.
+        Called when the execution is completed.
+        """
+        exc = future.exception()
+        GUI.invoke_later(self._bdss_done, exc)
+
+    def _bdss_done(self, exception):
+        """Called in the main thread when the execution is completed.
+
+        Parameters
+        ----------
+        exception: Exception or None
+            If the execution raised an exception of any sort.
+        """
+
+        for hook_manager in self.ui_hooks_managers:
+            try:
+                hook_manager.after_execution(self)
+            except Exception:
+                log.exception(
+                    "Failed after_execution hook "
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__)
+                )
+
+        self.computation_running = False
+
+        if exception is not None:
+            error(
+                None,
+                'Execution of BDSS failed. \n\n{}'.format(
+                    str(exception)),
+                'Error when running BDSS'
+            )
+
     def _workflow_m_default(self):
         return Workflow()
 
@@ -219,6 +349,12 @@ class WfManager(TasksApplication):
             on_event_callback=self._server_event_callback,
             on_error_callback=self._server_error_callback
         )
+
+    def _tasks_default(self):
+        tasks = []
+        for window in self.windows:
+            tasks.extend(window.tasks)
+        return tasks
 
     def _ui_hooks_managers_default(self):
         hooks_factories = self.factory_registry.ui_hooks_factories
@@ -269,7 +405,8 @@ class WfManager(TasksApplication):
             for kpi_name in event.kpi_names:
                 value_names.extend([kpi_name, kpi_name+" weight"])
             self.analysis_m.value_names = tuple(value_names)
-
+            print(self.analysis_m.value_names,
+                  self.analysis_m.evaluation_steps)
         elif isinstance(event, MCOProgressEvent):
             data = [dv.value for dv in event.optimal_point]
             for kpi, weight in zip(event.optimal_kpis, event.weights):
@@ -277,6 +414,8 @@ class WfManager(TasksApplication):
 
             data = tuple(map(float, data))
             self.analysis_m.add_evaluation_step(data)
+            print(self.analysis_m.value_names,
+                  self.analysis_m.evaluation_steps)
 
     def _show_error_dialog(self, message):
         """Shows an error dialog to the user with a given message"""

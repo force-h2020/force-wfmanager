@@ -8,12 +8,8 @@ from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 class TestWfManagerPlugin(unittest.TestCase):
     def setUp(self):
-        self.wfmanager_plugin = WfManagerPlugin()
+        self.wfmanager_plugin = WfManagerPlugin(shared_items={})
         self.wfmanager_plugin.application = mock.Mock(spec=Application)
-
-        self.wfmanager_plugin_file = WfManagerPlugin(workflow_file='test')
-        self.wfmanager_plugin_file.application = mock.Mock(spec=Application)
-        self.wfmanager_plugin_file.application.get_plugin = lambda pl_id: None
 
     def test_init(self):
         self.assertEqual(len(self.wfmanager_plugin.tasks), 2)

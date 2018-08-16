@@ -1,18 +1,16 @@
 import logging
-import os
-import subprocess
-import tempfile
 
 from envisage.ui.tasks.tasks_application import TasksApplication
 
-from pyface.api import error, YES, GUI, confirm
-from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction
+from pyface.api import ImageResource
+from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 
-from traits.api import Instance, on_trait_change
+from traits.api import Instance, on_trait_change, List, Bool
 
-from force_bdss.api import WorkflowWriter
+from force_bdss.api import IFactoryRegistryPlugin, Workflow
 
+from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.setup_pane import SetupPane
 from force_wfmanager.left_side_pane.tree_pane import TreePane
 from force_wfmanager.TaskToggleGroupAccelerator import (
@@ -25,27 +23,44 @@ class WfManagerSetupTask(Task):
     id = 'force_wfmanager.wfmanager_setup_task'
     name = 'Setup'
 
+    #: Workflow model.
+    workflow_m = Instance(Workflow, allow_none=False)
+
+    #: Analysis model. Contains the results that are displayed in the plot
+    #: and table
+    analysis_m = Instance(AnalysisModel, allow_none=False)
+
+    #: Registry of the available factories
+    factory_registry = Instance(IFactoryRegistryPlugin)
+
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(TreePane)
 
-    #: The application associated with this Task
+    #: The application associated with this Task. Effectively just a rename of
+    #: window.application
     app = Instance(TasksApplication)
 
     #: The menu bar for this task.
     menu_bar = Instance(SMenuBar)
 
-    # TODO: Add a nice looking toolbar
+    #: The tool bars for this task.
+    tool_bars = List(SToolBar)
+
+    #: Is the 'run' toolbar button active
+    run_enabled = Bool(True)
+
+    #: Are the saving and loading menu/toolbar buttons active
+    save_load_enabled = Bool(True)
 
     def _menu_bar_default(self):
-        """A menu bar with elements shared between the different tasks.
-        Elements unique to a specific task are added when the task is
-        instantiated. Functions associated to the shared methods are
-        located at the application level."""
+        """A menu bar with functions relevant to the Setup task.
+        Functions associated to the shared methods are located
+        at the application level."""
         menu_bar = SMenuBar(
             SMenu(
                 TaskAction(
                     name='Exit',
-                    method='app.exit',
+                    method='exit',
                     accelerator='Ctrl+Q',
                 ),
                 name='&Workflow Manager'
@@ -53,32 +68,32 @@ class WfManagerSetupTask(Task):
             SMenu(
                 TaskAction(
                     name='Open Workflow...',
-                    method='app.open_workflow',
-                    enabled_name='app.save_load_enabled',
+                    method='open_workflow',
+                    enabled_name='save_load_enabled',
                     accelerator='Ctrl+O',
                 ),
                 TaskAction(
                     name='Save Workflow',
-                    method='app.save_workflow',
-                    enabled_name='app.save_load_enabled',
+                    method='save_workflow',
+                    enabled_name='save_load_enabled',
                     accelerator='Ctrl+S',
                 ),
                 TaskAction(
                     name='Save Workflow as...',
-                    method='app.save_workflow_as',
-                    enabled_name='app.save_load_enabled',
+                    method='save_workflow_as',
+                    enabled_name='save_load_enabled',
                     accelerator='Shift+Ctrl+S',
                 ),
                 TaskAction(
                     name='Plugins...',
-                    method='app.open_plugins'
+                    method='open_plugins'
                 ),
                 name='&File'
             ),
             SMenu(
                 TaskAction(
                     name='About WorkflowManager...',
-                    method='app.open_about'
+                    method='open_about'
                 ),
                 name='&Help'
             ),
@@ -86,146 +101,74 @@ class WfManagerSetupTask(Task):
         )
         return menu_bar
 
+    def _tool_bars_default(self):
+        return [
+            SToolBar(
+                TaskAction(
+                    name="View Results",
+                    tooltip="View Results",
+                    image=ImageResource("baseline_bar_chart_black_48dp"),
+                    method="switch_task",
+                    image_size=(64, 64)
+                )
+            ),
+            SToolBar(
+                TaskAction(
+                    name="Open",
+                    tooltip="Open workflow",
+                    image=ImageResource("baseline_folder_open_black_48dp"),
+                    method="open_workflow",
+                    enabled_name="save_load_enabled",
+                    image_size=(64, 64)
+                ),
+                TaskAction(
+                    name="Save",
+                    tooltip="Save workflow",
+                    image=ImageResource("baseline_save_black_48dp"),
+                    method="save_workflow",
+                    enabled_name="save_load_enabled",
+                    image_size=(64, 64)
+                ),
+                TaskAction(
+                    name="Save As",
+                    tooltip="Save workflow with new filename",
+                    image=ImageResource("outline_save_black_48dp"),
+                    method="save_workflow_as",
+                    enabled_name="save_load_enabled",
+                    image_size=(64, 64)
+                ),
+                TaskAction(
+                    name="Plugins",
+                    tooltip="View state of loaded plugins",
+                    image=ImageResource("baseline_power_black_48dp"),
+                    method="open_plugins",
+                    image_size=(64, 64)
+                ),
+            ),
+            SToolBar(
+                TaskAction(
+                    name="Run",
+                    tooltip="Run Workflow",
+                    image=ImageResource("baseline_play_arrow_black_48dp"),
+                    method="run_bdss",
+                    enabled_name="run_enabled",
+                    image_size=(64, 64)
+                ),
+            )
+        ]
+
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        return SetupPane(self.app.analysis_m)
+        return SetupPane(self.analysis_m)
 
     def create_dock_panes(self):
         """ Creates the dock panes """
         return [self.side_pane]
 
-    @on_trait_change('app.computation_running')
-    def update_side_pane_status(self):
-        self.side_pane.ui_enabled = not self.app.computation_running
-        self.app.save_load_enabled = not self.app.computation_running
-
-    @on_trait_change('side_pane.run_button')
-    def run_bdss(self):
-        """ Run the BDSS computation """
-        if len(self.app.analysis_m.evaluation_steps) != 0:
-            result = confirm(
-                None,
-                "Are you sure you want to run the computation and "
-                "empty the result table?")
-            if result is not YES:
-                return
-
-        self.app.computation_running = True
-        try:
-            for hook_manager in self.app.ui_hooks_managers:
-                try:
-                    hook_manager.before_execution(self)
-                except Exception:
-                    log.exception(
-                        "Failed before_execution hook "
-                        "for hook manager {}".format(
-                            hook_manager.__class__.__name__)
-                    )
-
-            # Creates a temporary file containing the workflow
-            tmpfile_path = tempfile.mktemp()
-            with open(tmpfile_path, 'w') as output:
-                WorkflowWriter().write(self.app.workflow_m, output)
-
-            # Clear the analysis model before attempting to run
-            self.app.analysis_m.clear()
-
-            future = self.app.executor.submit(self._execute_bdss, tmpfile_path)
-            future.add_done_callback(self._execution_done_callback)
-        except Exception as e:
-            logging.exception("Unable to run BDSS.")
-            error(None,
-                  "Unable to run BDSS: {}".format(e),
-                  'Error when running BDSS'
-                  )
-            self.app.computation_running = False
-
-    def _execute_bdss(self, workflow_path):
-        """Secondary thread executor routine.
-        This executes the BDSS and wait for its completion.
-        """
-        try:
-            subprocess.check_call([self.app.bdss_executable_path,
-                                   workflow_path])
-        except OSError as e:
-            log.exception("Error while executing force_bdss executable. "
-                          " Is force_bdss in your path?")
-            self._clean_tmp_workflow(workflow_path, silent=True)
-            raise e
-        except subprocess.CalledProcessError as e:
-            # Ignore any error of execution.
-            log.exception("force_bdss returned a "
-                          "non-zero value after execution")
-            self._clean_tmp_workflow(workflow_path, silent=True)
-            raise e
-        except Exception as e:
-            log.exception("Unknown exception occurred "
-                          "while invoking force bdss executable.")
-            self._clean_tmp_workflow(workflow_path, silent=True)
-            raise e
-
-        self._clean_tmp_workflow(workflow_path)
-
-    def _clean_tmp_workflow(self, workflow_path, silent=False):
-        """Removes the temporary file for the workflow.
-
-        Parameters
-        ----------
-        workflow_path: str
-            The path of the workflow
-        silent: bool
-            If true, any exception encountered will be discarded (but logged).
-            If false, the exception will be re-raised
-        """
-        try:
-            os.remove(workflow_path)
-        except OSError as e:
-            # Ignore deletion errors, in case the file magically
-            # vanished in the meantime
-            log.exception("Unable to delete temporary "
-                          "workflow file at {}".format(workflow_path))
-            if not silent:
-                raise e
-
-    def _execution_done_callback(self, future):
-        """Secondary thread code.
-        Called when the execution is completed.
-        """
-        exc = future.exception()
-        GUI.invoke_later(self._bdss_done, exc)
-
-    def _bdss_done(self, exception):
-        """Called in the main thread when the execution is completed.
-
-        Parameters
-        ----------
-        exception: Exception or None
-            If the execution raised an exception of any sort.
-        """
-
-        for hook_manager in self.app.ui_hooks_managers:
-            try:
-                hook_manager.after_execution(self)
-            except Exception:
-                log.exception(
-                    "Failed after_execution hook "
-                    "for hook manager {}".format(
-                        hook_manager.__class__.__name__)
-                )
-
-        self.app.computation_running = False
-
-        if exception is not None:
-            error(
-                None,
-                'Execution of BDSS failed. \n\n{}'.format(
-                    str(exception)),
-                'Error when running BDSS'
-            )
-
     # Default initializers
+
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
         return TaskLayout(
@@ -234,14 +177,72 @@ class WfManagerSetupTask(Task):
 
     def _side_pane_default(self):
         return TreePane(
-            factory_registry=self.app.factory_registry,
-            workflow_m=self.app.workflow_m
+            factory_registry=self.factory_registry,
+            workflow_m=self.workflow_m
         )
 
     def _app_default(self):
         return self.window.application
 
-    # Handlers
+    # Sync Handlers
+
+    # Inbound handlers
     @on_trait_change('app.workflow_m')
+    def sync_workflow_m(self):
+        self.workflow_m = self.app.workflow_m
+
+    @on_trait_change('app.analysis_m')
+    def sync_analysis_m(self):
+        self.analysis_m = self.app.analysis_m
+
+    @on_trait_change('app.factory_registry')
+    def sync_factory_registry(self):
+        self.factory_registry = self.app.factory_registry
+
+    @on_trait_change('side_pane.run_enabled')
+    def set_toolbar_run_btn_state(self):
+        self.run_enabled = self.side_pane.run_enabled
+
+    @on_trait_change('app.computation_running')
+    def update_side_pane_status(self):
+        self.side_pane.ui_enabled = not self.app.computation_running
+        self.save_load_enabled = not self.app.computation_running
+
+    # Outbound Handlers
+
+    @on_trait_change('workflow_m')
     def update_side_pane(self):
-        self.side_pane.workflow_m = self.app.workflow_m
+        self.side_pane.workflow_m = self.workflow_m
+
+    @on_trait_change('run_enabled')
+    def update_wfmanager_run_enabled(self):
+        self.app.run_enabled = self.run_enabled
+
+    # Menu/Toolbar Methods
+
+    def switch_task(self):
+        results_task = self.window.get_task(
+            'force_wfmanager.wfmanager_results_task'
+        )
+        self.window.activate_task(results_task)
+
+    def exit(self):
+        self.app.exit()
+
+    def open_workflow(self):
+        self.app.open_workflow()
+
+    def save_workflow(self):
+        self.app.save_workflow()
+
+    def save_workflow_as(self):
+        self.app.save_workflow_as()
+
+    def open_plugins(self):
+        self.app.open_plugins()
+
+    def open_about(self):
+        self.app.open_about()
+
+    def run_bdss(self):
+        self.app.run_bdss()

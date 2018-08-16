@@ -1,5 +1,6 @@
 import unittest
 import unittest.mock as mock
+import subprocess
 
 from testfixtures import LogCapture
 
@@ -10,11 +11,9 @@ from pyface.api import (ConfirmationDialog, YES, NO, CANCEL, FileDialog, OK)
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 
-from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.wfmanager import WfManager, TaskWindowClosePrompt
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
-
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_bdss.tests.probe_classes.factory_registry_plugin import (
     ProbeFactoryRegistryPlugin
@@ -39,6 +38,12 @@ SUBPROCESS_PATH = 'force_wfmanager.wfmanager.subprocess'
 OS_REMOVE_PATH = 'force_wfmanager.wfmanager.os.remove'
 ZMQSERVER_SETUP_SOCKETS_PATH = \
     'force_wfmanager.wfmanager.ZMQServer._setup_sockets'
+
+
+def mock_confirm_function(result):
+    def mock_conf(*args, **kwargs):
+        return result
+    return mock_conf
 
 
 def mock_dialog(dialog_class, result, path=''):
@@ -83,19 +88,28 @@ def mock_show_error(*args, **kwargs):
     return args
 
 
+def mock_subprocess(*args, **kwargs):
+    def check_call(*args, **kwargs):
+        return
+    mock_subprocess_module = mock.Mock(spec=subprocess)
+    mock_subprocess_module.check_call = check_call
+    return mock_subprocess_module
+
+
 def mock_info_dialog(*args, **kwargs):
     return args
 
 
-def dummy_wfmanager():
-
-    plugins = [CorePlugin(), TasksPlugin(), WfManagerPlugin()]
-    wfmanager = WfManager(plugins=plugins, workflow_file=None)
+def dummy_wfmanager(filename=None):
+    plugins = [CorePlugin(), TasksPlugin()]
+    wfmanager = WfManager(plugins=plugins, workflow_file=filename)
     wfmanager.run = wfmanager._create_windows
     wfmanager.factory_registry = ProbeFactoryRegistryPlugin()
-    setup_task = WfManagerSetupTask()
+    setup_task = WfManagerSetupTask(analysis_m=wfmanager.analysis_m,
+                                    workflow_m=wfmanager.workflow_m)
     setup_task.window = mock_window(wfmanager)
-    results_task = WfManagerResultsTask()
+    results_task = WfManagerResultsTask(analysis_m=wfmanager.analysis_m,
+                                        workflow_m=wfmanager.workflow_m)
     results_task.window = mock_window(wfmanager)
     wfmanager.tasks = [setup_task, results_task]
     return wfmanager
@@ -118,6 +132,8 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
         self.assertIsInstance(self.wfmanager.analysis_m, AnalysisModel)
         self.assertIsInstance(self.wfmanager.workflow_m, Workflow)
         self.assertEqual(len(self.wfmanager.ui_hooks_managers), 1)
+
+    # get back to init with file != None
 
     def test_remove_tasks_on_application_exiting(self):
         self.wfmanager.run()
@@ -282,8 +298,8 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
                 old_workflow,
                 self.wfmanager.workflow_m)
             self.assertNotEqual(
-                old_workflow,
-                self.wfmanager.tasks[0].side_pane.workflow_tree.model)
+               old_workflow,
+               self.wfmanager.tasks[0].side_pane.workflow_tree.model)
 
     def test_read_failure(self):
         mock_open = mock.mock_open()
@@ -362,6 +378,142 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
 
         with self.event_loop():
             self.wfmanager.open_plugins()
+
+    def test_run_bdss(self):
+        self.wfmanager.analysis_m.value_names = ('x', )
+        self.wfmanager.analysis_m.add_evaluation_step((2.0, ))
+        mock_open = mock.mock_open()
+        with mock.patch(CONFIRM_PATH) as mock_confirm, \
+                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
+                mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
+            mock_confirm.side_effect = mock_confirm_function(YES)
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
+            mock_writer.side_effect = mock_file_writer
+            mock_subprocess.side_effect = mock_subprocess
+
+            hook_manager = self.wfmanager.ui_hooks_managers[0]
+
+            self.assertTrue(self.wfmanager.tasks[0].side_pane.ui_enabled)
+            self.assertFalse(hook_manager.before_execution_called)
+            self.assertFalse(hook_manager.after_execution_called)
+
+            with self.event_loop_until_condition(
+                    lambda: _mock_subprocess.check_call.called):
+                self.wfmanager.run_bdss()
+
+            with self.event_loop_until_condition(
+                    lambda: self.wfmanager.tasks[0].side_pane.ui_enabled):
+                pass
+
+            self.assertTrue(hook_manager.before_execution_called)
+            self.assertTrue(hook_manager.after_execution_called)
+
+    def test_hook_manager_raises(self):
+        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
+                mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
+            mock_writer.side_effect = mock_file_writer
+            mock_subprocess.side_effect = mock_subprocess
+
+            hook_manager = self.wfmanager.ui_hooks_managers[0]
+            hook_manager.before_execution_raises = True
+            with LogCapture() as capture, \
+                    self.event_loop_until_condition(
+                        lambda: _mock_subprocess.check_call.called):
+                self.wfmanager.run_bdss()
+
+            capture.check(
+                ('force_wfmanager.wfmanager',
+                 'ERROR',
+                 'Failed before_execution hook for hook manager '
+                 'ProbeUIHooksManager')
+            )
+            hook_manager.before_execution_raises = False
+            hook_manager.after_execution_raises = True
+            with LogCapture() as capture, \
+                    self.event_loop_until_condition(
+                        lambda: _mock_subprocess.check_call.called):
+                self.wfmanager.run_bdss()
+
+            capture.check(
+                ('force_wfmanager.wfmanager',
+                 'ERROR',
+                 'Failed after_execution hook for hook manager '
+                 'ProbeUIHooksManager')
+            )
+
+    def test_run_bdss_cancel(self):
+        self.wfmanager.analysis_m.value_names = ('x', )
+        self.wfmanager.analysis_m.add_evaluation_step((2.0, ))
+        with mock.patch(CONFIRM_PATH) as mock_confirm:
+            mock_confirm.side_effect = mock_confirm_function(CANCEL)
+
+            self.assertTrue(self.wfmanager.tasks[0].side_pane.ui_enabled)
+            self.wfmanager.run_bdss()
+            self.assertTrue(self.wfmanager.tasks[0].side_pane.ui_enabled)
+
+            mock_confirm.assert_called_with(
+                None,
+                "Are you sure you want to run the computation and "
+                "empty the result table?"
+            )
+
+    def test_run_bdss_failure(self):
+        mock_open = mock.mock_open()
+        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
+                mock.patch(SUBPROCESS_PATH+".check_call") as mock_check_call, \
+                mock.patch(ERROR_PATH) as mock_error:
+            mock_dialog.side_effect = mock_dialog(FileDialog, OK)
+            mock_writer.side_effect = mock_file_writer
+            mock_error.side_effect = mock_show_error
+
+            def _check_exception_behavior(exception):
+                mock_check_call.side_effect = exception
+
+                self.assertTrue(self.wfmanager.tasks[0].side_pane.ui_enabled)
+
+                with self.event_loop_until_condition(
+                        lambda: mock_check_call.called):
+                    self.wfmanager.run_bdss()
+
+                ui_enabled = self.wfmanager.tasks[0].side_pane.ui_enabled
+                with self.event_loop_until_condition(lambda: ui_enabled):
+                    pass
+
+                return mock_error.call_args[0][1]
+
+            for exc, msg in [
+                    (Exception("boom"), 'boom'),
+                    (subprocess.CalledProcessError(1, "fake_command"),
+                        "Command 'fake_command' returned non-zero exit "
+                        "status 1"),
+                    (OSError("whatever"), "whatever")]:
+                self.assertTrue(
+                    _check_exception_behavior(exc).startswith(
+                        "Execution of BDSS failed. \n\n"+msg))
+
+    def test_run_bdss_write_failure(self):
+        with mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
+                mock.patch(ERROR_PATH) as mock_error:
+            workflow_writer = mock.Mock(spec=WorkflowWriter)
+            workflow_writer.write.side_effect = Exception("write failed")
+            mock_writer.return_value = workflow_writer
+            mock_error.side_effect = mock_show_error
+
+            self.assertTrue(self.wfmanager.tasks[0].side_pane.ui_enabled)
+
+            self.wfmanager.run_bdss()
+
+            self.assertTrue(self.wfmanager.tasks[0].side_pane.ui_enabled)
+
+            self.assertEqual(
+                mock_error.call_args[0][1],
+                'Unable to run BDSS: write failed')
 
 
 class TestTaskWindowClosePrompt(unittest.TestCase):
