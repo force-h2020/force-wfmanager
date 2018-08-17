@@ -332,7 +332,7 @@ class WorkflowTree(ModelView):
     def new_parameter(self, ui_info, object):
         parameter_factories = []
         if self.model.mco is not None:
-            parameter_factories = self.model.mco.factory.parameter_factories()
+            parameter_factories = self.model.mco.factory.parameter_factories
 
         modal = NewEntityModal(factories=parameter_factories)
         modal.edit_traits()

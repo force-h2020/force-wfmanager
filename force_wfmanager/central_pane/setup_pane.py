@@ -6,47 +6,26 @@ from traitsui.api import View, VGroup, UItem
 from traitsui.editors import ShellEditor
 
 from .analysis_model import AnalysisModel
-from .plot import Plot
-from .result_table import ResultTable
 
 
-class CentralPane(TraitsTaskPane):
-    id = 'force_wfmanager.central_pane'
-    name = 'Central Pane'
+class SetupPane(TraitsTaskPane):
+    id = 'force_wfmanager.setup_pane'
+    name = 'Setup Pane'
 
     #: The model for the analysis part
     analysis_model = Instance(AnalysisModel)
-
-    #: The table in which we display the computation results received from the
-    #: bdss
-    result_table = Instance(ResultTable)
-
-    #: The plot view
-    plot = Instance(Plot)
 
     # Namespace for the console
     console_ns = Dict()
 
     view = View(VGroup(
-            UItem('result_table', style='custom'),
-            UItem('plot', style='custom'),
             UItem("console_ns", label="Console", editor=ShellEditor()),
-            layout='tabbed'
-    ))
+    ),
+    )
 
     def __init__(self, analysis_model, *args, **kwargs):
-        super(CentralPane, self).__init__(*args, **kwargs)
+        super(SetupPane, self).__init__(*args, **kwargs)
         self.analysis_model = analysis_model
-
-    def _result_table_default(self):
-        return ResultTable(
-            analysis_model=self.analysis_model
-        )
-
-    def _plot_default(self):
-        return Plot(
-            analysis_model=self.analysis_model
-        )
 
     def _console_ns_default(self):
         namespace = {
