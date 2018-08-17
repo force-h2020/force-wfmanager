@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 
 class WfManagerSetupTask(Task):
     id = 'force_wfmanager.wfmanager_setup_task'
-    name = 'Setup'
+    name = 'Workflow Setup'
 
     #: Workflow model.
     workflow_m = Instance(Workflow, allow_none=False)
@@ -51,6 +51,14 @@ class WfManagerSetupTask(Task):
 
     #: Are the saving and loading menu/toolbar buttons active
     save_load_enabled = Bool(True)
+
+    task_group = Instance(TaskToggleGroupAccelerator)
+
+    def __init__(self, analysis_m, workflow_m, factory_registry):
+        super(WfManagerSetupTask, self).__init__()
+        self.analysis_m = analysis_m
+        self.workflow_m = workflow_m
+        self.factory_registry = factory_registry
 
     def _menu_bar_default(self):
         """A menu bar with functions relevant to the Setup task.
@@ -221,9 +229,12 @@ class WfManagerSetupTask(Task):
     # Menu/Toolbar Methods
 
     def switch_task(self):
+        """Switches to the results task and verifies startup setting are
+        correct for toolbars/menus etc."""
         results_task = self.window.get_task(
             'force_wfmanager.wfmanager_results_task'
         )
+        results_task.run_enabled = self.run_enabled
         self.window.activate_task(results_task)
 
     def exit(self):

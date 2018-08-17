@@ -72,15 +72,15 @@ class WfManager(TasksApplication):
         super(WfManager, self).__init__(plugins=plugins)
         if workflow_file is not None:
             self.open_workflow_file(workflow_file)
+
         # Things to be shared between both the tasks. In order to keep this
         # link, the objects in the tasks should react to trait changes at
         # the application level.
-        shared_items = {
-            'analysis_m': self.analysis_m,
-            'workflow_m': self.workflow_m,
-            'factory_registry': self.factory_registry,
-                        }
-        wfmanager_plugin = WfManagerPlugin(shared_items)
+
+        wfmanager_plugin = WfManagerPlugin(
+            analysis_m=self.analysis_m, workflow_m=self.workflow_m,
+            factory_registry=self.factory_registry
+        )
         self.add_plugin(wfmanager_plugin)
 
     def _factory_registry_default(self):
@@ -198,6 +198,7 @@ class WfManager(TasksApplication):
             self.current_file = f_name
 
     def open_about(self):
+        print(self.run_enabled)
         information(
             None,
             textwrap.dedent(
@@ -405,8 +406,6 @@ class WfManager(TasksApplication):
             for kpi_name in event.kpi_names:
                 value_names.extend([kpi_name, kpi_name+" weight"])
             self.analysis_m.value_names = tuple(value_names)
-            print(self.analysis_m.value_names,
-                  self.analysis_m.evaluation_steps)
         elif isinstance(event, MCOProgressEvent):
             data = [dv.value for dv in event.optimal_point]
             for kpi, weight in zip(event.optimal_kpis, event.weights):
@@ -414,8 +413,6 @@ class WfManager(TasksApplication):
 
             data = tuple(map(float, data))
             self.analysis_m.add_evaluation_step(data)
-            print(self.analysis_m.value_names,
-                  self.analysis_m.evaluation_steps)
 
     def _show_error_dialog(self, message):
         """Shows an error dialog to the user with a given message"""

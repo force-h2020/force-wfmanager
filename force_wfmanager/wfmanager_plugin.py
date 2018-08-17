@@ -17,9 +17,11 @@ class WfManagerPlugin(Plugin):
 
     tasks = List(contributes_to=TASKS)
 
-    def __init__(self, shared_items):
+    def __init__(self, analysis_m, workflow_m, factory_registry):
         super(WfManagerPlugin, self).__init__()
-        self.shared_items = shared_items
+        self.analysis_m = analysis_m
+        self.workflow_m = workflow_m
+        self.factory_registry = factory_registry
 
     def _tasks_default(self):
         return [TaskFactory(id='force_wfmanager.wfmanager_setup_task',
@@ -31,9 +33,15 @@ class WfManagerPlugin(Plugin):
                 ]
 
     def _create_setup_task(self):
-        wf_manager_setup_task = WfManagerSetupTask(**self.shared_items)
+        wf_manager_setup_task = WfManagerSetupTask(
+            analysis_m=self.analysis_m, workflow_m=self.workflow_m,
+            factory_registry=self.factory_registry
+        )
         return wf_manager_setup_task
 
     def _create_results_task(self):
-        wf_manager_results_task = WfManagerResultsTask(**self.shared_items)
+        wf_manager_results_task = WfManagerResultsTask(
+            analysis_m=self.analysis_m, workflow_m=self.workflow_m,
+            factory_registry=self.factory_registry
+        )
         return wf_manager_results_task

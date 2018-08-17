@@ -8,7 +8,9 @@ from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 class TestWfManagerPlugin(unittest.TestCase):
     def setUp(self):
-        self.wfmanager_plugin = WfManagerPlugin(shared_items={})
+        self.wfmanager_plugin = WfManagerPlugin(analysis_m=None,
+                                                workflow_m=None,
+                                                factory_registry=None)
         self.wfmanager_plugin.application = mock.Mock(spec=Application)
 
     def test_init(self):
