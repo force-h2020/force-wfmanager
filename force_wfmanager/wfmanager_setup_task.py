@@ -1,9 +1,17 @@
 import logging
+import textwrap
 
 from envisage.ui.tasks.tasks_application import TasksApplication
+from force_bdss.io.workflow_reader import InvalidFileException, WorkflowReader
+from force_bdss.io.workflow_writer import WorkflowWriter
+from force_bdss.ui_hooks.base_ui_hooks_manager import BaseUIHooksManager
 
 from pyface.api import ImageResource
+from pyface.constant import OK
+from pyface.file_dialog import FileDialog
+from pyface.message_dialog import error, information
 from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
+from pyface.tasks.action.schema_addition import SchemaAddition
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 
 from traits.api import Instance, on_trait_change, List, Bool
@@ -16,6 +24,8 @@ from force_wfmanager.left_side_pane.tree_pane import TreePane
 from force_wfmanager.TaskToggleGroupAccelerator import (
     TaskToggleGroupAccelerator
 )
+from traits.trait_types import File
+
 log = logging.getLogger(__name__)
 
 
@@ -26,19 +36,14 @@ class WfManagerSetupTask(Task):
     #: Workflow model.
     workflow_m = Instance(Workflow, allow_none=False)
 
-    #: Analysis model. Contains the results that are displayed in the plot
-    #: and table
-    analysis_m = Instance(AnalysisModel, allow_none=False)
-
     #: Registry of the available factories
     factory_registry = Instance(IFactoryRegistryPlugin)
 
+    #: Current workflow file on which the application is writing
+    current_file = File()
+
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(TreePane)
-
-    #: The application associated with this Task. Effectively just a rename of
-    #: window.application
-    app = Instance(TasksApplication)
 
     #: The menu bar for this task.
     menu_bar = Instance(SMenuBar)
@@ -52,13 +57,16 @@ class WfManagerSetupTask(Task):
     #: Are the saving and loading menu/toolbar buttons active
     save_load_enabled = Bool(True)
 
+    #: A list of UI hooks managers. These hold plugin injected "hook managers",
+    #: classes with methods that are called when some operation is performed
+    #: by the UI
+    ui_hooks_managers = List(BaseUIHooksManager)
+
     task_group = Instance(TaskToggleGroupAccelerator)
 
-    def __init__(self, analysis_m, workflow_m, factory_registry):
-        super(WfManagerSetupTask, self).__init__()
-        self.analysis_m = analysis_m
-        self.workflow_m = workflow_m
+    def __init__(self, factory_registry, *args, **kwargs):
         self.factory_registry = factory_registry
+        super(WfManagerSetupTask, self).__init__(*args, **kwargs)
 
     def _menu_bar_default(self):
         """A menu bar with functions relevant to the Setup task.
@@ -71,7 +79,8 @@ class WfManagerSetupTask(Task):
                     method='exit',
                     accelerator='Ctrl+Q',
                 ),
-                name='&Workflow Manager'
+                name='&Workflow Manager',
+
             ),
             SMenu(
                 TaskAction(
@@ -81,6 +90,7 @@ class WfManagerSetupTask(Task):
                     accelerator='Ctrl+O',
                 ),
                 TaskAction(
+                    id='Save',
                     name='Save Workflow',
                     method='save_workflow',
                     enabled_name='save_load_enabled',
@@ -96,7 +106,8 @@ class WfManagerSetupTask(Task):
                     name='Plugins...',
                     method='open_plugins'
                 ),
-                name='&File'
+                name='&File',
+                id='File'
             ),
             SMenu(
                 TaskAction(
@@ -105,7 +116,7 @@ class WfManagerSetupTask(Task):
                 ),
                 name='&Help'
             ),
-            SMenu(TaskToggleGroupAccelerator(), id='View', name='&View')
+            SMenu(TaskToggleGroupAccelerator(), id='View', name='&View'),
         )
         return menu_bar
 
@@ -169,7 +180,7 @@ class WfManagerSetupTask(Task):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        return SetupPane(self.analysis_m)
+        return SetupPane()
 
     def create_dock_panes(self):
         """ Creates the dock panes """
@@ -189,42 +200,169 @@ class WfManagerSetupTask(Task):
             workflow_m=self.workflow_m
         )
 
-    def _app_default(self):
-        return self.window.application
+    def _workflow_m_default(self):
+        return Workflow()
+
+    def _ui_hooks_managers_default(self):
+        hooks_factories = self.factory_registry.ui_hooks_factories
+        managers = []
+        for factory in hooks_factories:
+            try:
+                managers.append(
+                    factory.create_ui_hooks_manager()
+                )
+            except Exception:
+                log.exception(
+                    "Failed to create UI "
+                    "hook manager by factory {}".format(
+                        factory.__class__.__name__)
+                )
+        return managers
+
+    # Workflow Methods
+
+    def open_workflow_file(self, f_name):
+        """ Opens a workflow from the specified file name"""
+        reader = WorkflowReader(self.factory_registry)
+        try:
+            with open(f_name, 'r') as fobj:
+                self.workflow_m = reader.read(fobj)
+        except InvalidFileException as e:
+            error(
+                None,
+                'Cannot read the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when reading file'
+            )
+        else:
+            self.current_file = f_name
+
+    def save_workflow(self):
+        """ Saves the workflow into the currently used file. If there is no
+        current file, it shows a dialog """
+        if len(self.current_file) == 0:
+            return self.save_workflow_as()
+
+        if not self._write_workflow(self.current_file):
+            self.current_file = ''
+            return False
+        return True
+
+    def save_workflow_as(self):
+        """ Shows a dialog to save the workflow into a JSON file """
+        dialog = FileDialog(
+            action="save as",
+            default_filename="workflow.json",
+            wildcard='JSON files (*.json)|*.json|'
+        )
+
+        result = dialog.open()
+
+        if result is not OK:
+            return
+
+        current_file = dialog.path
+
+        if self._write_workflow(current_file):
+            self.current_file = current_file
+            return True
+        return False
+
+    def _write_workflow(self, file_path):
+        """ Creates a JSON file in the file_path and write the workflow
+        description in it
+
+        Parameters
+        ----------
+        file_path: str
+            The file_path pointing to the file in which you want to write the
+            workflow
+
+        Returns
+        -------
+        Boolean:
+            True if it was a success to write in the file, False otherwise
+        """
+        for hook_manager in self.ui_hooks_managers:
+            try:
+                hook_manager.before_save(self)
+            except Exception:
+                log.exception(
+                    "Failed before_save hook "
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__)
+                )
+
+        try:
+            with open(file_path, 'w') as output:
+                WorkflowWriter().write(self.workflow_m, output)
+        except IOError as e:
+            error(
+                None,
+                'Cannot save in the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when saving workflow'
+            )
+            log.exception('Error when saving workflow')
+            return False
+        except Exception as e:
+            error(
+                None,
+                'Cannot save the workflow:\n\n{}'.format(
+                    str(e)),
+                'Error when saving workflow'
+            )
+            log.exception('Error when saving workflow')
+            return False
+        else:
+            return True
+
+    def open_workflow(self):
+        """ Shows a dialog to open a workflow file """
+        dialog = FileDialog(
+            action="open",
+            wildcard='JSON files (*.json)|*.json|'
+        )
+        result = dialog.open()
+        f_name = dialog.path
+        if result is OK:
+            self.open_workflow_file(f_name)
+
+    def open_about(self):
+        information(
+            None,
+            textwrap.dedent(
+                """
+                Workflow Manager: a UI application for Business Decision System.
+
+                Developed as part of the FORCE project (Horizon 2020/NMBP-23-2016/721027).
+
+                This software is released under the BSD license.
+                """,  # noqa
+            ),
+            "About WorkflowManager"
+        )
 
     # Sync Handlers
 
     # Inbound handlers
-    @on_trait_change('app.workflow_m')
-    def sync_workflow_m(self):
-        self.workflow_m = self.app.workflow_m
-
-    @on_trait_change('app.analysis_m')
-    def sync_analysis_m(self):
-        self.analysis_m = self.app.analysis_m
-
-    @on_trait_change('app.factory_registry')
-    def sync_factory_registry(self):
-        self.factory_registry = self.app.factory_registry
 
     @on_trait_change('side_pane.run_enabled')
     def set_toolbar_run_btn_state(self):
         self.run_enabled = self.side_pane.run_enabled
 
-    @on_trait_change('app.computation_running')
+    @on_trait_change('window.application.computation_running')
     def update_side_pane_status(self):
-        self.side_pane.ui_enabled = not self.app.computation_running
-        self.save_load_enabled = not self.app.computation_running
+        if self.window is not None:
+            self.side_pane.ui_enabled = not self.window.application.computation_running
+            self.save_load_enabled = not self.window.application.computation_running
 
     # Outbound Handlers
 
-    @on_trait_change('workflow_m')
-    def update_side_pane(self):
-        self.side_pane.workflow_m = self.workflow_m
-
     @on_trait_change('run_enabled')
     def update_wfmanager_run_enabled(self):
-        self.app.run_enabled = self.run_enabled
+        if self.window is not None:
+            self.window.application.run_enabled = self.run_enabled
 
     # Menu/Toolbar Methods
 
@@ -238,22 +376,12 @@ class WfManagerSetupTask(Task):
         self.window.activate_task(results_task)
 
     def exit(self):
-        self.app.exit()
-
-    def open_workflow(self):
-        self.app.open_workflow()
-
-    def save_workflow(self):
-        self.app.save_workflow()
-
-    def save_workflow_as(self):
-        self.app.save_workflow_as()
+        self.window.application.exit()
 
     def open_plugins(self):
-        self.app.open_plugins()
-
-    def open_about(self):
-        self.app.open_about()
+        self.window.application.open_plugins()
 
     def run_bdss(self):
-        self.app.run_bdss()
+        task = self.window.get_task('force_wfmanager.wfmanager_results_task')
+        task.initialized()
+        task.run_bdss()

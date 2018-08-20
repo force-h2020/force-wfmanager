@@ -23,9 +23,8 @@ class SetupPane(TraitsTaskPane):
     ),
     )
 
-    def __init__(self, analysis_model, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(SetupPane, self).__init__(*args, **kwargs)
-        self.analysis_model = analysis_model
 
     def _console_ns_default(self):
         namespace = {
