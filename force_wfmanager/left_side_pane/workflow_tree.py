@@ -1,4 +1,5 @@
 from traits.api import Instance, on_trait_change, Unicode, Event, Property
+from functools import partial
 
 from traitsui.api import (
     TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView, UReadonly,
@@ -30,9 +31,11 @@ from force_wfmanager.left_side_pane.view_utils import model_info
 no_view = View()
 no_menu = Menu()
 
-# Actions!
 
 call_modelview_editable = 'handler.modelview_editable(object)'
+
+
+# Actions!
 
 # For reference, in the enabled_when expression namespace, handler is
 # the WorkflowTree instance, object is the modelview for a particular node -
@@ -110,6 +113,8 @@ class ModelEditDialog(ModelView):
         )
 
 
+
+
 class WorkflowTree(ModelView):
     """ Part of the GUI containing the tree editor displaying the Workflow """
 
@@ -120,15 +125,18 @@ class WorkflowTree(ModelView):
                 node_for=[WorkflowModelView],
                 auto_open=True,
                 children='',
+                name='Workflow',
                 label='=Workflow',
                 view=no_view,
                 menu=no_menu,
+
             ),
             # Folder node "Notification" containing the Notification listeners
             TreeNode(
                 node_for=[WorkflowModelView],
                 auto_open=True,
                 children='notification_listeners_mv',
+                name='Notification Listeners',
                 label='=Notification Listeners',
                 view=no_view,
                 menu=Menu(new_notification_listener_action),
@@ -139,6 +147,7 @@ class WorkflowTree(ModelView):
                 auto_open=True,
                 children='',
                 label='label',
+                name='Notification Listeners',
                 view=no_view,
                 menu=Menu(edit_notification_listener_action,
                           delete_notification_listener_action),
@@ -149,6 +158,7 @@ class WorkflowTree(ModelView):
                 auto_open=True,
                 children='mco_mv',
                 label='=MCO',
+                name='MCO',
                 view=no_view,
                 menu=Menu(new_mco_action),
             ),
@@ -158,6 +168,7 @@ class WorkflowTree(ModelView):
                 auto_open=True,
                 children='',
                 label='label',
+                name='MCO',
                 view=no_view,
                 menu=Menu(edit_mco_action, delete_mco_action),
             ),
@@ -167,6 +178,7 @@ class WorkflowTree(ModelView):
                 auto_open=True,
                 children='mco_parameters_mv',
                 label='=Parameters',
+                name='Parameters',
                 view=no_view,
                 menu=Menu(new_parameter_action),
             ),
@@ -175,6 +187,7 @@ class WorkflowTree(ModelView):
                 node_for=[MCOParameterModelView],
                 auto_open=True,
                 children='',
+                name='Parameters',
                 label='label',
                 menu=Menu(edit_parameter_action, delete_parameter_action),
             ),
@@ -183,6 +196,7 @@ class WorkflowTree(ModelView):
                 auto_open=True,
                 children='kpis_mv',
                 label='=KPIs',
+                name='KPIs',
                 view=no_view,
                 menu=Menu(new_kpi_action),
             ),
@@ -191,6 +205,7 @@ class WorkflowTree(ModelView):
                 auto_open=True,
                 children='',
                 label='label',
+                name='KPIs',
                 menu=Menu(delete_kpi_action),
             ),
             #: Node representing the layers
@@ -199,6 +214,7 @@ class WorkflowTree(ModelView):
                 auto_open=True,
                 children='execution_layers_mv',
                 label='=Execution Layers',
+                name='Execution Layers',
                 view=no_view,
                 menu=Menu(new_layer_action),
             ),
@@ -207,6 +223,7 @@ class WorkflowTree(ModelView):
                 auto_open=True,
                 children='data_sources_mv',
                 label='label',
+                name='DataSources',
                 view=no_view,
                 menu=Menu(new_data_source_action, delete_layer_action),
             ),
@@ -215,6 +232,7 @@ class WorkflowTree(ModelView):
                 auto_open=True,
                 children='',
                 label='label',
+                name='DataSources',
                 menu=Menu(edit_data_source_action, delete_data_source_action),
             ),
         ],
@@ -233,6 +251,9 @@ class WorkflowTree(ModelView):
 
     #: The currently selected modelview
     selected_mv = Instance(ModelView)
+
+    #: The output type of the currently selected factory group
+    selected_factory_group = Unicode()
 
     #: The error message relating to selected_mv
     selected_error = Property(Unicode(),
@@ -269,6 +290,14 @@ class WorkflowTree(ModelView):
         super(WorkflowTree, self).__init__(*args, **kwargs)
         self.model = model
         self._factory_registry = factory_registry
+        for node in self.tree_editor.nodes:
+            if node.children != '' or node.node_for == [WorkflowModelView]:
+                node.on_select = partial(self.set_factory_group, node.name)
+            else:
+                node.on_select = partial(self.set_factory_group, 'None')
+
+    def set_factory_group(self, name, mv):
+        self.selected_factory_group = name
 
     def _workflow_mv_default(self):
         return WorkflowModelView(model=self.model)
