@@ -94,6 +94,29 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
         self.wfmanager.application_exiting = True
         self.assertEqual(len(self.wfmanager.windows[0].tasks), 0)
 
+    def test_switch_task(self):
+        self.create_tasks()
+        self.assertEqual(self.wfmanager.windows[0].active_task,
+                         self.setup_task)
+        self.wfmanager.windows[0].active_task.switch_task()
+        self.assertEqual(self.wfmanager.windows[0].active_task,
+                         self.results_task)
+        self.wfmanager.windows[0].active_task.switch_task()
+        self.assertEqual(self.wfmanager.windows[0].active_task,
+                         self.setup_task)
+
+    def test_result_task_exit(self):
+        self.create_tasks()
+        self.wfmanager.exit = mock.Mock(return_value=None)
+        self.results_task.exit()
+        self.assertTrue(self.wfmanager.exit.called)
+
+    def test_setup_task_exit(self):
+        self.create_tasks()
+        self.wfmanager.exit = mock.Mock(return_value=None)
+        self.setup_task.exit()
+        self.assertTrue(self.wfmanager.exit.called)
+
 
 class TestTaskWindowClosePrompt(unittest.TestCase):
 

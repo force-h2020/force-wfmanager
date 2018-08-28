@@ -160,6 +160,10 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                               ResultsPane)
         self.assertIsInstance(self.results_task.create_central_pane(),
                               GraphPane)
+        self.assertIsInstance(self.results_task.workflow_m, Workflow)
+        self.assertIsInstance(self.setup_task.workflow_m, Workflow)
+        self.assertIsInstance(self.results_task.analysis_m, AnalysisModel)
+        self.assertIsInstance(self.setup_task.analysis_m, AnalysisModel)
 
     def test_zmq_start(self):
         self.setup_task.zmq_server = mock.Mock(spec=ZMQServer)
