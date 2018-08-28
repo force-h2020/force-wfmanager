@@ -1,12 +1,9 @@
 from envisage.api import Plugin
 from envisage.ui.tasks.api import TaskFactory
 from envisage.ui.tasks.task_extension import TaskExtension
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
-from force_bdss.api import Workflow
 from pyface.action.action import Action
 from pyface.action.action_item import ActionItem
 from pyface.tasks.action.schema_addition import SchemaAddition
-from pyface.tasks.action.task_action import TaskAction
 from traits.api import List
 
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
@@ -29,7 +26,6 @@ class WfManagerPlugin(Plugin):
 
     def __init__(self, workflow_file):
         super(WfManagerPlugin, self).__init__()
-        # Things to be shared between both the tasks
         self.workflow_file = workflow_file
 
     def _tasks_default(self):
@@ -42,6 +38,9 @@ class WfManagerPlugin(Plugin):
                 ]
 
     def _task_extensions_default(self):
+        """Extensions (toolbars, menubars etc.) to be added to a Task.
+        If the TaskExtension has no task_id, the Extension applies to
+        all Tasks"""
         return [TaskExtension(
             actions=[SchemaAddition(
                 factory=self._exit_action,
@@ -52,7 +51,6 @@ class WfManagerPlugin(Plugin):
     def _create_setup_task(self):
         factory_registry = self.application.get_plugin(
             FACTORY_REGISTRY_PLUGIN_ID)
-        print (self.application)
         wf_manager_setup_task = WfManagerSetupTask(
             factory_registry=factory_registry,
         )

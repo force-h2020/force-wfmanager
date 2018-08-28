@@ -5,20 +5,12 @@ from envisage.ui.tasks.api import TasksApplication, TaskWindow
 from pyface.api import (CANCEL, ConfirmationDialog, NO, YES)
 from pyface.tasks.api import TaskWindowLayout
 
-from traits.api import Bool
-
 log = logging.getLogger(__name__)
 
 
 class WfManager(TasksApplication):
     id = 'force_wfmanager.wfmanager'
     name = 'Workflow Manager'
-
-    #: Flag which says if the computation is running or not
-    computation_running = Bool(False)
-
-    #: Flag indicating if the current workflow is ready to run
-    run_enabled = Bool(True)
 
     def __init__(self, plugins):
         super(WfManager, self).__init__(plugins=plugins)
@@ -69,8 +61,15 @@ class TaskWindowClosePrompt(TaskWindow):
         fails, the application is not closed so he has a chance to try to
         save again. Overrides close from pyface.tasks.task_window """
 
-        # The attached wfmanager_task for saving methods
-        wfmanager = self.application
+        # The attached wfmanager_setup_task for saving methods
+        setup_task = None
+        for window in self.application.windows:
+            for task in window.tasks:
+                if task.name == "Workflow Setup":
+                    setup_task = task
+        # If we don't have a setup task for some reason, just close
+        if setup_task is None:
+            return True
 
         # Pop up for user input
         dialog = ConfirmationDialog(
@@ -85,7 +84,7 @@ class TaskWindowClosePrompt(TaskWindow):
 
         # Save
         if result is YES:
-            save_result = wfmanager.save_workflow()
+            save_result = setup_task.save_workflow()
 
             # On a failed save, don't close the window
             if not save_result:

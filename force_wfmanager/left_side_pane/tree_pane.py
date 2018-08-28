@@ -61,7 +61,6 @@ class TreePane(TraitsDockPane):
             factory_registry=self.factory_registry,
             model=self.workflow_m
         )
-        print(self.factory_registry)
         self.run_enabled = wf_tree.workflow_mv.valid
         return wf_tree
 

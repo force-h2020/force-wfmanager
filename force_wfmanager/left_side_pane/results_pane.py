@@ -40,7 +40,7 @@ class ResultsPane(TraitsDockPane):
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
-        self.analysis_model=analysis_model
+        self.analysis_model = analysis_model
         super(ResultsPane, self).__init__(*args, **kwargs)
 
     def _result_table_default(self):
