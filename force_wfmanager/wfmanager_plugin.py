@@ -1,10 +1,14 @@
 from envisage.api import Plugin
 from envisage.ui.tasks.api import TaskFactory
-
+from envisage.ui.tasks.task_extension import TaskExtension
+from pyface.action.action import Action
+from pyface.action.action_item import ActionItem
+from pyface.tasks.action.schema_addition import SchemaAddition
 from traits.api import List
 
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
+from force_bdss.api import FACTORY_REGISTRY_PLUGIN_ID
 
 
 class WfManagerPlugin(Plugin):
@@ -12,16 +16,17 @@ class WfManagerPlugin(Plugin):
 
     TASKS = 'envisage.ui.tasks.tasks'
 
+    TASK_EXTENSIONS = 'envisage.ui.tasks.task_extensions'
+
     id = 'force_wfmanager.wfmanager_plugin'
     name = 'Workflow Manager'
 
     tasks = List(contributes_to=TASKS)
+    task_extensions = List(contributes_to=TASK_EXTENSIONS)
 
-    def __init__(self, analysis_m, workflow_m, factory_registry):
+    def __init__(self, workflow_file):
         super(WfManagerPlugin, self).__init__()
-        self.analysis_m = analysis_m
-        self.workflow_m = workflow_m
-        self.factory_registry = factory_registry
+        self.workflow_file = workflow_file
 
     def _tasks_default(self):
         return [TaskFactory(id='force_wfmanager.wfmanager_setup_task',
@@ -32,16 +37,41 @@ class WfManagerPlugin(Plugin):
                             factory=self._create_results_task)
                 ]
 
+    def _task_extensions_default(self):
+        """Extensions (toolbars, menubars etc.) to be added to a Task.
+        If the TaskExtension has no task_id, the Extension applies to
+        all Tasks"""
+        return [TaskExtension(
+            actions=[SchemaAddition(
+                factory=self._exit_action,
+                path='MenuBar/File')]
+            )
+        ]
+
     def _create_setup_task(self):
+        factory_registry = self.application.get_plugin(
+            FACTORY_REGISTRY_PLUGIN_ID)
         wf_manager_setup_task = WfManagerSetupTask(
-            analysis_m=self.analysis_m, workflow_m=self.workflow_m,
-            factory_registry=self.factory_registry
+            factory_registry=factory_registry,
         )
+        if self.workflow_file is not None:
+            wf_manager_setup_task.open_workflow_file(self.workflow_file)
+
         return wf_manager_setup_task
 
     def _create_results_task(self):
+        factory_registry = self.application.get_plugin(
+            FACTORY_REGISTRY_PLUGIN_ID)
         wf_manager_results_task = WfManagerResultsTask(
-            analysis_m=self.analysis_m, workflow_m=self.workflow_m,
-            factory_registry=self.factory_registry
+            factory_registry=factory_registry
         )
+
         return wf_manager_results_task
+
+    def _exit_action(self):
+        return ActionItem(
+            action=Action(
+                name='Exit',
+                on_perform=self.application.exit
+            )
+        )
