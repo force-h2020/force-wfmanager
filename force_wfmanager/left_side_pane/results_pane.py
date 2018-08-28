@@ -30,9 +30,10 @@ class ResultsPane(TraitsDockPane):
     #: The factory registry containing all the factories
     factory_registry = Instance(IFactoryRegistryPlugin)
 
-    #: The results table
+    #: The table displaying the results
     result_table = Instance(ResultTable)
 
+    #: The analysis model containing the results
     analysis_model = Instance(AnalysisModel)
 
     traits_view = View(VGroup(

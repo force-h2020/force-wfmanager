@@ -399,7 +399,7 @@ class WfManagerSetupTask(Task):
             if result is not YES:
                 return
 
-        # Flag that a computation is running (passed to application-level)
+        # Flag that a computation is running
         self.computation_running = True
         try:
             for hook_manager in self.ui_hooks_managers:
@@ -579,6 +579,12 @@ class WfManagerSetupTask(Task):
         if self.window is not None:
             self.side_pane.ui_enabled = not self.computation_running
             self.save_load_enabled = not self.computation_running
+
+    # Method call from side pane interaction
+
+    @on_trait_change('side_pane.run_button')
+    def run_button_clicked(self):
+        self.run_bdss()
 
     # Synchronization with Window
 
