@@ -164,8 +164,7 @@ class DataSourceModelView(ModelView):
                 show_border=True
             ),
         ),
-        kind="subpanel",
-        )
+    )
 
     def __init__(self, model, variable_names_registry, *args, **kwargs):
         self.model = model

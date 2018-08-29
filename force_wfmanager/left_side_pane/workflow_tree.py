@@ -113,8 +113,6 @@ class ModelEditDialog(ModelView):
         )
 
 
-
-
 class WorkflowTree(ModelView):
     """ Part of the GUI containing the tree editor displaying the Workflow """
 
@@ -236,7 +234,8 @@ class WorkflowTree(ModelView):
                 menu=Menu(edit_data_source_action, delete_data_source_action),
             ),
         ],
-        orientation="vertical",
+        orientation="horizontal",
+        editable=False,
         selected="selected_mv",
     )
 
@@ -252,7 +251,9 @@ class WorkflowTree(ModelView):
     #: The currently selected modelview
     selected_mv = Instance(ModelView)
 
-    #: The output type of the currently selected factory group
+    #: The name of the currently selected factory group. This will be None
+    #: if an actual modelview is selected, or (for example) 'MCO' if the
+    #: MCO folder is selected
     selected_factory_group = Unicode()
 
     #: The error message relating to selected_mv
@@ -290,14 +291,22 @@ class WorkflowTree(ModelView):
         super(WorkflowTree, self).__init__(*args, **kwargs)
         self.model = model
         self._factory_registry = factory_registry
+        # Set up handlers for nodes being selected
+        self.assign_tree_node_select_action()
+
+    def set_factory_group(self, name, mv):
+        """Sets the selected_factory_group to be the correct name.
+        Called on selection of a node in the workflow tree."""
+        self.selected_factory_group = name
+
+    def assign_tree_node_select_action(self):
+        """ Set factory group to the node's name on selction,
+        if the node has children or is the root Workflow node"""
         for node in self.tree_editor.nodes:
             if node.children != '' or node.node_for == [WorkflowModelView]:
                 node.on_select = partial(self.set_factory_group, node.name)
             else:
                 node.on_select = partial(self.set_factory_group, 'None')
-
-    def set_factory_group(self, name, mv):
-        self.selected_factory_group = name
 
     def _workflow_mv_default(self):
         return WorkflowModelView(model=self.model)

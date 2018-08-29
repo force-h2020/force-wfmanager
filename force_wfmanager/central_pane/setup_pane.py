@@ -2,40 +2,48 @@ from pyface.tasks.api import TraitsTaskPane
 
 from traits.api import Instance, Dict
 from traits.has_traits import on_trait_change
-from traits.trait_types import String
+from traits.trait_types import String, Bool
+from traits.traits import Property
 
 from traitsui.api import View, VGroup, UItem
 from traitsui.editors import ShellEditor, InstanceEditor
 from traitsui.handler import ModelView
 
-from .analysis_model import AnalysisModel
+from force_bdss.api import Workflow
+from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 
 
 class SetupPane(TraitsTaskPane):
     id = 'force_wfmanager.setup_pane'
     name = 'Setup Pane'
 
-    #: The model for the analysis part
-    analysis_model = Instance(AnalysisModel)
+    #: The model for the Workflow
+    workflow_m = Instance(Workflow)
 
-    # Namespace for the console
+    #: Namespace for the console
     console_ns = Dict()
 
+    #: Does the current modelview have a non-default view
+    visible_modelview = Property(Bool, depends_on='selected_mv')
+
+    #: The currently selected ModelView in the WorkflowTree
     selected_mv = Instance(ModelView)
 
+    #: The name of the factory group selected in the WorkflowTree
     selected_factory_group = String('Workflow')
 
-    view = View(
+    traits_view = View(
         VGroup(
                 UItem("selected_mv", editor=InstanceEditor(), style="custom",
-                      visible_when="selected_factory_group == 'None'"),
+                      visible_when="visible_modelview"),
                 UItem("console_ns", label="Console", editor=ShellEditor()),
                 layout='tabbed'
                 ),
             )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, workflow_m, *args, **kwargs):
         super(SetupPane, self).__init__(*args, **kwargs)
+        self.workflow_m = workflow_m
 
     def _console_ns_default(self):
         namespace = {
@@ -47,6 +55,13 @@ class SetupPane(TraitsTaskPane):
             namespace["app"] = None
 
         return namespace
+
+    def _get_visible_modelview(self):
+        """If there is a view associated to the selected_mv, return True
+        and display that view in the SetupPane"""
+        if len(self.selected_mv.trait_views()) != 0:
+            return True
+        return False
 
     @on_trait_change('task.side_pane.workflow_tree.selected_factory_group')
     def set_selected_factory_group(self):
