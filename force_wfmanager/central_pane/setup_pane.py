@@ -10,7 +10,6 @@ from traitsui.editors import ShellEditor, InstanceEditor
 from traitsui.handler import ModelView
 
 from force_bdss.api import Workflow
-from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 
 
 class SetupPane(TraitsTaskPane):
