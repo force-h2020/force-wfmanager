@@ -34,11 +34,11 @@ class WfManagerSetupTask(Task):
     name = 'Workflow Setup'
 
     #: Workflow model.
-    workflow_m = Instance(Workflow, allow_none=False)
+    workflow_model = Instance(Workflow, allow_none=False)
 
     #: Analysis model. Contains the results that are displayed in the plot
     #: and table
-    analysis_m = Instance(AnalysisModel, allow_none=False)
+    analysis_model = Instance(AnalysisModel, allow_none=False)
 
     #: Registry of the available factories
     factory_registry = Instance(IFactoryRegistryPlugin)
@@ -83,10 +83,6 @@ class WfManagerSetupTask(Task):
 
     #: Results Task
     results_task = Instance(Task)
-
-    def __init__(self, factory_registry, *args, **kwargs):
-        self.factory_registry = factory_registry
-        super(WfManagerSetupTask, self).__init__(*args, **kwargs)
 
     # ZMQ Setup
 
@@ -227,13 +223,13 @@ class WfManagerSetupTask(Task):
     def _side_pane_default(self):
         return TreePane(
             factory_registry=self.factory_registry,
-            workflow_m=self.workflow_m
+            workflow_model=self.workflow_model
         )
 
-    def _workflow_m_default(self):
+    def _workflow_model_default(self):
         return Workflow()
 
-    def _analysis_m_default(self):
+    def _analysis_model_default(self):
         return AnalysisModel()
 
     def _ui_hooks_managers_default(self):
@@ -279,7 +275,7 @@ class WfManagerSetupTask(Task):
         reader = WorkflowReader(self.factory_registry)
         try:
             with open(f_name, 'r') as fobj:
-                self.workflow_m = reader.read(fobj)
+                self.workflow_model = reader.read(fobj)
         except InvalidFileException as e:
             error(
                 None,
@@ -348,7 +344,7 @@ class WfManagerSetupTask(Task):
 
         try:
             with open(file_path, 'w') as output:
-                WorkflowWriter().write(self.workflow_m, output)
+                WorkflowWriter().write(self.workflow_model, output)
         except IOError as e:
             error(
                 None,
@@ -391,7 +387,7 @@ class WfManagerSetupTask(Task):
         """ Run the BDSS computation """
 
         # Confirm we want to run a calculation
-        if len(self.analysis_m.evaluation_steps) != 0:
+        if len(self.analysis_model.evaluation_steps) != 0:
             result = confirm(
                 None,
                 "Are you sure you want to run the computation and "
@@ -415,10 +411,10 @@ class WfManagerSetupTask(Task):
             # Creates a temporary file containing the workflow
             tmpfile_path = tempfile.mktemp()
             with open(tmpfile_path, 'w') as output:
-                WorkflowWriter().write(self.workflow_m, output)
+                WorkflowWriter().write(self.workflow_model, output)
 
             # Clear the analysis model before attempting to run
-            self.analysis_m.clear()
+            self.analysis_model.clear()
 
             future = self.executor.submit(self._execute_bdss, tmpfile_path)
             future.add_done_callback(self._execution_done_callback)
@@ -545,18 +541,18 @@ class WfManagerSetupTask(Task):
         Handles the event received by the server, dispatching its
         action appropriately according to the type"""
         if isinstance(event, MCOStartEvent):
-            self.analysis_m.clear()
+            self.analysis_model.clear()
             value_names = list(event.parameter_names)
             for kpi_name in event.kpi_names:
                 value_names.extend([kpi_name, kpi_name + " weight"])
-            self.analysis_m.value_names = tuple(value_names)
+            self.analysis_model.value_names = tuple(value_names)
         elif isinstance(event, MCOProgressEvent):
             data = [dv.value for dv in event.optimal_point]
             for kpi, weight in zip(event.optimal_kpis, event.weights):
                 data.extend([kpi.value, weight])
 
             data = tuple(map(float, data))
-            self.analysis_m.add_evaluation_step(data)
+            self.analysis_model.add_evaluation_step(data)
 
     # Error Display
 
@@ -570,9 +566,9 @@ class WfManagerSetupTask(Task):
     def set_toolbar_run_btn_state(self):
         self.run_enabled = self.side_pane.run_enabled
 
-    @on_trait_change('workflow_m')
+    @on_trait_change('workflow_model')
     def update_side_pane_model(self):
-        self.side_pane.workflow_m = self.workflow_m
+        self.side_pane.workflow_model = self.workflow_model
 
     @on_trait_change('computation_running')
     def update_pane_active_status(self):

@@ -26,7 +26,7 @@ class TestUINotificationHooksManager(unittest.TestCase):
         workflow = Workflow()
 
         mock_task = mock.Mock(spec=Task)
-        mock_task.workflow_m = workflow
+        mock_task.workflow_model = workflow
         mock_registry = mock.Mock(spec=FactoryRegistryPlugin)
         mock_task.factory_registry = mock_registry
         mock_server = mock.Mock(spec=ZMQServer)

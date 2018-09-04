@@ -31,7 +31,7 @@ class TreePane(TraitsDockPane):
     factory_registry = Instance(IFactoryRegistryPlugin)
 
     #: The Workflow model
-    workflow_m = Instance(Workflow)
+    workflow_model = Instance(Workflow)
 
     #: Tree editor for the Workflow
     workflow_tree = Instance(WorkflowTree)
@@ -59,7 +59,7 @@ class TreePane(TraitsDockPane):
     def _workflow_tree_default(self):
         wf_tree = WorkflowTree(
             factory_registry=self.factory_registry,
-            model=self.workflow_m
+            model=self.workflow_model
         )
         self.run_enabled = wf_tree.workflow_mv.valid
         return wf_tree
@@ -69,6 +69,6 @@ class TreePane(TraitsDockPane):
         self.run_enabled = (self.workflow_tree.workflow_mv.valid and
                             self.ui_enabled)
 
-    @on_trait_change('workflow_m', post_init=True)
+    @on_trait_change('workflow_model', post_init=True)
     def update_workflow_tree(self, *args, **kwargs):
-        self.workflow_tree.model = self.workflow_m
+        self.workflow_tree.model = self.workflow_model

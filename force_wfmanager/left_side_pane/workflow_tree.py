@@ -94,6 +94,7 @@ class TreeNodeWithStatus(TreeNode):
 
 class ModelEditDialog(ModelView):
     """Editing modelview to show the model in a nice box."""
+
     traits_view = View(
         Group(
             UItem('model',
@@ -315,12 +316,14 @@ class WorkflowTree(ModelView):
     def update_model_view(self):
         """Update the workflow modelview's model and verify, on either loading
         a new workflow, or an internal change to the workflow"""
+
         self.workflow_mv = WorkflowModelView(model=self.model)
         self.verify_workflow_event = True
 
     @triggers_verify
     def new_mco(self, ui_info, object):
         """ Opens a dialog for creating a MCO """
+
         workflow_mv = self.workflow_mv
 
         modal = NewEntityModal(factories=self._factory_registry.mco_factories)
@@ -337,11 +340,13 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def delete_mco(self, ui_info, object):
         """Deletes the MCO"""
+
         self.workflow_mv.set_mco(None)
 
     @triggers_verify
     def new_notification_listener(self, ui_info, object):
         """ Opens a dialog for creating a notification listener"""
+
         workflow_mv = self.workflow_mv
 
         visible_factories = [
@@ -364,6 +369,7 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def delete_notification_listener(self, ui_info, object):
         """Deletes the notification listener"""
+
         self.workflow_mv.remove_notification_listener(object.model)
 
     @triggers_verify
@@ -402,6 +408,7 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def new_data_source(self, ui_info, object):
         """ Opens a dialog for creating a Data Source """
+
         modal = NewEntityModal(
             factories=self._factory_registry.data_source_factories
         )
@@ -427,12 +434,14 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def delete_layer(self, ui_info, object):
         """ Delete an element from the workflow """
+
         self.workflow_mv.remove_execution_layer(object.model)
 
     @on_trait_change("workflow_mv.verify_workflow_event")
     def received_verify_request(self):
         """Checks if the root node of workflow tree is requesting a
         verification of the workflow"""
+
         self.verify_workflow_event = True
 
     @on_trait_change("verify_workflow_event")
@@ -512,6 +521,7 @@ class WorkflowTree(ModelView):
     def modelview_editable(self, modelview):
         """Checks if the model associated to a ModelView instance
         has a non-empty, editable view """
+
         return model_info(modelview.model) != []
 
     def _get_selected_error(self):
