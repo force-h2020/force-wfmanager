@@ -8,6 +8,7 @@ from .analysis_model import AnalysisModel
 
 
 class ResultTable(HasStrictTraits):
+
     #: The model for the result table
     analysis_model = Instance(AnalysisModel)
 
@@ -36,10 +37,6 @@ class ResultTable(HasStrictTraits):
             selected='_selected_rows',
         ))
     )
-
-    def __init__(self, analysis_model):
-        super(ResultTable, self).__init__()
-        self.analysis_model = analysis_model
 
     def _get_rows(self):
         return self.analysis_model.evaluation_steps

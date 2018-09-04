@@ -110,15 +110,15 @@ def get_wfmanager_tasks():
     # Returns the Setup and Results Tasks, with a mock TaskWindow and dummy
     # Application which does not have an event loop.
     app = dummy_wfmanager()
-    analysis_m = AnalysisModel()
-    workflow_m = Workflow()
+    analysis_model = AnalysisModel()
+    workflow_model = Workflow()
     factory_registry_plugin = ProbeFactoryRegistryPlugin()
     setup_task = WfManagerSetupTask(
-        analysis_m=analysis_m, workflow_m=workflow_m,
+        analysis_model=analysis_model, workflow_model=workflow_model,
         factory_registry=factory_registry_plugin
     )
     results_task = WfManagerResultsTask(
-        analysis_m=analysis_m, workflow_m=workflow_m,
+        analysis_model=analysis_model, workflow_model=workflow_model,
         factory_registry=factory_registry_plugin
     )
     tasks = [setup_task, results_task]
@@ -160,10 +160,10 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                               ResultsPane)
         self.assertIsInstance(self.results_task.create_central_pane(),
                               GraphPane)
-        self.assertIsInstance(self.results_task.workflow_m, Workflow)
-        self.assertIsInstance(self.setup_task.workflow_m, Workflow)
-        self.assertIsInstance(self.results_task.analysis_m, AnalysisModel)
-        self.assertIsInstance(self.setup_task.analysis_m, AnalysisModel)
+        self.assertIsInstance(self.results_task.workflow_model, Workflow)
+        self.assertIsInstance(self.setup_task.workflow_model, Workflow)
+        self.assertIsInstance(self.results_task.analysis_model, AnalysisModel)
+        self.assertIsInstance(self.setup_task.analysis_model, AnalysisModel)
 
     def test_zmq_start(self):
         self.setup_task.zmq_server = mock.Mock(spec=ZMQServer)
@@ -309,10 +309,10 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_reader.side_effect = mock_file_reader
-            old_workflow = self.setup_task.workflow_m
+            old_workflow = self.setup_task.workflow_model
             self.assertEqual(
                 old_workflow,
-                self.setup_task.workflow_m)
+                self.setup_task.workflow_model)
             self.assertEqual(
                 old_workflow,
                 self.setup_task.side_pane.workflow_tree.model)
@@ -322,10 +322,10 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
             self.assertTrue(mock_open.called)
             self.assertTrue(mock_reader.called)
 
-            self.assertNotEqual(old_workflow, self.setup_task.workflow_m)
+            self.assertNotEqual(old_workflow, self.setup_task.workflow_model)
             self.assertNotEqual(
                 old_workflow,
-                self.setup_task.workflow_m)
+                self.setup_task.workflow_model)
             self.assertNotEqual(
                old_workflow,
                self.setup_task.side_pane.workflow_tree.model)
@@ -340,7 +340,7 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
             mock_error.side_effect = mock_show_error
             mock_reader.side_effect = mock_file_reader_failure
 
-            old_workflow = self.setup_task.workflow_m
+            old_workflow = self.setup_task.workflow_model
 
             self.setup_task.open_workflow()
 
@@ -351,11 +351,11 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                 'Cannot read the requested file:\n\nOUPS',
                 'Error when reading file'
             )
-            self.assertEqual(old_workflow, self.setup_task.workflow_m)
+            self.assertEqual(old_workflow, self.setup_task.workflow_model)
 
     def test_dispatch_mco_event(self):
         send_event = self.setup_task._server_event_callback
-        self.assertEqual(self.setup_task.analysis_m.value_names, ())
+        self.assertEqual(self.setup_task.analysis_model.value_names, ())
         with self.event_loop():
             send_event(MCOStartEvent(
                 parameter_names=["x"],
@@ -363,10 +363,10 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
             )
 
         self.assertEqual(
-            len(self.setup_task.analysis_m.evaluation_steps),
+            len(self.setup_task.analysis_model.evaluation_steps),
             0)
         self.assertEqual(
-            self.setup_task.analysis_m.value_names,
+            self.setup_task.analysis_model.value_names,
             ('x', 'y', 'y weight'))
 
         with self.event_loop():
@@ -380,7 +380,7 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                 weights=[1.0]))
 
         self.assertEqual(
-            len(self.setup_task.analysis_m.evaluation_steps),
+            len(self.setup_task.analysis_model.evaluation_steps),
             1)
 
     def test_initialize_finalize(self):
@@ -410,8 +410,8 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
 
     def test_run_bdss(self):
 
-        self.setup_task.analysis_m.value_names = ('x', )
-        self.setup_task.analysis_m.add_evaluation_step((2.0, ))
+        self.setup_task.analysis_model.value_names = ('x', )
+        self.setup_task.analysis_model.add_evaluation_step((2.0, ))
         mock_open = mock.mock_open()
         with mock.patch(CONFIRM_PATH) as mock_confirm, \
                 mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
@@ -476,8 +476,8 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
             )
 
     def test_run_bdss_cancel(self):
-        self.setup_task.analysis_m.value_names = ('x', )
-        self.setup_task.analysis_m.add_evaluation_step((2.0, ))
+        self.setup_task.analysis_model.value_names = ('x', )
+        self.setup_task.analysis_model.add_evaluation_step((2.0, ))
         with mock.patch(CONFIRM_PATH) as mock_confirm:
             mock_confirm.side_effect = mock_confirm_function(CANCEL)
 

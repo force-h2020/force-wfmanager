@@ -4,7 +4,7 @@ from envisage.ui.tasks.task_extension import TaskExtension
 from pyface.action.action import Action
 from pyface.action.action_item import ActionItem
 from pyface.tasks.action.schema_addition import SchemaAddition
-from traits.api import List
+from traits.api import Either, List, Unicode
 
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
@@ -24,9 +24,7 @@ class WfManagerPlugin(Plugin):
     tasks = List(contributes_to=TASKS)
     task_extensions = List(contributes_to=TASK_EXTENSIONS)
 
-    def __init__(self, workflow_file):
-        super(WfManagerPlugin, self).__init__()
-        self.workflow_file = workflow_file
+    workflow_file = Either(None, Unicode())
 
     def _tasks_default(self):
         return [TaskFactory(id='force_wfmanager.wfmanager_setup_task',
@@ -50,7 +48,8 @@ class WfManagerPlugin(Plugin):
 
     def _create_setup_task(self):
         factory_registry = self.application.get_plugin(
-            FACTORY_REGISTRY_PLUGIN_ID)
+            FACTORY_REGISTRY_PLUGIN_ID
+        )
         wf_manager_setup_task = WfManagerSetupTask(
             factory_registry=factory_registry,
         )
@@ -61,7 +60,8 @@ class WfManagerPlugin(Plugin):
 
     def _create_results_task(self):
         factory_registry = self.application.get_plugin(
-            FACTORY_REGISTRY_PLUGIN_ID)
+            FACTORY_REGISTRY_PLUGIN_ID
+        )
         wf_manager_results_task = WfManagerResultsTask(
             factory_registry=factory_registry
         )

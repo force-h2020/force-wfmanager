@@ -12,10 +12,7 @@ class WfManager(TasksApplication):
     id = 'force_wfmanager.wfmanager'
     name = 'Workflow Manager'
 
-    def __init__(self, plugins):
-        super(WfManager, self).__init__(plugins=plugins)
-
-    # Overridden defaults from TasksApplication
+    # Overridden defaults from TasksApplication/Application
 
     def _default_layout_default(self):
         tasks = [factory.id for factory in self.task_factories]

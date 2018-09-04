@@ -6,7 +6,7 @@ from pyface.tasks.api import Task, TaskLayout, PaneItem
 
 from traits.api import Bool, Instance, List, on_trait_change
 
-from force_bdss.api import (IFactoryRegistryPlugin, Workflow)
+from force_bdss.api import Workflow
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.graph_pane import GraphPane
@@ -25,14 +25,11 @@ class WfManagerResultsTask(Task):
     name = 'Results'
 
     #: Workflow model.
-    workflow_m = Instance(Workflow, allow_none=False)
+    workflow_model = Instance(Workflow, allow_none=False)
 
     #: Analysis model. Contains the results that are displayed in the plot
     #: and table
-    analysis_m = Instance(AnalysisModel, allow_none=False)
-
-    #: Registry of the available factories
-    factory_registry = Instance(IFactoryRegistryPlugin)
+    analysis_model = Instance(AnalysisModel, allow_none=False)
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(ResultsPane)
@@ -40,7 +37,7 @@ class WfManagerResultsTask(Task):
     #: The menu bar for this task.
     menu_bar = Instance(SMenuBar)
 
-    #: The tool bar for this task.
+    #: The tool bars for this task.
     tool_bars = List(SToolBar)
 
     #: Is the 'run' toolbar button active
@@ -161,7 +158,7 @@ class WfManagerResultsTask(Task):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        return GraphPane(self.analysis_m)
+        return GraphPane(self.analysis_model)
 
     def create_dock_panes(self):
         """ Creates the dock panes """
@@ -170,7 +167,7 @@ class WfManagerResultsTask(Task):
     # Default initialisers
 
     def _side_pane_default(self):
-        return ResultsPane(self.analysis_m)
+        return ResultsPane(analysis_model=self.analysis_model)
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
@@ -178,10 +175,10 @@ class WfManagerResultsTask(Task):
             left=PaneItem('force_wfmanager.results_pane'),
         )
 
-    def _workflow_m_default(self):
+    def _workflow_model_default(self):
         return Workflow()
 
-    def _analysis_m_default(self):
+    def _analysis_model_default(self):
         return AnalysisModel()
 
     # Synchronization with Setup Task
@@ -202,8 +199,8 @@ class WfManagerResultsTask(Task):
             for task in self.window.tasks:
                 if task.name == "Workflow Setup":
                     self.setup_task = task
-                    self.analysis_m = self.setup_task.analysis_m
-                    self.workflow_m = self.setup_task.workflow_m
+                    self.analysis_model = self.setup_task.analysis_model
+                    self.workflow_model = self.setup_task.workflow_model
 
     # Menu/Toolbar Methods
 

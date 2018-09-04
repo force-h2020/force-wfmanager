@@ -21,7 +21,7 @@ class UINotificationHooksManager(BaseUIHooksManager):
             The WfManagerResultsTask instance containing the workflow
             model and the zmq server.
         """
-        model = task.workflow_m
+        model = task.workflow_model
         notification_model = None
         for listener_model in model.notification_listeners:
             if isinstance(listener_model, UINotificationModel):
@@ -52,7 +52,7 @@ class UINotificationHooksManager(BaseUIHooksManager):
             The WfManagerResultsTask instance instance containing the workflow
             model and the zmq server.
         """
-        model = task.workflow_m
+        model = task.workflow_model
         notification_model = None
         for listener_model in model.notification_listeners:
             if isinstance(listener_model, UINotificationModel):

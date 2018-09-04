@@ -73,11 +73,11 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
         self.assertEqual(len(self.wfmanager.windows), 1)
         self.assertEqual(len(self.wfmanager.windows[0].tasks), 2)
 
-        self.assertIsInstance(self.setup_task.analysis_m, AnalysisModel)
-        self.assertIsInstance(self.setup_task.workflow_m, Workflow)
+        self.assertIsInstance(self.setup_task.analysis_model, AnalysisModel)
+        self.assertIsInstance(self.setup_task.workflow_model, Workflow)
 
-        self.assertIsInstance(self.results_task.analysis_m, AnalysisModel)
-        self.assertIsInstance(self.results_task.workflow_m, Workflow)
+        self.assertIsInstance(self.results_task.analysis_model, AnalysisModel)
+        self.assertIsInstance(self.results_task.workflow_model, Workflow)
 
     def test_init_with_file(self):
         with mock.patch(WORKFLOW_READER_PATH) as mock_reader:
