@@ -212,7 +212,7 @@ class WfManagerSetupTask(Task):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        return SetupPane(workflow_m=self.workflow_m)
+        return SetupPane(workflow_model=self.workflow_model)
 
     def create_dock_panes(self):
         """ Creates the dock panes """
