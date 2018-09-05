@@ -4,7 +4,7 @@ from traits.api import (HasStrictTraits, List, Instance, Property, Tuple,
 from traitsui.api import View, UItem, TableEditor
 from traitsui.table_column import ListColumn
 
-from .analysis_model import AnalysisModel
+from force_wfmanager.api import AnalysisModel
 
 
 class ResultTable(HasStrictTraits):

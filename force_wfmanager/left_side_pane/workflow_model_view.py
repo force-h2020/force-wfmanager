@@ -1,15 +1,11 @@
 from traits.api import Instance, List, Bool, on_trait_change, Unicode, Event
-
 from traitsui.api import ModelView
 
 from force_bdss.api import Workflow
-from force_wfmanager.left_side_pane.execution_layer_model_view import \
-    ExecutionLayerModelView
-from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
-from force_wfmanager.left_side_pane.notification_listener_model_view import \
-    NotificationListenerModelView
-from force_wfmanager.left_side_pane.variable_names_registry import \
+from force_wfmanager.api import (
+    ExecutionLayerModelView, MCOModelView, NotificationListenerModelView,
     VariableNamesRegistry
+)
 
 
 class WorkflowModelView(ModelView):

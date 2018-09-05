@@ -1,5 +1,5 @@
 from force_bdss.api import BaseUIHooksFactory
-from .ui_notification_hooks_manager import UINotificationHooksManager
+from force_wfmanager.api import UINotificationHooksManager
 
 
 class UINotificationHooksFactory(BaseUIHooksFactory):

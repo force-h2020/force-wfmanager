@@ -6,10 +6,8 @@ from pyface.action.action_item import ActionItem
 from pyface.tasks.action.schema_addition import SchemaAddition
 from traits.api import Either, List, Unicode
 
-from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
-from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 from force_bdss.api import FACTORY_REGISTRY_PLUGIN_ID
-
+from force_wfmanager.api import WfManagerResultsTask, WfManagerSetupTask
 
 class WfManagerPlugin(Plugin):
     """ The basic WfManager """

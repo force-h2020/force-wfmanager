@@ -8,11 +8,8 @@ from traits.api import Bool, Instance, List, on_trait_change
 
 from force_bdss.api import Workflow
 
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
-from force_wfmanager.central_pane.graph_pane import GraphPane
-from force_wfmanager.left_side_pane.results_pane import ResultsPane
-from force_wfmanager.TaskToggleGroupAccelerator import (
-    TaskToggleGroupAccelerator
+from force_wfmanager.api import (
+    AnalysisModel, GraphPane, ResultsPane, TaskToggleGroupAccelerator
 )
 
 log = logging.getLogger(__name__)

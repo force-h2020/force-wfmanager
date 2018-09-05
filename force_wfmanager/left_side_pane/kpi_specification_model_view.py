@@ -3,8 +3,7 @@ from traits.api import (Instance, Property, Bool, Enum, List, on_trait_change,
 from traitsui.api import ModelView, View, Item, EnumEditor
 
 from force_bdss.api import KPISpecification, Identifier
-from force_wfmanager.left_side_pane.variable_names_registry import \
-    VariableNamesRegistry
+from force_wfmanager.api import VariableNamesRegistry
 
 
 class KPISpecificationModelView(ModelView):
