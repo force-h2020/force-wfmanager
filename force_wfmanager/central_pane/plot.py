@@ -54,7 +54,6 @@ class Plot(HasStrictTraits):
 
     def __init__(self, analysis_model, *args, **kwargs):
         self.analysis_model = analysis_model
-
         super(Plot, self).__init__(*args, **kwargs)
 
         self.update_data_arrays()

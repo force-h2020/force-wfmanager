@@ -1,0 +1,259 @@
+{
+    "version": "1", 
+    "workflow": {
+        "mco": {
+            "model_data": {
+                "num_points": 7, 
+                "kpis": [
+                    {
+                        "objective": "MINIMISE", 
+                        "name": "impurity_conc"
+                    }, 
+                    {
+                        "objective": "MINIMISE", 
+                        "name": "mat_cost"
+                    }, 
+                    {
+                        "objective": "MINIMISE", 
+                        "name": "prod_cost"
+                    }
+                ], 
+                "parameters": [
+                    {
+                        "model_data": {
+                            "name": "volume_a_tilde", 
+                            "upper_bound": 1.0, 
+                            "initial_value": 0.5, 
+                            "lower_bound": 0.0, 
+                            "type": "VOLUME"
+                        }, 
+                        "id": "force.bdss.itwm.plugin.example.v0.factory.itwm_mco.parameter.ranged"
+                    }, 
+                    {
+                        "model_data": {
+                            "name": "conc_e", 
+                            "upper_bound": 0.1, 
+                            "initial_value": 0.101, 
+                            "lower_bound": 0.001, 
+                            "type": "CONCENTRATION"
+                        }, 
+                        "id": "force.bdss.itwm.plugin.example.v0.factory.itwm_mco.parameter.ranged"
+                    }, 
+                    {
+                        "model_data": {
+                            "name": "temperature", 
+                            "upper_bound": 400.0, 
+                            "initial_value": 335.0, 
+                            "lower_bound": 270.0, 
+                            "type": "TEMPERATURE"
+                        }, 
+                        "id": "force.bdss.itwm.plugin.example.v0.factory.itwm_mco.parameter.ranged"
+                    }, 
+                    {
+                        "model_data": {
+                            "name": "reaction_time", 
+                            "upper_bound": 3600.0, 
+                            "initial_value": 360.0, 
+                            "lower_bound": 0.0, 
+                            "type": "TIME"
+                        }, 
+                        "id": "force.bdss.itwm.plugin.example.v0.factory.itwm_mco.parameter.ranged"
+                    }
+                ]
+            }, 
+            "id": "force.bdss.itwm.plugin.example.v0.factory.itwm_mco"
+        }, 
+        "notification_listeners": [
+            {
+                "model_data": {
+                    "path": "output.csv"
+                }, 
+                "id": "force.bdss.itwm.plugin.example.v0.factory.csv_writer"
+            }
+        ], 
+        "execution_layers": [
+            [
+                {
+                    "model_data": {
+                        "delta_H_secondary_reaction": 12.0, 
+                        "input_slot_info": [], 
+                        "delta_H_main_reaction": 1.5, 
+                        "nu_secondary_reaction": 0.02, 
+                        "output_slot_info": [
+                            {
+                                "name": "arr_nu_main"
+                            }, 
+                            {
+                                "name": "arr_dh_main"
+                            }, 
+                            {
+                                "name": "arr_nu_sec"
+                            }, 
+                            {
+                                "name": "arr_dh_sec"
+                            }
+                        ], 
+                        "nu_main_reaction": 0.02
+                    }, 
+                    "id": "force.bdss.itwm.plugin.example.v0.factory.arrhenius_parameters"
+                }, 
+                {
+                    "model_data": {
+                        "a_pure_density": 1.0, 
+                        "output_slot_info": [
+                            {
+                                "name": "a_density"
+                            }, 
+                            {
+                                "name": "b_density"
+                            }, 
+                            {
+                                "name": "c_density"
+                            }
+                        ], 
+                        "c_pure_density": 1.0, 
+                        "b_pure_density": 1.0, 
+                        "input_slot_info": []
+                    }, 
+                    "id": "force.bdss.itwm.plugin.example.v0.factory.pure_densities"
+                }, 
+                {
+                    "model_data": {
+                        "output_slot_info": [
+                            {
+                                "name": "reactor_volume"
+                            }
+                        ], 
+                        "value": 1.0, 
+                        "input_slot_info": [], 
+                        "cuba_type_out": "VOLUME"
+                    }, 
+                    "id": "force.bdss.itwm.plugin.example.v0.factory.fixed_value_data_source"
+                }
+            ], 
+            [
+                {
+                    "model_data": {
+                        "output_slot_info": [
+                            {
+                                "name": "impurity_conc"
+                            }, 
+                            {
+                                "name": "impurity_conc_grad"
+                            }
+                        ], 
+                        "input_slot_info": [
+                            {
+                                "source": "Environment", 
+                                "name": "volume_a_tilde"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "conc_e"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "temperature"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "reaction_time"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "arr_nu_main"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "arr_dh_main"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "arr_nu_sec"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "arr_dh_sec"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "reactor_volume"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "a_density"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "b_density"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "c_density"
+                            }
+                        ]
+                    }, 
+                    "id": "force.bdss.itwm.plugin.example.v0.factory.impurity_concentration"
+                }, 
+                {
+                    "model_data": {
+                        "input_slot_info": [
+                            {
+                                "source": "Environment", 
+                                "name": "volume_a_tilde"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "conc_e"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "reactor_volume"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "c_density"
+                            }
+                        ], 
+                        "cost_B": 1.0, 
+                        "const_C": 1.0, 
+                        "output_slot_info": [
+                            {
+                                "name": "mat_cost"
+                            }, 
+                            {
+                                "name": "mat_cost_grad"
+                            }
+                        ], 
+                        "const_A": 1.0
+                    }, 
+                    "id": "force.bdss.itwm.plugin.example.v0.factory.material_cost_data_source"
+                }, 
+                {
+                    "model_data": {
+                        "output_slot_info": [
+                            {
+                                "name": "prod_cost"
+                            }, 
+                            {
+                                "name": "prod_cost_grad"
+                            }
+                        ], 
+                        "input_slot_info": [
+                            {
+                                "source": "Environment", 
+                                "name": "temperature"
+                            }, 
+                            {
+                                "source": "Environment", 
+                                "name": "reaction_time"
+                            }
+                        ], 
+                        "W": 1.0
+                    }, 
+                    "id": "force.bdss.itwm.plugin.example.v0.factory.production_cost_data_source"
+                }
+            ]
+        ]
+    }
+}

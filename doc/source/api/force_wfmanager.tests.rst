@@ -36,10 +36,10 @@ force\_wfmanager\.tests\.test\_wfmanager\_plugin module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.tests\.test\_wfmanager\_task module
------------------------------------------------------
+force\_wfmanager\.tests\.test\_wfmanager\_tasks module
+------------------------------------------------------------
 
-.. automodule:: force_wfmanager.tests.test_wfmanager_task
+.. automodule:: force_wfmanager.tests.test_wfmanager_tasks
     :members:
     :undoc-members:
     :show-inheritance:

@@ -19,10 +19,18 @@ force\_wfmanager\.central\_pane\.analysis\_model module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.central\_pane\.central\_pane module
+force\_wfmanager\.central\_pane\.graph\_pane module
 -----------------------------------------------------
 
-.. automodule:: force_wfmanager.central_pane.central_pane
+.. automodule:: force_wfmanager.central_pane.graph_pane
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force\_wfmanager\.central\_pane\.setup\_pane module
+-----------------------------------------------------
+
+.. automodule:: force_wfmanager.central_pane.setup_pane
     :members:
     :undoc-members:
     :show-inheritance:

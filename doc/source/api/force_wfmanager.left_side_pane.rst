@@ -51,10 +51,18 @@ force\_wfmanager\.left\_side\_pane\.new\_entity\_modal module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.left\_side\_pane\.side\_pane module
+force\_wfmanager\.left\_side\_pane\.tree\_pane module
 -----------------------------------------------------
 
-.. automodule:: force_wfmanager.left_side_pane.side_pane
+.. automodule:: force_wfmanager.left_side_pane.tree_pane
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force\_wfmanager\.left\_side\_pane\.results\_pane module
+--------------------------------------------------------
+
+.. automodule:: force_wfmanager.left_side_pane.results_pane
     :members:
     :undoc-members:
     :show-inheritance:

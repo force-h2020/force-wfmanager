@@ -1,16 +1,24 @@
-from pyface.tasks.api import TaskWindowLayout
+import logging
+
 from envisage.ui.tasks.api import TasksApplication, TaskWindow
-from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
+
+from pyface.api import (CANCEL, ConfirmationDialog, NO, YES)
+from pyface.tasks.api import TaskWindowLayout
+
+log = logging.getLogger(__name__)
 
 
 class WfManager(TasksApplication):
     id = 'force_wfmanager.wfmanager'
     name = 'Workflow Manager'
 
+    # Overridden defaults from TasksApplication/Application
+
     def _default_layout_default(self):
+        tasks = [factory.id for factory in self.task_factories]
         return [TaskWindowLayout(
-            'force_wfmanager.wfmanager_task',
-            active_task='force_wfmanager.wfmanager_task',
+            *tasks,
+            active_task='force_wfmanager.wfmanager_setup_task',
             size=(800, 600)
         )]
 
@@ -31,6 +39,9 @@ class WfManager(TasksApplication):
         self._remove_tasks()
 
     def _remove_tasks(self):
+        """Removes the task elements from all windows in the application.
+        Part of a workaround for a bug in traitsui/qt4/ui_panel.py where
+        sizeHint() would be called, even when a Widget was already destroyed"""
         for window in self.windows:
             tasks = window.tasks
             for task in tasks:
@@ -47,8 +58,15 @@ class TaskWindowClosePrompt(TaskWindow):
         fails, the application is not closed so he has a chance to try to
         save again. Overrides close from pyface.tasks.task_window """
 
-        # The attached wfmanager_task for saving methods
-        wfmanager_task = self.tasks[0]
+        # The attached wfmanager_setup_task for saving methods
+        setup_task = None
+        for window in self.application.windows:
+            for task in window.tasks:
+                if task.name == "Workflow Setup":
+                    setup_task = task
+        # If we don't have a setup task for some reason, just close
+        if setup_task is None:
+            return True
 
         # Pop up for user input
         dialog = ConfirmationDialog(
@@ -63,7 +81,7 @@ class TaskWindowClosePrompt(TaskWindow):
 
         # Save
         if result is YES:
-            save_result = wfmanager_task.save_workflow()
+            save_result = setup_task.save_workflow()
 
             # On a failed save, don't close the window
             if not save_result:

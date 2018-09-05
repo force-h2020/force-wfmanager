@@ -1,18 +1,17 @@
-import logging
 import click
+import logging
 
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
+from force_bdss.api import FactoryRegistryPlugin
+from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 from stevedore import extension
 from stevedore.exception import NoMatches
 
 from traits.api import push_exception_handler
 
-from force_bdss.api import FactoryRegistryPlugin
-
 from force_wfmanager.wfmanager import WfManager
-from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.version import __version__
 
 push_exception_handler(lambda *args: None, reraise_exceptions=True)

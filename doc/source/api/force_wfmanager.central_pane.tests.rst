@@ -12,10 +12,10 @@ force\_wfmanager\.central\_pane\.tests\.test\_analysis\_model module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.central\_pane\.tests\.test\_central\_pane module
-------------------------------------------------------------------
+force\_wfmanager\.central\_pane\.tests\.test\_graph\_pane module
+----------------------------------------------------------------
 
-.. automodule:: force_wfmanager.central_pane.tests.test_central_pane
+.. automodule:: force_wfmanager.central_pane.tests.test_graph_pane
     :members:
     :undoc-members:
     :show-inheritance:

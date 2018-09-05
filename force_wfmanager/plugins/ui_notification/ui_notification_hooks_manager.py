@@ -9,8 +9,19 @@ class UINotificationHooksManager(BaseUIHooksManager):
     properly setup.
     When the execution ends, the added information is removed.
     """
+
     def before_execution(self, task):
-        model = task.workflow_m
+        """Sets up the ui_notification notification listener, which
+        listens to the ports for the ZMQ server for incoming data
+        from the bdss.
+
+        Parameters
+        ----------
+        task:
+            The WfManagerResultsTask instance containing the workflow
+            model and the zmq server.
+        """
+        model = task.workflow_model
         notification_model = None
         for listener_model in model.notification_listeners:
             if isinstance(listener_model, UINotificationModel):
@@ -32,7 +43,16 @@ class UINotificationHooksManager(BaseUIHooksManager):
         notification_model.identifier = ""
 
     def after_execution(self, task):
-        model = task.workflow_m
+        """Removes the ui_notification notification listener, as
+        the bdss has finished calculating.
+
+        Parameters
+        ----------
+        task:
+            The WfManagerResultsTask instance instance containing the workflow
+            model and the zmq server.
+        """
+        model = task.workflow_model
         notification_model = None
         for listener_model in model.notification_listeners:
             if isinstance(listener_model, UINotificationModel):

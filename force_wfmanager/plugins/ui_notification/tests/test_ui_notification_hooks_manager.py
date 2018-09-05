@@ -1,7 +1,6 @@
 import unittest
 
 from pyface.tasks.task import Task
-
 from force_bdss.api import FactoryRegistryPlugin, Workflow
 from force_wfmanager.plugins.ui_notification.ui_notification_model import \
     UINotificationModel
@@ -24,8 +23,10 @@ class TestUINotificationHooksManager(unittest.TestCase):
 
     def test_before_and_after_execution(self):
         manager = self.factory.create_ui_hooks_manager()
+        workflow = Workflow()
 
         mock_task = mock.Mock(spec=Task)
+        mock_task.workflow_model = workflow
         mock_registry = mock.Mock(spec=FactoryRegistryPlugin)
         mock_task.factory_registry = mock_registry
         mock_server = mock.Mock(spec=ZMQServer)
@@ -34,8 +35,6 @@ class TestUINotificationHooksManager(unittest.TestCase):
         mock_registry.notification_listener_factory_by_id.return_value \
             = self.nl_factory
 
-        workflow = Workflow()
-        mock_task.workflow_m = workflow
         manager.before_execution(mock_task)
 
         model = workflow.notification_listeners[0]

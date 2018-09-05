@@ -8,6 +8,7 @@ from .analysis_model import AnalysisModel
 
 
 class ResultTable(HasStrictTraits):
+
     #: The model for the result table
     analysis_model = Instance(AnalysisModel)
 
