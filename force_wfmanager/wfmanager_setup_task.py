@@ -12,16 +12,19 @@ from pyface.tasks.api import Task, TaskLayout, PaneItem
 
 from traits.api import Instance, on_trait_change, List, Bool, Unicode, File
 
-from force_bdss.api import (BaseExtensionPlugin, BaseUIHooksManager,
-                            IFactoryRegistryPlugin, InvalidFileException,
-                            MCOProgressEvent, MCOStartEvent, Workflow,
-                            WorkflowReader, WorkflowWriter)
+
+from force_bdss.api import (
+    BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistryPlugin,
+    InvalidFileException, MCOProgressEvent, MCOStartEvent, Workflow,
+    WorkflowReader, WorkflowWriter
+)
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.setup_pane import SetupPane
 from force_wfmanager.plugin_dialog import PluginDialog
 from force_wfmanager.left_side_pane.tree_pane import TreePane
-from force_wfmanager.TaskToggleGroupAccelerator import (
+
+from force_wfmanager.task_toggle_group_accelerator import (
     TaskToggleGroupAccelerator
 )
 from force_wfmanager.server.zmq_server import ZMQServer
