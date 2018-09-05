@@ -1,4 +1,6 @@
-from traits.api import Instance, on_trait_change, Unicode, Event, Property
+from traits.api import (
+    Instance, on_trait_change, Unicode, Event, Property, Callable
+)
 from functools import partial
 
 from traitsui.api import (
@@ -117,128 +119,7 @@ class ModelEditDialog(ModelView):
 class WorkflowTree(ModelView):
     """ Part of the GUI containing the tree editor displaying the Workflow """
 
-    tree_editor = TreeEditor(
-        nodes=[
-            # Root node "Workflow"
-            TreeNodeWithStatus(
-                node_for=[WorkflowModelView],
-                auto_open=True,
-                children='',
-                name='Workflow',
-                label='=Workflow',
-                view=no_view,
-                menu=no_menu,
 
-            ),
-            # Folder node "Notification" containing the Notification listeners
-            TreeNode(
-                node_for=[WorkflowModelView],
-                auto_open=True,
-                children='notification_listeners_mv',
-                name='Notification Listeners',
-                label='=Notification Listeners',
-                view=no_view,
-                menu=Menu(new_notification_listener_action),
-            ),
-            # Node representing the Notification Listener
-            TreeNodeWithStatus(
-                node_for=[NotificationListenerModelView],
-                auto_open=True,
-                children='',
-                label='label',
-                name='Notification Listeners',
-                view=no_view,
-                menu=Menu(edit_notification_listener_action,
-                          delete_notification_listener_action),
-            ),
-            # Folder node "MCO" containing the MCO
-            TreeNode(
-                node_for=[WorkflowModelView],
-                auto_open=True,
-                children='mco_mv',
-                label='=MCO',
-                name='MCO',
-                view=no_view,
-                menu=Menu(new_mco_action),
-            ),
-            # Node representing the MCO
-            TreeNodeWithStatus(
-                node_for=[MCOModelView],
-                auto_open=True,
-                children='',
-                label='label',
-                name='MCO',
-                view=no_view,
-                menu=Menu(edit_mco_action, delete_mco_action),
-            ),
-            # Folder node "Parameters" containing the MCO parameters
-            TreeNode(
-                node_for=[MCOModelView],
-                auto_open=True,
-                children='mco_parameters_mv',
-                label='=Parameters',
-                name='Parameters',
-                view=no_view,
-                menu=Menu(new_parameter_action),
-            ),
-            #: Node representing an MCO parameter
-            TreeNodeWithStatus(
-                node_for=[MCOParameterModelView],
-                auto_open=True,
-                children='',
-                name='Parameters',
-                label='label',
-                menu=Menu(edit_parameter_action, delete_parameter_action),
-            ),
-            TreeNode(
-                node_for=[MCOModelView],
-                auto_open=True,
-                children='kpis_mv',
-                label='=KPIs',
-                name='KPIs',
-                view=no_view,
-                menu=Menu(new_kpi_action),
-            ),
-            TreeNodeWithStatus(
-                node_for=[KPISpecificationModelView],
-                auto_open=True,
-                children='',
-                label='label',
-                name='KPIs',
-                menu=Menu(delete_kpi_action),
-            ),
-            #: Node representing the layers
-            TreeNode(
-                node_for=[WorkflowModelView],
-                auto_open=True,
-                children='execution_layers_mv',
-                label='=Execution Layers',
-                name='Execution Layers',
-                view=no_view,
-                menu=Menu(new_layer_action),
-            ),
-            TreeNodeWithStatus(
-                node_for=[ExecutionLayerModelView],
-                auto_open=True,
-                children='data_sources_mv',
-                label='label',
-                name='DataSources',
-                view=no_view,
-                menu=Menu(new_data_source_action, delete_layer_action),
-            ),
-            TreeNodeWithStatus(
-                node_for=[DataSourceModelView],
-                auto_open=True,
-                children='',
-                label='label',
-                name='DataSources',
-                menu=Menu(edit_data_source_action, delete_data_source_action),
-            ),
-        ],
-        orientation="horizontal",
-        editable=False,
-        selected="selected_mv",
-    )
 
     #: The workflow model
     model = Instance(Workflow, allow_none=False)
@@ -251,6 +132,12 @@ class WorkflowTree(ModelView):
 
     #: The currently selected modelview
     selected_mv = Instance(ModelView)
+
+    #: The NewEntity(Modal) for the selected factory group
+    current_modal = Instance(NewEntityModal)
+
+    #; A function to add the new instance from current_modal to the Workflow
+    add_new_entity = Callable()
 
     #: The name of the currently selected factory group. This will be None
     #: if an actual modelview is selected, or (for example) 'MCO' if the
@@ -266,48 +153,177 @@ class WorkflowTree(ModelView):
     #: An event which runs a verification check on the current workflow
     verify_workflow_event = Event
 
-    traits_view = View(
-        Group(
-            VGroup(
-                UItem(name='workflow_mv',
-                      editor=tree_editor,
-                      show_label=False
-                      ),
-                ),
-            VGroup(
-                UReadonly(
-                    name='selected_error',
-                    editor=TextEditor(),
-                    ),
-                label='Workflow Errors',
-                show_border=True
-                ),
-            ),
-        width=800,
-        height=600,
-        resizable=True,
-        )
+    traits_view = View()
 
     def __init__(self, model, factory_registry, *args, **kwargs):
         super(WorkflowTree, self).__init__(*args, **kwargs)
         self.model = model
         self._factory_registry = factory_registry
-        # Set up handlers for nodes being selected
-        self.assign_tree_node_select_action()
+
+    def default_traits_view(self):
+
+        tree_editor = TreeEditor(
+            nodes=[
+                # Root node "Workflow"
+                TreeNodeWithStatus(
+                    node_for=[WorkflowModelView],
+                    auto_open=True,
+                    children='',
+                    name='Workflow',
+                    label='=Workflow',
+                    view=no_view,
+                    menu=no_menu,
+
+                ),
+                # Folder node "Notification" containing the Notification listeners
+                TreeNode(
+                    node_for=[WorkflowModelView],
+                    auto_open=True,
+                    children='notification_listeners_mv',
+                    name='Notification Listeners',
+                    label='=Notification Listeners',
+                    view=no_view,
+                    menu=Menu(new_notification_listener_action),
+                    on_select=self.new_notification_listener
+                ),
+                # Node representing the Notification Listener
+                TreeNodeWithStatus(
+                    node_for=[NotificationListenerModelView],
+                    auto_open=True,
+                    children='',
+                    label='label',
+                    name='Notification Listeners',
+                    view=no_view,
+                    menu=Menu(edit_notification_listener_action,
+                              delete_notification_listener_action),
+                ),
+                # Folder node "MCO" containing the MCO
+                TreeNode(
+                    node_for=[WorkflowModelView],
+                    auto_open=True,
+                    children='mco_mv',
+                    label='=MCO',
+                    name='MCO',
+                    view=no_view,
+                    menu=Menu(new_mco_action),
+                ),
+                # Node representing the MCO
+                TreeNodeWithStatus(
+                    node_for=[MCOModelView],
+                    auto_open=True,
+                    children='',
+                    label='label',
+                    name='MCO',
+                    view=no_view,
+                    menu=Menu(edit_mco_action, delete_mco_action),
+                ),
+                # Folder node "Parameters" containing the MCO parameters
+                TreeNode(
+                    node_for=[MCOModelView],
+                    auto_open=True,
+                    children='mco_parameters_mv',
+                    label='=Parameters',
+                    name='Parameters',
+                    view=no_view,
+                    menu=Menu(new_parameter_action),
+                ),
+                #: Node representing an MCO parameter
+                TreeNodeWithStatus(
+                    node_for=[MCOParameterModelView],
+                    auto_open=True,
+                    children='',
+                    name='Parameters',
+                    label='label',
+                    menu=Menu(edit_parameter_action, delete_parameter_action),
+                ),
+                TreeNode(
+                    node_for=[MCOModelView],
+                    auto_open=True,
+                    children='kpis_mv',
+                    label='=KPIs',
+                    name='KPIs',
+                    view=no_view,
+                    menu=Menu(new_kpi_action),
+                ),
+                TreeNodeWithStatus(
+                    node_for=[KPISpecificationModelView],
+                    auto_open=True,
+                    children='',
+                    label='label',
+                    name='KPIs',
+                    menu=Menu(delete_kpi_action),
+                ),
+                #: Node representing the layers
+                TreeNode(
+                    node_for=[WorkflowModelView],
+                    auto_open=True,
+                    children='execution_layers_mv',
+                    label='=Execution Layers',
+                    name='Execution Layers',
+                    view=no_view,
+                    menu=Menu(new_layer_action),
+                ),
+                TreeNodeWithStatus(
+                    node_for=[ExecutionLayerModelView],
+                    auto_open=True,
+                    children='data_sources_mv',
+                    label='label',
+                    name='DataSources',
+                    view=no_view,
+                    menu=Menu(new_data_source_action, delete_layer_action),
+                ),
+                TreeNodeWithStatus(
+                    node_for=[DataSourceModelView],
+                    auto_open=True,
+                    children='',
+                    label='label',
+                    name='DataSources',
+                    menu=Menu(edit_data_source_action,
+                              delete_data_source_action),
+                ),
+            ],
+            orientation="horizontal",
+            editable=False,
+            selected="selected_mv",
+        )
+
+        view = View(
+            Group(
+                VGroup(
+                    UItem(name='workflow_mv',
+                          editor=tree_editor,
+                          show_label=False
+                          ),
+                ),
+                VGroup(
+                    UReadonly(
+                        name='selected_error',
+                        editor=TextEditor(),
+                    ),
+                    label='Workflow Errors',
+                    show_border=True
+                ),
+            ),
+            width=800,
+            height=600,
+            resizable=True,
+        )
+
+        return view
 
     def set_factory_group(self, name, mv):
         """Sets the selected_factory_group to be the correct name.
         Called on selection of a node in the workflow tree."""
         self.selected_factory_group = name
 
-    def assign_tree_node_select_action(self):
-        """ Set factory group to the node's name on selction,
-        if the node has children or is the root Workflow node"""
-        for node in self.tree_editor.nodes:
-            if node.children != '' or node.node_for == [WorkflowModelView]:
-                node.on_select = partial(self.set_factory_group, node.name)
-            else:
-                node.on_select = partial(self.set_factory_group, 'None')
+    # def assign_tree_node_select_action(self):
+    #     """ Set factory group to the node's name on selction,
+    #     if the node has children or is the root Workflow node"""
+    #     for node in self.tree_editor.nodes:
+    #         if node.children != '' or node.node_for == [WorkflowModelView]:
+    #             node.on_select = partial(self.set_factory_group, node.name)
+    #         else:
+    #             node.on_select = partial(self.set_factory_group, 'None')
 
     def _workflow_mv_default(self):
         return WorkflowModelView(model=self.model)
@@ -344,7 +360,7 @@ class WorkflowTree(ModelView):
         self.workflow_mv.set_mco(None)
 
     @triggers_verify
-    def new_notification_listener(self, ui_info, object):
+    def new_notification_listener(self, object):
         """ Opens a dialog for creating a notification listener"""
 
         workflow_mv = self.workflow_mv
@@ -356,11 +372,17 @@ class WorkflowTree(ModelView):
         modal = NewEntityModal(
             factories=visible_factories
         )
-        modal.edit_traits()
-        result = modal.current_model
+        # modal.edit_traits()
+        # result = modal.current_model
+        #
+        # if result is not None:
+        #     workflow_mv.add_notification_listener(result)
+        self.current_modal = modal
+        self.add_new_entity = self.add_notification_Listener
 
-        if result is not None:
-            workflow_mv.add_notification_listener(result)
+    @triggers_verify
+    def add_notification_Listener(self, modal):
+        self.workflow_mv.add_notification_listener(modal.current_model)
 
     @triggers_verify
     def edit_notification_listener(self, ui_info, object):

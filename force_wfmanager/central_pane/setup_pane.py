@@ -1,10 +1,11 @@
 from force_bdss.core.base_model import BaseModel
 from force_bdss.core.kpi_specification import KPISpecification
+from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 from pyface.tasks.api import TraitsTaskPane
 
-from traits.api import Instance, Dict
+from traits.api import Instance, Dict, Callable
 from traits.has_traits import on_trait_change
-from traits.trait_types import String, Bool, Either
+from traits.trait_types import String, Bool, Either, Button
 from traits.traits import Property
 
 from traitsui.api import View, VGroup, UItem
@@ -37,6 +38,12 @@ class SetupPane(TraitsTaskPane):
     #: The name of the factory group selected in the WorkflowTree
     selected_factory_group = String('Workflow')
 
+    current_modal = Instance(NewEntityModal)
+
+    add_function = Callable()
+
+    btn = Button()
+
     #: The view when editing an existing instance within the workflow tree
     traits_view = View(
         VGroup(
@@ -49,11 +56,15 @@ class SetupPane(TraitsTaskPane):
                           visible_when="selected_model is not None"),
                     label="Model Details",
                     ),
+                    UItem("current_modal", editor=InstanceEditor(),
+                          style="custom",
+                          visible_when="current_modal is not None"),
+                    UItem('btn'),
                 VGroup(
                     UItem("console_ns", label="Console", editor=ShellEditor()),
                     label="Console"
                     ),
-                layout='tabbed'
+                #layout='tabbed'
             )
         )
 
@@ -83,6 +94,10 @@ class SetupPane(TraitsTaskPane):
         selected = self.task.side_pane.workflow_tree.selected_factory_group
         self.selected_factory_group = selected
 
+    @on_trait_change('task.side_pane.workflow_tree.add_new_entity')
+    def set_selected_factory_group(self):
+        self.add_function = self.task.side_pane.workflow_tree.add_new_entity
+
     @on_trait_change('task.side_pane.workflow_tree.selected_mv')
     def update_selected_mv(self):
         self.selected_mv = self.task.side_pane.workflow_tree.selected_mv
@@ -91,3 +106,20 @@ class SetupPane(TraitsTaskPane):
                 self.selected_model = self.selected_mv.model
             else:
                 self.selected_model = None
+
+    @on_trait_change('task.side_pane.workflow_tree.current_modal')
+    def update_current_modal(self):
+        self.current_modal = self.task.side_pane.workflow_tree.current_modal
+        print(self.current_modal)
+        if self.current_modal is not None:
+            print('currentmodel:',self.current_modal, self.current_modal.current_model)
+
+    @on_trait_change('current_modal.current_model')
+    def current_model(self):
+        if self.current_modal is not None:
+            print(self.current_modal.current_model)
+
+    @on_trait_change('btn')
+    def create_new(self, parent):
+        #self.task.side_pane.workflow_tree.workflow_mv.add_notification_listener(self.current_modal.current_model)
+        self.add_function(self.current_modal)
