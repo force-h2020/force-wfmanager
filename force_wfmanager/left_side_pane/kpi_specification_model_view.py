@@ -15,7 +15,7 @@ class KPISpecificationModelView(ModelView):
     variable_names_registry = Instance(VariableNamesRegistry)
 
     #: The human readable name of the KPI
-    label = Property(depends_on='model.name')
+    label = Property(depends_on='model.name,model.objective')
 
     #: Defines if the KPI is valid or not
     valid = Bool(True)

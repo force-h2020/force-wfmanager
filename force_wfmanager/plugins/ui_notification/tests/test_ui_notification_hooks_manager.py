@@ -1,7 +1,6 @@
 import unittest
 
-from envisage.ui.tasks.api import TasksApplication
-
+from pyface.tasks.task import Task
 from force_bdss.api import FactoryRegistryPlugin, Workflow
 from force_wfmanager.plugins.ui_notification.ui_notification_model import \
     UINotificationModel
@@ -26,23 +25,23 @@ class TestUINotificationHooksManager(unittest.TestCase):
         manager = self.factory.create_ui_hooks_manager()
         workflow = Workflow()
 
-        mock_app = mock.Mock(spec=TasksApplication)
-        mock_app.workflow_m = workflow
+        mock_task = mock.Mock(spec=Task)
+        mock_task.workflow_model = workflow
         mock_registry = mock.Mock(spec=FactoryRegistryPlugin)
-        mock_app.factory_registry = mock_registry
+        mock_task.factory_registry = mock_registry
         mock_server = mock.Mock(spec=ZMQServer)
         mock_server.ports = (54537, 54538)
-        mock_app.zmq_server = mock_server
+        mock_task.zmq_server = mock_server
         mock_registry.notification_listener_factory_by_id.return_value \
             = self.nl_factory
 
-        manager.before_execution(mock_app)
+        manager.before_execution(mock_task)
 
         model = workflow.notification_listeners[0]
         self.assertIsInstance(model, UINotificationModel)
 
         # Repeat the operation to check if no new model is created.
-        manager.before_execution(mock_app)
+        manager.before_execution(mock_task)
 
         self.assertEqual(len(workflow.notification_listeners), 1)
         self.assertEqual(model, workflow.notification_listeners[0])
@@ -51,9 +50,9 @@ class TestUINotificationHooksManager(unittest.TestCase):
         self.assertEqual(model.pub_url, "tcp://127.0.0.1:54537")
         self.assertEqual(model.sync_url, "tcp://127.0.0.1:54538")
 
-        manager.after_execution(mock_app)
+        manager.after_execution(mock_task)
 
         self.assertNotIn(model, workflow.notification_listeners)
 
-        manager.after_execution(mock_app)
+        manager.after_execution(mock_task)
         self.assertNotIn(model, workflow.notification_listeners)

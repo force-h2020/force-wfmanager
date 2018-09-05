@@ -8,9 +8,7 @@ from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 class TestWfManagerPlugin(unittest.TestCase):
     def setUp(self):
-        self.wfmanager_plugin = WfManagerPlugin(analysis_m=None,
-                                                workflow_m=None,
-                                                factory_registry=None)
+        self.wfmanager_plugin = WfManagerPlugin(workflow_file=None)
         self.wfmanager_plugin.application = mock.Mock(spec=Application)
 
     def test_init(self):
@@ -38,3 +36,6 @@ class TestWfManagerPlugin(unittest.TestCase):
 
             self.wfmanager_plugin._create_results_task()
             self.assertTrue(mock_results_task.called)
+
+    def test_init_with_file(self):
+        pass

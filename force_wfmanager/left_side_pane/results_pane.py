@@ -4,7 +4,6 @@ from traits.api import Instance
 
 from traitsui.api import View, UItem, VGroup
 
-from force_bdss.api import IFactoryRegistryPlugin
 from force_wfmanager.central_pane.result_table import ResultTable
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 
@@ -12,6 +11,7 @@ from force_wfmanager.central_pane.analysis_model import AnalysisModel
 class ResultsPane(TraitsDockPane):
     """ Side pane which contains the WorkflowSettings (Tree editor for the
     Workflow) and the Run button """
+
     id = 'force_wfmanager.results_pane'
     name = 'Workflow'
 
@@ -27,12 +27,10 @@ class ResultsPane(TraitsDockPane):
     #: Make the pane visible by default
     visible = True
 
-    #: The factory registry containing all the factories
-    factory_registry = Instance(IFactoryRegistryPlugin)
-
-    #: The results table
+    #: The table displaying the results
     result_table = Instance(ResultTable)
 
+    #: The analysis model containing the results
     analysis_model = Instance(AnalysisModel)
 
     traits_view = View(VGroup(

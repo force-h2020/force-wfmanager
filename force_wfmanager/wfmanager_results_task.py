@@ -1,14 +1,12 @@
 import logging
 
-from envisage.ui.tasks.tasks_application import TasksApplication
-
 from pyface.api import ImageResource
 from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 
 from traits.api import Bool, Instance, List, on_trait_change
 
-from force_bdss.api import IFactoryRegistryPlugin, Workflow
+from force_bdss.api import Workflow
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.graph_pane import GraphPane
@@ -21,30 +19,25 @@ log = logging.getLogger(__name__)
 
 
 class WfManagerResultsTask(Task):
+    """Task responsible for running the Workflow and displaying the results."""
+
     id = 'force_wfmanager.wfmanager_results_task'
     name = 'Results'
 
     #: Workflow model.
-    workflow_m = Instance(Workflow, allow_none=False)
+    workflow_model = Instance(Workflow, allow_none=False)
 
     #: Analysis model. Contains the results that are displayed in the plot
     #: and table
-    analysis_m = Instance(AnalysisModel, allow_none=False)
-
-    #: Registry of the available factories
-    factory_registry = Instance(IFactoryRegistryPlugin)
+    analysis_model = Instance(AnalysisModel, allow_none=False)
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(ResultsPane)
 
-    #: The application (Wfmanager) associated with this Task. Accessible here
-    #: because of the way envisage applications work
-    app = Instance(TasksApplication)
-
     #: The menu bar for this task.
     menu_bar = Instance(SMenuBar)
 
-    #: The tool bar for this task.
+    #: The tool bars for this task.
     tool_bars = List(SToolBar)
 
     #: Is the 'run' toolbar button active
@@ -52,6 +45,9 @@ class WfManagerResultsTask(Task):
 
     #: Are the saving and loading menu/toolbar buttons active
     save_load_enabled = Bool(True)
+
+    #: Setup Task
+    setup_task = Instance(Task)
 
     def _menu_bar_default(self):
         """A menu bar with functions relevant to the Results task.
@@ -69,32 +65,32 @@ class WfManagerResultsTask(Task):
             SMenu(
                 TaskAction(
                     name='Open Workflow...',
-                    method='open_workflow',
+                    method='setup_task.open_workflow',
                     enabled_name='save_load_enabled',
                     accelerator='Ctrl+O',
                 ),
                 TaskAction(
                     name='Save Workflow',
-                    method='save_workflow',
+                    method='setup_task.save_workflow',
                     enabled_name='save_load_enabled',
                     accelerator='Ctrl+S',
                 ),
                 TaskAction(
                     name='Save Workflow as...',
-                    method='save_workflow_as',
+                    method='setup_task.save_workflow_as',
                     enabled_name='save_load_enabled',
                     accelerator='Shift+Ctrl+S',
                 ),
                 TaskAction(
                     name='Plugins...',
-                    method='open_plugins'
+                    method='setup_task.open_plugins'
                 ),
                 name='&File'
             ),
             SMenu(
                 TaskAction(
                     name='About WorkflowManager...',
-                    method='open_about'
+                    method='setup_task.open_about'
                 ),
                 name='&Help'
             ),
@@ -118,7 +114,7 @@ class WfManagerResultsTask(Task):
                     name="Open",
                     tooltip="Open workflow",
                     image=ImageResource("baseline_folder_open_black_48dp"),
-                    method="open_workflow",
+                    method="setup_task.open_workflow",
                     enabled_name="save_load_enabled",
                     image_size=(64, 64)
                 ),
@@ -126,7 +122,7 @@ class WfManagerResultsTask(Task):
                     name="Save",
                     tooltip="Save workflow",
                     image=ImageResource("baseline_save_black_48dp"),
-                    method="save_workflow",
+                    method="setup_task.save_workflow",
                     enabled_name="save_load_enabled",
                     image_size=(64, 64)
                 ),
@@ -134,7 +130,7 @@ class WfManagerResultsTask(Task):
                     name="Save As",
                     tooltip="Save workflow with new filename",
                     image=ImageResource("outline_save_black_48dp"),
-                    method="save_workflow_as",
+                    method="setup_task.save_workflow_as",
                     enabled_name="save_load_enabled",
                     image_size=(64, 64)
                 ),
@@ -142,7 +138,7 @@ class WfManagerResultsTask(Task):
                     name="Plugins",
                     tooltip="View state of loaded plugins",
                     image=ImageResource("baseline_power_black_48dp"),
-                    method="open_plugins",
+                    method="setup_task.open_plugins",
                     image_size=(64, 64)
                 ),
             ),
@@ -151,7 +147,7 @@ class WfManagerResultsTask(Task):
                     name="Run",
                     tooltip="Run Workflow",
                     image=ImageResource("baseline_play_arrow_black_48dp"),
-                    method="run_bdss",
+                    method="setup_task.run_bdss",
                     enabled_name="run_enabled",
                     image_size=(64, 64)
                 ),
@@ -162,16 +158,16 @@ class WfManagerResultsTask(Task):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        return GraphPane(self.analysis_m)
+        return GraphPane(self.analysis_model)
 
     def create_dock_panes(self):
         """ Creates the dock panes """
         return [self.side_pane]
 
+    # Default initialisers
+
     def _side_pane_default(self):
-        return ResultsPane(
-            analysis_model=self.analysis_m
-        )
+        return ResultsPane(analysis_model=self.analysis_model)
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
@@ -179,57 +175,38 @@ class WfManagerResultsTask(Task):
             left=PaneItem('force_wfmanager.results_pane'),
         )
 
-    def _app_default(self):
-        return self.window.application
+    def _workflow_model_default(self):
+        return Workflow()
 
-    # Sync Handlers
+    def _analysis_model_default(self):
+        return AnalysisModel()
 
-    # Inbound handlers
-    @on_trait_change('app.workflow_m')
-    def sync_workflow_m(self):
-        self.workflow_m = self.app.workflow_m
+    # Synchronization with Setup Task
 
-    @on_trait_change('app.analysis_m')
-    def sync_analysis_m(self):
-        self.analysis_m = self.app.analysis_m
-
-    @on_trait_change('app.factory_registry')
-    def sync_factory_registry(self):
-        self.factory_registry = self.app.factory_registry
-
-    @on_trait_change('app.run_enabled')
+    @on_trait_change('setup_task.run_enabled')
     def sync_run_enabled(self):
-        self.run_enabled = self.app.run_enabled
+        self.run_enabled = self.setup_task.run_enabled
 
-    @on_trait_change('app.computation_running')
-    def update_save_load_status(self):
-        self.save_load_enabled = not self.app.computation_running
+    @on_trait_change('setup_task.save_load_enabled')
+    def sync_save_load_enabled(self):
+        self.save_load_enabled = self.setup_task.save_load_enabled
+
+    # Synchronization with Window
+
+    @on_trait_change('window.tasks')
+    def get_setup_task(self):
+        if self.window is not None:
+            for task in self.window.tasks:
+                if task.name == "Workflow Setup":
+                    self.setup_task = task
+                    self.analysis_model = self.setup_task.analysis_model
+                    self.workflow_model = self.setup_task.workflow_model
 
     # Menu/Toolbar Methods
 
     def switch_task(self):
-        setup_task = self.window.get_task(
-            'force_wfmanager.wfmanager_setup_task'
-        )
-        self.window.activate_task(setup_task)
+        if self.setup_task is not None:
+            self.window.activate_task(self.setup_task)
 
     def exit(self):
-        self.app.exit()
-
-    def open_workflow(self):
-        self.app.open_workflow()
-
-    def save_workflow(self):
-        self.app.save_workflow()
-
-    def save_workflow_as(self):
-        self.app.save_workflow_as()
-
-    def open_plugins(self):
-        self.app.open_plugins()
-
-    def open_about(self):
-        self.app.open_about()
-
-    def run_bdss(self):
-        self.app.run_bdss()
+        self.window.application.exit()
