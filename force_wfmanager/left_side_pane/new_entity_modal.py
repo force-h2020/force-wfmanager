@@ -7,10 +7,11 @@ from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem,
 
 from envisage.plugin import Plugin
 
-from force_bdss.api import (BaseFactory, BaseMCOModel, BaseDataSourceModel,
-                            BaseMCOParameter, BaseNotificationListenerModel)
-
-from force_wfmanager.left_side_pane.view_utils import model_info
+from force_bdss.api import (
+    BaseFactory, BaseMCOModel, BaseDataSourceModel, BaseMCOParameter,
+    BaseNotificationListenerModel
+)
+from force_wfmanager.api import model_info
 
 no_view = View()
 no_menu = Menu()

@@ -2,7 +2,7 @@ from traits.api import Instance, Unicode, Bool, Event
 from traitsui.api import ModelView
 
 from force_bdss.api import BaseNotificationListenerModel
-from force_wfmanager.left_side_pane.view_utils import get_factory_name
+from force_wfmanager.api import get_factory_name
 
 
 class NotificationListenerModelView(ModelView):

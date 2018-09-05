@@ -3,13 +3,10 @@ from traits.api import Instance, List, Unicode, on_trait_change, Bool, Event
 from traitsui.api import ModelView
 
 from force_bdss.api import BaseMCOModel
-from force_wfmanager.left_side_pane.kpi_specification_model_view import \
-    KPISpecificationModelView
-from force_wfmanager.left_side_pane.variable_names_registry import \
-    VariableNamesRegistry
-
-from .mco_parameter_model_view import MCOParameterModelView
-from .view_utils import get_factory_name
+from force_wfmanager.api import (
+    KPISpecificationModelView, MCOParameterModelView, VariableNamesRegistry,
+    get_factory_name
+)
 
 
 class MCOModelView(ModelView):

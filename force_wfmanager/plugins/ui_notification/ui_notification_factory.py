@@ -1,9 +1,7 @@
 from traits.api import Bool
 
 from force_bdss.api import BaseNotificationListenerFactory
-
-from .ui_notification import UINotification
-from .ui_notification_model import UINotificationModel
+from force_wfmanager.api import UINotification, UINotificationModel
 
 
 class UINotificationFactory(BaseNotificationListenerFactory):

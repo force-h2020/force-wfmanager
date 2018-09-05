@@ -4,8 +4,7 @@ from traits.api import Instance
 
 from traitsui.api import View, VGroup, UItem
 
-from .analysis_model import AnalysisModel
-from .plot import Plot
+from force_wfmanager.api import AnalysisModel, Plot
 
 
 class GraphPane(TraitsTaskPane):

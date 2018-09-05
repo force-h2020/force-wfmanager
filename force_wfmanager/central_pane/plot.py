@@ -9,7 +9,7 @@ from chaco.api import ArrayPlotData, ScatterInspectorOverlay, ArrayDataSource
 from chaco.api import Plot as ChacoPlot
 from chaco.tools.api import PanTool, ZoomTool, ScatterInspector
 
-from .analysis_model import AnalysisModel
+from force_wfmanager.api import AnalysisModel
 
 
 class Plot(HasStrictTraits):

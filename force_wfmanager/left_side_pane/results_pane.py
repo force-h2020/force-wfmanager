@@ -1,11 +1,9 @@
 from pyface.tasks.api import TraitsDockPane
 
 from traits.api import Instance
-
 from traitsui.api import View, UItem, VGroup
 
-from force_wfmanager.central_pane.result_table import ResultTable
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
+from force_wfmanager.api import AnalysisModel, ResultTable
 
 
 class ResultsPane(TraitsDockPane):

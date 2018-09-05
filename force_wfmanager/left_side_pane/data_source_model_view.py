@@ -8,9 +8,9 @@ from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (BaseDataSourceModel, BaseDataSource, Identifier,
                             InputSlotInfo, OutputSlotInfo)
-
-from .view_utils import get_factory_name, get_default_background_color
-from .variable_names_registry import VariableNamesRegistry
+from force_wfmanager.api import (
+    VariableNamesRegistry, get_factory_name, get_default_background_color
+)
 
 
 class TableRow(HasStrictTraits):
