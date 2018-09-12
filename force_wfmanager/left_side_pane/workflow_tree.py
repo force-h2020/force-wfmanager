@@ -133,22 +133,21 @@ class WorkflowTree(ModelView):
     #: The currently selected modelview
     selected_mv = Instance(ModelView)
 
-    #: The NewEntity(Modal) for the selected factory group
-    current_modal = Instance(NewEntityModal)
-
-    #; A function to add the new instance from current_modal to the Workflow
-    add_new_entity = Callable()
-
     #: The name of the currently selected factory group. This will be None
     #: if an actual modelview is selected, or (for example) 'MCO' if the
     #: MCO folder is selected
     selected_factory_group = Unicode()
 
+    #: The NewEntityModal for the selected factory group
+    current_modal = Instance(NewEntityModal)
+
+    # ; A function to add the new instance from current_modal to the Workflow
+    add_new_entity = Callable()
+
     #: The error message relating to selected_mv
-    selected_error = Property(Unicode(),
-                              depends_on="selected_mv,"
-                                         "selected_mv.error_message,"
-                                         "selected_mv.label")
+    selected_error = Property(
+        Unicode(), depends_on="selected_mv,selected_mv.error_message,"
+                              "selected_mv.label")
 
     #: An event which runs a verification check on the current workflow
     verify_workflow_event = Event
@@ -173,7 +172,7 @@ class WorkflowTree(ModelView):
                     label='=Workflow',
                     view=no_view,
                     menu=no_menu,
-
+                    on_select=self.show_workflow_status
                 ),
                 # Folder node "Notification" containing the Notification listeners
                 TreeNode(
@@ -184,7 +183,8 @@ class WorkflowTree(ModelView):
                     label='=Notification Listeners',
                     view=no_view,
                     menu=Menu(new_notification_listener_action),
-                    on_select=self.new_notification_listener
+                    on_select=partial(self.factory_selected,
+                                      'Notification Listeners')
                 ),
                 # Node representing the Notification Listener
                 TreeNodeWithStatus(
@@ -196,6 +196,7 @@ class WorkflowTree(ModelView):
                     view=no_view,
                     menu=Menu(edit_notification_listener_action,
                               delete_notification_listener_action),
+                    on_select=self.instance_selected
                 ),
                 # Folder node "MCO" containing the MCO
                 TreeNode(
@@ -206,6 +207,9 @@ class WorkflowTree(ModelView):
                     name='MCO',
                     view=no_view,
                     menu=Menu(new_mco_action),
+                    on_select=partial(self.factory_selected,
+                                      'MCO')
+
                 ),
                 # Node representing the MCO
                 TreeNodeWithStatus(
@@ -216,6 +220,7 @@ class WorkflowTree(ModelView):
                     name='MCO',
                     view=no_view,
                     menu=Menu(edit_mco_action, delete_mco_action),
+                    on_select=self.instance_selected
                 ),
                 # Folder node "Parameters" containing the MCO parameters
                 TreeNode(
@@ -226,6 +231,8 @@ class WorkflowTree(ModelView):
                     name='Parameters',
                     view=no_view,
                     menu=Menu(new_parameter_action),
+                    on_select=partial(self.factory_selected,
+                                      'Parameters')
                 ),
                 #: Node representing an MCO parameter
                 TreeNodeWithStatus(
@@ -235,6 +242,7 @@ class WorkflowTree(ModelView):
                     name='Parameters',
                     label='label',
                     menu=Menu(edit_parameter_action, delete_parameter_action),
+                    on_select=self.instance_selected
                 ),
                 TreeNode(
                     node_for=[MCOModelView],
@@ -244,6 +252,8 @@ class WorkflowTree(ModelView):
                     name='KPIs',
                     view=no_view,
                     menu=Menu(new_kpi_action),
+                    on_select=partial(self.factory_selected,
+                                      'KPIs')
                 ),
                 TreeNodeWithStatus(
                     node_for=[KPISpecificationModelView],
@@ -252,6 +262,7 @@ class WorkflowTree(ModelView):
                     label='label',
                     name='KPIs',
                     menu=Menu(delete_kpi_action),
+                    on_select=self.instance_selected
                 ),
                 #: Node representing the layers
                 TreeNode(
@@ -262,6 +273,8 @@ class WorkflowTree(ModelView):
                     name='Execution Layers',
                     view=no_view,
                     menu=Menu(new_layer_action),
+                    on_select=partial(self.factory_selected,
+                                      'Execution Layers')
                 ),
                 TreeNodeWithStatus(
                     node_for=[ExecutionLayerModelView],
@@ -271,6 +284,8 @@ class WorkflowTree(ModelView):
                     name='DataSources',
                     view=no_view,
                     menu=Menu(new_data_source_action, delete_layer_action),
+                    on_select=partial(self.factory_selected,
+                                      'DataSources')
                 ),
                 TreeNodeWithStatus(
                     node_for=[DataSourceModelView],
@@ -280,6 +295,7 @@ class WorkflowTree(ModelView):
                     name='DataSources',
                     menu=Menu(edit_data_source_action,
                               delete_data_source_action),
+                    on_select=self.instance_selected
                 ),
             ],
             orientation="horizontal",
@@ -328,6 +344,9 @@ class WorkflowTree(ModelView):
     def _workflow_mv_default(self):
         return WorkflowModelView(model=self.model)
 
+    def show_workflow_status(self, name):
+        pass
+
     @on_trait_change('model')
     def update_model_view(self):
         """Update the workflow modelview's model and verify, on either loading
@@ -336,18 +355,48 @@ class WorkflowTree(ModelView):
         self.workflow_mv = WorkflowModelView(model=self.model)
         self.verify_workflow_event = True
 
+    def instance_selected(self, object):
+        """Deselects any NewEntityModal and factory group, while the currently
+        selected modelview is set to selected_mv automatically by the
+        tree editor.
+        """
+        self.current_modal = None
+        self.selected_factory_group = None
+        self.add_new_entity = None
+
+    def factory_selected(self, name, object):
+        """Sets the selected factory group string for this factory type and
+        calls a function which sets current_modal and add_new_entity."""
+        selection_function = {
+            'Notification Listeners': self.notification_listener_selected,
+            'MCO': self.mco_selected, 'KPI': self.kpi_selected,
+            'Execution Layer': self.execution_layer_selected,
+            'DataSources': self.datasource_selected,
+            'Parameters': self.parameter_selected
+        }
+
+        self.selected_factory_group = name
+        selection_function[name](object)
+
+    def execution_layer_selected(self):
+        pass
+
+    def datasource_selected(self):
+        pass
+
+    def parameter_selected(self):
+        pass
+
+    def mco_selected(self):
+        modal = NewEntityModal(factories=self._factory_registry.mco_factories)
+        self.current_modal = modal
+        self.add_new_entity = self.new_mco
+
     @triggers_verify
-    def new_mco(self, ui_info, object):
+    def new_mco(self):
         """ Opens a dialog for creating a MCO """
 
-        workflow_mv = self.workflow_mv
-
-        modal = NewEntityModal(factories=self._factory_registry.mco_factories)
-        modal.edit_traits()
-        result = modal.current_model
-
-        if result is not None:
-            workflow_mv.set_mco(result)
+        self.workflow_mv.set_mco(self.current_modal.current_model)
 
     @triggers_verify
     def edit_mco(self, ui_info, object):
@@ -359,12 +408,11 @@ class WorkflowTree(ModelView):
 
         self.workflow_mv.set_mco(None)
 
-    @triggers_verify
-    def new_notification_listener(self, object):
-        """ Opens a dialog for creating a notification listener"""
-
-        workflow_mv = self.workflow_mv
-
+    def notification_listener_selected(self, object):
+        """ Called when notification listener factory selected. Sets
+        current_modal to use notification listener factories and sets
+        add_new_entity to self.add_notification_listener.
+        """
         visible_factories = [
             f for f in self._factory_registry.notification_listener_factories
             if f.ui_visible
@@ -372,16 +420,12 @@ class WorkflowTree(ModelView):
         modal = NewEntityModal(
             factories=visible_factories
         )
-        # modal.edit_traits()
-        # result = modal.current_model
-        #
-        # if result is not None:
-        #     workflow_mv.add_notification_listener(result)
         self.current_modal = modal
-        self.add_new_entity = self.add_notification_Listener
+        self.add_new_entity = self.add_notification_listener
+
 
     @triggers_verify
-    def add_notification_Listener(self, modal):
+    def add_notification_listener(self, modal):
         self.workflow_mv.add_notification_listener(modal.current_model)
 
     @triggers_verify
@@ -417,9 +461,13 @@ class WorkflowTree(ModelView):
             mco_mv = self.workflow_mv.mco_mv[0]
             mco_mv.remove_parameter(object.model)
 
+    def kpi_selected(self):
+        self.current_modal = None
+        self.add_new_entity = self.new_kpi
+
     @triggers_verify
-    def new_kpi(self, ui_info, object):
-        object.add_kpi(KPISpecification())
+    def new_kpi(self,):
+        self.selected_mv.add_kpi(KPISpecification())
 
     @triggers_verify
     def delete_kpi(self, ui_info, object):

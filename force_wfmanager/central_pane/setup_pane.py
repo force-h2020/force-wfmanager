@@ -35,12 +35,14 @@ class SetupPane(TraitsTaskPane):
     #: The currently selected ModelView in the WorkflowTree
     selected_mv = Instance(ModelView)
 
-    #: The name of the factory group selected in the WorkflowTree
-    selected_factory_group = String('Workflow')
+    #: The appropriate function to add a new entity of the selected factory
+    #: group to the workflow tree. For example, if the 'DataSources' group
+    #: is selected, this function would be new_data_source().
+    add_function = Callable()
 
     current_modal = Instance(NewEntityModal)
 
-    add_function = Callable()
+
 
     btn = Button()
 
@@ -48,6 +50,7 @@ class SetupPane(TraitsTaskPane):
     traits_view = View(
         VGroup(
                 VGroup(
+
                     UItem("selected_mv", editor=InstanceEditor(),
                           style="custom",
                           visible_when="selected_mv_editable"),
@@ -55,16 +58,19 @@ class SetupPane(TraitsTaskPane):
                           style="custom",
                           visible_when="selected_model is not None"),
                     label="Model Details",
+                    visible_when="selected_model is not None or selected_mv_editable"
                     ),
+                VGroup(
                     UItem("current_modal", editor=InstanceEditor(),
                           style="custom",
                           visible_when="current_modal is not None"),
                     UItem('btn'),
+                    label="New Model Details"
+                ),
                 VGroup(
                     UItem("console_ns", label="Console", editor=ShellEditor()),
                     label="Console"
-                    ),
-                #layout='tabbed'
+                ),
             )
         )
 
@@ -80,8 +86,8 @@ class SetupPane(TraitsTaskPane):
         return namespace
 
     def _get_selected_mv_editable(self):
-        """If there is a view associated to the selected_mv, return True
-        and display that view in the SetupPane."""
+        """If there is a (non-default) view associated to the selected_mv,
+        return True."""
         if self.selected_mv is None:
             return False
 
@@ -89,13 +95,8 @@ class SetupPane(TraitsTaskPane):
             return True
         return False
 
-    @on_trait_change('task.side_pane.workflow_tree.selected_factory_group')
-    def set_selected_factory_group(self):
-        selected = self.task.side_pane.workflow_tree.selected_factory_group
-        self.selected_factory_group = selected
-
     @on_trait_change('task.side_pane.workflow_tree.add_new_entity')
-    def set_selected_factory_group(self):
+    def set_add_new_entity_function(self):
         self.add_function = self.task.side_pane.workflow_tree.add_new_entity
 
     @on_trait_change('task.side_pane.workflow_tree.selected_mv')
@@ -122,4 +123,4 @@ class SetupPane(TraitsTaskPane):
     @on_trait_change('btn')
     def create_new(self, parent):
         #self.task.side_pane.workflow_tree.workflow_mv.add_notification_listener(self.current_modal.current_model)
-        self.add_function(self.current_modal)
+        self.add_function()
