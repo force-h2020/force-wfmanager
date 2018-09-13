@@ -61,7 +61,7 @@ class TestNewEntityModal(unittest.TestCase):
         # Simulate pressing add mco button (should do nothing, because no mco
         # is selected)
         self.handler.close(modal_info, True)
-        self.assertIsNone(modal.current_model)
+        self.assertIsNone(modal.model)
 
         # Simulate selecting an mco factory in the list
         modal, modal_info = self._get_dialog()
@@ -69,7 +69,7 @@ class TestNewEntityModal(unittest.TestCase):
 
         # Simulate pressing add mco button
         self.handler.close(modal_info, True)
-        self.assertIsNotNone(modal.current_model)
+        self.assertIsNotNone(modal.model)
 
         # Simulate selecting an mco factory in the list
         modal, modal_info = self._get_dialog()
@@ -77,25 +77,25 @@ class TestNewEntityModal(unittest.TestCase):
 
         # Simulate pressing add mco button again to create a new mco model
         self.handler.close(modal_info, False)
-        self.assertIsNone(modal.current_model)
+        self.assertIsNone(modal.model)
 
     def test_caching(self):
         modal, _ = self._get_dialog()
         # Select a factory and
         modal.selected_factory = modal.factories[0]
 
-        self.assertIsNotNone(modal.current_model)
-        first_model = modal.current_model
+        self.assertIsNotNone(modal.model)
+        first_model = modal.model
 
         # Unselect the factory
         modal.selected_factory = None
 
-        self.assertIsNone(modal.current_model)
+        self.assertIsNone(modal.model)
 
         # Select the same factory again and check if the model is the same
         modal.selected_factory = modal.factories[0]
 
-        self.assertEqual(id(first_model), id(modal.current_model))
+        self.assertEqual(id(first_model), id(modal.model))
 
     def test_description_mco_modal(self):
 
@@ -118,7 +118,7 @@ class TestNewEntityModal(unittest.TestCase):
         modal.selected_factory = modal.factories[0]
 
         self.assertIn("edit_traits_call_count", model_info(
-            modal.current_model))
+            modal.model))
 
     def test_plugins_root_default(self):
 
@@ -131,7 +131,7 @@ class TestNewEntityModal(unittest.TestCase):
     def test_description_editable_data_source(self):
         modal, modal_info = self._get_dialog_data()
         modal.selected_factory = modal.factories[0]
-        modal.current_model = DataSourceModelDescription(
+        modal.model = DataSourceModelDescription(
             modal.selected_factory)
 
         self.assertIn("Test trait",
@@ -142,7 +142,7 @@ class TestNewEntityModal(unittest.TestCase):
         modal, modal_info = self._get_dialog_data()
         modal.selected_factory = self.data_sources[0]
         # An empty DataSourceModel with no editable traits
-        modal.current_model = DummyDataSourceModel(self.data_sources[0])
+        modal.model = DummyDataSourceModel(self.data_sources[0])
         self.assertFalse(modal.current_model_editable)
         self.assertIn("No description available", modal.model_description_HTML)
         self.assertIn("No configuration options available",

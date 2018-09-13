@@ -3,6 +3,8 @@ import unittest
 from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
                             BaseNotificationListenerModel, ExecutionLayer,
                             KPISpecification)
+from force_bdss.data_sources.base_data_source import BaseDataSource
+from force_bdss.mco.parameters.base_mco_parameter import BaseMCOParameter
 
 from force_bdss.tests.probe_classes.factory_registry_plugin import (
     ProbeFactoryRegistryPlugin
@@ -11,6 +13,8 @@ from force_bdss.tests.probe_classes.factory_registry_plugin import (
 from unittest import mock
 
 from force_bdss.api import Workflow, BaseNotificationListenerFactory
+from force_bdss.tests.probe_classes.mco import ProbeParameterFactory, \
+    ProbeMCOFactory
 
 from force_wfmanager.left_side_pane.workflow_tree import (
     WorkflowTree,
@@ -92,6 +96,7 @@ def get_workflow_tree():
 class TestWorkflowTree(unittest.TestCase):
     def setUp(self):
         self.tree = get_workflow_tree()
+        self.factory_registry = ProbeFactoryRegistryPlugin()
 
     def test_ui_initialization(self):
         self.assertIsNotNone(self.tree.model.mco)
@@ -100,49 +105,63 @@ class TestWorkflowTree(unittest.TestCase):
         self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 2)
 
     def test_new_mco(self):
-        with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_modal.side_effect = mock_new_modal(BaseMCOModel)
-            mock_ui_info = mock.Mock()
-            mock_object = mock.Mock()
 
-            self.tree.new_mco(mock_ui_info, mock_object)
-
-            self.assertTrue(mock_modal.called)
+        self.tree = WorkflowTree(model=Workflow(),
+                                 factory_registry=self.factory_registry)
+        self.assertIsNone(self.tree.workflow_mv.model.mco)
+        self.tree.selection('MCO', None, self.tree.workflow_mv)
+        self.tree.current_modal.model = self.factory_registry.mco_factories[0].create_model()
+        self.tree.add_new_entity()
+        self.assertIsInstance(self.tree.workflow_mv.model.mco, BaseMCOModel)
 
     def test_new_mco_parameter(self):
-        with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_modal.side_effect = mock_new_modal(BaseMCOModel)
-            mock_ui_info = mock.Mock()
-            mock_object = mock.Mock()
 
-            self.tree.new_parameter(mock_ui_info, mock_object)
+        self.assertEqual(
+            len(self.tree.workflow_mv.mco_mv[0].mco_parameters_mv), 1
+        )
+        self.tree.selection(
+            'Parameters', None, self.tree.workflow_mv.mco_mv[0]
+        )
+        self.tree.current_modal.model = self.factory_registry.mco_factories[0].parameter_factories[0].create_model()
+        self.tree.add_new_entity()
+        self.assertEqual(
+            len(self.tree.workflow_mv.mco_mv[0].mco_parameters_mv), 2
+        )
 
-            self.assertTrue(mock_modal.called)
-            self.assertTrue(mock_object.add_parameter.called)
 
     def test_new_data_source(self):
-        with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_modal.side_effect = mock_new_modal(BaseDataSourceModel)
-            mock_ui_info = mock.Mock()
-            mock_object = mock.Mock()
 
-            self.tree.new_data_source(mock_ui_info, mock_object)
+        exec_layer = self.tree.workflow_mv.execution_layers_mv[0]
+        self.assertEqual(len(exec_layer.data_sources_mv), 2)
+        self.tree.selection(
+            'DataSources', 'Execution Layers', exec_layer
+        )
 
-            self.assertTrue(mock_modal.called)
-            self.assertTrue(mock_object.add_data_source.called)
+        self.tree.current_modal.model = \
+            self.factory_registry.data_source_factories[0].create_model()
+
+        self.tree.add_new_entity()
+        self.assertEqual(len(exec_layer.data_sources_mv), 3)
+
 
     def test_new_notification_listener(self):
-        with mock.patch(NEW_ENTITY_MODAL_PATH) as mock_modal:
-            mock_factory = mock_notification_listener_factory()
-            mock_modal.side_effect = mock_new_modal(
-                BaseNotificationListenerModel, factory=mock_factory
-            )
-            mock_ui_info = mock.Mock()
-            mock_object = mock.Mock()
+        self.assertEqual(
+            len(self.tree.workflow_mv.notification_listeners_mv), 1
+        )
+        self.tree.selection(
+            'Notification Listeners', None, self.tree.workflow_mv
+        )
+        self.tree.current_modal.model = self.factory_registry.notification_listener_factories[0].create_model()
+        self.tree.add_new_entity()
+        self.assertEqual(
+            len(self.tree.workflow_mv.notification_listeners_mv), 2
+        )
 
-            self.tree.new_notification_listener(mock_ui_info, mock_object)
+    def test_new_kpi(self):
+        pass
 
-            self.assertTrue(mock_modal.called)
+    def test_new_execution_layer(self):
+        pass
 
     def test_delete_notification_listener(self):
         self.assertEqual(

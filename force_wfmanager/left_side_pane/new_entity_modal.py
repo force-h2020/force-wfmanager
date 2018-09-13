@@ -19,7 +19,7 @@ no_menu = Menu()
 class ModalHandler(Handler):
     def close(self, info, is_ok):
         if is_ok is False:
-            info.object.current_model = None
+            info.object.model = None
         return True
 
 
@@ -51,7 +51,7 @@ class NewEntityModal(HasStrictTraits):
     selected_factory = Instance(BaseFactory)
 
     #: Currently editable model
-    current_model = Either(
+    model = Either(
         Instance(BaseMCOModel),
         Instance(BaseMCOParameter),
         Instance(BaseDataSourceModel),
@@ -81,9 +81,9 @@ class NewEntityModal(HasStrictTraits):
     #: Disable the OK button if no factory set
     OKCancelButtons[0].trait_set(enabled_when="selected_factory is not None")
 
-    model_description_HTML = Property(Unicode, depends_on="current_model")
+    model_description_HTML = Property(Unicode, depends_on="model")
 
-    current_model_editable = Property(Bool, depends_on="current_model")
+    current_model_editable = Property(Bool, depends_on="model")
 
     no_config_options_msg = ReadOnly(Unicode)
 
@@ -91,11 +91,11 @@ class NewEntityModal(HasStrictTraits):
             HSplit(
                 Group(
                     UItem("plugins_root",
-                          editor=editor)
+                          editor=editor),
                     ),
                 VGroup(
                     Group(
-                        UItem("current_model",
+                        UItem("model",
                               style="custom",
                               editor=InstanceEditor(),
                               visible_when="current_model_editable is True"
@@ -104,11 +104,10 @@ class NewEntityModal(HasStrictTraits):
                               style="readonly",
                               editor=HTMLEditor(),
                               visible_when="current_model_editable is False"),
-                        visible_when="current_model is not None",
+                        visible_when="model is not None",
                         style="custom",
                         label="Configuration Options",
                         show_border=True,
-
                     ),
                     Group(
                          UItem("model_description_HTML",
@@ -169,7 +168,7 @@ class NewEntityModal(HasStrictTraits):
         changed. The current model will be created on the fly or extracted from
         the cache if it was already created before """
         if self.selected_factory is None:
-            self.current_model = None
+            self.model = None
             return
 
         cached_model = self._cached_models.get(self.selected_factory)
@@ -178,7 +177,7 @@ class NewEntityModal(HasStrictTraits):
             cached_model = self.selected_factory.create_model()
             self._cached_models[self.selected_factory] = cached_model
 
-        self.current_model = cached_model
+        self.model = cached_model
 
     def get_plugin_from_factory(self, factory):
         """Returns the plugin associated with a particular factory"""
@@ -191,7 +190,7 @@ class NewEntityModal(HasStrictTraits):
         """A check which indicates if 1. A view with at least
         one item exists for this model and 2. That those items
         are actually visible to the user"""
-        return model_info(self.current_model) != []
+        return model_info(self.model) != []
 
     def _get_model_description_HTML(self):
         """Format a description of the currently selected model and it's
@@ -199,12 +198,12 @@ class NewEntityModal(HasStrictTraits):
         ${model_name}_model.py"""
 
         # A default message when no model selected
-        if self.selected_factory is None or self.current_model is None:
+        if self.selected_factory is None or self.model is None:
             return htmlformat("No Model Selected")
 
         model_name = self.selected_factory.get_name()
         model_desc = self.selected_factory.get_description()
-        view_info = model_info(self.current_model)
+        view_info = model_info(self.model)
 
         # Message for a model without editable traits
         if view_info == []:
@@ -215,7 +214,7 @@ class NewEntityModal(HasStrictTraits):
 
         # Retrieve descriptions from trait metadata
         for i, trait_name in enumerate(view_info):
-            trait = self.current_model.trait(trait_name)
+            trait = self.model.trait(trait_name)
             trait_desc = trait.desc
 
             if trait_desc is not None:
