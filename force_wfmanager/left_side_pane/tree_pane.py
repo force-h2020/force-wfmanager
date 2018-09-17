@@ -58,7 +58,7 @@ class TreePane(TraitsDockPane):
 
     def _workflow_tree_default(self):
         wf_tree = WorkflowTree(
-            factory_registry=self.factory_registry,
+            _factory_registry=self.factory_registry,
             model=self.workflow_model
         )
         self.run_enabled = wf_tree.workflow_mv.valid

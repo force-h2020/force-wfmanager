@@ -1,25 +1,18 @@
 import unittest
+import mock
 
-from force_bdss.api import (BaseMCOModel, BaseDataSourceModel,
-                            BaseNotificationListenerModel, ExecutionLayer,
-                            KPISpecification)
-from force_bdss.data_sources.base_data_source import BaseDataSource
-from force_bdss.mco.parameters.base_mco_parameter import BaseMCOParameter
+from force_bdss.api import (
+    BaseMCOModel, Workflow, BaseNotificationListenerFactory, ExecutionLayer,
+    KPISpecification
+)
 
 from force_bdss.tests.probe_classes.factory_registry_plugin import (
     ProbeFactoryRegistryPlugin
 )
 
-from unittest import mock
-
-from force_bdss.api import Workflow, BaseNotificationListenerFactory
-from force_bdss.tests.probe_classes.mco import ProbeParameterFactory, \
-    ProbeMCOFactory
 
 from force_wfmanager.left_side_pane.workflow_tree import (
-    WorkflowTree,
-    TreeNodeWithStatus,
-    ModelEditDialog
+    WorkflowTree, TreeNodeWithStatus, ModelEditDialog
 )
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 
@@ -69,7 +62,7 @@ def get_workflow_tree():
         factory_registry.notification_listener_factories[0]
 
     return WorkflowTree(
-        factory_registry=factory_registry,
+        _factory_registry=factory_registry,
         model=Workflow(
             mco=mco,
             notification_listeners=[
@@ -107,138 +100,175 @@ class TestWorkflowTree(unittest.TestCase):
     def test_new_mco(self):
 
         self.tree = WorkflowTree(model=Workflow(),
-                                 factory_registry=self.factory_registry)
+                                 _factory_registry=self.factory_registry)
         self.assertIsNone(self.tree.workflow_mv.model.mco)
+        self.assertEqual(len(self.tree.workflow_mv.mco_mv), 0)
+
         self.tree.selection('MCO', None, self.tree.workflow_mv)
-        self.tree.current_modal.model = self.factory_registry.mco_factories[0].create_model()
+        self.tree.current_modal.model = \
+            self.factory_registry.mco_factories[0].create_model()
         self.tree.add_new_entity()
+
+        self.assertEqual(len(self.tree.workflow_mv.mco_mv), 1)
         self.assertIsInstance(self.tree.workflow_mv.model.mco, BaseMCOModel)
 
     def test_new_mco_parameter(self):
 
         self.assertEqual(
-            len(self.tree.workflow_mv.mco_mv[0].mco_parameters_mv), 1
-        )
-        self.tree.selection(
-            'Parameters', None, self.tree.workflow_mv.mco_mv[0]
-        )
-        self.tree.current_modal.model = self.factory_registry.mco_factories[0].parameter_factories[0].create_model()
-        self.tree.add_new_entity()
-        self.assertEqual(
-            len(self.tree.workflow_mv.mco_mv[0].mco_parameters_mv), 2
-        )
+            len(self.tree.workflow_mv.mco_mv[0].mco_parameters_mv), 1)
+        self.assertEqual(len(self.tree.workflow_mv.model.mco.parameters), 1)
 
+        self.tree.selection(
+            'Parameters', None, self.tree.workflow_mv.mco_mv[0])
+
+        parameter_factory = \
+            self.factory_registry.mco_factories[0].parameter_factories[0]
+        self.tree.current_modal.model = parameter_factory.create_model()
+        self.tree.add_new_entity()
+
+        self.assertEqual(
+            len(self.tree.workflow_mv.mco_mv[0].mco_parameters_mv), 2)
+        self.assertEqual(len(self.tree.workflow_mv.model.mco.parameters), 2)
 
     def test_new_data_source(self):
 
         exec_layer = self.tree.workflow_mv.execution_layers_mv[0]
         self.assertEqual(len(exec_layer.data_sources_mv), 2)
-        self.tree.selection(
-            'DataSources', 'Execution Layers', exec_layer
+        self.assertEqual(
+            len(self.tree.workflow_mv.model.execution_layers[0].data_sources),
+            2
         )
 
+        self.tree.selection(
+            'DataSources', 'Execution Layers', exec_layer)
         self.tree.current_modal.model = \
             self.factory_registry.data_source_factories[0].create_model()
-
         self.tree.add_new_entity()
-        self.assertEqual(len(exec_layer.data_sources_mv), 3)
 
+        self.assertEqual(len(exec_layer.data_sources_mv), 3)
+        self.assertEqual(
+            len(self.tree.workflow_mv.model.execution_layers[0].data_sources),
+            3
+        )
 
     def test_new_notification_listener(self):
         self.assertEqual(
-            len(self.tree.workflow_mv.notification_listeners_mv), 1
-        )
+            len(self.tree.workflow_mv.notification_listeners_mv), 1)
+        self.assertEqual(
+            len(self.tree.workflow_mv.model.notification_listeners), 1)
+
         self.tree.selection(
             'Notification Listeners', None, self.tree.workflow_mv
         )
-        self.tree.current_modal.model = self.factory_registry.notification_listener_factories[0].create_model()
+        nf_factory = self.factory_registry.notification_listener_factories[0]
+        self.tree.current_modal.model = nf_factory.create_model()
         self.tree.add_new_entity()
+
         self.assertEqual(
-            len(self.tree.workflow_mv.notification_listeners_mv), 2
-        )
+            len(self.tree.workflow_mv.notification_listeners_mv), 2)
+        self.assertEqual(
+            len(self.tree.workflow_mv.model.notification_listeners), 2)
 
     def test_new_kpi(self):
-        pass
+        self.assertEqual(len(self.tree.workflow_mv.mco_mv[0].kpis_mv), 1)
+        self.assertEqual(len(self.tree.workflow_mv.model.mco.kpis), 1)
+
+        self.tree.selection(
+            'KPIs', None, self.tree.workflow_mv.mco_mv[0])
+        self.tree.add_new_entity()
+
+        self.assertEqual(len(self.tree.workflow_mv.mco_mv[0].kpis_mv), 2)
+        self.assertEqual(len(self.tree.workflow_mv.model.mco.kpis), 2)
 
     def test_new_execution_layer(self):
-        pass
+        self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 2)
+        self.assertEqual(len(self.tree.workflow_mv.model.execution_layers), 2)
+
+        self.tree.selection('Execution Layers', None, self.tree.workflow_mv)
+        self.tree.add_new_entity()
+
+        self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 3)
+        self.assertEqual(len(self.tree.workflow_mv.model.execution_layers), 3)
 
     def test_delete_notification_listener(self):
         self.assertEqual(
             len(self.tree.workflow_mv.notification_listeners_mv), 1)
+        self.assertEqual(
+            len(self.tree.workflow_mv.model.notification_listeners), 1)
 
-        notification_listener_mv = \
-            self.tree.workflow_mv.notification_listeners_mv[0]
-
-        mock_ui_info = mock.Mock()
-        self.tree.delete_notification_listener(
-            mock_ui_info,
-            notification_listener_mv)
+        self.tree.selection(None, 'Notification Listeners',
+                            self.tree.workflow_mv.notification_listeners_mv[0])
+        self.tree.remove_entity()
 
         self.assertEqual(
             len(self.tree.workflow_mv.notification_listeners_mv), 0)
-
-    def test_edit_entity(self):
-            with mock.patch(MODEL_EDIT_PATH) as mock_model_edit:
-                mock_model_edit.side_effect = mock_model_edit_dialog()
-                mock_ui_info = mock.Mock()
-                self.tree.edit_mco(
-                    mock_ui_info,
-                    self.tree.workflow_mv.mco_mv[0])
-                self.assertTrue(mock_model_edit.called)
+        self.assertEqual(
+            len(self.tree.workflow_mv.model.notification_listeners), 0)
 
     def test_delete_mco(self):
         self.assertIsNotNone(self.tree.model.mco)
+        self.assertEqual(len(self.tree.workflow_mv.mco_mv), 1)
 
-        mock_ui_info = mock.Mock()
-        mock_object = mock.Mock()
-        self.tree.delete_mco(mock_ui_info, mock_object)
+        self.tree.selection(None, 'MCO', self.tree.workflow_mv.mco_mv[0])
+        self.tree.remove_entity()
 
         self.assertIsNone(self.tree.model.mco)
+        self.assertEqual(len(self.tree.workflow_mv.mco_mv), 0)
 
     def test_delete_mco_parameter(self):
         self.assertEqual(len(self.tree.model.mco.parameters), 1)
 
-        mock_ui_info = mock.Mock()
-        self.tree.delete_parameter(
-            mock_ui_info,
-            self.tree.workflow_mv.mco_mv[0].mco_parameters_mv[0])
+        self.tree.selection(
+            None, 'Parameters',
+            self.tree.workflow_mv.mco_mv[0].mco_parameters_mv[0]
+        )
+        self.tree.remove_entity()
 
         self.assertEqual(len(self.tree.model.mco.parameters), 0)
 
     def test_delete_execution_layer(self):
         first_execution_layer = self.tree.workflow_mv.execution_layers_mv[0]
-
         self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 2)
+        self.assertEqual(len(self.tree.workflow_mv.model.execution_layers), 2)
 
-        mock_ui_info = mock.Mock()
-        self.tree.delete_layer(
-            mock_ui_info,
-            first_execution_layer)
+        self.tree.selection('DataSources', 'Execution Layers',
+                            first_execution_layer)
+        self.tree.remove_entity()
 
         self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 1)
-
-    def test_new_kpi(self):
-        mock_ui_info = mock.Mock()
-        mock_object = mock.Mock()
-        self.tree.new_kpi(mock_ui_info, mock_object)
-        self.assertTrue(mock_object.add_kpi.called)
+        self.assertEqual(len(self.tree.workflow_mv.model.execution_layers), 1)
 
     def test_delete_kpi(self):
-        mco = self.tree.model.mco
-        kpi = mco.kpis[0]
-        mock_ui_info = mock.Mock()
-        mock_object = mock.Mock()
-        mock_object.model = kpi
+        self.assertEqual(len(self.tree.workflow_mv.mco_mv[0].kpis_mv), 1)
+        self.assertEqual(len(self.tree.workflow_mv.model.mco.kpis), 1)
 
-        self.tree.delete_kpi(mock_ui_info, mock_object)
-        self.assertEqual(mco.kpis, [])
+        self.tree.selection(
+            None, 'KPIs', self.tree.workflow_mv.mco_mv[0].kpis_mv[0])
+        self.tree.remove_entity()
 
-    def test_edit_menu_option_available(self):
-        mco_mv = self.tree.workflow_mv.mco_mv[0]
-        self.assertTrue(self.tree.modelview_editable(mco_mv))
-        notification_mv = self.tree.workflow_mv.notification_listeners_mv[0]
-        self.assertFalse(self.tree.modelview_editable(notification_mv))
+        self.assertEqual(len(self.tree.workflow_mv.mco_mv[0].kpis_mv), 0)
+        self.assertEqual(len(self.tree.workflow_mv.model.mco.kpis), 0)
+
+    def test_delete_datasource(self):
+        data_source = \
+            self.tree.workflow_mv.execution_layers_mv[0].data_sources_mv[0]
+        self.assertEqual(
+            len(self.tree.workflow_mv.execution_layers_mv[0].data_sources_mv),
+            2)
+        self.assertEqual(
+            len(self.tree.workflow_mv.model.execution_layers[0].data_sources),
+            2)
+
+        self.tree.selection(
+            None, 'DataSources', data_source)
+        self.tree.remove_entity()
+
+        self.assertEqual(
+            len(self.tree.workflow_mv.execution_layers_mv[0].data_sources_mv),
+            1)
+        self.assertEqual(
+            len(self.tree.workflow_mv.model.execution_layers[0].data_sources),
+            1)
 
     def test_error_messaging(self):
         self.assertIsNone(self.tree.selected_mv)

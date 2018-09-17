@@ -19,7 +19,7 @@ class WfManager(TasksApplication):
         return [TaskWindowLayout(
             *tasks,
             active_task='force_wfmanager.wfmanager_setup_task',
-            size=(800, 600)
+            size=(1680, 1050)
         )]
 
     def _window_factory_default(self):

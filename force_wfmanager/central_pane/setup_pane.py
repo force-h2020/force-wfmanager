@@ -1,15 +1,14 @@
 from force_bdss.core.base_model import BaseModel
-from force_bdss.core.kpi_specification import KPISpecification
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 from pyface.tasks.api import TraitsTaskPane
 
-from traits.api import Instance, Dict, Callable, Bool, Either, Button
+from traits.api import Instance, Dict, Callable, Bool, Button
 from traits.has_traits import on_trait_change
 from traits.trait_types import Unicode
 from traits.traits import Property
 
 from traitsui.api import View, VGroup, UItem, HGroup
-from traitsui.editors import ShellEditor, InstanceEditor
+from traitsui.editors import InstanceEditor
 from traitsui.handler import ModelView
 
 from force_bdss.api import Workflow
@@ -34,7 +33,7 @@ class SetupPane(TraitsTaskPane):
     #: The currently selected ModelView in the WorkflowTree
     selected_mv = Instance(ModelView)
 
-    selected_factory_group = Unicode('Workflow')
+    selected_factory_name = Unicode('Workflow')
 
     #: The appropriate function to add a new entity of the selected factory
     #: group to the workflow tree. For example, if the 'DataSources' group
@@ -49,7 +48,8 @@ class SetupPane(TraitsTaskPane):
 
     remove_entity = Button()
 
-    enable_add_button = Property(Bool, depends_on='current_modal,current_modal.model')
+    enable_add_button = Property(Bool, depends_on='current_modal,'
+                                                  'current_modal.model')
 
     #: The view when editing an existing instance within the workflow tree
     traits_view = View(
@@ -66,7 +66,7 @@ class SetupPane(TraitsTaskPane):
                         UItem('remove_entity', label='Delete'),
                     ),
                     label="Model Details",
-                    visible_when="selected_factory_group=='None'",
+                    visible_when="selected_factory_name=='None'",
                     show_border=True
                     ),
                 VGroup(
@@ -77,11 +77,11 @@ class SetupPane(TraitsTaskPane):
                         UItem('add_new_entity', label='Add',
                               enabled_when='enable_add_button'),
                         UItem('remove_entity', label='Delete Layer',
-                              visible_when=
-                              "selected_factory_group == 'DataSources'"),
+                              visible_when="selected_factory_name == "
+                                           "'DataSources'"),
                     ),
                     label="New Model Details",
-                    visible_when="selected_factory_group != 'None'",
+                    visible_when="selected_factory_name != 'None'",
                     show_border=True
                 ),
 
@@ -123,7 +123,7 @@ class SetupPane(TraitsTaskPane):
         always be added (KPI, Parameter, Execution Layer), or if a specific
         factory is selected in the Setup Pane"""
         simple_factories = ['KPIs', 'Execution Layers']
-        if self.selected_factory_group in simple_factories:
+        if self.selected_factory_name in simple_factories:
             return True
         if self.current_modal is None:
             return False
@@ -155,10 +155,10 @@ class SetupPane(TraitsTaskPane):
             else:
                 self.selected_model = None
 
-    @on_trait_change('task.side_pane.workflow_tree.selected_factory_group')
-    def sync_selected_factory_group(self):
-        self.selected_factory_group = \
-            self.task.side_pane.workflow_tree.selected_factory_group
+    @on_trait_change('task.side_pane.workflow_tree.selected_factory_name')
+    def sync_selected_factory_name(self):
+        self.selected_factory_name = \
+            self.task.side_pane.workflow_tree.selected_factory_name
 
     @on_trait_change('task.side_pane.workflow_tree.current_modal')
     def sync_current_modal(self):
@@ -172,5 +172,4 @@ class SetupPane(TraitsTaskPane):
 
     @on_trait_change('remove_entity')
     def delete_selected_workflow_item(self, parent):
-        print(self.remove_entity_function)
         self.remove_entity_function()
