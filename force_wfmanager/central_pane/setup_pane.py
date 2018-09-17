@@ -33,6 +33,8 @@ class SetupPane(TraitsTaskPane):
     #: The currently selected ModelView in the WorkflowTree
     selected_mv = Instance(ModelView)
 
+    #: The name of the currently selected factory. If no factory is selected,
+    #: this is set to 'None' (with type Unicode!)
     selected_factory_name = Unicode('Workflow')
 
     #: The appropriate function to add a new entity of the selected factory
@@ -40,14 +42,19 @@ class SetupPane(TraitsTaskPane):
     #: is selected, this function would be new_data_source().
     add_new_entity_function = Callable()
 
+    #: Function to remove the currently selected instance
     remove_entity_function = Callable()
 
+    #: A NewEntityModal object displaying the factories of the currently
+    #: selected group
     current_modal = Instance(NewEntityModal)
 
     add_new_entity = Button()
 
     remove_entity = Button()
 
+    #: Switch to disable adding an entity if all required properties are
+    #: not set
     enable_add_button = Property(Bool, depends_on='current_modal,'
                                                   'current_modal.model')
 
@@ -85,6 +92,7 @@ class SetupPane(TraitsTaskPane):
                     show_border=True
                 ),
 
+                # TODO:
                 # The console functionality will be moved to a 'Debug' menu
                 # at a later stage of the UI reorganisation. It should also use
                 # an envisage Task implementation if this isn't too difficult!
@@ -120,7 +128,7 @@ class SetupPane(TraitsTaskPane):
 
     def _get_enable_add_button(self):
         """Return True if the selected factory is a generic type which can
-        always be added (KPI, Parameter, Execution Layer), or if a specific
+        always be added (KPI, Execution Layer), or if a specific
         factory is selected in the Setup Pane"""
         simple_factories = ['KPIs', 'Execution Layers']
         if self.selected_factory_name in simple_factories:
