@@ -49,7 +49,7 @@ class SetupPane(TraitsTaskPane):
     #: selected group
     current_modal = Instance(NewEntityModal)
 
-    current_info = Unicode("ASWHJLASFJLAWJDF")
+    current_info = Unicode("Placeholder for info panel")
 
     add_new_entity = Button()
 
