@@ -1,7 +1,7 @@
 from traits.api import (HasStrictTraits, Instance, List, Either,
                         on_trait_change, Dict, Property, Unicode, Bool,
                         ReadOnly)
-from traitsui.api import (View, Handler, HSplit, HGroup, Group, VGroup, UItem,
+from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem,
                           InstanceEditor, OKCancelButtons, Menu,
                           TreeEditor, TreeNode, HTMLEditor)
 
