@@ -364,11 +364,13 @@ class WorkflowTree(ModelView):
     # Item Selection Actions - create an appropriate NewEntityModal
 
     def datasource_factory_selected(self, object):
+        self.add_new_entity = partial(self.new_data_source, None, object)
         modal = NewEntityModal(
-            factories=self._factory_registry.data_source_factories
+            factories=self._factory_registry.data_source_factories,
+            dclick_function=self.add_new_entity
         )
         self.current_modal = modal
-        self.add_new_entity = partial(self.new_data_source, None, object)
+
 
     def execution_layer_factory_selected(self, object):
         self.current_modal = None
@@ -379,9 +381,13 @@ class WorkflowTree(ModelView):
         self.add_new_entity = partial(self.new_kpi, None, object)
 
     def mco_factory_selected(self, object):
-        modal = NewEntityModal(factories=self._factory_registry.mco_factories)
-        self.current_modal = modal
         self.add_new_entity = partial(self.new_mco, None, object)
+        modal = NewEntityModal(
+            factories=self._factory_registry.mco_factories,
+            dclick_function=self.add_new_entity
+        )
+        self.current_modal = modal
+
 
     def notification_factory_selected(self, object):
 
@@ -389,9 +395,8 @@ class WorkflowTree(ModelView):
             f for f in self._factory_registry.notification_listener_factories
             if f.ui_visible
         ]
-        modal = NewEntityModal(
-            factories=visible_factories
-        )
+        modal = NewEntityModal(factories=visible_factories,
+                               dclick_function=self.add_new_entity)
         self.current_modal = modal
         self.add_new_entity = partial(self.new_notification_listener, None,
                                       object)
@@ -400,7 +405,8 @@ class WorkflowTree(ModelView):
         parameter_factories = []
         if self.model.mco is not None:
             parameter_factories = self.model.mco.factory.parameter_factories
-        modal = NewEntityModal(factories=parameter_factories)
+        modal = NewEntityModal(factories=parameter_factories,
+                               dclick_function=self.add_new_entity)
         self.current_modal = modal
         self.add_new_entity = partial(self.new_parameter, None, object)
 
@@ -408,7 +414,7 @@ class WorkflowTree(ModelView):
     # E.g. for new_parameter the object is the MCOModelView
 
     @triggers_verify
-    def new_data_source(self, ui_info, object):
+    def new_data_source(self, ui_info, object, factory=None):
         object.add_data_source(self.current_modal.model)
         self.current_modal.reset_model()
 
@@ -421,17 +427,17 @@ class WorkflowTree(ModelView):
         object.add_execution_layer(ExecutionLayer())
 
     @triggers_verify
-    def new_mco(self, ui_info, object):
+    def new_mco(self, ui_info, object, factory=None):
         object.set_mco(self.current_modal.model)
         self.current_modal.reset_model()
 
     @triggers_verify
-    def new_notification_listener(self, ui_info, object):
+    def new_notification_listener(self, ui_info, object, factory=None):
         object.add_notification_listener(self.current_modal.model)
         self.current_modal.reset_model()
 
     @triggers_verify
-    def new_parameter(self, ui_info, object):
+    def new_parameter(self, ui_info, object, factory=None):
         object.add_parameter(self.current_modal.model)
         self.current_modal.reset_model()
 

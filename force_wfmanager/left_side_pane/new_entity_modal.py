@@ -1,6 +1,6 @@
 from traits.api import (HasStrictTraits, Instance, List, Either,
                         on_trait_change, Dict, Property, Unicode, Bool,
-                        ReadOnly)
+                        ReadOnly, Callable)
 from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem,
                           InstanceEditor, OKCancelButtons, Menu,
                           TreeEditor, TreeNode, HTMLEditor)
@@ -58,25 +58,12 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseNotificationListenerModel),
     )
 
+    dclick_function = Callable()
+
     #: Cache for created models, models are created when selecting a new
     #: factory and cached so that when selected_factory change the created
     #: models are saved
     _cached_models = Dict()
-
-    editor = TreeEditor(nodes=[
-        TreeNode(node_for=[Root], children="plugins",
-                 view=no_view, label="name", menu=no_menu),
-        TreeNode(node_for=[PluginModelView], children="factories",
-                 view=no_view, label="name", menu=no_menu),
-        TreeNode(node_for=[BaseFactory],
-                 children="", view=no_view, label="name", menu=no_menu)
-            ],
-        orientation="vertical",
-        selected="selected_factory",
-        hide_root=True,
-        auto_open=2,
-        editable=False
-        )
 
     #: Disable the OK button if no factory set
     OKCancelButtons[0].trait_set(enabled_when="selected_factory is not None")
@@ -87,12 +74,33 @@ class NewEntityModal(HasStrictTraits):
 
     no_config_options_msg = ReadOnly(Unicode)
 
-    traits_view = View(
+    def __init__(self, factories, *args, **kwargs):
+        super(NewEntityModal, self).__init__(*args, **kwargs)
+        self.factories = factories
+
+    def default_traits_view(self):
+        editor = TreeEditor(nodes=[
+            TreeNode(node_for=[Root], children="plugins",
+                     view=no_view, label="name", menu=no_menu),
+            TreeNode(node_for=[PluginModelView], children="factories",
+                     view=no_view, label="name", menu=no_menu),
+            TreeNode(node_for=[BaseFactory],
+                     children="", view=no_view, label="name", menu=no_menu,
+                     on_dclick=self.dclick_function)
+        ],
+            orientation="vertical",
+            selected="selected_factory",
+            hide_root=True,
+            auto_open=2,
+            editable=False
+        )
+
+        view = View(
             HSplit(
                 Group(
                     UItem("plugins_root",
                           editor=editor),
-                    ),
+                ),
                 VGroup(
                     VGroup(
                         UItem("model",
@@ -112,28 +120,30 @@ class NewEntityModal(HasStrictTraits):
 
                     ),
                     VGroup(
-                         UItem("model_description_HTML",
-                               editor=HTMLEditor(),
-                               ),
-                         style="readonly",
-                         label="Description",
-                         show_border=True,
-                         springy=True,
+                        UItem("model_description_HTML",
+                              editor=HTMLEditor(),
+                              ),
+                        style="readonly",
+                        label="Description",
+                        show_border=True,
+                        springy=True,
 
                     ),
                 )
-                ),
+            ),
             buttons=OKCancelButtons,
             title="Add New Element",
             handler=ModalHandler(),
             width=500,
             resizable=True,
             kind="livemodal"
-            )
+        )
 
-    def __init__(self, factories, *args, **kwargs):
-        super(NewEntityModal, self).__init__(*args, **kwargs)
-        self.factories = factories
+        return view
+
+
+    def pr(self):
+        print('dbl')
 
     def _plugins_root_default(self):
         """Create a root object for use in the root node of the tree editor.
