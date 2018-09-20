@@ -49,6 +49,8 @@ class SetupPane(TraitsTaskPane):
     #: selected group
     current_modal = Instance(NewEntityModal)
 
+    current_info = Unicode("ASWHJLASFJLAWJDF")
+
     add_new_entity = Button()
 
     remove_entity = Button()
@@ -59,8 +61,12 @@ class SetupPane(TraitsTaskPane):
                                                   'current_modal.model')
 
     #: The view when editing an existing instance within the workflow tree
-    traits_view = View(
-        HGroup(
+
+
+    def default_traits_view(self):
+        view = View(
+            VGroup(
+            HGroup(
                 # Instance View
                 VGroup(
                     UItem("selected_mv", editor=InstanceEditor(),
@@ -70,13 +76,14 @@ class SetupPane(TraitsTaskPane):
                     UItem("selected_model", editor=InstanceEditor(),
                           style="custom",
                           visible_when="selected_model is not None"),
+                    # Remove Buttons
                     HGroup(
                         UItem('remove_entity', label='Delete'),
                     ),
-                    label="Model Details",
+                    label="Item Details",
                     visible_when="selected_factory_name=='None'",
                     show_border=True,
-                    ),
+                ),
                 # Factory View
                 VGroup(
                     HGroup(
@@ -85,17 +92,42 @@ class SetupPane(TraitsTaskPane):
                               visible_when="current_modal is not None",
                               width=825),
                         springy=True,
-
                     ),
                     HGroup(
-                        UItem('add_new_entity', label='Add',
-                              enabled_when='enable_add_button'),
+                        # Add Buttons
+                        UItem('add_new_entity', label='Add New MCO',
+                              enabled_when='enable_add_button',
+                              visible_when="selected_factory_name == "
+                                           "'MCO'"),
+                        UItem('add_new_entity',
+                              label='Add New Execution Layer',
+                              enabled_when='enable_add_button',
+                              visible_when="selected_factory_name == "
+                                           "'Execution Layers'"),
+                        UItem('add_new_entity',
+                              label='Add New Notification Listener',
+                              enabled_when='enable_add_button',
+                              visible_when="selected_factory_name == "
+                                           "'Notification Listeners'"),
+                        UItem('add_new_entity', label='Add New Datasource',
+                              enabled_when='enable_add_button',
+                              visible_when="selected_factory_name == "
+                                           "'DataSources'"),
+                        UItem('add_new_entity', label='Add New Parameter',
+                              enabled_when='enable_add_button',
+                              visible_when="selected_factory_name == "
+                                           "'Parameters'"),
+                        UItem('add_new_entity', label='Add New KPI',
+                              enabled_when='enable_add_button',
+                              visible_when="selected_factory_name == "
+                                           "'KPIs'"),
+                        # Remove Buttons
                         UItem('remove_entity', label='Delete Layer',
                               visible_when="selected_factory_name == "
                                            "'DataSources'"),
                     ),
-                    label="New Model Details",
-                    visible_when="selected_factory_name != 'None'",
+                    label="New Item Details",
+                    visible_when="selected_factory_name  not in ['None', 'Workflow']",
                     show_border=True,
 
                 ),
@@ -109,8 +141,17 @@ class SetupPane(TraitsTaskPane):
                 # label="Console"
                 # ),
             ),
-        width=500,
+            HGroup(
+                UItem("current_info", editor=InstanceEditor(),
+                      style="custom",
+                      visible_when="selected_factory_name in ['Workflow', 'KPIs',"
+                                   "'Execution Layers']")
+            ),
+            ),
+            width=500,
         )
+
+        return view
 
     def _console_ns_default(self):
         namespace = {
@@ -120,7 +161,7 @@ class SetupPane(TraitsTaskPane):
             namespace["app"] = self.task.window.application
         except AttributeError:
             namespace["app"] = None
-
+        
         return namespace
 
     # Properties
@@ -134,6 +175,9 @@ class SetupPane(TraitsTaskPane):
         if len(self.selected_mv.trait_views()) != 0:
             return True
         return False
+
+    def _get_add_label(self):
+        return 'Add {}'.format(self.selected_factory_name)
 
     def _get_enable_add_button(self):
         """Return True if the selected factory is a generic type which can

@@ -311,7 +311,7 @@ class WorkflowTree(ModelView):
 
     # TODO: Add in workflow status screen
     def show_workflow_status(self, name):
-        pass
+        self.selected_factory_name = 'Workflow'
 
     @on_trait_change('model')
     def update_model_view(self):
@@ -393,20 +393,22 @@ class WorkflowTree(ModelView):
             f for f in self._factory_registry.notification_listener_factories
             if f.ui_visible
         ]
+        self.add_new_entity = partial(self.new_notification_listener, None,
+                                      object)
         modal = NewEntityModal(factories=visible_factories,
                                dclick_function=self.add_new_entity)
         self.current_modal = modal
-        self.add_new_entity = partial(self.new_notification_listener, None,
-                                      object)
+
 
     def parameter_factory_selected(self, object):
         parameter_factories = []
         if self.model.mco is not None:
             parameter_factories = self.model.mco.factory.parameter_factories
+        self.add_new_entity = partial(self.new_parameter, None, object)
         modal = NewEntityModal(factories=parameter_factories,
                                dclick_function=self.add_new_entity)
         self.current_modal = modal
-        self.add_new_entity = partial(self.new_parameter, None, object)
+
 
     # New entity creation - object is containing ModelView.
     # E.g. for new_parameter the object is the MCOModelView
