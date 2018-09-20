@@ -107,15 +107,17 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
 
     def test_result_task_exit(self):
         self.create_tasks()
-        self.wfmanager.exit = mock.Mock(return_value=None)
+        for window in self.wfmanager.windows:
+            window.close = mock.Mock(return_value=True)
         self.results_task.exit()
-        self.assertTrue(self.wfmanager.exit.called)
+        self.assertTrue(self.results_task.window.close.called)
 
     def test_setup_task_exit(self):
         self.create_tasks()
-        self.wfmanager.exit = mock.Mock(return_value=None)
+        for window in self.wfmanager.windows:
+            window.close = mock.Mock(return_value=True)
         self.setup_task.exit()
-        self.assertTrue(self.wfmanager.exit.called)
+        self.assertTrue(self.setup_task.window.close.called)
 
 
 class TestTaskWindowClosePrompt(unittest.TestCase):

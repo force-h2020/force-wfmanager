@@ -13,7 +13,7 @@ class ResultsPane(TraitsDockPane):
     Workflow) and the Run button """
 
     id = 'force_wfmanager.results_pane'
-    name = 'Workflow'
+    name = 'Results Table'
 
     #: Remove the possibility to close the pane
     closable = False
@@ -22,7 +22,7 @@ class ResultsPane(TraitsDockPane):
     floatable = False
 
     #: Remove the possibility to move the pane in the GUI
-    movable = False
+    movable = True
 
     #: Make the pane visible by default
     visible = True

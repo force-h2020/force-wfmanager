@@ -300,8 +300,7 @@ class WorkflowTree(ModelView):
                     show_border=True
                 ),
             ),
-            width=800,
-            height=600,
+            width=500,
             resizable=True,
         )
 
@@ -411,6 +410,7 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def new_data_source(self, ui_info, object):
         object.add_data_source(self.current_modal.model)
+        self.current_modal.reset_model()
 
     @triggers_verify
     def new_kpi(self, ui_info, object):
@@ -423,14 +423,17 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def new_mco(self, ui_info, object):
         object.set_mco(self.current_modal.model)
+        self.current_modal.reset_model()
 
     @triggers_verify
     def new_notification_listener(self, ui_info, object):
         object.add_notification_listener(self.current_modal.model)
+        self.current_modal.reset_model()
 
     @triggers_verify
     def new_parameter(self, ui_info, object):
         object.add_parameter(self.current_modal.model)
+        self.current_modal.reset_model()
 
     # Delete entities - object is the modelview being deleted.
     # E.g. for delete_data_source the object is a DataSourceModelView

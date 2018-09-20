@@ -60,12 +60,13 @@ class SetupPane(TraitsTaskPane):
 
     #: The view when editing an existing instance within the workflow tree
     traits_view = View(
-        VGroup(
+        HGroup(
+                # Instance View
                 VGroup(
-
                     UItem("selected_mv", editor=InstanceEditor(),
                           style="custom",
-                          visible_when="selected_mv_editable"),
+                          visible_when="selected_mv_editable",
+                          ),
                     UItem("selected_model", editor=InstanceEditor(),
                           style="custom",
                           visible_when="selected_model is not None"),
@@ -74,12 +75,18 @@ class SetupPane(TraitsTaskPane):
                     ),
                     label="Model Details",
                     visible_when="selected_factory_name=='None'",
-                    show_border=True
+                    show_border=True,
                     ),
+                # Factory View
                 VGroup(
-                    UItem("current_modal", editor=InstanceEditor(),
-                          style="custom",
-                          visible_when="current_modal is not None"),
+                    HGroup(
+                        UItem("current_modal", editor=InstanceEditor(),
+                              style="custom",
+                              visible_when="current_modal is not None",
+                              width=825),
+                        springy=True,
+
+                    ),
                     HGroup(
                         UItem('add_new_entity', label='Add',
                               enabled_when='enable_add_button'),
@@ -89,7 +96,8 @@ class SetupPane(TraitsTaskPane):
                     ),
                     label="New Model Details",
                     visible_when="selected_factory_name != 'None'",
-                    show_border=True
+                    show_border=True,
+
                 ),
 
                 # TODO:
@@ -100,7 +108,8 @@ class SetupPane(TraitsTaskPane):
                 # UItem("console_ns", label="Console", editor=ShellEditor()),
                 # label="Console"
                 # ),
-            )
+            ),
+        width=500,
         )
 
     def _console_ns_default(self):

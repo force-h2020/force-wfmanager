@@ -135,8 +135,15 @@ class WfManagerSetupTask(Task):
                     name='Plugins...',
                     method='open_plugins'
                 ),
+                TaskAction(
+                    name='Exit',
+                    method='exit',
+                ),
+                # Setting id='File' will automatically create a exit menu item.
+                # This menu item calls application.exit, which bypasses our
+                # custom exit which prompts for a save before exiting
                 name='&File',
-                id='File'
+
             ),
             SMenu(
                 TaskAction(
@@ -603,4 +610,4 @@ class WfManagerSetupTask(Task):
         self.window.activate_task(self.results_task)
 
     def exit(self):
-        self.window.application.exit()
+        self.window.close()

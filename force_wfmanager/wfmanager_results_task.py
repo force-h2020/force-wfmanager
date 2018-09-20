@@ -86,6 +86,10 @@ class WfManagerResultsTask(Task):
                     name='Plugins...',
                     method='setup_task.open_plugins'
                 ),
+                TaskAction(
+                    name='Exit',
+                    method='exit',
+                ),
                 name='&File'
             ),
             SMenu(
@@ -173,7 +177,7 @@ class WfManagerResultsTask(Task):
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
         return TaskLayout(
-            left=PaneItem('force_wfmanager.results_pane'),
+            top=PaneItem('force_wfmanager.results_pane'),
         )
 
     def _workflow_model_default(self):
@@ -210,4 +214,4 @@ class WfManagerResultsTask(Task):
             self.window.activate_task(self.setup_task)
 
     def exit(self):
-        self.window.application.exit()
+        self.window.close()

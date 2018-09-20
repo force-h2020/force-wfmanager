@@ -1,7 +1,7 @@
 from traits.api import (HasStrictTraits, Instance, List, Either,
                         on_trait_change, Dict, Property, Unicode, Bool,
                         ReadOnly)
-from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem,
+from traitsui.api import (View, Handler, HSplit, HGroup, Group, VGroup, UItem,
                           InstanceEditor, OKCancelButtons, Menu,
                           TreeEditor, TreeNode, HTMLEditor)
 
@@ -94,7 +94,7 @@ class NewEntityModal(HasStrictTraits):
                           editor=editor),
                     ),
                 VGroup(
-                    Group(
+                    VGroup(
                         UItem("model",
                               style="custom",
                               editor=InstanceEditor(),
@@ -108,22 +108,25 @@ class NewEntityModal(HasStrictTraits):
                         style="custom",
                         label="Configuration Options",
                         show_border=True,
+                        springy=True,
+
                     ),
-                    Group(
+                    VGroup(
                          UItem("model_description_HTML",
                                editor=HTMLEditor(),
                                ),
                          style="readonly",
                          label="Description",
-                         show_border=True
-                     ),
+                         show_border=True,
+                         springy=True,
+
+                    ),
                 )
                 ),
             buttons=OKCancelButtons,
             title="Add New Element",
             handler=ModalHandler(),
-            width=800,
-            height=600,
+            width=500,
             resizable=True,
             kind="livemodal"
             )
@@ -178,6 +181,12 @@ class NewEntityModal(HasStrictTraits):
             self._cached_models[self.selected_factory] = cached_model
 
         self.model = cached_model
+
+    def reset_model(self):
+        if self.selected_factory is None:
+            self.model = None
+        else:
+            self.model = self.selected_factory.create_model()
 
     def get_plugin_from_factory(self, factory):
         """Returns the plugin associated with a particular factory"""
