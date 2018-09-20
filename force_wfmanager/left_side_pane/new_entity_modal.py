@@ -141,10 +141,6 @@ class NewEntityModal(HasStrictTraits):
 
         return view
 
-
-    def pr(self):
-        print('dbl')
-
     def _plugins_root_default(self):
         """Create a root object for use in the root node of the tree editor.
         This contains a list of PluginModelViews, which hold the plugin itself,

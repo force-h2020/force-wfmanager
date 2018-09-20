@@ -371,7 +371,6 @@ class WorkflowTree(ModelView):
         )
         self.current_modal = modal
 
-
     def execution_layer_factory_selected(self, object):
         self.current_modal = None
         self.add_new_entity = partial(self.new_layer, None, object)
@@ -387,7 +386,6 @@ class WorkflowTree(ModelView):
             dclick_function=self.add_new_entity
         )
         self.current_modal = modal
-
 
     def notification_factory_selected(self, object):
 
