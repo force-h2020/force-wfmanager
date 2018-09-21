@@ -361,7 +361,9 @@ class WorkflowTree(ModelView):
             on_select = factory_select_function[factory_name]
             on_select(object)
 
-    # Item Selection Actions - create an appropriate NewEntityModal
+    # Item Selection Actions - create an appropriate NewEntityModal,
+    # set add_new_entity to be for the right object type and provide a way to
+    # add things by double clicking
 
     def datasource_factory_selected(self, object):
         self.add_new_entity = partial(self.new_data_source, None, object)

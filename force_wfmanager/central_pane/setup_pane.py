@@ -49,8 +49,10 @@ class SetupPane(TraitsTaskPane):
     #: selected group
     current_modal = Instance(NewEntityModal)
 
+    #: A Button which calls add_new_entity_function when pressed
     add_new_entity = Button()
 
+    #: A Button which calls remove_entity_function when pressed
     remove_entity = Button()
 
     #: Switch to disable adding an entity if all required properties are
