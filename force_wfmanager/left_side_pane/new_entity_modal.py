@@ -58,6 +58,10 @@ class NewEntityModal(HasStrictTraits):
         Instance(BaseNotificationListenerModel),
     )
 
+    #: A function to be called on double-clicking. This is set in
+    #: WorkflowTree, when the instance of NewEntityModal is created.
+    #: Generally this will be used to add a new object, but in principle
+    #: could be anything.
     dclick_function = Callable()
 
     #: Cache for created models, models are created when selecting a new
