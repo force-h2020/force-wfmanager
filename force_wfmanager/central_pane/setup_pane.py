@@ -186,9 +186,7 @@ class SetupPane(TraitsTaskPane):
         simple_factories = ['KPIs', 'Execution Layers']
         if self.selected_factory_name in simple_factories:
             return True
-        if self.current_modal is None:
-            return False
-        if self.current_modal.model is None:
+        if self.current_modal is None or self.current_modal.model is None:
             return False
         return True
 
