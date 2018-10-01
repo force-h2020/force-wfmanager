@@ -160,7 +160,7 @@ class WorkflowTree(ModelView):
                     label='=Notification Listeners',
                     view=no_view,
                     menu=no_menu,
-                    on_select=self.notification_factory_selected()
+                    on_select=self.notification_factory_selected
                 ),
                 # Node representing the Notification Listener
                 TreeNodeWithStatus(
@@ -255,7 +255,7 @@ class WorkflowTree(ModelView):
                     name='DataSources',
                     view=no_view,
                     menu=Menu(delete_layer_action),
-                    on_select=self.datasource_factory_selected
+                    on_select=self.datasource_factory_exec_instance_selected
                 ),
                 TreeNodeWithStatus(
                     node_for=[DataSourceModelView],
@@ -310,46 +310,6 @@ class WorkflowTree(ModelView):
         self.workflow_mv = WorkflowModelView(model=self.model)
         self.verify_workflow_event = True
 
-    def selection(self, factory_name, instance_name, object):
-        """Assigns the correct add/remove entity functions based on which
-        object is selected in the workflow tree"""
-        instance_select_function = {
-            'Notification Listeners': self.delete_notification_listener,
-            'MCO': self.delete_mco, 'KPIs': self.delete_kpi,
-            'Execution Layers': self.delete_layer,
-            'DataSources': self.delete_data_source,
-            'Parameters': self.delete_parameter
-        }
-        factory_select_function = {
-            'Notification Listeners': self.notification_factory_selected,
-            'MCO': self.mco_factory_selected,
-            'KPIs': self.kpi_factory_selected,
-            'Execution Layers': self.execution_layer_factory_selected,
-            'DataSources': self.datasource_factory_selected,
-            'Parameters': self.parameter_factory_selected
-        }
-        if instance_name is not None and factory_name is not None:
-            self.selected_factory_name = factory_name
-            on_select = factory_select_function[factory_name]
-            on_select(object)
-            self.remove_entity = partial(
-                instance_select_function[instance_name], None,
-                object)
-
-        elif instance_name is not None:
-
-            self.current_modal = None
-            self.selected_factory_name = 'None'
-            self.add_new_entity = None
-            self.remove_entity = partial(
-                instance_select_function[instance_name], None, object
-            )
-        elif factory_name is not None:
-
-            self.selected_factory_name = factory_name
-            on_select = factory_select_function[factory_name]
-            on_select(object)
-
     # Item Selection Actions - create an appropriate NewEntityModal,
     # set add_new_entity to be for the right object type and provide a way to
     # add things by double clicking
@@ -362,56 +322,90 @@ class WorkflowTree(ModelView):
     def _no_instance_selected(self):
         self.remove_entity = None
 
-    def datasource_factory_selected(self, object):
-        self.add_new_entity = partial(self.new_data_source, None, object)
+    def datasource_factory_exec_instance_selected(self, ds_factory):
+        self.add_new_entity = partial(self.new_data_source, None, ds_factory)
         modal = NewEntityModal(
             factories=self._factory_registry.data_source_factories,
             dclick_function=self.add_new_entity
         )
         self.current_modal = modal
-        #TODO: Execution layer instance stuff
+        self.selected_factory_name = 'DataSource'
+        self.remove_entity = partial(self.delete_layer, None, ds_factory)
 
-    def execution_layer_factory_selected(self, object):
-        self.add_new_entity = partial(self.new_layer, None, object)
+    def execution_layer_factory_selected(self, exec_factory):
+        self.add_new_entity = partial(self.new_layer, None, exec_factory)
         self.current_modal = None
+        self.selected_factory_name = 'ExecutionLayer'
         self._no_instance_selected()
 
-    def kpi_factory_selected(self, object):
-        self.add_new_entity = partial(self.new_kpi, None, object)
+    def kpi_factory_selected(self, kpi_factory):
+        self.add_new_entity = partial(self.new_kpi, None, kpi_factory)
         self.current_modal = None
+        self.selected_factory_name = 'KPI'
         self._no_instance_selected()
 
-    def mco_factory_selected(self, object):
-        self.add_new_entity = partial(self.new_mco, None, object)
+    def mco_factory_selected(self, mco_factory):
+        self.add_new_entity = partial(self.new_mco, None, mco_factory)
         modal = NewEntityModal(
             factories=self._factory_registry.mco_factories,
             dclick_function=self.add_new_entity
         )
         self.current_modal = modal
+        self.selected_factory_name = 'MCO'
         self._no_instance_selected()
 
-    def notification_factory_selected(self, object):
-
+    def notification_factory_selected(self, notif_factory):
         visible_factories = [
             f for f in self._factory_registry.notification_listener_factories
             if f.ui_visible
         ]
-        self.add_new_entity = partial(self.new_notification_listener, None,
-                                      object)
-        modal = NewEntityModal(factories=visible_factories,
-                               dclick_function=self.add_new_entity)
+        self.add_new_entity = partial(self.new_notification_listener,
+                                      None, notif_factory)
+        modal = NewEntityModal(
+            factories=visible_factories,
+            dclick_function=self.add_new_entity
+        )
         self.current_modal = modal
+        self.selected_factory_name = 'NotificationListener'
+        self._no_instance_selected()
 
-    def parameter_factory_selected(self, object):
+    def parameter_factory_selected(self, param_factory):
         parameter_factories = []
-        self.add_new_entity = partial(self.new_parameter, None, object)
+        self.add_new_entity = partial(self.new_parameter, None,
+                                      param_factory)
         if self.model.mco is not None:
             parameter_factories = self.model.mco.factory.parameter_factories
-        modal = NewEntityModal(factories=parameter_factories,
-                               dclick_function=self.add_new_entity)
+        modal = NewEntityModal(
+            factories=parameter_factories,
+            dclick_function=self.add_new_entity
+        )
         self.current_modal = modal
+        self.selected_factory_name = 'Parameter'
+        self._no_instance_selected()
 
-    #TODO: Instance selection methods
+    def mco_instance_selected(self, mco_instance):
+        self.remove_entity = partial(self.delete_mco, None,
+                                     mco_instance)
+        self._no_factory_selected()
+
+    def notification_instance_selected(self, notification_instance):
+        self.remove_entity = partial(self.delete_notification_listener,
+                                     None, notification_instance)
+        self._no_factory_selected()
+
+    def kpi_instance_selected(self, kpi_instance):
+        self.remove_entity = partial(self.delete_kpi, None, kpi_instance)
+        self._no_factory_selected()
+
+    def parameter_instance_selected(self, parameter_instance):
+        self.remove_entity = partial(self.delete_parameter, None,
+                                     parameter_instance)
+        self._no_factory_selected()
+
+    def datasource_instance_selected(self, datasource_instance):
+        self.remove_entity = partial(self.delete_data_source, None,
+                                     datasource_instance)
+        self._no_factory_selected()
 
     #: Functions for new entity creation - The args ui_info and object are
     #: passed by the WorkflowTree on selection. The additional factory arg

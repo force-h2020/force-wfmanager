@@ -94,7 +94,7 @@ class SetupPane(TraitsTaskPane):
                               enabled_when='enable_add_button'),
                         UItem('remove_entity', label='Delete Layer',
                               visible_when="selected_factory_name == "
-                                           "'DataSources'"),
+                                           "'DataSource'"),
                     ),
                     label="New Model Details",
                     visible_when="selected_factory_name != 'None'",
@@ -141,7 +141,7 @@ class SetupPane(TraitsTaskPane):
         """Return True if the selected factory is a generic type which can
         always be added (KPI, Execution Layer), or if a specific
         factory is selected in the Setup Pane"""
-        simple_factories = ['KPIs', 'Execution Layers']
+        simple_factories = ['KPI', 'ExecutionLayer']
         if self.selected_factory_name in simple_factories:
             return True
         if self.current_modal is None or self.current_modal.model is None:

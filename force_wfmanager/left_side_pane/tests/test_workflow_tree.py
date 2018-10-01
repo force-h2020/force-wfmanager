@@ -104,7 +104,7 @@ class TestWorkflowTree(unittest.TestCase):
         self.assertIsNone(self.tree.workflow_mv.model.mco)
         self.assertEqual(len(self.tree.workflow_mv.mco_mv), 0)
 
-        self.tree.selection('MCO', None, self.tree.workflow_mv)
+        self.tree.mco_factory_selected(self.tree.workflow_mv)
         self.tree.current_modal.model = \
             self.factory_registry.mco_factories[0].create_model()
         self.tree.add_new_entity()
@@ -118,8 +118,7 @@ class TestWorkflowTree(unittest.TestCase):
             len(self.tree.workflow_mv.mco_mv[0].mco_parameters_mv), 1)
         self.assertEqual(len(self.tree.workflow_mv.model.mco.parameters), 1)
 
-        self.tree.selection(
-            'Parameters', None, self.tree.workflow_mv.mco_mv[0])
+        self.tree.parameter_factory_selected(self.tree.workflow_mv.mco_mv[0])
 
         parameter_factory = \
             self.factory_registry.mco_factories[0].parameter_factories[0]
@@ -139,8 +138,7 @@ class TestWorkflowTree(unittest.TestCase):
             2
         )
 
-        self.tree.selection(
-            'DataSources', 'Execution Layers', exec_layer)
+        self.tree.datasource_factory_exec_instance_selected(exec_layer)
         self.tree.current_modal.model = \
             self.factory_registry.data_source_factories[0].create_model()
         self.tree.add_new_entity()
@@ -157,9 +155,7 @@ class TestWorkflowTree(unittest.TestCase):
         self.assertEqual(
             len(self.tree.workflow_mv.model.notification_listeners), 1)
 
-        self.tree.selection(
-            'Notification Listeners', None, self.tree.workflow_mv
-        )
+        self.tree.notification_factory_selected(self.tree.workflow_mv)
         nf_factory = self.factory_registry.notification_listener_factories[0]
         self.tree.current_modal.model = nf_factory.create_model()
         self.tree.add_new_entity()
@@ -173,8 +169,7 @@ class TestWorkflowTree(unittest.TestCase):
         self.assertEqual(len(self.tree.workflow_mv.mco_mv[0].kpis_mv), 1)
         self.assertEqual(len(self.tree.workflow_mv.model.mco.kpis), 1)
 
-        self.tree.selection(
-            'KPIs', None, self.tree.workflow_mv.mco_mv[0])
+        self.tree.kpi_factory_selected(self.tree.workflow_mv.mco_mv[0])
         self.tree.add_new_entity()
 
         self.assertEqual(len(self.tree.workflow_mv.mco_mv[0].kpis_mv), 2)
@@ -184,7 +179,7 @@ class TestWorkflowTree(unittest.TestCase):
         self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 2)
         self.assertEqual(len(self.tree.workflow_mv.model.execution_layers), 2)
 
-        self.tree.selection('Execution Layers', None, self.tree.workflow_mv)
+        self.tree.execution_layer_factory_selected(self.tree.workflow_mv)
         self.tree.add_new_entity()
 
         self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 3)
@@ -195,9 +190,8 @@ class TestWorkflowTree(unittest.TestCase):
             len(self.tree.workflow_mv.notification_listeners_mv), 1)
         self.assertEqual(
             len(self.tree.workflow_mv.model.notification_listeners), 1)
-
-        self.tree.selection(None, 'Notification Listeners',
-                            self.tree.workflow_mv.notification_listeners_mv[0])
+        notif_instance = self.tree.workflow_mv.notification_listeners_mv[0]
+        self.tree.notification_instance_selected(notif_instance)
         self.tree.remove_entity()
 
         self.assertEqual(
@@ -209,7 +203,7 @@ class TestWorkflowTree(unittest.TestCase):
         self.assertIsNotNone(self.tree.model.mco)
         self.assertEqual(len(self.tree.workflow_mv.mco_mv), 1)
 
-        self.tree.selection(None, 'MCO', self.tree.workflow_mv.mco_mv[0])
+        self.tree.mco_instance_selected(self.tree.workflow_mv.mco_mv[0])
         self.tree.remove_entity()
 
         self.assertIsNone(self.tree.model.mco)
@@ -218,8 +212,7 @@ class TestWorkflowTree(unittest.TestCase):
     def test_delete_mco_parameter(self):
         self.assertEqual(len(self.tree.model.mco.parameters), 1)
 
-        self.tree.selection(
-            None, 'Parameters',
+        self.tree.parameter_instance_selected(
             self.tree.workflow_mv.mco_mv[0].mco_parameters_mv[0]
         )
         self.tree.remove_entity()
@@ -231,8 +224,9 @@ class TestWorkflowTree(unittest.TestCase):
         self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 2)
         self.assertEqual(len(self.tree.workflow_mv.model.execution_layers), 2)
 
-        self.tree.selection('DataSources', 'Execution Layers',
-                            first_execution_layer)
+        self.tree.datasource_factory_exec_instance_selected(
+            first_execution_layer
+        )
         self.tree.remove_entity()
 
         self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 1)
@@ -242,8 +236,9 @@ class TestWorkflowTree(unittest.TestCase):
         self.assertEqual(len(self.tree.workflow_mv.mco_mv[0].kpis_mv), 1)
         self.assertEqual(len(self.tree.workflow_mv.model.mco.kpis), 1)
 
-        self.tree.selection(
-            None, 'KPIs', self.tree.workflow_mv.mco_mv[0].kpis_mv[0])
+        self.tree.kpi_instance_selected(
+            self.tree.workflow_mv.mco_mv[0].kpis_mv[0]
+        )
         self.tree.remove_entity()
 
         self.assertEqual(len(self.tree.workflow_mv.mco_mv[0].kpis_mv), 0)
@@ -259,8 +254,7 @@ class TestWorkflowTree(unittest.TestCase):
             len(self.tree.workflow_mv.model.execution_layers[0].data_sources),
             2)
 
-        self.tree.selection(
-            None, 'DataSources', data_source)
+        self.tree.datasource_instance_selected(data_source)
         self.tree.remove_entity()
 
         self.assertEqual(
