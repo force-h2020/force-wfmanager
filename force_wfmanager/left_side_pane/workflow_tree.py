@@ -326,7 +326,7 @@ class WorkflowTree(ModelView):
         self.add_new_entity = partial(self.new_data_source, None, ds_factory)
         modal = NewEntityModal(
             factories=self._factory_registry.data_source_factories,
-            dclick_function=self.add_new_entity
+            dclick_function=partial(self.new_data_source, None, ds_factory)
         )
         self.current_modal = modal
         self.selected_factory_name = 'DataSource'
@@ -348,7 +348,7 @@ class WorkflowTree(ModelView):
         self.add_new_entity = partial(self.new_mco, None, mco_factory)
         modal = NewEntityModal(
             factories=self._factory_registry.mco_factories,
-            dclick_function=self.add_new_entity
+            dclick_function=partial(self.new_mco, None, mco_factory)
         )
         self.current_modal = modal
         self.selected_factory_name = 'MCO'
@@ -363,7 +363,8 @@ class WorkflowTree(ModelView):
                                       None, notif_factory)
         modal = NewEntityModal(
             factories=visible_factories,
-            dclick_function=self.add_new_entity
+            dclick_function=partial(self.new_notification_listener,
+                                      None, notif_factory)
         )
         self.current_modal = modal
         self.selected_factory_name = 'NotificationListener'
@@ -377,7 +378,8 @@ class WorkflowTree(ModelView):
             parameter_factories = self.model.mco.factory.parameter_factories
         modal = NewEntityModal(
             factories=parameter_factories,
-            dclick_function=self.add_new_entity
+            dclick_function=partial(self.new_parameter, None,
+                                    param_factory)
         )
         self.current_modal = modal
         self.selected_factory_name = 'Parameter'
