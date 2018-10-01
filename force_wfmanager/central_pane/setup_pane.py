@@ -1,5 +1,9 @@
+import numpy
+
+from force_bdss.base_extension_plugin import BaseExtensionPlugin
 from force_bdss.core.base_model import BaseModel
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
+from force_wfmanager.left_side_pane.workflow_info import WorkflowInfo
 from pyface.tasks.api import TraitsTaskPane
 
 from traits.api import Instance, Dict, Callable, Bool, Button
@@ -34,7 +38,7 @@ class SetupPane(TraitsTaskPane):
     selected_mv = Instance(ModelView)
 
     #: The name of the currently selected factory. If no factory is selected,
-    #: this is set to 'None' (with type Unicode!)
+    #: this is set to 'None' (with type Unicode, not NoneType!)
     selected_factory_name = Unicode('Workflow')
 
     #: The appropriate function to add a new entity of the selected factory
@@ -49,7 +53,9 @@ class SetupPane(TraitsTaskPane):
     #: selected group
     current_modal = Instance(NewEntityModal)
 
-    current_info = Unicode("Placeholder for info panel")
+    current_info = Property(Instance(WorkflowInfo),
+                            depends_on='selected_factory_name,selected_mv,'
+                                       'task.current_file')
 
     #: A Button which calls add_new_entity_function when pressed
     add_new_entity = Button()
@@ -191,6 +197,18 @@ class SetupPane(TraitsTaskPane):
         if self.current_modal is None or self.current_modal.model is None:
             return False
         return True
+
+    def _get_current_info(self):
+        workflow_mv = self.task.side_pane.workflow_tree.workflow_mv
+        plugins = [plugin
+                   for plugin in self.task.window.application.plugin_manager
+                   if isinstance(plugin, BaseExtensionPlugin)]
+
+        # Plugins guaranteed to have an id, so sort by that if name is not set
+        plugins.sort(key=lambda s: s.name
+        if s.name not in ('', None) else s.id)
+        return WorkflowInfo(plugins=plugins, workflow_mv=workflow_mv,
+                            workflow_filename=self.task.current_file)
 
     # Synchronisation with WorkflowTree
 
