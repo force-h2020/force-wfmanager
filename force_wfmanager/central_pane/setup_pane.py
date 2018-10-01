@@ -51,8 +51,10 @@ class SetupPane(TraitsTaskPane):
 
     current_info = Unicode("Placeholder for info panel")
 
+    #: A Button which calls add_new_entity_function when pressed
     add_new_entity = Button()
 
+    #: A Button which calls remove_entity_function when pressed
     remove_entity = Button()
 
     #: Switch to disable adding an entity if all required properties are
@@ -124,7 +126,7 @@ class SetupPane(TraitsTaskPane):
                         # Remove Buttons
                         UItem('remove_entity', label='Delete Layer',
                               visible_when="selected_factory_name == "
-                                           "'DataSources'"),
+                                           "'DataSource'"),
                     ),
                     label="New Item Details",
                     visible_when="selected_factory_name  not in ['None', 'Workflow']",
@@ -183,7 +185,7 @@ class SetupPane(TraitsTaskPane):
         """Return True if the selected factory is a generic type which can
         always be added (KPI, Execution Layer), or if a specific
         factory is selected in the Setup Pane"""
-        simple_factories = ['KPIs', 'Execution Layers']
+        simple_factories = ['KPI', 'ExecutionLayer']
         if self.selected_factory_name in simple_factories:
             return True
         if self.current_modal is None or self.current_modal.model is None:

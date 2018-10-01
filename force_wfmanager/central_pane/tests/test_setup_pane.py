@@ -35,8 +35,7 @@ class TestSetupPane(GuiTestAssistant, unittest.TestCase):
 
     def test_add_entity_button(self):
         self.assertEqual(0, len(self.workflow_tree.workflow_mv.mco_mv))
-        self.workflow_tree.selection(
-            'MCO', None, self.workflow_tree.workflow_mv)
+        self.workflow_tree.mco_factory_selected(self.workflow_tree.workflow_mv)
         self.workflow_tree.current_modal.model = BaseMCOModel(
             factory=self.workflow_tree._factory_registry.mco_factories[0])
         self.setup_pane.add_new_entity = True
@@ -45,15 +44,16 @@ class TestSetupPane(GuiTestAssistant, unittest.TestCase):
     def test_remove_entity_button(self):
         self.assertEqual(
             0, len(self.workflow_tree.workflow_mv.execution_layers_mv))
-        self.workflow_tree.selection(
-            'Execution Layers', None, self.workflow_tree.workflow_mv)
+        self.workflow_tree.execution_layer_factory_selected(
+            self.workflow_tree.workflow_mv
+        )
         self.setup_pane.add_new_entity = True
         self.assertEqual(
             1, len(self.workflow_tree.workflow_mv.execution_layers_mv))
 
-        self.workflow_tree.selection(
-            'DataSources', 'Execution Layers',
-            self.workflow_tree.workflow_mv.execution_layers_mv[0])
+        self.workflow_tree.datasource_factory_exec_instance_selected(
+            self.workflow_tree.workflow_mv.execution_layers_mv[0]
+        )
         self.setup_pane.remove_entity = True
         self.assertEqual(0, len(
             self.workflow_tree.workflow_mv.execution_layers_mv))
