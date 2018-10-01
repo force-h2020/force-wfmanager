@@ -105,24 +105,24 @@ class SetupPane(TraitsTaskPane):
                               label='Add New Execution Layer',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'Execution Layers'"),
+                                           "'ExecutionLayer'"),
                         UItem('add_new_entity',
                               label='Add New Notification Listener',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'Notification Listeners'"),
+                                           "'NotificationListener'"),
                         UItem('add_new_entity', label='Add New Datasource',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'DataSources'"),
+                                           "'DataSource'"),
                         UItem('add_new_entity', label='Add New Parameter',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'Parameters'"),
+                                           "'Parameter'"),
                         UItem('add_new_entity', label='Add New KPI',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'KPIs'"),
+                                           "'KPI'"),
                         # Remove Buttons
                         UItem('remove_entity', label='Delete Layer',
                               visible_when="selected_factory_name == "
@@ -146,8 +146,8 @@ class SetupPane(TraitsTaskPane):
             HGroup(
                 UItem("current_info", editor=InstanceEditor(),
                       style="custom",
-                      visible_when="selected_factory_name in ['Workflow', 'KPIs',"
-                                   "'Execution Layers']")
+                      visible_when="selected_factory_name in ['Workflow', 'KPI',"
+                                   "'ExecutionLayer']")
             ),
             ),
             width=500,
