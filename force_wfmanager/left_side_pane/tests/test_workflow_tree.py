@@ -296,6 +296,7 @@ class TestWorkflowTree(unittest.TestCase):
         self.assertIn("An output parameter is undefined",
                       self.tree.selected_error)
 
+
 class TestWorkflowElementNode(unittest.TestCase):
     def test_wfelement_node(self):
         wfelement_node = TreeNodeWithStatus()
