@@ -4,41 +4,71 @@ from force_wfmanager.left_side_pane.variable_names_registry import \
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
 from pyface.api import ImageResource
-from traits.api import HasTraits, List, Instance, Unicode, Tuple
-from traits.traits import Property
+from traits.api import HasTraits, List, Instance, Unicode
 from traitsui.api import (
-    ImageEditor, View, Group, UItem, ListStrEditor, VGroup
+    ImageEditor, View, Group, HGroup, UItem, ListStrEditor, VGroup, Spring,
+    TableEditor, TextEditor, UReadonly, ObjectColumn
 )
-from traitsui.editors import TableEditor, TextEditor
-from traitsui.item import UReadonly
-from traitsui.table_column import ObjectColumn
+
+# Item positioning shortcuts
+
+
+def horizontal_centre(item_or_group):
+    return HGroup(Spring(), item_or_group, Spring())
+
+
+def vertical_centre(item_or_group):
+    return VGroup(Spring(), item_or_group, Spring())
+
+
+def centre(item_or_group):
+    return vertical_centre(horizontal_centre(item_or_group))
 
 
 class TableRow(HasTraits):
+    """A representation of a variable in the workflow. Instances of TableRow
+    are displayed in a table using the TableEditor."""
 
+    #: The variable's type
     type = Unicode()
 
+    #: The variable's name
     name = Unicode()
 
 
 class WorkflowInfo(HasTraits):
+    """A view containing information on certain aspects of the workflow
+    state. This includes: Current errors, Available variables, Plugins loaded
+    and the current workflow filename."""
 
+    #: An error message for the entire workflow
+    error_message = Unicode()
+
+    #: The force project logo! Stored at Images/Force_Logo.png
     image = ImageResource('Force_Logo.png')
 
-    non_kpi_variables = List(Tuple(Unicode, Unicode))
-
+    #: A list of TableRow instances, each representing a variable
     non_kpi_variables_rep = List(TableRow)
 
+    #: The names of the KPIs in the Workflow
     kpi_names = List(Unicode)
 
+    #: A list of the loaded plugins
     plugins = List(Plugin)
 
+    #: A list of plugin names
     plugin_names = List(Unicode)
 
+    #: The factory currently selected in the SetupPane
+    selected_factory = Unicode()
+
+    #: Data structure containing current variable names
     variable_names_registry = Instance(VariableNamesRegistry)
 
+    #: The top-level workflow modelview
     workflow_mv = Instance(WorkflowModelView)
 
+    #: Filename for the current workflow (if any)
     workflow_filename = Unicode()
 
     workflow_filename_message = Unicode()
@@ -61,17 +91,23 @@ class WorkflowInfo(HasTraits):
             Group(
                 UReadonly('non_kpi_variables_rep', editor=table_edit),
                 show_border=True,
-                label='Non-KPI Variables'
+                label='Non-KPI Variables',
+                visible_when="selected_factory == 'KPI'"
             ),
             Group(
-                UItem('workflow_filename_message', editor=TextEditor()),
-                style='custom',
+                UReadonly('workflow_filename_message', editor=TextEditor()),
                 show_border=True,
                 label='Workflow Filename',
             ),
             Group(
-                UItem('image', editor=ImageEditor())
-            )
+                UReadonly('error_message', editor=TextEditor()),
+                show_border=True,
+                label='Workflow Errors',
+                visible_when="selected_factory == 'Workflow'"
+            ),
+
+            horizontal_centre(UItem('image', editor=ImageEditor())),
+
         )
     )
 
@@ -82,11 +118,12 @@ class WorkflowInfo(HasTraits):
         non_kpi = []
         if self.variable_names_registry is None:
             return non_kpi
-        for exec_layer in self.variable_names_registry.available_variables_stack:
+        var_stack = self.variable_names_registry.available_variables_stack
+        for exec_layer in var_stack:
             for variable in exec_layer:
                 if variable[0] not in self.kpi_names:
-                    rep = TableRow(name=variable[0], type=variable[1])
-                    non_kpi.append(rep)
+                    variable_rep = TableRow(name=variable[0], type=variable[1])
+                    non_kpi.append(variable_rep)
         return non_kpi
 
     def _variable_names_registry_default(self):
@@ -105,3 +142,37 @@ class WorkflowInfo(HasTraits):
         if self.workflow_filename == '':
             return 'No File Loaded'
         return 'Current File: ' + self.workflow_filename
+
+    def _error_message_default(self):
+
+        if self.workflow_mv.error_message == '':
+            return ERROR_TEMPLATE.format(
+                "No errors for current workflow", "")
+        else:
+            error_list = self.workflow_mv.error_message.split('\n')
+            body_strings = ''.join([SINGLE_ERROR.format(error)
+                                    for error in error_list])
+            return ERROR_TEMPLATE.format(
+                "Errors for current workflow:", body_strings)
+
+
+ERROR_TEMPLATE = """
+    <html>
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            .container{{
+                width: 100%;
+                display: block;
+            }}
+        </style>
+    </head>
+    <body>
+    <h4>{}</h4>
+        {}
+    </body>
+    </html>
+"""
+
+SINGLE_ERROR = """<p>{}<\p>"""

@@ -1,21 +1,16 @@
-import numpy
-
-from force_bdss.base_extension_plugin import BaseExtensionPlugin
 from force_bdss.core.base_model import BaseModel
-from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
-from force_wfmanager.left_side_pane.workflow_info import WorkflowInfo
 from pyface.tasks.api import TraitsTaskPane
 
-from traits.api import Instance, Dict, Callable, Bool, Button
-from traits.has_traits import on_trait_change
-from traits.trait_types import Unicode
-from traits.traits import Property
+from traits.api import (
+    Instance, Dict, Callable, Bool, Button, on_trait_change, Unicode, Property
+)
+from traitsui.api import (
+    View, VGroup, UItem, HGroup, InstanceEditor, ModelView
+)
 
-from traitsui.api import View, VGroup, UItem, HGroup
-from traitsui.editors import InstanceEditor
-from traitsui.handler import ModelView
-
-from force_bdss.api import Workflow
+from force_bdss.api import Workflow, BaseExtensionPlugin
+from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
+from force_wfmanager.left_side_pane.workflow_info import WorkflowInfo
 
 
 class SetupPane(TraitsTaskPane):
@@ -70,10 +65,8 @@ class SetupPane(TraitsTaskPane):
 
     #: The view when editing an existing instance within the workflow tree
 
-
     def default_traits_view(self):
-        view = View(
-            VGroup(
+        view = View(VGroup(
             HGroup(
                 # Instance View
                 VGroup(
@@ -106,36 +99,43 @@ class SetupPane(TraitsTaskPane):
                         UItem('add_new_entity', label='Add New MCO',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'MCO'"),
+                                           "'MCO'",
+                              springy=True),
                         UItem('add_new_entity',
                               label='Add New Execution Layer',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'ExecutionLayer'"),
+                                           "'ExecutionLayer'",
+                              springy=True),
                         UItem('add_new_entity',
                               label='Add New Notification Listener',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'NotificationListener'"),
+                                           "'NotificationListener'",
+                              springy=True),
                         UItem('add_new_entity', label='Add New Datasource',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'DataSource'"),
+                                           "'DataSource'",
+                              springy=True),
                         UItem('add_new_entity', label='Add New Parameter',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'Parameter'"),
+                                           "'Parameter'",
+                              springy=True),
                         UItem('add_new_entity', label='Add New KPI',
                               enabled_when='enable_add_button',
                               visible_when="selected_factory_name == "
-                                           "'KPI'"),
+                                           "'KPI'",
+                              springy=True),
                         # Remove Buttons
                         UItem('remove_entity', label='Delete Layer',
                               visible_when="selected_factory_name == "
                                            "'DataSource'"),
                     ),
                     label="New Item Details",
-                    visible_when="selected_factory_name  not in ['None', 'Workflow']",
+                    visible_when="selected_factory_name not in "
+                                 "['None', 'Workflow']",
                     show_border=True,
 
                 ),
@@ -152,10 +152,10 @@ class SetupPane(TraitsTaskPane):
             HGroup(
                 UItem("current_info", editor=InstanceEditor(),
                       style="custom",
-                      visible_when="selected_factory_name in ['Workflow', 'KPI',"
-                                   "'ExecutionLayer']")
+                      visible_when="selected_factory_name in "
+                                   "['Workflow', 'KPI','ExecutionLayer']")
             ),
-            ),
+        ),
             width=500,
         )
 
@@ -169,7 +169,7 @@ class SetupPane(TraitsTaskPane):
             namespace["app"] = self.task.window.application
         except AttributeError:
             namespace["app"] = None
-        
+
         return namespace
 
     # Properties
@@ -206,9 +206,13 @@ class SetupPane(TraitsTaskPane):
 
         # Plugins guaranteed to have an id, so sort by that if name is not set
         plugins.sort(key=lambda s: s.name
-        if s.name not in ('', None) else s.id)
-        return WorkflowInfo(plugins=plugins, workflow_mv=workflow_mv,
-                            workflow_filename=self.task.current_file)
+                     if s.name not in ('', None) else s.id)
+
+        return WorkflowInfo(
+            plugins=plugins, workflow_mv=workflow_mv,
+            workflow_filename=self.task.current_file,
+            selected_factory=self.selected_factory_name
+        )
 
     # Synchronisation with WorkflowTree
 

@@ -298,11 +298,8 @@ class WorkflowTree(ModelView):
     def _workflow_mv_default(self):
         return WorkflowModelView(model=self.model)
 
-    # TODO: Add in workflow status screen
-
     def workflow_selected(self, name):
         self.selected_factory_name = 'Workflow'
-
 
     @on_trait_change('model')
     def update_model_view(self):
@@ -367,7 +364,7 @@ class WorkflowTree(ModelView):
         modal = NewEntityModal(
             factories=visible_factories,
             dclick_function=partial(self.new_notification_listener,
-                                      None, notif_factory)
+                                    None, notif_factory)
         )
         self.current_modal = modal
         self.selected_factory_name = 'NotificationListener'
@@ -585,21 +582,22 @@ class WorkflowTree(ModelView):
 
 
 ERROR_TEMPLATE = """
-        <html>
-        <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style type="text/css">
-                .container{{
-                    width: 100%;
-                    display: block;
-                }}
-            </style>
-        </head>
-        <body>
-        <h4>{}</h4>
-            {}
-        </body>
-        </html>
+    <html>
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            .container{{
+                width: 100%;
+                display: block;
+            }}
+        </style>
+    </head>
+    <body>
+    <h4>{}</h4>
+        {}
+    </body>
+    </html>
 """
+
 SINGLE_ERROR = """<p>{}<\p>"""
