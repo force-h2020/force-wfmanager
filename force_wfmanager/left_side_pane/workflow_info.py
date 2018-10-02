@@ -17,14 +17,6 @@ def horizontal_centre(item_or_group):
     return HGroup(Spring(), item_or_group, Spring())
 
 
-def vertical_centre(item_or_group):
-    return VGroup(Spring(), item_or_group, Spring())
-
-
-def centre(item_or_group):
-    return vertical_centre(horizontal_centre(item_or_group))
-
-
 class TableRow(HasTraits):
     """A representation of a variable in the workflow. Instances of TableRow
     are displayed in a table using the TableEditor."""
