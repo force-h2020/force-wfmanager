@@ -364,7 +364,7 @@ class WorkflowTree(ModelView):
         modal = NewEntityModal(
             factories=visible_factories,
             dclick_function=partial(self.new_notification_listener,
-                                      None, notif_factory)
+                                    None, notif_factory)
         )
         self.current_modal = modal
         self.selected_factory_name = 'NotificationListener'
