@@ -1,11 +1,13 @@
 from traits.api import (
-    Instance, on_trait_change, Unicode, Event, Property, Callable
+    Instance, on_trait_change, Unicode, Event, Property, Callable, Button,
+    Int
 )
 from functools import partial
 
+from traits.has_traits import cached_property
 from traitsui.api import (
     TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView, UReadonly,
-    VGroup, InstanceEditor, Group, OKButton, TextEditor
+    VGroup, HGroup, InstanceEditor, Group, OKButton, TextEditor, Spring
 )
 
 from force_bdss.api import (KPISpecification, Workflow, IFactoryRegistryPlugin,
@@ -29,6 +31,24 @@ from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
 from force_wfmanager.left_side_pane.view_utils import model_info
 
+ERROR_TEMPLATE = """
+    <html>
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            .container{{
+                width: 100%;
+                display: block;
+            }}
+        </style>
+    </head>
+    <body>
+    <h4>{title} {error_no}</h4>
+        <p>{desc}<\p>
+    </body>
+    </html>
+"""
 
 no_view = View()
 no_menu = Menu()
@@ -126,9 +146,21 @@ class WorkflowTree(ModelView):
     remove_entity = Callable()
 
     #: The error message relating to selected_mv
-    selected_error = Property(
+    error_list = Property(
         Unicode(), depends_on="selected_mv,selected_mv.error_message,"
                               "selected_mv.label")
+
+    #: The single error currently displayed, plus navigation buttons to view
+    #: the other errors
+    selected_error = Property(
+        Unicode(), depends_on='error_list,selected_error_index')
+
+    selected_error_index = Int(0)
+
+    last_error_btn = Button('>>')
+    next_error_btn = Button(' > ')
+    prev_error_btn = Button(' < ')
+    first_error_btn = Button('<<')
 
     #: An event which runs a verification check on the current workflow
     verify_workflow_event = Event
@@ -284,6 +316,14 @@ class WorkflowTree(ModelView):
                     UReadonly(
                         name='selected_error',
                         editor=TextEditor(),
+                    ),
+                    HGroup(
+                        Spring(),
+                        UItem('first_error_btn'),
+                        UItem('prev_error_btn'),
+                        UItem('next_error_btn'),
+                        UItem('last_error_btn'),
+                        Spring(),
                     ),
                     label='Workflow Errors',
                     show_border=True
@@ -563,41 +603,47 @@ class WorkflowTree(ModelView):
 
         return model_info(modelview.model) != []
 
+    @on_trait_change('next_error_btn')
+    def next_error(self):
+        self.selected_error_index = (self.selected_error_index + 1) % len(
+            self.error_list)
+
+    @on_trait_change('prev_error_btn')
+    def prev_error(self):
+        self.selected_error_index = (self.selected_error_index - 1) % len(
+            self.error_list)
+
+    @on_trait_change('first_error_btn')
+    def first_error(self):
+        self.selected_error_index = 0
+
+    @on_trait_change('last_error_btn')
+    def last_error(self):
+        self.selected_error_index = len(self.error_list) - 1
+
+    @cached_property
+    def _get_error_list(self):
+
+        self.selected_error_index = 0
+
+        if self.selected_mv is None or self.selected_mv.error_message == '':
+            return []
+        else:
+            error_list = self.selected_mv.error_message.split('\n')
+            return error_list
+
     def _get_selected_error(self):
 
         if self.selected_mv is None:
-            return ERROR_TEMPLATE.format("No Item Selected", "")
-
-        if self.selected_mv.error_message == '':
-            mv_label = self.selected_mv.label
+            return ERROR_TEMPLATE.format(title='No Item Selected', error_no="",
+                                         desc="")
+        elif len(self.error_list) == 0:
             return ERROR_TEMPLATE.format(
-                "No errors for {}".format(mv_label), "")
+                title='No Errors in {}'.format(self.selected_mv.label),
+                error_no="", desc="")
         else:
-            mv_label = self.selected_mv.label
-            error_list = self.selected_mv.error_message.split('\n')
-            body_strings = ''.join([SINGLE_ERROR.format(error)
-                                    for error in error_list])
             return ERROR_TEMPLATE.format(
-                "Errors for {}:".format(mv_label), body_strings)
-
-
-ERROR_TEMPLATE = """
-    <html>
-    <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style type="text/css">
-            .container{{
-                width: 100%;
-                display: block;
-            }}
-        </style>
-    </head>
-    <body>
-    <h4>{}</h4>
-        {}
-    </body>
-    </html>
-"""
-
-SINGLE_ERROR = """<p>{}<\p>"""
+                title='Error in {}'.format(self.selected_mv.label),
+                error_no='({}/{})'.format(self.selected_error_index + 1,
+                                          len(self.error_list)),
+                desc=self.error_list[self.selected_error_index])

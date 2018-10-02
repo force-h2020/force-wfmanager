@@ -6,12 +6,12 @@ from force_wfmanager.left_side_pane.workflow_model_view import \
 from pyface.api import ImageResource
 from traits.api import HasTraits, List, Instance, Unicode
 from traitsui.api import (
-    ImageEditor, View, Group, HGroup, UItem, ListStrEditor, VGroup, Spring,
-    TableEditor, TextEditor, UReadonly, ObjectColumn
+    ImageEditor, View, HGroup, UItem, ListStrEditor, VGroup, Spring,
+    TableEditor, TextEditor, UReadonly, ObjectColumn, HTMLEditor
 )
 
-# Item positioning shortcuts
 
+#: Item positioning shortcuts
 
 def horizontal_centre(item_or_group):
     return HGroup(Spring(), item_or_group, Spring())
@@ -75,27 +75,28 @@ class WorkflowInfo(HasTraits):
 
     traits_view = View(
         VGroup(
-            Group(
+            VGroup(
                 UReadonly('plugin_names', editor=ListStrEditor()),
                 show_border=True,
                 label='Available Plugins'
             ),
-            Group(
+            VGroup(
                 UReadonly('non_kpi_variables_rep', editor=table_edit),
                 show_border=True,
                 label='Non-KPI Variables',
                 visible_when="selected_factory == 'KPI'"
             ),
-            Group(
+            VGroup(
                 UReadonly('workflow_filename_message', editor=TextEditor()),
                 show_border=True,
                 label='Workflow Filename',
             ),
-            Group(
-                UReadonly('error_message', editor=TextEditor()),
+            VGroup(
+                UItem('error_message', editor=HTMLEditor()),
                 show_border=True,
                 label='Workflow Errors',
-                visible_when="selected_factory == 'Workflow'"
+                visible_when="selected_factory == 'Workflow'",
+                scrollable=True,
             ),
 
             horizontal_centre(UItem('image', editor=ImageEditor())),
@@ -167,4 +168,4 @@ ERROR_TEMPLATE = """
     </html>
 """
 
-SINGLE_ERROR = """<p>{}<\p>"""
+SINGLE_ERROR = """<p>{}</p>"""

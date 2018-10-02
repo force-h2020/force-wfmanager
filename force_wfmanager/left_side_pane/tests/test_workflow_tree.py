@@ -276,8 +276,25 @@ class TestWorkflowTree(unittest.TestCase):
 
         param_mv.model.name = 'P1'
         param_mv.model.type = 'PRESSURE'
-        self.assertIn("No errors", self.tree.selected_error)
+        self.assertIn("No Errors", self.tree.selected_error)
 
+    def test_error_scrolling(self):
+        self.assertIsNone(self.tree.selected_mv)
+        self.assertIn("No Item Selected", self.tree.selected_error)
+        self.tree.selected_mv = self.tree.workflow_mv
+        self.assertIn("An output parameter is undefined",
+                      self.tree.selected_error)
+        self.tree.next_error_btn = True
+        self.assertIn("An input parameter is undefined",
+                      self.tree.selected_error)
+        self.tree.prev_error_btn = True
+        self.assertIn("An output parameter is undefined",
+                      self.tree.selected_error)
+        self.tree.last_error_btn = True
+        self.assertIn("Error in MCO", self.tree.selected_error)
+        self.tree.first_error_btn = True
+        self.assertIn("An output parameter is undefined",
+                      self.tree.selected_error)
 
 class TestWorkflowElementNode(unittest.TestCase):
     def test_wfelement_node(self):
