@@ -1,14 +1,16 @@
-from traits.api import (
-    Instance, on_trait_change, Unicode, Event, Property, Callable, Button,
-    Int
-)
 from functools import partial
 
-from traits.has_traits import cached_property
+from traits.api import (
+    Instance, on_trait_change, Unicode, Event, Property, Callable, Button,
+    Int, cached_property
+)
+
 from traitsui.api import (
     TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView, UReadonly,
     VGroup, HGroup, InstanceEditor, Group, OKButton, TextEditor, Spring
 )
+
+from pyface.api import ImageResource
 
 from force_bdss.api import (KPISpecification, Workflow, IFactoryRegistryPlugin,
                             ExecutionLayer, verify_workflow)
@@ -18,7 +20,6 @@ from force_wfmanager.left_side_pane.data_source_model_view import \
 from force_wfmanager.left_side_pane.execution_layer_model_view import \
     ExecutionLayerModelView
 
-# Create an empty view and menu for objects that have no data to display:
 from force_wfmanager.left_side_pane.kpi_specification_model_view import \
     KPISpecificationModelView
 from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
@@ -30,6 +31,8 @@ from force_wfmanager.left_side_pane.notification_listener_model_view import \
 from force_wfmanager.left_side_pane.workflow_model_view import \
     WorkflowModelView
 from force_wfmanager.left_side_pane.view_utils import model_info
+
+# A HTML template for error messages
 
 ERROR_TEMPLATE = """
     <html>
@@ -49,6 +52,8 @@ ERROR_TEMPLATE = """
     </body>
     </html>
 """
+
+# Create an empty view and menu for objects that have no data to display:
 
 no_view = View()
 no_menu = Menu()
@@ -157,15 +162,15 @@ class WorkflowTree(ModelView):
 
     selected_error_index = Int(0)
 
-    last_error_btn = Button('>>')
-    next_error_btn = Button(' > ')
-    prev_error_btn = Button(' < ')
-    first_error_btn = Button('<<')
+    last_error_btn = Button(image=ImageResource('last'), label=' ')
+    next_error_btn = Button(image=ImageResource('next'), label=' ')
+    prev_error_btn = Button(image=ImageResource('prev'), label=' ')
+    first_error_btn = Button(image=ImageResource('first'), label=' ')
 
     #: An event which runs a verification check on the current workflow
     verify_workflow_event = Event
 
-    traits_view = View()
+    traits_view = View
 
     def default_traits_view(self):
 
@@ -319,10 +324,10 @@ class WorkflowTree(ModelView):
                     ),
                     HGroup(
                         Spring(),
-                        UItem('first_error_btn'),
-                        UItem('prev_error_btn'),
-                        UItem('next_error_btn'),
-                        UItem('last_error_btn'),
+                        UItem('first_error_btn', style='custom'),
+                        UItem('prev_error_btn', style='custom'),
+                        UItem('next_error_btn', style='custom'),
+                        UItem('last_error_btn', style='custom'),
                         Spring(),
                     ),
                     label='Workflow Errors',
