@@ -610,13 +610,15 @@ class WorkflowTree(ModelView):
 
     @on_trait_change('next_error_btn')
     def next_error(self):
-        self.selected_error_index = (self.selected_error_index + 1) % len(
-            self.error_list)
+        if len(self.error_list) != 0:
+            self.selected_error_index = (self.selected_error_index + 1) % len(
+                self.error_list)
 
     @on_trait_change('prev_error_btn')
     def prev_error(self):
-        self.selected_error_index = (self.selected_error_index - 1) % len(
-            self.error_list)
+        if len(self.error_list) != 0:
+            self.selected_error_index = (self.selected_error_index - 1) % len(
+                self.error_list)
 
     @on_trait_change('first_error_btn')
     def first_error(self):
@@ -624,7 +626,8 @@ class WorkflowTree(ModelView):
 
     @on_trait_change('last_error_btn')
     def last_error(self):
-        self.selected_error_index = len(self.error_list) - 1
+        if len(self.error_list) != 0:
+            self.selected_error_index = len(self.error_list) - 1
 
     @cached_property
     def _get_error_list(self):
