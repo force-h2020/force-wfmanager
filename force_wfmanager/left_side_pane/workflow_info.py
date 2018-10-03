@@ -67,8 +67,8 @@ class WorkflowInfo(HasTraits):
 
     table_edit = TableEditor(
         columns=[
-            ObjectColumn(name="name", label="name", resize_mode="stretch"),
-            ObjectColumn(name="type", label="type", resize_mode="stretch")
+            ObjectColumn(name="name", label="Name", resize_mode="stretch"),
+            ObjectColumn(name="type", label="Type", resize_mode="stretch")
         ],
         auto_size=False,
     )
