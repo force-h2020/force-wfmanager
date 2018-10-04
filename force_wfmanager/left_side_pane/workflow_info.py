@@ -7,7 +7,7 @@ from pyface.api import ImageResource
 from traits.api import HasTraits, List, Instance, Unicode
 from traitsui.api import (
     ImageEditor, View, HGroup, UItem, ListStrEditor, VGroup, Spring,
-    TableEditor, TextEditor, UReadonly, ObjectColumn, HTMLEditor
+    TableEditor, TextEditor, UReadonly, ObjectColumn
 )
 
 
@@ -92,7 +92,7 @@ class WorkflowInfo(HasTraits):
                 label='Workflow Filename',
             ),
             VGroup(
-                UItem('error_message', editor=HTMLEditor()),
+                UReadonly('error_message', editor=TextEditor()),
                 show_border=True,
                 label='Workflow Errors',
                 visible_when="selected_factory == 'Workflow'",
