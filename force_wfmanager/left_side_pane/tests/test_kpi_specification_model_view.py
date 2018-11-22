@@ -52,7 +52,7 @@ class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
             variable_names_registry=self.registry
         )
         self.assertEqual(self.kpi_specification_mv_named.label,
-                         "KPI: T1")
+                         "KPI: T1 (DEFAULT)")
 
         self.kpi_specification_objective = KPISpecification(
             name='T1', objective='MINIMISE')
@@ -71,7 +71,7 @@ class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
                                      count=1):
             self.kpi_specification_mv.model.name = 'T1'
             self.assertEqual(self.kpi_specification_mv.label,
-                             'KPI: T1')
+                             'KPI: T1 (DEFAULT)')
         self.kpi_specification_mv_nomodel = KPISpecificationModelView(
             model=None, variable_names_registry=self.registry)
         self.assertEqual(self.kpi_specification_mv_nomodel.name, '')

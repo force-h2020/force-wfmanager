@@ -3,3 +3,8 @@ __pycache__
 force_wfmanager/version.py
 doc/build/
 *.pyc
+*.json
+*.log
+*.csv
+.DS_Store
+.coverage

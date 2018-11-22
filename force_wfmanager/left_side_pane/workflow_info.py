@@ -94,7 +94,7 @@ class WorkflowInfo(HasTraits):
             VGroup(
                 UReadonly('error_message', editor=TextEditor()),
                 show_border=True,
-                label='Workflow Errors',
+                label='All Workflow Errors',
                 visible_when="selected_factory == 'Workflow'",
                 scrollable=True,
             ),

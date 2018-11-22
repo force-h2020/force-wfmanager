@@ -290,11 +290,6 @@ class TestWorkflowTree(unittest.TestCase):
         self.tree.prev_error_btn = True
         self.assertIn("An output parameter is undefined",
                       self.tree.selected_error)
-        self.tree.last_error_btn = True
-        self.assertIn("Error in MCO", self.tree.selected_error)
-        self.tree.first_error_btn = True
-        self.assertIn("An output parameter is undefined",
-                      self.tree.selected_error)
 
 
 class TestWorkflowElementNode(unittest.TestCase):

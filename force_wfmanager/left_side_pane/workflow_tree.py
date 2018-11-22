@@ -10,8 +10,6 @@ from traitsui.api import (
     VGroup, HGroup, InstanceEditor, Group, OKButton, TextEditor, Spring
 )
 
-from pyface.api import ImageResource
-
 from force_bdss.api import (KPISpecification, Workflow, IFactoryRegistryPlugin,
                             ExecutionLayer, verify_workflow)
 
@@ -155,17 +153,17 @@ class WorkflowTree(ModelView):
         Unicode(), depends_on="selected_mv,selected_mv.error_message,"
                               "selected_mv.label")
 
-    #: The single error currently displayed, plus navigation buttons to view
-    #: the other errors
+    #: The single error currently displayed on screen
     selected_error = Property(
-        Unicode(), depends_on='error_list,selected_error_index')
+        Unicode(), depends_on='error_list,selected_error_index'
+    )
 
+    #: The index of the error message currently displayed on screen
     selected_error_index = Int(0)
 
-    last_error_btn = Button(image=ImageResource('last'), label=' ')
-    next_error_btn = Button(image=ImageResource('next'), label=' ')
-    prev_error_btn = Button(image=ImageResource('prev'), label=' ')
-    first_error_btn = Button(image=ImageResource('first'), label=' ')
+    #: Navigation buttons to view the other available errors
+    next_error_btn = Button(label='Next Error')
+    prev_error_btn = Button(label='Previous Error')
 
     #: An event which runs a verification check on the current workflow
     verify_workflow_event = Event
@@ -324,14 +322,15 @@ class WorkflowTree(ModelView):
                     ),
                     HGroup(
                         Spring(),
-                        UItem('first_error_btn', style='custom'),
-                        UItem('prev_error_btn', style='custom'),
-                        UItem('next_error_btn', style='custom'),
-                        UItem('last_error_btn', style='custom'),
+                        UItem('prev_error_btn', style='custom',
+                              enabled_when='len(error_list) != 0'),
+                        UItem('next_error_btn', style='custom',
+                              enabled_when='len(error_list) != 0'),
                         Spring(),
                     ),
                     label='Workflow Errors',
-                    show_border=True
+                    show_border=True,
+                    visible_when="selected_factory_name is not \'Workflow\'",
                 ),
             ),
             width=500,
@@ -631,7 +630,6 @@ class WorkflowTree(ModelView):
 
     @cached_property
     def _get_error_list(self):
-
         self.selected_error_index = 0
 
         if self.selected_mv is None or self.selected_mv.error_message == '':
@@ -647,7 +645,7 @@ class WorkflowTree(ModelView):
                                          desc="")
         elif len(self.error_list) == 0:
             return ERROR_TEMPLATE.format(
-                title='No Errors in {}'.format(self.selected_mv.label),
+                title='No Errors in {}.'.format(self.selected_mv.label),
                 error_no="", desc="")
         else:
             return ERROR_TEMPLATE.format(
