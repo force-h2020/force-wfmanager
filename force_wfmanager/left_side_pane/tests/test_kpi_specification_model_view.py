@@ -52,15 +52,15 @@ class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
             variable_names_registry=self.registry
         )
         self.assertEqual(self.kpi_specification_mv_named.label,
-                         "KPI: T1")
+                         "KPI: T1 (MINIMISE)")
 
         self.kpi_specification_objective = KPISpecification(
-            name='T1', objective='MINIMISE')
+            name='T1', objective='MAXIMISE')
         self.kpi_specification_mv_objective = KPISpecificationModelView(
             model=self.kpi_specification_objective,
             variable_names_registry=self.registry)
         self.assertEqual(self.kpi_specification_mv_objective.label,
-                         "KPI: T1 (MINIMISE)")
+                         "KPI: T1 (MAXIMISE)")
 
     def test_name_change(self):
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
@@ -71,7 +71,7 @@ class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
                                      count=1):
             self.kpi_specification_mv.model.name = 'T1'
             self.assertEqual(self.kpi_specification_mv.label,
-                             'KPI: T1')
+                             'KPI: T1 (MINIMISE)')
         self.kpi_specification_mv_nomodel = KPISpecificationModelView(
             model=None, variable_names_registry=self.registry)
         self.assertEqual(self.kpi_specification_mv_nomodel.name, '')
