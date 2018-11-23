@@ -11,6 +11,7 @@ from force_bdss.api import KPISpecification, Workflow
 from force_bdss.core.base_model import BaseModel
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 
+
 class SetupPane(TraitsTaskPane):
     id = 'force_wfmanager.setup_pane'
     name = 'Setup Pane'
