@@ -184,9 +184,6 @@ class SetupPane(TraitsTaskPane):
             return True
         return False
 
-    def _get_add_label(self):
-        return 'Add {}'.format(self.selected_factory_name)
-
     def _get_enable_add_button(self):
         """Return True if the selected factory is a generic type which can
         always be added (KPI, Execution Layer), or if a specific
@@ -240,8 +237,9 @@ class SetupPane(TraitsTaskPane):
 
     @on_trait_change('task.side_pane.workflow_tree.selected_factory_name')
     def sync_selected_factory_name(self):
-        self.selected_factory_name = \
+        self.selected_factory_name = (
             self.task.side_pane.workflow_tree.selected_factory_name
+        )
 
     @on_trait_change('task.side_pane.workflow_tree.current_modal')
     def sync_current_modal(self):

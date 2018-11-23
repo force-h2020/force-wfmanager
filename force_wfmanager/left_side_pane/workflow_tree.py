@@ -619,15 +619,6 @@ class WorkflowTree(ModelView):
             self.selected_error_index = (self.selected_error_index - 1) % len(
                 self.error_list)
 
-    @on_trait_change('first_error_btn')
-    def first_error(self):
-        self.selected_error_index = 0
-
-    @on_trait_change('last_error_btn')
-    def last_error(self):
-        if len(self.error_list) != 0:
-            self.selected_error_index = len(self.error_list) - 1
-
     @cached_property
     def _get_error_list(self):
         self.selected_error_index = 0
@@ -639,7 +630,6 @@ class WorkflowTree(ModelView):
             return error_list
 
     def _get_selected_error(self):
-
         if self.selected_mv is None:
             return ERROR_TEMPLATE.format(title='No Item Selected', error_no="",
                                          desc="")

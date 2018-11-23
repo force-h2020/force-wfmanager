@@ -28,8 +28,9 @@ class TestSetupPane(GuiTestAssistant, unittest.TestCase):
         self.wfmanager = dummy_wfmanager()
         self.wfmanager.run()
         self.setup_pane = self.wfmanager.windows[0].central_pane
-        self.workflow_tree = \
+        self.workflow_tree = (
             self.wfmanager.windows[0].tasks[0].side_pane.workflow_tree
+        )
         self.workflow_tree.workflow_mv = WorkflowModelView()
         self.workflow_tree._factory_registry = ProbeFactoryRegistryPlugin()
 
