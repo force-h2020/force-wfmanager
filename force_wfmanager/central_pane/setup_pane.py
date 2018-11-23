@@ -1,17 +1,13 @@
+from force_bdss.api import Workflow
 from force_bdss.core.base_model import BaseModel
 from force_bdss.core.kpi_specification import KPISpecification
 from pyface.tasks.api import TraitsTaskPane
-
-from traits.api import Instance, Dict
-from traits.has_traits import on_trait_change
-from traits.trait_types import String, Bool, Either
-from traits.traits import Property
-
-from traitsui.api import View, VGroup, UItem
-from traitsui.editors import ShellEditor, InstanceEditor
-from traitsui.handler import ModelView
-
-from force_bdss.api import Workflow
+from traits.api import (
+    Bool, Dict, Either, Instance, String, Property, on_trait_change
+)
+from traitsui.api import (
+    InstanceEditor, ModelView, ShellEditor, UItem, View, VGroup
+)
 
 
 class SetupPane(TraitsTaskPane):
@@ -24,11 +20,14 @@ class SetupPane(TraitsTaskPane):
     #: Namespace for the console
     console_ns = Dict()
 
-    #: The model from selected_mv
-    selected_model = Either(Instance(BaseModel),
-                            Instance(KPISpecification))
+    #: The model from the selected modelview (selected_mv.model)
+    selected_model = Either(Instance(BaseModel), Instance(KPISpecification))
 
-    #: Does the current model have anything the user could edit
+    #: A Bool indicating whether the modelview is intended to be editable by
+    #: the user. Workaround to avoid displaying a default view.
+    #: If a modelview has a View defining how it is represented in the UI
+    #: then this is used. However, if a modelview does not have this the
+    #: default view displays everything and does not look too nice!
     selected_mv_editable = Property(Bool, depends_on='selected_mv')
 
     #: The currently selected ModelView in the WorkflowTree
@@ -37,7 +36,7 @@ class SetupPane(TraitsTaskPane):
     #: The name of the factory group selected in the WorkflowTree
     selected_factory_group = String('Workflow')
 
-    #: The view when editing an existing instance within the workflow tree
+    #: The view when editing the selected instance within the workflow tree
     traits_view = View(
         VGroup(
                 VGroup(
@@ -69,14 +68,27 @@ class SetupPane(TraitsTaskPane):
         return namespace
 
     def _get_selected_mv_editable(self):
-        """If there is a view associated to the selected_mv, return True
-        and display that view in the SetupPane."""
-        if self.selected_mv is None:
-            return False
+        """Determine if the selected modelview in the WorkflowTree has a
+        default or non-default view associated. A default view should not
+        be editable by the user, a non-default one should be.
 
-        if len(self.selected_mv.trait_views()) != 0:
-            return True
-        return False
+        Parameters
+        ----------
+        self.selected_mv - Currently selected modelview, synchronised to
+        selected_mv in the WorkflowTree class.
+
+        self.selected_mv.trait_views() - The list of Views associated with
+        this Traits object. The default view is not included.
+
+        Returns
+        -------
+        True - User Editable/Non-Default View
+        False - Default View or No modelview currently selected
+
+        """
+        if self.selected_mv is None or self.selected_mv.trait_views() == []:
+            return False
+        return True
 
     @on_trait_change('task.side_pane.workflow_tree.selected_factory_group')
     def set_selected_factory_group(self):
