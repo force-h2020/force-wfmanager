@@ -9,7 +9,7 @@ from traitsui.api import (
 
 from force_bdss.api import KPISpecification, Workflow
 from force_bdss.core.base_model import BaseModel
-from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
+from force_wfmanager.left_side_pane.new_entity_creator import NewEntityCreator
 
 
 class SetupPane(TraitsTaskPane):
@@ -39,17 +39,17 @@ class SetupPane(TraitsTaskPane):
     #: this is set to 'None' (with type Unicode!)
     selected_factory_name = Unicode('Workflow')
 
-    #: The appropriate function to add a new entity of the selected factory
-    #: group to the workflow tree. For example, if the 'DataSources' group
+    #: A function which adds a new entity to the workflow tree, using the
+    # currently selected factory. For example, if the 'DataSources' factory
     #: is selected, this function would be new_data_source().
     add_new_entity_function = Callable()
 
-    #: Function to remove the currently selected instance
+    #: Function to remove the currently selected modelview
     remove_entity_function = Callable()
 
     #: A NewEntityModal object displaying the factories of the currently
     #: selected group
-    current_modal = Instance(NewEntityModal)
+    current_modal = Instance(NewEntityCreator)
 
     #: A Button which calls add_new_entity_function when pressed
     add_new_entity = Button()

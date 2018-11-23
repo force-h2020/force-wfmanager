@@ -17,6 +17,7 @@ no_menu = Menu()
 
 
 class ModalHandler(Handler):
+
     def close(self, info, is_ok):
         if is_ok is False:
             info.object.model = None
@@ -36,7 +37,7 @@ class Root(HasStrictTraits):
     name = Unicode("root")
 
 
-class NewEntityModal(HasStrictTraits):
+class NewEntityCreator(HasStrictTraits):
     """ Dialog which allows the user to add a new MCO/Data Source
     to the workflow """
     #: Available factories, this class is generic and can contain any factory
@@ -79,7 +80,7 @@ class NewEntityModal(HasStrictTraits):
     no_config_options_msg = ReadOnly(Unicode)
 
     def __init__(self, factories, *args, **kwargs):
-        super(NewEntityModal, self).__init__(*args, **kwargs)
+        super(NewEntityCreator, self).__init__(*args, **kwargs)
         self.factories = factories
 
     def default_traits_view(self):

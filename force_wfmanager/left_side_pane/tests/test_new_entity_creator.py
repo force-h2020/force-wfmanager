@@ -8,8 +8,8 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 from force_bdss.tests.dummy_classes.data_source import DummyDataSourceModel
 from force_bdss.api import BaseDataSourceModel
-from force_wfmanager.left_side_pane.new_entity_modal import (
-    ModalHandler, NewEntityModal)
+from force_wfmanager.left_side_pane.new_entity_creator import (
+    ModalHandler, NewEntityCreator)
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowModelView
 from force_wfmanager.left_side_pane.view_utils import model_info
 
@@ -20,7 +20,7 @@ class UIDummy:
 
 
 class ModalInfoDummy(HasTraits):
-    object = Instance(NewEntityModal)
+    object = Instance(NewEntityCreator)
 
     ui = Instance(UIDummy)
 
@@ -44,13 +44,13 @@ class TestNewEntityModal(unittest.TestCase):
         self.handler = ModalHandler()
 
     def _get_dialog(self):
-        modal = NewEntityModal(
+        modal = NewEntityCreator(
             factories=self.mcos
         )
         return modal, ModalInfoDummy(object=modal)
 
     def _get_dialog_data(self):
-        modal = NewEntityModal(
+        modal = NewEntityCreator(
             factories=self.data_sources
         )
         return modal, ModalInfoDummy(object=modal)

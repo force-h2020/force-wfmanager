@@ -24,7 +24,7 @@ from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
 from force_wfmanager.left_side_pane.mco_parameter_model_view import (
     MCOParameterModelView
 )
-from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
+from force_wfmanager.left_side_pane.new_entity_creator import NewEntityCreator
 from force_wfmanager.left_side_pane.notification_listener_model_view import (
     NotificationListenerModelView
 )
@@ -170,7 +170,7 @@ class WorkflowTree(ModelView):
     selected_factory_name = Unicode()
 
     #: The NewEntityModal for the selected factory group
-    current_modal = Instance(NewEntityModal)
+    current_modal = Instance(NewEntityCreator)
 
     #: A function to add the new instance from current_modal to the Workflow
     add_new_entity = Callable()
@@ -378,7 +378,7 @@ class WorkflowTree(ModelView):
 
     def datasource_factory_exec_instance_selected(self, ds_factory):
         self.add_new_entity = partial(self.new_data_source, None, ds_factory)
-        modal = NewEntityModal(
+        modal = NewEntityCreator(
             factories=self._factory_registry.data_source_factories,
             dclick_function=partial(self.new_data_source, None, ds_factory)
         )
@@ -400,7 +400,7 @@ class WorkflowTree(ModelView):
 
     def mco_factory_selected(self, mco_factory):
         self.add_new_entity = partial(self.new_mco, None, mco_factory)
-        modal = NewEntityModal(
+        modal = NewEntityCreator(
             factories=self._factory_registry.mco_factories,
             dclick_function=partial(self.new_mco, None, mco_factory)
         )
@@ -415,7 +415,7 @@ class WorkflowTree(ModelView):
         ]
         self.add_new_entity = partial(self.new_notification_listener,
                                       None, notif_factory)
-        modal = NewEntityModal(
+        modal = NewEntityCreator(
             factories=visible_factories,
             dclick_function=partial(self.new_notification_listener,
                                     None, notif_factory)
@@ -430,7 +430,7 @@ class WorkflowTree(ModelView):
                                       param_factory)
         if self.model.mco is not None:
             parameter_factories = self.model.mco.factory.parameter_factories
-        modal = NewEntityModal(
+        modal = NewEntityCreator(
             factories=parameter_factories,
             dclick_function=partial(self.new_parameter, None,
                                     param_factory)
