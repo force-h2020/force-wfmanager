@@ -2,7 +2,6 @@ from traits.api import (
     Bool, Callable, Dict, Either, HasStrictTraits, Instance, List, ReadOnly,
     Property, Unicode, on_trait_change
 )
-
 from traitsui.api import (
     HSplit, HTMLEditor, InstanceEditor, Menu, TreeEditor, TreeNode, UItem,
     VGroup, View
@@ -52,18 +51,18 @@ class Root(HasStrictTraits):
 
 class NewEntityCreator(HasStrictTraits):
     """A Traits class which is viewed in the UI as a tree editor containing
-     the DataSource/MCO/Parameter/NotificationListener factories for the
-     currently installed plugins
+    the DataSource/MCO/Parameter/NotificationListener factories for the
+    currently installed plugins
 
-     Attributes
-     ----------
-     factories: List(BaseFactory)
+    Attributes
+    ----------
+    factories: List(BaseFactory)
         A list of factories, passed as an argument on initialisation of a
         NewEntityCreator. This list uses the generic BaseFactory class and
         can contain any factory with a create_model method. In practice,
         these factories will usually be the same type as it makes sense from
         a UI point of view to keep factories grouped by type.
-     plugins_root: Root
+    plugins_root: Root
         The root node displayed in the TreeEditor
     selected_factory: BaseFactory
         The currently selected factory in the TreeEditor
