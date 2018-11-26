@@ -1,17 +1,14 @@
-from force_bdss.core.base_model import BaseModel
-from pyface.tasks.api import TraitsTaskPane
-
+from pyface.tasks.traits_task_pane import TraitsTaskPane
 from traits.api import (
-    Instance, Dict, Callable, Bool, Button, on_trait_change, Unicode, Property
+    Bool, Button, Callable, Dict, Instance, Property, Unicode, on_trait_change
 )
 from traitsui.api import (
-    View, VGroup, UItem, HGroup, InstanceEditor, ModelView
+    HGroup, InstanceEditor, ModelView, UItem, View, VGroup
 )
 
-from force_bdss.api import Workflow, BaseExtensionPlugin
+from force_bdss.api import BaseExtensionPlugin, BaseModel, Workflow
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
 from force_wfmanager.left_side_pane.workflow_info import WorkflowInfo
-
 
 class SetupPane(TraitsTaskPane):
     id = 'force_wfmanager.setup_pane'
@@ -26,7 +23,11 @@ class SetupPane(TraitsTaskPane):
     #: The model from selected_mv
     selected_model = Instance(BaseModel)
 
-    #: Does the current model have anything the user could edit
+    #: A Bool indicating whether the modelview is intended to be editable by
+    #: the user. Workaround to avoid displaying a default view.
+    #: If a modelview has a View defining how it is represented in the UI
+    #: then this is used. However, if a modelview does not have this the
+    #: default view displays everything and does not look too nice!
     selected_mv_editable = Property(Bool, depends_on='selected_mv')
 
     #: The currently selected ModelView in the WorkflowTree
@@ -64,7 +65,6 @@ class SetupPane(TraitsTaskPane):
                                                   'current_modal.model')
 
     #: The view when editing an existing instance within the workflow tree
-
     def default_traits_view(self):
         view = View(VGroup(
             HGroup(
@@ -175,14 +175,27 @@ class SetupPane(TraitsTaskPane):
     # Properties
 
     def _get_selected_mv_editable(self):
-        """If there is a (non-default) view associated to the selected_mv,
-        return True."""
-        if self.selected_mv is None:
-            return False
+        """Determine if the selected modelview in the WorkflowTree has a
+        default or non-default view associated. A default view should not
+        be editable by the user, a non-default one should be.
 
-        if len(self.selected_mv.trait_views()) != 0:
-            return True
-        return False
+        Parameters
+        ----------
+        self.selected_mv - Currently selected modelview, synchronised to
+        selected_mv in the WorkflowTree class.
+
+        self.selected_mv.trait_views() - The list of Views associated with
+        this Traits object. The default view is not included.
+
+        Returns
+        -------
+        True - User Editable/Non-Default View
+        False - Default View or No modelview currently selected
+
+        """
+        if self.selected_mv is None or self.selected_mv.trait_views() == []:
+            return False
+        return True
 
     def _get_add_label(self):
         return 'Add {}'.format(self.selected_factory_name)

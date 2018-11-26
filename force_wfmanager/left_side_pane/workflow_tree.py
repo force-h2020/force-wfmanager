@@ -1,59 +1,111 @@
-from traits.api import (
-    Instance, on_trait_change, Unicode, Event, Property, Callable
-)
 from functools import partial
 
-from traitsui.api import (
-    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView, UReadonly,
-    VGroup, InstanceEditor, Group, OKButton, TextEditor
+from traits.api import (
+    Callable, Event, Instance, Property, Unicode, on_trait_change
 )
-
-from force_bdss.api import (KPISpecification, Workflow, IFactoryRegistryPlugin,
-                            ExecutionLayer, verify_workflow)
-
-from force_wfmanager.left_side_pane.data_source_model_view import \
+from traitsui.api import (
+    Action, Group, InstanceEditor, Menu, ModelView, OKButton, TextEditor,
+    TreeEditor, TreeNode, UItem, UReadonly, View, VGroup
+)
+from force_bdss.api import (
+    ExecutionLayer, IFactoryRegistryPlugin, KPISpecification, Workflow,
+    verify_workflow
+)
+from force_wfmanager.left_side_pane.data_source_model_view import (
     DataSourceModelView
-from force_wfmanager.left_side_pane.execution_layer_model_view import \
+)
+from force_wfmanager.left_side_pane.execution_layer_model_view import (
     ExecutionLayerModelView
-
-# Create an empty view and menu for objects that have no data to display:
-from force_wfmanager.left_side_pane.kpi_specification_model_view import \
+)
+from force_wfmanager.left_side_pane.kpi_specification_model_view import (
     KPISpecificationModelView
+)
 from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
-from force_wfmanager.left_side_pane.mco_parameter_model_view import \
+from force_wfmanager.left_side_pane.mco_parameter_model_view import (
     MCOParameterModelView
+)
 from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
-from force_wfmanager.left_side_pane.notification_listener_model_view import \
+from force_wfmanager.left_side_pane.notification_listener_model_view import (
     NotificationListenerModelView
-from force_wfmanager.left_side_pane.workflow_model_view import \
+)
+from force_wfmanager.left_side_pane.workflow_model_view import (
     WorkflowModelView
+)
 from force_wfmanager.left_side_pane.view_utils import model_info
 
 
+# Create an empty view and menu for objects that have no data to display:
 no_view = View()
 no_menu = Menu()
 
+# For reference, in the enabled_when expression namespace, handler is
+# the WorkflowTree instance, object is the modelview for the selected node
+
+call_modelview_editable = 'handler.modelview_editable(object)'
+
+# -------------------
 # Actions!
+# -------------------
 
-new_kpi_action = Action(name='New KPI...', action='new_kpi')
-new_layer_action = Action(name="New Layer...", action='new_layer')
 
-delete_mco_action = Action(name='Delete MCO', action='delete_mco')
+
+
+# MCO
+
+new_mco_action = Action(name='New MCO...', action='new_mco')
+delete_mco_action = Action(name='Delete', action='delete_mco')
+edit_mco_action = Action(name='Edit...', action='edit_mco',
+                         enabled_when=call_modelview_editable)
+
+# Notification Listener
+
+new_notification_listener_action = Action(
+    name='New Notification Listener...',
+    action='new_notification_listener'
+)
 delete_notification_listener_action = Action(
-    name='Delete Notification Listener',
+    name='Delete',
     action='delete_notification_listener'
 )
-delete_parameter_action = Action(
-    name='Delete Parameter', action='delete_parameter'
+edit_notification_listener_action = Action(
+    name='Edit...',
+    action='edit_notification_listener',
+    enabled_when=call_modelview_editable
 )
-delete_kpi_action = Action(name="Delete KPI", action='delete_kpi')
-delete_layer_action = Action(name='Delete Layer', action='delete_layer')
-delete_data_source_action = Action(
-    name='Delete Data Source', action='delete_data_source'
+
+# Parameter
+
+new_parameter_action = Action(name='New Parameter...', action='new_parameter')
+edit_parameter_action = Action(
+    name='Edit...', action='edit_parameter',
+    enabled_when=call_modelview_editable
+)
+delete_parameter_action = Action(name='Delete', action='delete_parameter')
+
+# KPI
+
+new_kpi_action = Action(name='New KPI...', action='new_kpi')
+delete_kpi_action = Action(name="Delete", action='delete_kpi')
+
+# Execution Layer
+
+new_layer_action = Action(name="New Layer...", action='new_layer')
+delete_layer_action = Action(name='Delete', action='delete_layer')
+
+# DataSource
+
+new_data_source_action = Action(
+    name='New DataSource...',
+    action='new_data_source'
+)
+delete_data_source_action = Action(name='Delete', action='delete_data_source')
+edit_data_source_action = Action(
+    name='Edit...', action='edit_data_source',
+    enabled_when=call_modelview_editable
 )
 
 
-#: Wrapper to call workflow verification after each method
+#: Wrapper to perform workflow verification after a method or function call
 def triggers_verify(func):
     def wrap(self, *args, **kwargs):
         func(self, *args, **kwargs)
@@ -62,7 +114,9 @@ def triggers_verify(func):
 
 
 class TreeNodeWithStatus(TreeNode):
-    """ Custom TreeNode class for workflow elements """
+    """ Custom TreeNode class for workflow elements. Allows setting a
+     workflow element's icon depending on whether it has an error or not.
+     """
 
     def get_icon(self, object, is_expanded):
         return 'icons/valid.png' if object.valid else 'icons/invalid.png'
@@ -112,8 +166,8 @@ class WorkflowTree(ModelView):
     selected_mv = Instance(ModelView)
 
     #: The name of the currently selected factory group. This will be None
-    #: if an actual modelview is selected, or (for example) 'MCO' if the
-    #: MCO folder is selected
+    #: if no factory is selected, or (for example) 'MCO' if the
+    #: MCO folder is selected.
     selected_factory_name = Unicode()
 
     #: The NewEntityModal for the selected factory group
@@ -125,12 +179,16 @@ class WorkflowTree(ModelView):
     #: A function to remove the selected object from the workflow
     remove_entity = Callable()
 
-    #: The error message relating to selected_mv
-    selected_error = Property(
-        Unicode(), depends_on="selected_mv,selected_mv.error_message,"
-                              "selected_mv.label")
 
-    #: An event which runs a verification check on the current workflow
+
+    #: The error message currently displayed in the UI.
+    selected_error = Property(Unicode(),
+                              depends_on="selected_mv,"
+                                         "selected_mv.error_message,"
+                                         "selected_mv.label")
+
+    #: An event which runs a verification check on the current workflow when
+    #: triggered.
     verify_workflow_event = Event
 
     traits_view = View()
