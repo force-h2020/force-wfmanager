@@ -1,4 +1,4 @@
-from functools import partial
+from functools import partial, wraps
 
 from traits.api import (
     Callable, Event, Instance, Property, Unicode, on_trait_change
@@ -24,7 +24,7 @@ from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
 from force_wfmanager.left_side_pane.mco_parameter_model_view import (
     MCOParameterModelView
 )
-from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
+from force_wfmanager.left_side_pane.new_entity_creator import NewEntityCreator
 from force_wfmanager.left_side_pane.notification_listener_model_view import (
     NotificationListenerModelView
 )
@@ -46,9 +46,6 @@ call_modelview_editable = 'handler.modelview_editable(object)'
 # -------------------
 # Actions!
 # -------------------
-
-
-
 
 # MCO
 
@@ -170,16 +167,14 @@ class WorkflowTree(ModelView):
     #: MCO folder is selected.
     selected_factory_name = Unicode()
 
-    #: The NewEntityModal for the selected factory group
-    current_modal = Instance(NewEntityModal)
+    #: The NewEntityCreator for the selected factory group
+    current_modal = Instance(NewEntityCreator)
 
     #: A function to add the new instance from current_modal to the Workflow
     add_new_entity = Callable()
 
     #: A function to remove the selected object from the workflow
     remove_entity = Callable()
-
-
 
     #: The error message currently displayed in the UI.
     selected_error = Property(Unicode(),
@@ -190,6 +185,8 @@ class WorkflowTree(ModelView):
     #: An event which runs a verification check on the current workflow when
     #: triggered.
     verify_workflow_event = Event
+
+    parameter_factories = Callable
 
     traits_view = View()
 
@@ -218,7 +215,12 @@ class WorkflowTree(ModelView):
                     label='=Notification Listeners',
                     view=no_view,
                     menu=no_menu,
-                    on_select=self.notification_factory_selected
+                    on_select=partial(
+                        self.factory,
+                        self._factory_registry.notification_listener_factories,
+                        self.new_notification_listener,
+                        'NotificationListener',
+                    )
                 ),
                 # Node representing the Notification Listener
                 TreeNodeWithStatus(
@@ -229,7 +231,10 @@ class WorkflowTree(ModelView):
                     name='Notification Listeners',
                     view=no_view,
                     menu=Menu(delete_notification_listener_action),
-                    on_select=self.notification_instance_selected
+                    on_select=partial(
+                        self.instance,
+                        self.delete_notification_listener
+                    )
                 ),
                 # Folder node "MCO" containing the MCO
                 TreeNode(
@@ -240,8 +245,12 @@ class WorkflowTree(ModelView):
                     name='MCO',
                     view=no_view,
                     menu=no_menu,
-                    on_select=self.mco_factory_selected
-
+                    on_select=partial(
+                        self.factory,
+                        self._factory_registry.mco_factories,
+                        self.new_mco,
+                        'MCO'
+                    )
                 ),
                 # Node representing the MCO
                 TreeNodeWithStatus(
@@ -252,7 +261,7 @@ class WorkflowTree(ModelView):
                     name='MCO',
                     view=no_view,
                     menu=Menu(delete_mco_action),
-                    on_select=self.mco_instance_selected
+                    on_select=partial(self.instance, self.delete_mco)
                 ),
                 # Folder node "Parameters" containing the MCO parameters
                 TreeNode(
@@ -263,7 +272,12 @@ class WorkflowTree(ModelView):
                     name='Parameters',
                     view=no_view,
                     menu=no_menu,
-                    on_select=self.parameter_factory_selected
+                    on_select=partial(
+                        self.factory,
+                        self.parameter_factories,
+                        self.new_parameter,
+                        'Parameter'
+                    )
                 ),
                 #: Node representing an MCO parameter
                 TreeNodeWithStatus(
@@ -273,7 +287,7 @@ class WorkflowTree(ModelView):
                     name='Parameters',
                     label='label',
                     menu=Menu(delete_parameter_action),
-                    on_select=self.parameter_instance_selected
+                    on_select=partial(self.instance, self.delete_parameter)
                 ),
                 TreeNode(
                     node_for=[MCOModelView],
@@ -283,7 +297,12 @@ class WorkflowTree(ModelView):
                     name='KPIs',
                     view=no_view,
                     menu=Menu(new_kpi_action),
-                    on_select=self.kpi_factory_selected
+                    on_select=partial(
+                        self.factory,
+                        None,
+                        self.new_kpi,
+                        'KPI'
+                    )
                 ),
                 TreeNodeWithStatus(
                     node_for=[KPISpecificationModelView],
@@ -292,7 +311,7 @@ class WorkflowTree(ModelView):
                     label='label',
                     name='KPIs',
                     menu=Menu(delete_kpi_action),
-                    on_select=self.kpi_instance_selected
+                    on_select=partial(self.instance, self.delete_kpi)
                 ),
                 #: Node representing the layers
                 TreeNode(
@@ -303,7 +322,12 @@ class WorkflowTree(ModelView):
                     name='Execution Layers',
                     view=no_view,
                     menu=Menu(new_layer_action),
-                    on_select=self.execution_layer_factory_selected
+                    on_select=partial(
+                        self.factory,
+                        None,
+                        self.new_layer,
+                        'ExecutionLayer'
+                    )
                 ),
                 TreeNodeWithStatus(
                     node_for=[ExecutionLayerModelView],
@@ -313,7 +337,12 @@ class WorkflowTree(ModelView):
                     name='DataSources',
                     view=no_view,
                     menu=Menu(delete_layer_action),
-                    on_select=self.datasource_factory_exec_instance_selected
+                    on_select=partial(
+                        self.factory_instance,
+                        self._factory_registry.data_source_factories,
+                        self.new_data_source,
+                        'DataSource'
+                    )
                 ),
                 TreeNodeWithStatus(
                     node_for=[DataSourceModelView],
@@ -322,7 +351,7 @@ class WorkflowTree(ModelView):
                     label='label',
                     name='DataSources',
                     menu=Menu(delete_data_source_action),
-                    on_select=self.datasource_instance_selected
+                    on_select=partial(self.instance, self.delete_data_source)
                 ),
             ],
             orientation="horizontal",
@@ -356,9 +385,6 @@ class WorkflowTree(ModelView):
     def _workflow_mv_default(self):
         return WorkflowModelView(model=self.model)
 
-    def workflow_selected(self, name):
-        self.selected_factory_name = 'Workflow'
-
     @on_trait_change('model')
     def update_model_view(self):
         """Update the workflow modelview's model and verify, on either loading
@@ -371,17 +397,66 @@ class WorkflowTree(ModelView):
     # set add_new_entity to be for the right object type and provide a way to
     # add things by double clicking
 
-    def _no_factory_selected(self):
-        self.selected_factory_name = 'None'
-        self.current_modal = None
-        self.add_new_entity = None
+    def selection(func):
+        """On selecting something in the tree editor, reset the
+        selected_factory_name, entity_creator, add_new_entity and
+        remove_entity attributes"""
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            self.selected_factory_name = 'None'
+            self.current_modal = None
+            self.add_new_entity = None
+            self.remove_entity = None
+            func(self, *args, **kwargs)
 
-    def _no_instance_selected(self):
-        self.remove_entity = None
+        return wrapper
+
+    @selection
+    def factory_instance(self, from_registry, create_new, factory_group_name,
+                         remove_selected, factory):
+        self.factory(from_registry, create_new, factory_group_name, factory)
+        self.instance(remove_selected)
+
+    @selection
+    def factory(self, from_registry, create_fn, factory_group_name, factory):
+        self.add_new_entity = partial(create_fn, None, factory)
+        if from_registry is not None:
+            try:
+                # For a non-constant factory list (parameter factories)
+                visible_factories = [
+                    f for f in from_registry(self) if f.ui_visible
+                ]
+            except TypeError:
+                visible_factories = [f for f in from_registry if f.ui_visible]
+            entity_creator = NewEntityCreator(
+                factories=visible_factories,
+                dclick_function=partial(create_fn, None, factory)
+            )
+            self.current_modal = entity_creator
+        else:
+            self.current_modal = None
+        self.selected_factory_name = factory_group_name
+
+    @selection
+    def instance(self, delete_fn, instance):
+        self.remove_entity = partial(delete_fn, None, instance)
+
+    @selection
+    def workflow_selected(self, workflow_mv):
+        self.selected_factory_name = 'Workflow'
+
+    def _parameter_factories_default(self):
+        def param_factories(self):
+            if self.model.mco is not None:
+                parameter_factories = self.model.mco.factory.parameter_factories
+                return parameter_factories
+            return None
+        return param_factories
+
 
     def datasource_factory_exec_instance_selected(self, ds_factory):
         self.add_new_entity = partial(self.new_data_source, None, ds_factory)
-        modal = NewEntityModal(
+        modal = NewEntityCreator(
             factories=self._factory_registry.data_source_factories,
             dclick_function=partial(self.new_data_source, None, ds_factory)
         )
@@ -393,40 +468,36 @@ class WorkflowTree(ModelView):
         self.add_new_entity = partial(self.new_layer, None, exec_factory)
         self.current_modal = None
         self.selected_factory_name = 'ExecutionLayer'
-        self._no_instance_selected()
 
     def kpi_factory_selected(self, kpi_factory):
         self.add_new_entity = partial(self.new_kpi, None, kpi_factory)
         self.current_modal = None
         self.selected_factory_name = 'KPI'
-        self._no_instance_selected()
 
     def mco_factory_selected(self, mco_factory):
         self.add_new_entity = partial(self.new_mco, None, mco_factory)
-        modal = NewEntityModal(
+        modal = NewEntityCreator(
             factories=self._factory_registry.mco_factories,
             dclick_function=partial(self.new_mco, None, mco_factory)
         )
         self.current_modal = modal
         self.selected_factory_name = 'MCO'
-        self._no_instance_selected()
 
-    def notification_factory_selected(self, notif_factory):
-        visible_factories = [
-            f for f in self._factory_registry.notification_listener_factories
-            if f.ui_visible
-        ]
-
-        self.add_new_entity = partial(self.new_notification_listener,
-                                      None, notif_factory)
-        modal = NewEntityModal(
-            factories=visible_factories,
-            dclick_function=partial(self.new_notification_listener,
-                                    None, notif_factory)
-        )
-        self.current_modal = modal
-        self.selected_factory_name = 'NotificationListener'
-        self._no_instance_selected()
+    # def notification_factory_selected(self, notif_factory):
+    #     visible_factories = [
+    #         f for f in self._factory_registry.notification_listener_factories
+    #         if f.ui_visible
+    #     ]
+    #
+    #     self.add_new_entity = partial(self.new_notification_listener,
+    #                                   None, notif_factory)
+    #     modal = NewEntityCreator(
+    #         factories=visible_factories,
+    #         dclick_function=partial(self.new_notification_listener,
+    #                                 None, notif_factory)
+    #     )
+    #     self.current_modal = modal
+    #     self.selected_factory_name = 'NotificationListener'
 
     def parameter_factory_selected(self, param_factory):
         parameter_factories = []
@@ -434,8 +505,7 @@ class WorkflowTree(ModelView):
                                       param_factory)
         if self.model.mco is not None:
             parameter_factories = self.model.mco.factory.parameter_factories
-
-        modal = NewEntityModal(
+        modal = NewEntityCreator(
             factories=parameter_factories,
             dclick_function=partial(self.new_parameter, None,
                                     param_factory)

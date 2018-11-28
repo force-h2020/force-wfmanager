@@ -1,85 +1,109 @@
-from traits.api import (HasStrictTraits, Instance, List, Either,
-                        on_trait_change, Dict, Property, Unicode, Bool,
-                        ReadOnly, Callable)
-from traitsui.api import (View, Handler, HSplit, Group, VGroup, UItem,
-                          InstanceEditor, OKCancelButtons, Menu,
-                          TreeEditor, TreeNode, HTMLEditor)
-
+from traits.api import (
+    Bool, Callable, Dict, Either, HasStrictTraits, Instance, List, ReadOnly,
+    Property, Unicode, on_trait_change
+)
+from traitsui.api import (
+    HSplit, HTMLEditor, InstanceEditor, Menu, TreeEditor, TreeNode, UItem,
+    VGroup, View
+)
 from envisage.plugin import Plugin
 
-from force_bdss.api import (BaseFactory, BaseMCOModel, BaseDataSourceModel,
-                            BaseMCOParameter, BaseNotificationListenerModel)
-
+from force_bdss.api import BaseFactory, BaseMCOParameter, BaseModel
 from force_wfmanager.left_side_pane.view_utils import model_info
 
 no_view = View()
 no_menu = Menu()
 
 
-class ModalHandler(Handler):
-    def close(self, info, is_ok):
-        if is_ok is False:
-            info.object.model = None
-        return True
-
-
 class PluginModelView(HasStrictTraits):
-    """An instance of PluginModelView contains a plugin, along
-    with all the factories which can be derived from it"""
+    """The ModelView for each separate plugin. The ModelViews are displayed
+    in the TreeEditor of the NewEntityCreator
+
+    Attributes
+    ----------
+    plugin: Plugin
+        An instance of an external Envisage Plugin.
+    name: Unicode
+        The name of the PluginModelView (optional)
+    factories: List(BaseFactory))
+        A list of all factories which are derived from plugin. The factories
+        will all be just one of the following types - MCO or DataSource or
+        NotificationListener or Parameter.
+    """
     plugin = Instance(Plugin)
     name = Unicode("plugin")
     factories = List(Instance(BaseFactory))
 
 
 class Root(HasStrictTraits):
+    """A Root node, required by the TreeEditor.
+
+    Attributes
+    ----------
+    plugins: List(PluginModelView)
+        A list of all the PluginModelViews.
+    name: Unicode
+        The name of the Root (optional)
+    """
     plugins = List(PluginModelView)
     name = Unicode("root")
 
 
-class NewEntityModal(HasStrictTraits):
-    """ Dialog which allows the user to add a new MCO/Data Source
-    to the workflow """
-    #: Available factories, this class is generic and can contain any factory
-    #: which implement the create_model method
+class NewEntityCreator(HasStrictTraits):
+    """A Traits class which is viewed in the UI as a tree editor containing
+    the DataSource/MCO/Parameter/NotificationListener factories for the
+    currently installed plugins
+
+    Attributes
+    ----------
+    factories: List(BaseFactory)
+        A list of factories, passed as an argument on initialisation of a
+        NewEntityCreator. This list uses the generic BaseFactory class and
+        can contain any factory with a create_model method. In practice,
+        these factories will usually be the same type as it makes sense from
+        a UI point of view to keep factories grouped by type.
+    plugins_root: Root
+        The root node displayed in the TreeEditor
+    selected_factory: BaseFactory
+        The currently selected factory in the TreeEditor
+    model: BaseModel or BaseMCOParameter
+        An instance of the model created by the currently selected factory.
+        On a change of selected_factory, the factory's create_model method is
+        called and the returned object set as model.
+    dclick_function: Callable
+        A function which is called on double clicking an item in the workflow
+        tree. Passed as an argument on initialisation of a NewEntityCreator.
+        Used to allow adding a new item to the workflow by double clicking, so
+        the function passed should enable this behaviour appropriately.
+    model_description_HTML: Unicode
+        HTML containing a model description, obtained from the model's
+        get_name and get_description methods.
+     """
+
     factories = List(Instance(BaseFactory))
-
-    #: List of PluginModelView instances, which provide a mapping
-    # between plugins and factories
     plugins_root = Instance(Root)
-
-    #: Selected factory in the list
     selected_factory = Instance(BaseFactory)
-
-    #: Currently editable model
     model = Either(
-        Instance(BaseMCOModel),
-        Instance(BaseMCOParameter),
-        Instance(BaseDataSourceModel),
-        Instance(BaseNotificationListenerModel),
+        Instance(BaseModel),
+        Instance(BaseMCOParameter)
     )
-
-    #: A function to be called on double-clicking. This is set in
-    #: WorkflowTree, when the instance of NewEntityModal is created.
-    #: Generally this will be used to add a new object, but in principle
-    #: could be anything.
     dclick_function = Callable()
+    model_description_HTML = Property(Unicode, depends_on="model")
+
+    #: A Bool which is True if model has a view with at least one user
+    #: editable attribute, False otherwise.
+    _current_model_editable = Property(Bool, depends_on="model")
 
     #: Cache for created models, models are created when selecting a new
-    #: factory and cached so that when selected_factory change the created
+    #: factory and cached so that when selected_factory changes the created
     #: models are saved
     _cached_models = Dict()
 
-    #: Disable the OK button if no factory set
-    OKCancelButtons[0].trait_set(enabled_when="selected_factory is not None")
-
-    model_description_HTML = Property(Unicode, depends_on="model")
-
-    current_model_editable = Property(Bool, depends_on="model")
-
-    no_config_options_msg = ReadOnly(Unicode)
+    #: A message to be displayed if there are no config options
+    _no_config_options_msg = ReadOnly(Unicode)
 
     def __init__(self, factories, *args, **kwargs):
-        super(NewEntityModal, self).__init__(*args, **kwargs)
+        super(NewEntityCreator, self).__init__(*args, **kwargs)
         self.factories = factories
 
     def default_traits_view(self):
@@ -101,27 +125,25 @@ class NewEntityModal(HasStrictTraits):
 
         view = View(
             HSplit(
-                Group(
-                    UItem("plugins_root",
-                          editor=editor),
+                VGroup(
+                    UItem("plugins_root", editor=editor),
                 ),
                 VGroup(
                     VGroup(
                         UItem("model",
                               style="custom",
                               editor=InstanceEditor(),
-                              visible_when="current_model_editable is True"
+                              visible_when="_current_model_editable is True"
                               ),
-                        UItem("no_config_options_msg",
+                        UItem("_no_config_options_msg",
                               style="readonly",
                               editor=HTMLEditor(),
-                              visible_when="current_model_editable is False"),
+                              visible_when="_current_model_editable is False"),
                         visible_when="model is not None",
                         style="custom",
                         label="Configuration Options",
                         show_border=True,
                         springy=True,
-
                     ),
                     VGroup(
                         UItem("model_description_HTML",
@@ -131,13 +153,10 @@ class NewEntityModal(HasStrictTraits):
                         label="Description",
                         show_border=True,
                         springy=True,
-
                     ),
                 )
             ),
-            buttons=OKCancelButtons,
             title="Add New Element",
-            handler=ModalHandler(),
             width=500,
             resizable=True,
             kind="livemodal"
@@ -171,7 +190,9 @@ class NewEntityModal(HasStrictTraits):
                                            name=plugin.name))
         return Root(plugins=plugins)
 
-    def _no_config_options_msg_default(self):
+    def __no_config_options_msg_default(self):
+        """A message to be displayed for models with no configuration options
+        """
         return htmlformat(body="<p>No configuration options "
                           "available for this selection</p>")
 
@@ -193,6 +214,8 @@ class NewEntityModal(HasStrictTraits):
         self.model = cached_model
 
     def reset_model(self):
+        """Helper function which 'resets' self.model to be a new un-edited
+        model for the currently selected factory"""
         if self.selected_factory is None:
             self.model = None
         else:
@@ -200,21 +223,21 @@ class NewEntityModal(HasStrictTraits):
 
     def get_plugin_from_factory(self, factory):
         """Returns the plugin associated with a particular factory"""
-        if isinstance(factory, BaseFactory):
-            plugin = factory.plugin
-            return plugin
-        return None
+        plugin = factory.plugin
+        return plugin
 
-    def _get_current_model_editable(self):
-        """A check which indicates if 1. A view with at least
-        one item exists for this model and 2. That those items
-        are actually visible to the user"""
+    def _get__current_model_editable(self):
+        """A check which returns True if 1. A view with at least
+        one item exists for this model and 2. Those items
+        are actually visible to the user."""
         return model_info(self.model) != []
 
     def _get_model_description_HTML(self):
-        """Format a description of the currently selected model and it's
-        parameters, using desc metadata from the traits in
-        ${model_name}_model.py"""
+        """Return a HTML formatted description of the currently selected
+        model and its parameters. This is constructed from the currently
+        selected factory's get_name and get_description methods, alongside the
+        .desc attribute of the current model's attributes.
+        """
 
         # A default message when no model selected
         if self.selected_factory is None or self.model is None:
@@ -232,14 +255,14 @@ class NewEntityModal(HasStrictTraits):
         name_desc_pairs = []
 
         # Retrieve descriptions from trait metadata
-        for i, trait_name in enumerate(view_info):
-            trait = self.model.trait(trait_name)
-            trait_desc = trait.desc
+        for model_attr_name in view_info:
+            model_attr = self.model.trait(model_attr_name)
+            model_attr_desc = model_attr.desc
 
-            if trait_desc is not None:
-                name_desc_pairs.append([trait_name, trait_desc])
+            if model_attr_desc is not None:
+                name_desc_pairs.append([model_attr_name, model_attr_desc])
             else:
-                name_desc_pairs.append([trait_name,
+                name_desc_pairs.append([model_attr_name,
                                         "No description available."])
 
         # Format names as in the Instance Editor

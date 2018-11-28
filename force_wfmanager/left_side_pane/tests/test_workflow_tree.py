@@ -14,7 +14,7 @@ from force_bdss.tests.probe_classes.factory_registry_plugin import (
 from force_wfmanager.left_side_pane.workflow_tree import (
     WorkflowTree, TreeNodeWithStatus, ModelEditDialog
 )
-from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
+from force_wfmanager.left_side_pane.new_entity_creator import NewEntityCreator
 
 
 NEW_ENTITY_MODAL_PATH = (
@@ -27,7 +27,7 @@ MODEL_EDIT_PATH = (
 
 def mock_new_modal(model_type, factory=None):
     def _mock_new_modal(*args, **kwargs):
-        modal = mock.Mock(spec=NewEntityModal)
+        modal = mock.Mock(spec=NewEntityCreator)
         modal.edit_traits = lambda: None
 
         # Any type is ok as long as it passes trait validation.

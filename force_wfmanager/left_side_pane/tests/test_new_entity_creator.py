@@ -2,14 +2,18 @@ import unittest
 
 from traits.api import HasTraits, Instance, Int
 
-from force_bdss.tests.probe_classes.mco import ProbeMCOFactory
-from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
-from force_bdss.tests.probe_classes.probe_extension_plugin import \
+from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeMCOModel
+from force_bdss.tests.probe_classes.data_source import (
+    ProbeDataSourceFactory, ProbeDataSourceModel
+)
+from force_bdss.tests.probe_classes.probe_extension_plugin import (
     ProbeExtensionPlugin
+)
 from force_bdss.tests.dummy_classes.data_source import DummyDataSourceModel
 from force_bdss.api import BaseDataSourceModel
-from force_wfmanager.left_side_pane.new_entity_modal import (
-    ModalHandler, NewEntityModal)
+from force_wfmanager.left_side_pane.new_entity_creator import (
+     NewEntityCreator
+)
 from force_wfmanager.left_side_pane.workflow_tree import WorkflowModelView
 from force_wfmanager.left_side_pane.view_utils import model_info
 
@@ -20,7 +24,7 @@ class UIDummy:
 
 
 class ModalInfoDummy(HasTraits):
-    object = Instance(NewEntityModal)
+    object = Instance(NewEntityCreator)
 
     ui = Instance(UIDummy)
 
@@ -41,46 +45,31 @@ class TestNewEntityModal(unittest.TestCase):
 
         self.workflow_mv = WorkflowModelView()
 
-        self.handler = ModalHandler()
-
-    def _get_dialog(self):
-        modal = NewEntityModal(
+    def _get_mco_selector(self):
+        modal = NewEntityCreator(
             factories=self.mcos
         )
         return modal, ModalInfoDummy(object=modal)
 
-    def _get_dialog_data(self):
-        modal = NewEntityModal(
+    def _get_data_selector(self):
+        modal = NewEntityCreator(
             factories=self.data_sources
         )
         return modal, ModalInfoDummy(object=modal)
 
-    def test_add_entity(self):
-        modal, modal_info = self._get_dialog()
-
-        # Simulate pressing add mco button (should do nothing, because no mco
-        # is selected)
-        self.handler.close(modal_info, True)
-        self.assertIsNone(modal.model)
-
-        # Simulate selecting an mco factory in the list
-        modal, modal_info = self._get_dialog()
+    def test_select_factory(self):
+        # Simulate selecting an mco factory in the panel
+        modal, modal_info = self._get_mco_selector()
         modal.selected_factory = modal.factories[0]
+        self.assertIsInstance(modal.model, ProbeMCOModel)
 
-        # Simulate pressing add mco button
-        self.handler.close(modal_info, True)
-        self.assertIsNotNone(modal.model)
-
-        # Simulate selecting an mco factory in the list
-        modal, modal_info = self._get_dialog()
+        # Simulate selecting a datasource factory in the panel
+        modal, modal_info = self._get_data_selector()
         modal.selected_factory = modal.factories[0]
-
-        # Simulate pressing add mco button again to create a new mco model
-        self.handler.close(modal_info, False)
-        self.assertIsNone(modal.model)
+        self.assertIsInstance(modal.model, ProbeDataSourceModel)
 
     def test_caching(self):
-        modal, _ = self._get_dialog()
+        modal, _ = self._get_mco_selector()
         # Select a factory and
         modal.selected_factory = modal.factories[0]
 
@@ -99,9 +88,9 @@ class TestNewEntityModal(unittest.TestCase):
 
     def test_description_mco_modal(self):
 
-        modal, modal_info = self._get_dialog()
+        modal, modal_info = self._get_mco_selector()
 
-        self.assertFalse(modal.current_model_editable)
+        self.assertFalse(modal._current_model_editable)
 
         self.assertIn("No Model", modal.model_description_HTML)
 
@@ -113,7 +102,7 @@ class TestNewEntityModal(unittest.TestCase):
 
     def test_view_structure(self):
 
-        modal, modal_info = self._get_dialog()
+        modal, modal_info = self._get_mco_selector()
 
         modal.selected_factory = modal.factories[0]
 
@@ -122,14 +111,14 @@ class TestNewEntityModal(unittest.TestCase):
 
     def test_plugins_root_default(self):
 
-        modal, modal_info = self._get_dialog()
+        modal, modal_info = self._get_mco_selector()
         root = modal._plugins_root_default()
 
         self.assertEqual(len(root.plugins), 1)
         self.assertEqual(root.plugins[0].plugin, self.plugin)
 
     def test_description_editable_data_source(self):
-        modal, modal_info = self._get_dialog_data()
+        modal, modal_info = self._get_data_selector()
         modal.selected_factory = modal.factories[0]
         modal.model = DataSourceModelDescription(
             modal.selected_factory)
@@ -139,11 +128,11 @@ class TestNewEntityModal(unittest.TestCase):
 
     def test_description_non_editable_datasource(self):
 
-        modal, modal_info = self._get_dialog_data()
+        modal, modal_info = self._get_data_selector()
         modal.selected_factory = self.data_sources[0]
         # An empty DataSourceModel with no editable traits
         modal.model = DummyDataSourceModel(self.data_sources[0])
-        self.assertFalse(modal.current_model_editable)
+        self.assertFalse(modal._current_model_editable)
         self.assertIn("No description available", modal.model_description_HTML)
         self.assertIn("No configuration options available",
-                      modal.no_config_options_msg)
+                      modal._no_config_options_msg)

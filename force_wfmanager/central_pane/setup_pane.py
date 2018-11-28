@@ -1,13 +1,16 @@
-from pyface.tasks.traits_task_pane import TraitsTaskPane
+from pyface.tasks.api import TraitsTaskPane
 from traits.api import (
-    Bool, Button, Callable, Dict, Instance, Property, Unicode, on_trait_change
+    Bool, Button, Callable, Dict, Either, Instance, Property, Unicode,
+    on_trait_change
 )
 from traitsui.api import (
-    HGroup, InstanceEditor, ModelView, UItem, View, VGroup
+    InstanceEditor, HGroup, ModelView, UItem, View, VGroup
 )
 
+
+
 from force_bdss.api import BaseExtensionPlugin, BaseModel, Workflow
-from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
+from force_wfmanager.left_side_pane.new_entity_creator import NewEntityCreator
 from force_wfmanager.left_side_pane.workflow_info import WorkflowInfo
 
 class SetupPane(TraitsTaskPane):
@@ -37,17 +40,17 @@ class SetupPane(TraitsTaskPane):
     #: this is set to 'None' (with type Unicode, not NoneType!)
     selected_factory_name = Unicode('Workflow')
 
-    #: The appropriate function to add a new entity of the selected factory
-    #: group to the workflow tree. For example, if the 'DataSources' group
+    #: A function which adds a new entity to the workflow tree, using the
+    # currently selected factory. For example, if the 'DataSources' factory
     #: is selected, this function would be new_data_source().
     add_new_entity_function = Callable()
 
-    #: Function to remove the currently selected instance
+    #: Function to remove the currently selected modelview
     remove_entity_function = Callable()
 
     #: A NewEntityModal object displaying the factories of the currently
     #: selected group
-    current_modal = Instance(NewEntityModal)
+    current_modal = Instance(NewEntityCreator)
 
     current_info = Property(Instance(WorkflowInfo),
                             depends_on='selected_factory_name,selected_mv,'
