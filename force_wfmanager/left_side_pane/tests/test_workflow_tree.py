@@ -12,16 +12,13 @@ from force_bdss.tests.probe_classes.factory_registry_plugin import (
 
 
 from force_wfmanager.left_side_pane.workflow_tree import (
-    WorkflowTree, TreeNodeWithStatus, ModelEditDialog
+    WorkflowTree, TreeNodeWithStatus
 )
 from force_wfmanager.left_side_pane.new_entity_creator import NewEntityCreator
 
 
 NEW_ENTITY_MODAL_PATH = (
     "force_wfmanager.left_side_pane.workflow_tree.NewEntityModal"
-)
-MODEL_EDIT_PATH = (
-    "force_wfmanager.left_side_pane.workflow_tree.ModelEditDialog"
 )
 
 
@@ -42,12 +39,6 @@ def mock_notification_listener_factory():
     mock_factory = mock.Mock(spec=BaseNotificationListenerFactory)
     mock_factory.ui_visible = True
     return mock_factory
-
-
-def mock_model_edit_dialog():
-    model_edit_dialog = mock.Mock(spec=ModelEditDialog)
-    model_edit_dialog.edit_traits = lambda: None
-    return model_edit_dialog
 
 
 def get_workflow_tree():
@@ -110,7 +101,7 @@ class TestWorkflowTree(unittest.TestCase):
             'MCO',
             self.tree.workflow_mv
         )
-        self.tree.current_modal.model = (
+        self.tree.entity_creator.model = (
             self.factory_registry.mco_factories[0].create_model()
         )
         self.tree.add_new_entity()
@@ -133,7 +124,7 @@ class TestWorkflowTree(unittest.TestCase):
             'Parameter',
             self.tree.workflow_mv.mco_mv[0]
         )
-        self.tree.current_modal.model = parameter_factory.create_model()
+        self.tree.entity_creator.model = parameter_factory.create_model()
         self.tree.add_new_entity()
         self.assertEqual(
             len(self.tree.workflow_mv.mco_mv[0].mco_parameters_mv), 2
@@ -156,7 +147,7 @@ class TestWorkflowTree(unittest.TestCase):
             self.tree.delete_layer,
             exec_layer
         )
-        self.tree.current_modal.model = (
+        self.tree.entity_creator.model = (
             self.factory_registry.data_source_factories[0].create_model()
         )
         self.tree.add_new_entity()
@@ -180,7 +171,7 @@ class TestWorkflowTree(unittest.TestCase):
         )
 
         nf_factory = self.factory_registry.notification_listener_factories[0]
-        self.tree.current_modal.model = nf_factory.create_model()
+        self.tree.entity_creator.model = nf_factory.create_model()
         self.tree.add_new_entity()
 
         self.assertEqual(

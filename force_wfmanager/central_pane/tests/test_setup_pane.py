@@ -1,19 +1,19 @@
 import unittest
-from force_bdss.mco.base_mco_model import BaseMCOModel
-
-from force_bdss.tests.probe_classes.factory_registry_plugin import \
-    ProbeFactoryRegistryPlugin
-from force_wfmanager.left_side_pane.workflow_model_view import \
-    WorkflowModelView
-
-from force_wfmanager.wfmanager import WfManager
-from force_wfmanager.wfmanager_plugin import WfManagerPlugin
-
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
+from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+
+from force_bdss.mco.base_mco_model import BaseMCOModel
+from force_bdss.tests.probe_classes.factory_registry_plugin import (
+    ProbeFactoryRegistryPlugin
+)
+from force_wfmanager.left_side_pane.workflow_model_view import (
+    WorkflowModelView
+)
+from force_wfmanager.wfmanager import WfManager
+from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
-from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 
 def dummy_wfmanager(filename=None):
@@ -71,7 +71,7 @@ class TestSetupPane(GuiTestAssistant, unittest.TestCase):
             'MCO',
             self.workflow_tree.workflow_mv
         )
-        self.workflow_tree.current_modal.model = BaseMCOModel(
+        self.workflow_tree.entity_creator.model = BaseMCOModel(
             factory=self.workflow_tree._factory_registry.mco_factories[0])
         self.setup_pane.add_new_entity = True
         self.assertEqual(1, len(self.workflow_tree.workflow_mv.mco_mv))

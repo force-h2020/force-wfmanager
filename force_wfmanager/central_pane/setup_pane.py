@@ -49,7 +49,7 @@ class SetupPane(TraitsTaskPane):
 
     #: A NewEntityModal object displaying the factories of the currently
     #: selected group
-    current_modal = Instance(NewEntityCreator)
+    entity_creator = Instance(NewEntityCreator)
 
     current_info = Property(Instance(WorkflowInfo),
                             depends_on='selected_factory_name,selected_mv,'
@@ -63,8 +63,8 @@ class SetupPane(TraitsTaskPane):
 
     #: Switch to disable adding an entity if all required properties are
     #: not set
-    enable_add_button = Property(Bool, depends_on='current_modal,'
-                                                  'current_modal.model')
+    enable_add_button = Property(Bool, depends_on='entity_creator,'
+                                                  'entity_creator.model')
 
     #: The view when editing an existing instance within the workflow tree
     def default_traits_view(self):
@@ -90,9 +90,9 @@ class SetupPane(TraitsTaskPane):
                 # Factory View
                 VGroup(
                     HGroup(
-                        UItem("current_modal", editor=InstanceEditor(),
+                        UItem("entity_creator", editor=InstanceEditor(),
                               style="custom",
-                              visible_when="current_modal is not None",
+                              visible_when="entity_creator is not None",
                               width=825),
                         springy=True,
                     ),
@@ -209,7 +209,7 @@ class SetupPane(TraitsTaskPane):
         simple_factories = ['KPI', 'ExecutionLayer']
         if self.selected_factory_name in simple_factories:
             return True
-        if self.current_modal is None or self.current_modal.model is None:
+        if self.entity_creator is None or self.entity_creator.model is None:
             return False
         return True
 
@@ -258,9 +258,9 @@ class SetupPane(TraitsTaskPane):
         self.selected_factory_name = \
             self.task.side_pane.workflow_tree.selected_factory_name
 
-    @on_trait_change('task.side_pane.workflow_tree.current_modal')
-    def sync_current_modal(self):
-        self.current_modal = self.task.side_pane.workflow_tree.current_modal
+    @on_trait_change('task.side_pane.workflow_tree.entity_creator')
+    def sync_entity_creator(self):
+        self.entity_creator = self.task.side_pane.workflow_tree.entity_creator
 
     # Button handlers for creating and deleting workflow items
     @on_trait_change('add_new_entity')
