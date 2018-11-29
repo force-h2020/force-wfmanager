@@ -413,13 +413,14 @@ class WorkflowTree(ModelView):
 
     @selection
     def factory_instance(self, from_registry, create_new, factory_group_name,
-                         remove_selected, factory):
-        self.factory(from_registry, create_new, factory_group_name, factory)
-        self.instance(remove_selected)
+                         remove_selected, modelview):
+        self.factory.__wrapped__(self, from_registry, create_new,
+                                 factory_group_name, modelview)
+        self.instance.__wrapped__(self, remove_selected, modelview)
 
     @selection
-    def factory(self, from_registry, create_fn, factory_group_name, factory):
-        self.add_new_entity = partial(create_fn, None, factory)
+    def factory(self, from_registry, create_fn, factory_group_name, modelview):
+        self.add_new_entity = partial(create_fn, None, modelview)
         if from_registry is not None:
             try:
                 # For a non-constant factory list (parameter factories)
@@ -430,7 +431,7 @@ class WorkflowTree(ModelView):
                 visible_factories = [f for f in from_registry if f.ui_visible]
             entity_creator = NewEntityCreator(
                 factories=visible_factories,
-                dclick_function=partial(create_fn, None, factory)
+                dclick_function=self.add_new_entity
             )
             self.current_modal = entity_creator
         else:
@@ -438,8 +439,8 @@ class WorkflowTree(ModelView):
         self.selected_factory_name = factory_group_name
 
     @selection
-    def instance(self, delete_fn, instance):
-        self.remove_entity = partial(delete_fn, None, instance)
+    def instance(self, delete_fn, modelview):
+        self.remove_entity = partial(delete_fn, None, modelview)
 
     @selection
     def workflow_selected(self, workflow_mv):
@@ -448,102 +449,19 @@ class WorkflowTree(ModelView):
     def _parameter_factories_default(self):
         def param_factories(self):
             if self.model.mco is not None:
-                parameter_factories = self.model.mco.factory.parameter_factories
+                parameter_factories = (
+                    self.model.mco.factory.parameter_factories
+                )
                 return parameter_factories
             return None
         return param_factories
 
-
-    def datasource_factory_exec_instance_selected(self, ds_factory):
-        self.add_new_entity = partial(self.new_data_source, None, ds_factory)
-        modal = NewEntityCreator(
-            factories=self._factory_registry.data_source_factories,
-            dclick_function=partial(self.new_data_source, None, ds_factory)
-        )
-        self.current_modal = modal
-        self.selected_factory_name = 'DataSource'
-        self.remove_entity = partial(self.delete_layer, None, ds_factory)
-
-    def execution_layer_factory_selected(self, exec_factory):
-        self.add_new_entity = partial(self.new_layer, None, exec_factory)
-        self.current_modal = None
-        self.selected_factory_name = 'ExecutionLayer'
-
-    def kpi_factory_selected(self, kpi_factory):
-        self.add_new_entity = partial(self.new_kpi, None, kpi_factory)
-        self.current_modal = None
-        self.selected_factory_name = 'KPI'
-
-    def mco_factory_selected(self, mco_factory):
-        self.add_new_entity = partial(self.new_mco, None, mco_factory)
-        modal = NewEntityCreator(
-            factories=self._factory_registry.mco_factories,
-            dclick_function=partial(self.new_mco, None, mco_factory)
-        )
-        self.current_modal = modal
-        self.selected_factory_name = 'MCO'
-
-    # def notification_factory_selected(self, notif_factory):
-    #     visible_factories = [
-    #         f for f in self._factory_registry.notification_listener_factories
-    #         if f.ui_visible
-    #     ]
-    #
-    #     self.add_new_entity = partial(self.new_notification_listener,
-    #                                   None, notif_factory)
-    #     modal = NewEntityCreator(
-    #         factories=visible_factories,
-    #         dclick_function=partial(self.new_notification_listener,
-    #                                 None, notif_factory)
-    #     )
-    #     self.current_modal = modal
-    #     self.selected_factory_name = 'NotificationListener'
-
-    def parameter_factory_selected(self, param_factory):
-        parameter_factories = []
-        self.add_new_entity = partial(self.new_parameter, None,
-                                      param_factory)
-        if self.model.mco is not None:
-            parameter_factories = self.model.mco.factory.parameter_factories
-        modal = NewEntityCreator(
-            factories=parameter_factories,
-            dclick_function=partial(self.new_parameter, None,
-                                    param_factory)
-        )
-        self.current_modal = modal
-        self.selected_factory_name = 'Parameter'
-        self._no_instance_selected()
-
-    def mco_instance_selected(self, mco_instance):
-        self.remove_entity = partial(self.delete_mco, None,
-                                     mco_instance)
-        self._no_factory_selected()
-
-    def notification_instance_selected(self, notification_instance):
-        self.remove_entity = partial(self.delete_notification_listener,
-                                     None, notification_instance)
-        self._no_factory_selected()
-
-    def kpi_instance_selected(self, kpi_instance):
-        self.remove_entity = partial(self.delete_kpi, None, kpi_instance)
-        self._no_factory_selected()
-
-    def parameter_instance_selected(self, parameter_instance):
-        self.remove_entity = partial(self.delete_parameter, None,
-                                     parameter_instance)
-        self._no_factory_selected()
-
-    def datasource_instance_selected(self, datasource_instance):
-        self.remove_entity = partial(self.delete_data_source, None,
-                                     datasource_instance)
-        self._no_factory_selected()
-
-    #: Functions for new entity creation - The args ui_info and object are
-    #: passed by the WorkflowTree on selection. The additional factory arg
-    #: is passed on double-clicking a specific factory in the ModalDialog
-
+    # Functions for new entity creation - The args ui_info and object
+    # (the selected modelview) are passed by the WorkflowTree on selection.
+    # Additional (unused) args are passed when calling dclick_function by
+    # double-clicking a specific factory in the ModalDialog
     @triggers_verify
-    def new_data_source(self, ui_info, object, factory=None):
+    def new_data_source(self, ui_info, object, *args):
         """Adds a new datasource to the workflow."""
         object.add_data_source(self.current_modal.model)
         self.current_modal.reset_model()
@@ -557,17 +475,17 @@ class WorkflowTree(ModelView):
         object.add_execution_layer(ExecutionLayer())
 
     @triggers_verify
-    def new_mco(self, ui_info, object, factory=None):
+    def new_mco(self, ui_info, object, *args):
         object.set_mco(self.current_modal.model)
         self.current_modal.reset_model()
 
     @triggers_verify
-    def new_notification_listener(self, ui_info, object, factory=None):
+    def new_notification_listener(self, ui_info, object, *args):
         object.add_notification_listener(self.current_modal.model)
         self.current_modal.reset_model()
 
     @triggers_verify
-    def new_parameter(self, ui_info, object, factory=None):
+    def new_parameter(self, ui_info, object, *args):
         object.add_parameter(self.current_modal.model)
         self.current_modal.reset_model()
 

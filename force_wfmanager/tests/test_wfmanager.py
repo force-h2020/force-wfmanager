@@ -5,6 +5,8 @@ from force_wfmanager.wfmanager_plugin import WfManagerPlugin
 
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
+from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
+from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
 from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
@@ -24,12 +26,36 @@ CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
 
 def dummy_wfmanager(filename=None):
     plugins = [CorePlugin(), TasksPlugin(),
-               WfManagerPlugin(workflow_file=filename)]
+               mock_wfmanager_plugin(filename)]
     wfmanager = WfManager(plugins=plugins)
     # 'Run' the application by creating windows without an event loop
     wfmanager.run = wfmanager._create_windows
-    wfmanager.factory_registry = ProbeFactoryRegistryPlugin()
     return wfmanager
+
+
+def mock_wfmanager_plugin(filename):
+    plugin = WfManagerPlugin()
+    plugin._create_setup_task = mock_create_setup_task(filename)
+    plugin._create_results_task = mock_create_results_task()
+    return plugin
+
+
+def mock_create_setup_task(filename):
+    def func():
+        wf_manager_task = WfManagerSetupTask(
+            factory_registry=ProbeFactoryRegistryPlugin())
+        if filename is not None:
+            wf_manager_task.open_workflow_file(filename)
+        return wf_manager_task
+    return func
+
+
+def mock_create_results_task():
+    def func():
+        wf_manager_task = WfManagerResultsTask(
+            factory_registry=ProbeFactoryRegistryPlugin())
+        return wf_manager_task
+    return func
 
 
 def mock_dialog(dialog_class, result, path=''):
@@ -62,9 +88,11 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
         self.wfmanager = dummy_wfmanager()
 
     def create_tasks(self):
+
         self.wfmanager.run()
         self.setup_task = self.wfmanager.windows[0].tasks[0]
         self.results_task = self.wfmanager.windows[0].tasks[1]
+        print(self.setup_task.factory_registry)
 
     def test_init(self):
         self.create_tasks()

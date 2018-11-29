@@ -1,17 +1,16 @@
 from pyface.tasks.api import TraitsTaskPane
 from traits.api import (
-    Bool, Button, Callable, Dict, Either, Instance, Property, Unicode,
+    Bool, Button, Callable, Dict, Instance, Property, Unicode,
     on_trait_change
 )
 from traitsui.api import (
     InstanceEditor, HGroup, ModelView, UItem, View, VGroup
 )
 
-
-
 from force_bdss.api import BaseExtensionPlugin, BaseModel, Workflow
 from force_wfmanager.left_side_pane.new_entity_creator import NewEntityCreator
 from force_wfmanager.left_side_pane.workflow_info import WorkflowInfo
+
 
 class SetupPane(TraitsTaskPane):
     id = 'force_wfmanager.setup_pane'
@@ -264,7 +263,6 @@ class SetupPane(TraitsTaskPane):
         self.current_modal = self.task.side_pane.workflow_tree.current_modal
 
     # Button handlers for creating and deleting workflow items
-
     @on_trait_change('add_new_entity')
     def create_new_workflow_item(self, parent):
         self.add_new_entity_function()
