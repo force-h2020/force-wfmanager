@@ -73,7 +73,7 @@ class TestSetupPane(GuiTestAssistant, unittest.TestCase):
         )
         self.workflow_tree.entity_creator.model = BaseMCOModel(
             factory=self.workflow_tree._factory_registry.mco_factories[0])
-        self.setup_pane.add_new_entity = True
+        self.setup_pane.add_new_entity_btn = True
         self.assertEqual(1, len(self.workflow_tree.workflow_mv.mco_mv))
 
     def test_remove_entity_button(self):
@@ -85,7 +85,7 @@ class TestSetupPane(GuiTestAssistant, unittest.TestCase):
             'ExecutionLayer',
             self.workflow_tree.workflow_mv
         )
-        self.setup_pane.add_new_entity = True
+        self.setup_pane.add_new_entity_btn = True
         self.assertEqual(
             1, len(self.workflow_tree.workflow_mv.execution_layers_mv))
 
@@ -96,6 +96,6 @@ class TestSetupPane(GuiTestAssistant, unittest.TestCase):
             self.workflow_tree.delete_layer,
             self.workflow_tree.workflow_mv.execution_layers_mv[0]
         )
-        self.setup_pane.remove_entity = True
+        self.setup_pane.remove_entity_btn = True
         self.assertEqual(0, len(
             self.workflow_tree.workflow_mv.execution_layers_mv))

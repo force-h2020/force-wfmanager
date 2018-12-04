@@ -185,23 +185,27 @@ class WorkflowTree(ModelView):
         The ModelView currently selected in the WorkflowTree. Updated
         automatically when a new ModelView is selected by the user
         Affects: selected_factory_name, entity_creator, add_new_entity,
-                 remove_entity
+                 remove_entity, SetupPane.selected_mv
     selected_factory_name: Unicode
         The name of the currently selected factory group. This will be None
         if a non-factory or nothing is selected, or (for example) 'MCO' if the
         MCO folder is selected.
+        Affects: SetupPane.selected_factory_name
         Affected by: selected_mv
     entity_creator: NewEntityCreator
         Creates new instances of DataSource, MCO, Notification Listener or
         MCO Parameters - depending on the plugins currently installed
+        Affects: SetupPane.entity_creator
         Affected by: selected_mv
     add_new_entity: Callable
         A method which adds the new instance from entity_creator to the
         appropriate place in the Workflow
+        Affects: SetupPane.add_new_entity
         Affected by: selected_mv
     remove_entity: Callable
         A method which removes the currently selected instance from the
         Workflow
+        Affects: SetupPane.remove_entity
         Affected by: selected_mv
     selected_error: Unicode
         The error message currently displayed in the UI.
@@ -213,7 +217,6 @@ class WorkflowTree(ModelView):
     traits_view: View
         The layout of the UI display
     """
-
     model = Instance(Workflow, allow_none=False)
 
     workflow_mv = Instance(WorkflowModelView, allow_none=False)
@@ -269,7 +272,7 @@ class WorkflowTree(ModelView):
                         self.factory,
                         self._factory_registry.notification_listener_factories,
                         self.new_notification_listener,
-                        'NotificationListener',
+                        'Notification Listener',
                     )
                 ),
                 # Node representing the Notification Listener
@@ -376,7 +379,7 @@ class WorkflowTree(ModelView):
                         self.factory,
                         None,
                         self.new_layer,
-                        'ExecutionLayer'
+                        'Execution Layer'
                     )
                 ),
                 TreeNodeWithStatus(
@@ -391,7 +394,7 @@ class WorkflowTree(ModelView):
                         self.factory_instance,
                         self._factory_registry.data_source_factories,
                         self.new_data_source,
-                        'DataSource',
+                        'Data Source',
                         self.delete_data_source
                     )
                 ),
