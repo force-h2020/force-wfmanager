@@ -7,6 +7,7 @@ from traitsui.api import (
     Action, Group, Menu, ModelView, TextEditor,
     TreeEditor, TreeNode, UItem, UReadonly, View, VGroup
 )
+
 from force_bdss.api import (
     ExecutionLayer, IFactoryRegistryPlugin, KPISpecification, Workflow,
     verify_workflow
@@ -98,6 +99,8 @@ edit_data_source_action = Action(
 
 #: Wrapper to perform workflow verification after a method or function call
 def triggers_verify(func):
+    """Decorator for functions which make changes requiring the workflow to
+    be verified"""
     @wraps(func)
     def wrap(self, *args, **kwargs):
         func(self, *args, **kwargs)
@@ -105,11 +108,11 @@ def triggers_verify(func):
     return wrap
 
 
-#: Wrapper to reset attributes which are set on selection of a modelview
 def selection(func):
-    """ On selecting something in the tree editor, clear the
-    selected_factory_name, entity_creator, add_new_entity and remove_entity
-    attributes before setting them based on the selection choice
+    """ Decorator for functions called on selecting something in the tree
+    editor. Clears the `selected_factory_name`, `entity_creator`,
+    `add_new_entity` and `remove_entity` attributes before they are set
+    based on the selection choice
     """
     @wraps(func)
     def wrap(self, *args, **kwargs):
@@ -118,7 +121,6 @@ def selection(func):
         self.add_new_entity = None
         self.remove_entity = None
         func(self, *args, **kwargs)
-
     return wrap
 
 
@@ -155,8 +157,8 @@ class TreeNodeWithStatus(TreeNode):
         remove: bool
             Whether to remove the listener from object
 
-        Additional Info
-        ---------------
+        Notes
+        -----
         This is done as the method label_updated in tree_editor.py is one of
         the few handler methods to call update_icon. Since we also want to
         update the icon in response to a property change, this is a logical
@@ -171,77 +173,74 @@ class TreeNodeWithStatus(TreeNode):
 
 
 class WorkflowTree(ModelView):
-    """ Part of the GUI containing the tree editor displaying the Workflow.
+    """ Part of the GUI containing the tree editor displaying the Workflow."""
 
-    Attributes
-    ----------
-    model: Workflow
-        The BDSS Workflow Model
-        Affects: workflow_mv, verify_workflow_event
-    workflow_mv: WorkflowModelView
-        The ModelView for the BDSS Workflow
-        Affected by: model
-    selected_mv: ModelView
-        The ModelView currently selected in the WorkflowTree. Updated
-        automatically when a new ModelView is selected by the user
-        Affects: selected_factory_name, entity_creator, add_new_entity,
-                 remove_entity, SetupPane.selected_mv
-    selected_factory_name: Unicode
-        The name of the currently selected factory group. This will be None
-        if a non-factory or nothing is selected, or (for example) 'MCO' if the
-        MCO folder is selected.
-        Affects: SetupPane.selected_factory_name
-        Affected by: selected_mv
-    entity_creator: NewEntityCreator
-        Creates new instances of DataSource, MCO, Notification Listener or
-        MCO Parameters - depending on the plugins currently installed
-        Affects: SetupPane.entity_creator
-        Affected by: selected_mv
-    add_new_entity: Callable
-        A method which adds the new instance from entity_creator to the
-        appropriate place in the Workflow
-        Affects: SetupPane.add_new_entity
-        Affected by: selected_mv
-    remove_entity: Callable
-        A method which removes the currently selected instance from the
-        Workflow
-        Affects: SetupPane.remove_entity
-        Affected by: selected_mv
-    selected_error: Unicode
-        The error message currently displayed in the UI.
-        Affected by: selected_mv, selected_mv.error_message, selected_mv.label
-    verify_workflow_event: Event
-        An event which runs a verification check on the current workflow when
-        triggered.
-        Affected by: workflow_mv.verify_workflow_event
-    traits_view: View
-        The layout of the UI display
-    """
+    # -------------------
+    # Required Attributes
+    # -------------------
+
+    #: The BDSS Workflow displayed in the WorkflowTree. Updated when
+    #: ``TreePane.workflow_model`` changes
     model = Instance(Workflow, allow_none=False)
 
+    #: A registry of the available factories
+    _factory_registry = Instance(IFactoryRegistryPlugin)
+
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
+    #: A View containing the UI elements for this class
+    traits_view = View()
+
+    #: The ModelView for the BDSS Workflow
     workflow_mv = Instance(WorkflowModelView, allow_none=False)
 
+    #: The ModelView currently selected in the WorkflowTree. Updated
+    #: automatically when a new ModelView is selected by the user
     selected_mv = Instance(ModelView)
 
+    # ------------------
+    # Derived Attributes
+    # ------------------
+
+    #: The name of the currently selected factory group. This will be None
+    #: if a non-factory or nothing is selected, or (for example) "MCO" if the
+    #: MCO folder is selected.
+    #: Listens to: :func:`~selected_mv`
     selected_factory_name = Unicode()
 
+    #: Creates new instances of DataSource, MCO, Notification Listener or
+    #: MCO Parameters - depending on the plugins currently installed.
+    #: Listens to: :func:`~selected_mv`
     entity_creator = Instance(NewEntityCreator)
 
+    #: A method which adds the new instance from entity_creator to the
+    #: appropriate place in the Workflow.
+    #: Listens to: :func:`~selected_mv`
     add_new_entity = Callable()
 
+    #: A method which removes the currently selected instance from the
+    #: Workflow.
+    #: Listens to: :func:`~selected_mv`
     remove_entity = Callable()
 
+    #: An event which runs a verification check on the current workflow when
+    #: triggered.
+    #: Listens to: :func:`~workflow_mv.verify_workflow_event`
+    verify_workflow_event = Event
+
+    # ----------
+    # Properties
+    # ----------
+
+    #: The error message currently displayed in the UI.
     selected_error = Property(
         Unicode(),
         depends_on="selected_mv,selected_mv.error_message,selected_mv.label"
     )
 
-    verify_workflow_event = Event
 
-    traits_view = View()
-
-    #: A registry of the available factories
-    _factory_registry = Instance(IFactoryRegistryPlugin)
 
     def default_traits_view(self):
         """The layout of the View for the WorkflowTree"""
@@ -453,8 +452,8 @@ class WorkflowTree(ModelView):
     # add things by double clicking
 
     @selection
-    def factory_instance(self, from_registry, create_new, factory_group_name,
-                         remove_selected, modelview):
+    def factory_instance(self, from_registry, create_fn, factory_group_name,
+                         delete_fn, modelview):
         """Called on selecting a node in the TreeEditor which represents an
         instance in the workflow, but also represents a factory for creating
         new instances.
@@ -463,11 +462,22 @@ class WorkflowTree(ModelView):
 
         Parameters
         ----------
-        see WorkflowTree.factory and WorkflowTree.instance
+        from_registry: List(BaseFactory) or Callable
+            A list of factories available for this node
+        create_fn: function
+            A function which adds a newly created instance to the Workflow
+        factory_group_name: String
+            A name showing which group (MCO, Datasource etc.) the factory
+            belongs to
+        delete_fn: function
+            A function which removes the object from the workflow
+        modelview: MCOModelView, DataSourceModelView, NotificationListenerModelView, MCOParameterModelView, ExecutionLayerModelView
+            The modelview of the currently selected node
         """
-        self.factory.__wrapped__(self, from_registry, create_new,
+
+        self.factory.__wrapped__(self, from_registry, create_fn,
                                  factory_group_name, modelview)
-        self.instance.__wrapped__(self, remove_selected, modelview)
+        self.instance.__wrapped__(self, delete_fn, modelview)
 
     @selection
     def factory(self, from_registry, create_fn, factory_group_name, modelview):
@@ -476,13 +486,14 @@ class WorkflowTree(ModelView):
 
         Parameters
         ----------
-        from_registry: List(BaseFactory) or Callable returning
-                       List(BaseFactory)
+        from_registry: List(BaseFactory) or Callable
             A list of factories available for this node
-        create_fn: method
-            A method which adds a newly created instance to the Workflow
+        create_fn: function
+            A function which adds a newly created instance to the Workflow
         factory_group_name: String
-        modelview: ModelView
+            A name showing which group (MCO, Datasource etc.) the factory
+            belongs to
+        modelview: MCOModelView, DataSourceModelView, NotificationListenerModelView, MCOParameterModelView, ExecutionLayerModelView
             The modelview of the currently selected node
         """
         self.add_new_entity = partial(create_fn, None, modelview)
@@ -510,8 +521,8 @@ class WorkflowTree(ModelView):
 
         Parameters
         ----------
-        delete_fn: method
-            A method which removes the object from the workflow
+        delete_fn: function
+            A function which removes the object from the workflow
         modelview: ModelView
             The modelview of the currently selected node
         """

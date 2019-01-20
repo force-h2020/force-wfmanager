@@ -17,104 +17,112 @@ no_menu = Menu()
 
 class PluginModelView(HasStrictTraits):
     """The ModelView for each separate plugin. The ModelViews are displayed
-    in the TreeEditor of the NewEntityCreator
-
-    Attributes
-    ----------
-    plugin: Plugin
-        An instance of an external Envisage Plugin.
-    name: Unicode
-        The name of the PluginModelView (optional)
-    factories: List(BaseFactory))
-        A list of all factories which are derived from plugin. The factories
-        will all be just one of the following types - MCO or DataSource or
-        NotificationListener or Parameter.
+    in the TreeEditor of the NewEntityCreator.
     """
+    #: An instance of an external Envisage Plugin.
     plugin = Instance(Plugin)
+
+    #: The name of the PluginModelView
     name = Unicode("plugin")
+
+    #: A list of all the factories which are derived from :attr:`plugin`.
+    #: The factories will all be of type BaseFactory
     factories = List(Instance(BaseFactory))
 
 
 class Root(HasStrictTraits):
     """A Root node, required by the TreeEditor.
-
-    Attributes
-    ----------
-    plugins: List(PluginModelView)
-        A list of all the PluginModelViews.
-    name: Unicode
-        The name of the Root (optional)
     """
+    #: A list of all the PluginModelViews.
     plugins = List(PluginModelView)
+
+    #: A name for the Root node
     name = Unicode("root")
 
 
 class NewEntityCreator(HasStrictTraits):
     """A Traits class which is viewed in the UI as a tree editor containing
     the DataSource/MCO/Parameter/NotificationListener factories for the
-    currently installed plugins
-
-    Attributes
-    ----------
-    factories: List(BaseFactory)
-        A list of factories, passed as an argument on initialisation of a
-        NewEntityCreator. This list uses the generic BaseFactory class and
-        can contain any factory with a create_model method. In practice,
-        these factories will usually be the same type as it makes sense from
-        a UI point of view to keep factories grouped by type.
-    plugins_root: Root
-        The root node displayed in the TreeEditor
-    selected_factory: BaseFactory
-        The currently selected factory in the TreeEditor
-    model: BaseModel or BaseMCOParameter
-        An instance of the model created by the currently selected factory.
-        On a change of selected_factory, the factory's create_model method is
-        called and the returned object set as model.
-    dclick_function: Callable
-        A function which is called on double clicking an item in the workflow
-        tree. Passed as an argument on initialisation of a NewEntityCreator.
-        Used to allow adding a new item to the workflow by double clicking, so
-        the function passed should enable this behaviour appropriately.
-    model_description_HTML: Unicode
-        HTML containing a model description, obtained from the model's
-        get_name and get_description methods.
+    currently installed plugins.
      """
 
+    # -------------------
+    # Required Attributes
+    # -------------------
+
+    #: A list of available factories for this NewEntityCreator.
+    #: This list uses the generic BaseFactory class and
+    #: so can contain a mixture of factory types.
     factories = List(Instance(BaseFactory))
-    plugins_root = Instance(Root)
-    selected_factory = Instance(BaseFactory)
-    model = Either(
-        Instance(BaseModel),
-        Instance(BaseMCOParameter)
-    )
+
+    #: A function which is called on double clicking an item in the workflow
+    #: tree. Currently this is used to allow adding a new item to the workflow
+    #: by double clicking it in the UI.
     dclick_function = Callable()
+
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
+    #: The root node displayed in the TreeEditor
+    plugins_root = Instance(Root)
+
+    #: A message to be displayed if there are no config options
+    _no_config_options_msg = ReadOnly(Unicode)
+
+    # --------------------
+    # Dependent Attributes
+    # --------------------
+
+    #: The currently selected factory in the TreeEditor
+    #: Listens to: TreeEditor (see :func:`default_traits_view`)
+    selected_factory = Instance(BaseFactory)
+
+    #: An instance of the model created by the currently selected factory.
+    #: On a change of :attr:`selected_factory`, the factory's create_model
+    #: method is called and the returned object set as model.
+    #: Listens to :attr:`selected_factory`
+    model = Either(Instance(BaseModel), Instance(BaseMCOParameter))
+
+    #: Cache for created models, models are created when selecting a new
+    #: factory and cached so that when selected_factory changes the created
+    #: models are saved
+    #: Listens to :attr:`selected_factory`
+    _cached_models = Dict()
+
+    # ----------
+    # Properties
+    # ----------
+
+    #: HTML containing a model description, obtained from the model's
+    #: get_name and get_description methods.
     model_description_HTML = Property(Unicode, depends_on="model")
 
     #: A Bool which is True if model has a view with at least one user
     #: editable attribute, False otherwise.
     _current_model_editable = Property(Bool, depends_on="model")
 
-    #: Cache for created models, models are created when selecting a new
-    #: factory and cached so that when selected_factory changes the created
-    #: models are saved
-    _cached_models = Dict()
-
-    #: A message to be displayed if there are no config options
-    _no_config_options_msg = ReadOnly(Unicode)
-
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityCreator, self).__init__(*args, **kwargs)
         self.factories = factories
 
     def default_traits_view(self):
+        """ Sets up a view containing a TreeEditor for the currently loaded
+        plugins, a sub-view for the selected model and a description of the
+        selected model."""
         editor = TreeEditor(nodes=[
-            TreeNode(node_for=[Root], children="plugins",
-                     view=no_view, label="name", menu=no_menu),
-            TreeNode(node_for=[PluginModelView], children="factories",
-                     view=no_view, label="name", menu=no_menu),
-            TreeNode(node_for=[BaseFactory],
-                     children="", view=no_view, label="name", menu=no_menu,
-                     on_dclick=self.dclick_function)
+            TreeNode(
+                node_for=[Root], children="plugins", view=no_view,
+                label="name", menu=no_menu
+            ),
+            TreeNode(
+                node_for=[PluginModelView], children="factories",
+                view=no_view, label="name", menu=no_menu
+            ),
+            TreeNode(
+                node_for=[BaseFactory], children="", view=no_view,
+                label="name", menu=no_menu, on_dclick=self.dclick_function
+            )
         ],
             orientation="vertical",
             selected="selected_factory",
@@ -130,15 +138,15 @@ class NewEntityCreator(HasStrictTraits):
                 ),
                 VGroup(
                     VGroup(
-                        UItem("model",
-                              style="custom",
-                              editor=InstanceEditor(),
-                              visible_when="_current_model_editable is True"
+                        UItem(
+                            "model", style="custom", editor=InstanceEditor(),
+                            visible_when="_current_model_editable is True"
                               ),
-                        UItem("_no_config_options_msg",
-                              style="readonly",
-                              editor=HTMLEditor(),
-                              visible_when="_current_model_editable is False"),
+                        UItem(
+                            "_no_config_options_msg", style="readonly",
+                            editor=HTMLEditor(),
+                            visible_when="_current_model_editable is False"
+                        ),
                         visible_when="model is not None",
                         style="custom",
                         label="Configuration Options",
@@ -146,9 +154,7 @@ class NewEntityCreator(HasStrictTraits):
                         springy=True,
                     ),
                     VGroup(
-                        UItem("model_description_HTML",
-                              editor=HTMLEditor(),
-                              ),
+                        UItem("model_description_HTML", editor=HTMLEditor()),
                         style="readonly",
                         label="Description",
                         show_border=True,
@@ -185,9 +191,9 @@ class NewEntityCreator(HasStrictTraits):
         plugins = []
         for plugin in ordered_keys:
             factories = plugin_dict[plugin]
-            plugins.append(PluginModelView(plugin=plugin,
-                                           factories=factories,
-                                           name=plugin.name))
+            plugins.append(PluginModelView(
+                plugin=plugin, factories=factories, name=plugin.name
+            ))
         return Root(plugins=plugins)
 
     def __no_config_options_msg_default(self):
@@ -222,7 +228,12 @@ class NewEntityCreator(HasStrictTraits):
             self.model = self.selected_factory.create_model()
 
     def get_plugin_from_factory(self, factory):
-        """Returns the plugin associated with a particular factory"""
+        """Returns the plugin associated with a particular factory
+
+        Parameters
+        ----------
+        factory: BaseFactory
+        """
         plugin = factory.plugin
         return plugin
 
@@ -236,7 +247,7 @@ class NewEntityCreator(HasStrictTraits):
         """Return a HTML formatted description of the currently selected
         model and its parameters. This is constructed from the currently
         selected factory's get_name and get_description methods, alongside the
-        .desc attribute of the current model's attributes.
+        the :attr:`desc` attribute of the current model's attributes.
         """
 
         # A default message when no model selected
@@ -248,7 +259,7 @@ class NewEntityCreator(HasStrictTraits):
         view_info = model_info(self.model)
 
         # Message for a model without editable traits
-        if view_info == []:
+        if view_info:
             return htmlformat(model_name, model_desc)
 
         # A list containing trait names and descriptions
@@ -262,8 +273,9 @@ class NewEntityCreator(HasStrictTraits):
             if model_attr_desc is not None:
                 name_desc_pairs.append([model_attr_name, model_attr_desc])
             else:
-                name_desc_pairs.append([model_attr_name,
-                                        "No description available."])
+                name_desc_pairs.append([
+                    model_attr_name, "No description available."
+                ])
 
         # Format names as in the Instance Editor
         name_desc_pairs = [[name.replace("_", " ").capitalize(), desc]

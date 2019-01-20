@@ -1,18 +1,29 @@
 from pyface.tasks.api import TraitsDockPane
-
 from traits.api import Instance
+from traitsui.api import VGroup, View, UItem
 
-from traitsui.api import View, UItem, VGroup
-
-from force_wfmanager.central_pane.result_table import ResultTable
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
+from force_wfmanager.central_pane.result_table import ResultTable
 
 
 class ResultsPane(TraitsDockPane):
-    """ Side pane which contains the WorkflowSettings (Tree editor for the
-    Workflow) and the Run button """
+    """ A TraitsDockPane which displays a ResultTable in the UI."""
 
+    # -------------------
+    # Required Attributes
+    # -------------------
+
+    #: The analysis model containing the results
+    analysis_model = Instance(AnalysisModel)
+
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
+    #: Internal id for this pane
     id = 'force_wfmanager.results_pane'
+
+    #: Name displayed as the title of this pane
     name = 'Results Table'
 
     #: Remove the possibility to close the pane
@@ -27,15 +38,23 @@ class ResultsPane(TraitsDockPane):
     #: Make the pane visible by default
     visible = True
 
-    #: The table displaying the results
+    # --------------------
+    # Dependent Attributes
+    # --------------------
+
+    #: The table displaying the results.
+    #: Listens to: :attr:`analysis_model`
     result_table = Instance(ResultTable)
 
-    #: The analysis model containing the results
-    analysis_model = Instance(AnalysisModel)
+    # ----
+    # View
+    # ----
 
     traits_view = View(VGroup(
         UItem('result_table', style='custom'),
     ))
+
+    # Defaults
 
     def _result_table_default(self):
         return ResultTable(

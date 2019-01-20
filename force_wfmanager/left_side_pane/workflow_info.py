@@ -33,6 +33,26 @@ class WorkflowInfo(HasTraits):
     state. This includes: Current errors, Available variables, Plugins loaded
     and the current workflow filename."""
 
+    # -------------------
+    # Required Attributes
+    # -------------------
+
+    #: A list of the loaded plugins
+    plugins = List(Plugin)
+
+    #: The factory currently selected in the SetupPane
+    selected_factory = Unicode()
+
+    #: The top-level workflow modelview
+    workflow_mv = Instance(WorkflowModelView)
+
+    #: Filename for the current workflow (if any)
+    workflow_filename = Unicode()
+
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
     #: An error message for the entire workflow
     error_message = Unicode()
 
@@ -45,25 +65,18 @@ class WorkflowInfo(HasTraits):
     #: The names of the KPIs in the Workflow
     kpi_names = List(Unicode)
 
-    #: A list of the loaded plugins
-    plugins = List(Plugin)
-
     #: A list of plugin names
     plugin_names = List(Unicode)
-
-    #: The factory currently selected in the SetupPane
-    selected_factory = Unicode()
 
     #: Data structure containing current variable names
     variable_names_registry = Instance(VariableNamesRegistry)
 
-    #: The top-level workflow modelview
-    workflow_mv = Instance(WorkflowModelView)
-
-    #: Filename for the current workflow (if any)
-    workflow_filename = Unicode()
-
+    #: Message indicating currently loaded file
     workflow_filename_message = Unicode()
+
+    # ----
+    # View
+    # ----
 
     table_edit = TableEditor(
         columns=[
@@ -103,6 +116,8 @@ class WorkflowInfo(HasTraits):
         )
     )
 
+    # Defaults
+
     def _plugin_names_default(self):
         return [plugin.name for plugin in self.plugins]
 
@@ -136,7 +151,6 @@ class WorkflowInfo(HasTraits):
         return 'Current File: ' + self.workflow_filename
 
     def _error_message_default(self):
-
         if self.workflow_mv.error_message == '':
             return ERROR_TEMPLATE.format(
                 "No errors for current workflow", "")

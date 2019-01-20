@@ -13,12 +13,29 @@ class VariableNamesRegistry(HasStrictTraits):
     """ Class used for listening to the structure of the Workflow in order to
     check the available variables that can be used as inputs for each layer
     """
+
+    # -------------------
+    # Required Attributes
+    # -------------------
+
     #: Workflow model
     workflow = Instance(Workflow, allow_none=False)
 
-    # For each execution layer, there will be a list of (name, type) pairs
-    # representing the output variables produced by that execution layer
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
+    #: For each execution layer, there will be a list of (name, type) pairs
+    #: representing the output variables produced by that execution layer
     exec_layer_output = List(Tuple(Identifier, CUBAType))
+
+    #: Dictionary allowing the lookup of names associated with a chosen CUBA
+    #: type.
+    exec_layer_by_type = Dict(CUBAType, List(Identifier))
+
+    # ------------------
+    # Derived Attributes
+    # ------------------
 
     #: List of lists of the available variables.
     #: The first entry is a list of all the variables that are visible at the
@@ -27,38 +44,42 @@ class VariableNamesRegistry(HasStrictTraits):
     #: layer added. NOT all the variables.
     #: For example, a situation like::
     #:
-    #:     [[("pikachu", "electric"), ("squirtle", "water")], [],
-    #      [("scyther", "bug")]]
+    #:     [[("Vol_A", "Volume"), ("Vol_B", "Volume")], [],
+    #      [("Pressure_A", "Pressure")]]
     #:
     #: means:
-    #: - the first layer has available "pikachu" and "squirtle".
-    #: - the second layer has available "pikachu" and "squirtle",
+    #: - the first layer has "Vol_A" and "Vol_B" available.
+    #: - the second layer has "Vol_A" and "Vol_B" available,
     #: because the first layer added nothing (hence the empty second list)
-    #: - the third layer has available "pikachu", "squirtle" and "scyther".
+    #: - the third layer has "Vol_A", "Vol_B" and "Pressure_A" available.
     #:
     #: The size of the base list should be the number of layers plus one.
     #: the last one being the variables that are added by the last layer.
+    #:
+    #: Listens to: `workflow.mco.parameters.name`,
+    #: `workflow.execution_layers.data_sources.output_slot_info.name`,
+    #: `workflow.mco.parameters.type`
     available_variables_stack = List(exec_layer_output)
 
-    #: Same structure as available_variables_stack, but this contains
-    #: the cumulated information. From the example above, this would contain::
-    #:
-    #:     [["pikachu", "squirtle"],
-    #:      ["pikachu", "squirtle"],
-    #:      ["pikachu", "squirtle", "scyther"]]
-    #:
-    available_variables = Property(List(List(Identifier)),
-                                   depends_on="available_variables_stack")
-
-    #: Dictionary allowing the lookup of names associated with a chosen CUBA
-    #: type.
-    exec_layer_by_type = Dict(CUBAType, List(Identifier))
+    # ----------
+    # Properties
+    # ----------
 
     #: A list of type lookup dictionaries, with one dictionary for each
     #: execution layer
     available_variables_by_type = Property(
         List(exec_layer_by_type), depends_on="available_variables_stack"
         )
+
+    #: Same structure as available_variables_stack, but this contains
+    #: the cumulated information. From the example above, this would contain::
+    #:
+    #:     [["Vol_A", "Vol_B"],
+    #:      ["Vol_A", "Vol_B"],
+    #:      ["Vol_A", "Vol_B", "Pressure_A"]]
+    #:
+    available_variables = Property(List(List(Identifier)),
+                                   depends_on="available_variables_stack")
 
     #: Gives only the names of the variables that are produced by data sources.
     #: It does not include MCO parameters.
@@ -75,15 +96,21 @@ class VariableNamesRegistry(HasStrictTraits):
         'workflow.mco.parameters.type'
     )
     def update_available_variables_stack(self):
+        """Updates the list of available variables. At present getting
+        the datasource output slots requires creating the datasource by
+        calling ``create_data_source()``."""
+        # FIXME: Remove reliance on create_data_source(). If one datasource
+        # FIXME: has an error, this shouldn't blow up the whole workflow.
+        # FIXME: Especially during the setup phase!
         stack = []
         # At the first layer, the available variables are the MCO parameters
         if self.workflow.mco is None:
             stack.append([])
         else:
-            stack.append([(p.name, p.type)
-                         for p in self.workflow.mco.parameters
-                         if len(p.name) != 0
-                          ])
+            stack.append([
+                (p.name, p.type) for p in self.workflow.mco.parameters
+                if len(p.name) != 0
+            ])
 
         for layer in self.workflow.execution_layers:
             stack_entry_for_layer = []
@@ -92,10 +119,8 @@ class VariableNamesRegistry(HasStrictTraits):
 
                 # This try-except is also in execute.py in force_bdss, so if
                 # this fails the workflow would not be able to run anyway.
-
                 try:
                     ds = ds_model.factory.create_data_source()
-
                     # ds.slots() returns (input_slots, output_slots)
                     ds_output_slots = ds.slots(ds_model)[1]
                 except Exception:
@@ -109,10 +134,10 @@ class VariableNamesRegistry(HasStrictTraits):
 
                 ds_types = [slot.type for slot in ds_output_slots]
 
-                stack_entry_for_layer.extend(
-                    [(ds_name, ds_type)
-                     for ds_name, ds_type in zip(ds_names, ds_types)
-                     if ds_name != ''])
+                stack_entry_for_layer.extend([
+                    (ds_name, ds_type) for ds_name, ds_type
+                    in zip(ds_names, ds_types) if ds_name != ''
+                ])
             stack.append(stack_entry_for_layer)
 
         self.available_variables_stack = stack
@@ -121,7 +146,6 @@ class VariableNamesRegistry(HasStrictTraits):
     def _get_available_variables(self):
         stack = self.available_variables_stack
         res = []
-
         for idx in range(len(stack)):
             cumsum = []
             for output_info in stack[0:idx + 1]:

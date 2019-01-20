@@ -1,5 +1,5 @@
 import re
-from traits.api import BaseUnicode
+from traits.api import BaseUnicode, HasStrictTraits, TraitError
 
 
 class ZMQSocketURL(BaseUnicode):
@@ -22,3 +22,13 @@ class ZMQSocketURL(BaseUnicode):
             self.error(object, name, value)
 
         return value
+
+
+class HasRequiredTraits(HasStrictTraits):
+
+    def __init__(self, **traits):
+        for name in self.trait_names(required=True):
+            if name not in traits:
+                raise TraitError("Required trait {} not found".format(name))
+
+        super(HasRequiredTraits, self).__init__()
