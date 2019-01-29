@@ -3,9 +3,12 @@ from traits.api import BaseUnicode, HasStrictTraits, TraitError
 
 
 class ZMQSocketURL(BaseUnicode):
+
+    #: A basic description of the class
     info_text = "A ZeroMQ Socket URL"
 
     def validate(self, object, name, value):
+        """Checks that this is a valid tcp address """
         super(ZMQSocketURL, self).validate(object, name, value)
         m = re.match(
             "tcp://(\\d{1,3})\.(\\d{1,3})\.(\\d{1,3})\.(\\d{1,3}):(\\d+)",
@@ -25,7 +28,7 @@ class ZMQSocketURL(BaseUnicode):
 
 
 class HasRequiredTraits(HasStrictTraits):
-
+    # TODO: Upgrade version of traits and use in-built HasRequiredTraits
     def __init__(self, **traits):
         for name in self.trait_names(required=True):
             if name not in traits:

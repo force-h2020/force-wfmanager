@@ -20,7 +20,7 @@ class ResultsPane(TraitsDockPane):
     # Regular Attributes
     # ------------------
 
-    #: Internal id for this pane
+    #: An internal identifier for this pane
     id = 'force_wfmanager.results_pane'
 
     #: Name displayed as the title of this pane

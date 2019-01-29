@@ -1,22 +1,28 @@
-from traits.api import (HasStrictTraits, List, Instance, Enum, Tuple,
-                        on_trait_change, Button, Bool, Property)
-
-from traitsui.api import View, UItem, Item, VGroup, HGroup
-
-from enable.api import Component, ComponentEditor
-
-from chaco.api import ArrayPlotData, ScatterInspectorOverlay, ArrayDataSource
+from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
-from chaco.tools.api import PanTool, ZoomTool, ScatterInspector
+from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
+from enable.api import Component, ComponentEditor
+from traits.api import (
+    Button, Bool, Enum, HasStrictTraits, Instance, List, Property, Tuple,
+    on_trait_change
+)
+from traitsui.api import HGroup, Item, UItem, VGroup, View
 
 from .analysis_model import AnalysisModel
 
 
 class Plot(HasStrictTraits):
+
+    # -------------------
+    # Required Attributes
+    # -------------------
+
     #: The model for the plot
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
-    _value_names = Tuple()
+    # ------------------
+    # Regular Attributes
+    # ------------------
 
     #: First parameter used for the plot
     x = Enum(values='_value_names')
@@ -24,22 +30,51 @@ class Plot(HasStrictTraits):
     #: Second parameter used for the plot
     y = Enum(values='_value_names')
 
-    #: List containing the data arrays
+    #: Button to reset plot view. The button is active if :attr:`reset_enabled`
+    #: is *True* and inactive if it is *False*.
+    reset_plot = Button('Reset View')
+
+    # --------------------
+    # Dependent Attributes
+    # --------------------
+
+    #: The 2D plot
+    #: Listens to: :attr:`x`, :attr:`y`
+    _plot = Instance(Component)
+
+    #: A local copy of the analysis model's value names
+    #: Listens to: :attr:`analysis_model.value_names
+    #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.value_names>`
+    _value_names = Tuple()
+
+    #: List containing the data arrays.
+    #: Listens to: :attr:`analysis_model.value_names
+    #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.value_names>`
+    #: , :attr:`analysis_model.evaluation_steps
+    #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.\
+    #: evaluation_steps>`
     _data_arrays = List(List())
 
     #: The plot data. This is the model of the actual Chaco plot.
+    #: Listens to: :attr:`x`, :attr:`y`
     _plot_data = Instance(ArrayPlotData)
 
-    #: The 2D plot
-    _plot = Instance(Component)
-
     #: Datasource of the plot (used for selection handling)
+    #: Listens to: :attr:`analysis_model.selected_step_index
+    #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.\
+    #: selected_step_index>`
     _plot_index_datasource = Instance(ArrayDataSource)
 
-    #: Button to reset plot view
-    reset_plot = Button('Reset View')
+    # ----------
+    # Properties
+    # ----------
 
+    #: Boolean indicating whether the plot view can be reset or not.
     reset_enabled = Property(Bool(), depends_on="_plot_data")
+
+    # ----
+    # View
+    # ----
 
     view = View(VGroup(
         HGroup(
@@ -57,6 +92,8 @@ class Plot(HasStrictTraits):
         super(Plot, self).__init__(*args, **kwargs)
 
         self.update_data_arrays()
+
+    # Defaults
 
     def __plot_default(self):
         plot = ChacoPlot(self._plot_data)
@@ -107,8 +144,20 @@ class Plot(HasStrictTraits):
     def __data_arrays_default(self):
         return [[] for _ in range(len(self.analysis_model.value_names))]
 
+    # Properties
+
+    def _get_reset_enabled(self):
+        x_data = self._plot_data.get_data('x')
+        if len(x_data) > 0:
+            return True
+        return False
+
+    # Response to analysis model changes
+
     @on_trait_change('analysis_model.value_names')
     def update_value_names(self):
+        """ Sets the value names in the plot to match those it the analysis
+        model and resets any data arrays."""
         self._value_names = self.analysis_model.value_names
         self._data_arrays = self.__data_arrays_default()
         # If there is more than one value names, we select the second one for
@@ -122,7 +171,7 @@ class Plot(HasStrictTraits):
         # state. This occurs when the analysis model is cleared.
 
         if self._value_names == ():
-            self.set_plot_range(-1, 1, -1, 1)
+            self._set_plot_range(-1, 1, -1, 1)
             # Unset the axis labels
             self._plot.x_axis.title = ""
             self._plot.y_axis.title = ""
@@ -182,6 +231,8 @@ class Plot(HasStrictTraits):
         # Update plot data
         self._update_plot_data()
 
+    # Response to UI changes
+
     @on_trait_change('x,y')
     def _update_plot_data(self):
         """Set the plot data model to the appropriate arrays so that they
@@ -204,7 +255,14 @@ class Plot(HasStrictTraits):
 
         self.resize_plot()
 
+
+    @on_trait_change('reset_plot')
+    def reset_pressed(self):
+        """ Event handler for :attr:`reset_plot`"""
+        self.resize_plot()
+
     def resize_plot(self):
+        # TODO: Make return signature the same on all cases, update docstring.
         """ Sets the size of the current plot to have some spacing between the
         largest/smallest value and the plot edge. Also returns the new values
         (X min, X max, Y min, Y max) if the plot area changes or None if it
@@ -229,14 +287,14 @@ class Plot(HasStrictTraits):
             y_max = y_max + 0.1 * abs(y_size)
             y_min = y_min - 0.1 * abs(y_size)
 
-            self.set_plot_range(x_min, x_max, y_min, y_max)
+            self._set_plot_range(x_min, x_max, y_min, y_max)
 
             return x_min, x_max, y_min, y_max
 
         elif len(x_data) == 1:
-            self.set_plot_range(x_data[0] - 0.5, x_data[0] + 0.5,
-                                y_data[0] - 0.5, y_data[0] + 0.5)
-
+            self._set_plot_range(x_data[0] - 0.5, x_data[0] + 0.5,
+                                 y_data[0] - 0.5, y_data[0] + 0.5)
+            # TODO: Check if this applies to both if statement cases.
             # Replace the old ZoomTool as retaining the same one can lead
             # to issues where the zoom out/in limit is not reset on
             # resizing the plot.
@@ -255,8 +313,9 @@ class Plot(HasStrictTraits):
         if self.analysis_model.selected_step_index is None:
             self._plot_index_datasource.metadata['selections'] = []
         else:
-            self._plot_index_datasource.metadata['selections'] = \
-                [self.analysis_model.selected_step_index]
+            self._plot_index_datasource.metadata['selections'] = [
+                self.analysis_model.selected_step_index
+            ]
 
     @on_trait_change('_plot_index_datasource.metadata_changed')
     def update_model(self):
@@ -268,18 +327,20 @@ class Plot(HasStrictTraits):
         else:
             self.analysis_model.selected_step_index = selected_indices[0]
 
-    @on_trait_change('reset_plot')
-    def reset_pressed(self):
-        self.resize_plot()
+    def _set_plot_range(self, x_low, x_high, y_low, y_high):
+        """ Helper method to set the size of the current _plot
 
-    def _get_reset_enabled(self):
-        x_data = self._plot_data.get_data('x')
-        if len(x_data) > 0:
-            return True
-        return False
-
-    def set_plot_range(self, x_low, x_high, y_low, y_high):
-        """Helper method to set the size of the current _plot"""
+        Parameters
+        ----------
+        x_low: Float
+            Minimum value for x range of plot
+        x_high: Float
+            Maximum value for x range of plot
+        y_low: Float
+            Minimum value for y range of plot
+        y_high: Float
+            Maximum value for y range of plot
+        """
         self._plot.range2d.x_range.low_setting = x_low
         self._plot.range2d.x_range.high_setting = x_high
         self._plot.range2d.y_range.low_setting = y_low

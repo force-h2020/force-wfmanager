@@ -37,7 +37,7 @@ class TreePane(TraitsDockPane):
     # Regular Attributes
     # ------------------
 
-    #: The internal id for this object
+    #: An internal identifier for this pane
     id = 'force_wfmanager.tree_pane'
 
     #: Name displayed as the title of this pane

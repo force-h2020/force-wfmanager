@@ -1,22 +1,36 @@
 from pyface.tasks.api import TraitsTaskPane
-
 from traits.api import Instance
-
-from traitsui.api import View, VGroup, UItem
+from traitsui.api import UItem, View, VGroup
 
 from .analysis_model import AnalysisModel
 from .plot import Plot
 
 
 class GraphPane(TraitsTaskPane):
-    id = 'force_wfmanager.graph_pane'
-    name = 'Graph Pane'
+
+    # -------------------
+    # Required Attributes
+    # -------------------
 
     #: The model for the analysis part
     analysis_model = Instance(AnalysisModel)
 
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
+    #: An internal identifier for this pane
+    id = 'force_wfmanager.graph_pane'
+
+    #: Name displayed as the title of this pane
+    name = 'Graph Pane'
+
     #: The plot view
     plot = Instance(Plot)
+
+    # ----
+    # View
+    # ----
 
     view = View(VGroup(
             UItem('plot', style='custom'),

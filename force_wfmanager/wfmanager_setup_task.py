@@ -560,8 +560,12 @@ class WfManagerSetupTask(Task):
             data = [dv.value for dv in event.optimal_point]
             for kpi, weight in zip(event.optimal_kpis, event.weights):
                 data.extend([kpi.value, weight])
+            for i,data_val in enumerate(data[:]):
+                try:
+                    data[i] = float(data_val)
+                except ValueError:
+                    data[i] = str(data_val)
 
-            data = tuple(map(float, data))
             self.analysis_model.add_evaluation_step(data)
 
     # Error Display

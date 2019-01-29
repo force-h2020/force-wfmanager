@@ -233,6 +233,7 @@ class NewEntityCreator(HasStrictTraits):
         Parameters
         ----------
         factory: BaseFactory
+            The factory to get plugin information for.
         """
         plugin = factory.plugin
         return plugin
