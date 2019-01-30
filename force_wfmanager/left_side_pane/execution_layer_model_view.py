@@ -59,7 +59,7 @@ class ExecutionLayerModelView(ModelView):
     @on_trait_change('data_sources_mv.verify_workflow_event')
     def received_verify_request(self):
         """Fires :attr:`verify_workflow_event` when a data source contained
-        in this execution layer fires a
+        in this execution layer fires its `verify_workflow_event`
         """
         self.verify_workflow_event = True
 

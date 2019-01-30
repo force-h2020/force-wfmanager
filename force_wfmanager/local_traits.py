@@ -3,7 +3,7 @@ from traits.api import BaseUnicode, HasStrictTraits, TraitError
 
 
 class ZMQSocketURL(BaseUnicode):
-
+    """A custom Unicode Trait which is required to be a valid tcp address."""
     #: A basic description of the class
     info_text = "A ZeroMQ Socket URL"
 

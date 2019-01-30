@@ -11,15 +11,21 @@ class UINotificationHooksManager(BaseUIHooksManager):
     """
 
     def before_execution(self, task):
-        """Sets up the ui_notification notification listener, which
-        listens to the ports for the ZMQ server for incoming data
-        from the bdss.
+        """ Sets up a
+        :class:`UINotificationModel
+        <.ui_notification_model.UINotificationModel>`
+        instance and adds it to the workflow model.
 
         Parameters
         ----------
-        task:
-            The WfManagerResultsTask instance containing the workflow
-            model and the zmq server.
+        task: pyface.tasks.task.Task
+            The task containing the workflow model and the zmq server.
+
+        Note
+        ----
+        The actual (:class:`UINotification <.ui_notification.UINotification>`)
+        listener is set up when the bdss workflow is executed
+        (see :mod:`force_bdss.core_mco_driver`)
         """
         model = task.workflow_model
         notification_model = None
@@ -43,14 +49,15 @@ class UINotificationHooksManager(BaseUIHooksManager):
         notification_model.identifier = ""
 
     def after_execution(self, task):
-        """Removes the ui_notification notification listener, as
+        """Removes the :class:`UINotificationModel
+        <.ui_notification_model.UINotificationModel>`
+        instance from the workflow model, as
         the bdss has finished calculating.
 
         Parameters
         ----------
-        task:
-            The WfManagerResultsTask instance instance containing the workflow
-            model and the zmq server.
+        task: pyface.tasks.task.Task
+            The task containing the workflow model and the zmq server.
         """
         model = task.workflow_model
         notification_model = None

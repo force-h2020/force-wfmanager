@@ -22,15 +22,9 @@ log = logging.getLogger(__name__)
 class WfManagerResultsTask(Task):
     """Task responsible for running the Workflow and displaying the results."""
 
-    id = 'force_wfmanager.wfmanager_results_task'
-    name = 'Results'
-
-    #: Workflow model.
-    workflow_model = Instance(Workflow, allow_none=False)
-
-    #: Analysis model. Contains the results that are displayed in the plot
-    #: and table
-    analysis_model = Instance(AnalysisModel, allow_none=False)
+    # ------------------
+    # Regular Attributes
+    # ------------------
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(ResultsPane)
@@ -40,6 +34,16 @@ class WfManagerResultsTask(Task):
 
     #: The tool bars for this task.
     tool_bars = List(SToolBar)
+
+    id = 'force_wfmanager.wfmanager_results_task'
+    name = 'Results'
+
+    #: Workflow model.
+    workflow_model = Instance(Workflow, allow_none=False)
+
+    #: Analysis model. Contains the results that are displayed in the plot
+    #: and table
+    analysis_model = Instance(AnalysisModel, allow_none=False)
 
     #: Is the 'run' toolbar button active
     run_enabled = Bool(True)
@@ -187,6 +191,9 @@ class WfManagerResultsTask(Task):
         return AnalysisModel()
 
     # Synchronization with Setup Task
+
+    # FIXME: Change this so the shared state between the tasks is created in
+    #        wfmanager_plugin.py
 
     @on_trait_change('setup_task.run_enabled')
     def sync_run_enabled(self):

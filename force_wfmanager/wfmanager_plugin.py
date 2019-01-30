@@ -2,9 +2,9 @@ from envisage.api import Plugin
 from envisage.ui.tasks.api import TaskFactory
 from traits.api import Either, List, Unicode
 
+from force_bdss.api import FACTORY_REGISTRY_PLUGIN_ID
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
-from force_bdss.api import FACTORY_REGISTRY_PLUGIN_ID
 
 
 class WfManagerPlugin(Plugin):
@@ -41,6 +41,8 @@ class WfManagerPlugin(Plugin):
         return wf_manager_setup_task
 
     def _create_results_task(self):
+        # FIXME: Does not appear to require a factory_registry
+        #        (not used in task)
         factory_registry = self.application.get_plugin(
             FACTORY_REGISTRY_PLUGIN_ID
         )
