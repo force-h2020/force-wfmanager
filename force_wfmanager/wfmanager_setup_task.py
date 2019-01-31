@@ -1,33 +1,30 @@
+from concurrent.futures import ThreadPoolExecutor
+import os
 import logging
-import textwrap
 import subprocess
 import tempfile
-import os
-from concurrent.futures import ThreadPoolExecutor
+import textwrap
 
-from pyface.api import (ImageResource, confirm, YES, GUI, error, information,
-                        OK, FileDialog)
-from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
-from pyface.tasks.api import Task, TaskLayout, PaneItem
-
+from pyface.api import (
+    FileDialog, GUI, ImageResource, OK, YES, confirm, error, information
+)
+from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
+from pyface.tasks.api import PaneItem, Task, TaskLayout
 from traits.api import Instance, on_trait_change, List, Bool, Unicode, File
-
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistryPlugin,
     InvalidFileException, MCOProgressEvent, MCOStartEvent, Workflow,
     WorkflowReader, WorkflowWriter
 )
-
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.setup_pane import SetupPane
 from force_wfmanager.plugin_dialog import PluginDialog
 from force_wfmanager.left_side_pane.tree_pane import TreePane
-
+from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.task_toggle_group_accelerator import (
     TaskToggleGroupAccelerator
 )
-from force_wfmanager.server.zmq_server import ZMQServer
 
 log = logging.getLogger(__name__)
 
@@ -58,13 +55,14 @@ class WfManagerSetupTask(Task):
     #: The tool bars for this task.
     tool_bars = List(SToolBar)
 
-    #: Is the 'run' toolbar button active
+    #: Indicates whether the 'run' toolbar and side pane buttons are active
     run_enabled = Bool(True)
 
-    #: Are the saving and loading menu/toolbar buttons active
+    #: Indicates whether the saving and loading menu/toolbar buttons are
+    #: active.
     save_load_enabled = Bool(True)
 
-    #: Is there a bdss computation running
+    #: Indicates whether there a bdss computation running
     computation_running = Bool(False)
 
     #: The thread pool executor to spawn the BDSS CLI process.
@@ -90,17 +88,24 @@ class WfManagerSetupTask(Task):
     # ZMQ Setup
 
     def initialized(self):
+        """Overrides method from Task. Starts the ZMQ Server when this Task is
+        initialized
+        """
         self.zmq_server.start()
 
     def prepare_destroy(self):
+        """Overrides method from Task. Stops the ZMQ Server when this Task is
+        about to be destroyed
+        """
         self.zmq_server.stop()
 
     # Task Defaults and Initialisers
 
     def _menu_bar_default(self):
         """A menu bar with functions relevant to the Setup task.
-        Functions associated to the shared methods are located
-        at the application level."""
+        """
+        # FIXME: Add ids here, it isn't clear why some items have them and
+        #        others don't
         menu_bar = SMenuBar(
             SMenu(
                 TaskAction(
@@ -139,9 +144,11 @@ class WfManagerSetupTask(Task):
                     name='Exit',
                     method='exit',
                 ),
-                # Setting id='File' will automatically create a exit menu item.
-                # This menu item calls application.exit, which bypasses our
-                # custom exit which prompts for a save before exiting
+
+                # NOTE: Setting id='File' here will automatically create
+                #       a exit menu item, I guess this is QT being 'helpful'.
+                #       This menu item calls application.exit, which bypasses
+                #       our custom exit which prompts for a save before exiting
                 name='&File',
 
             ),
@@ -281,7 +288,13 @@ class WfManagerSetupTask(Task):
             self.open_workflow_file(f_name)
 
     def open_workflow_file(self, f_name):
-        """ Opens a workflow from the specified file name"""
+        """ Opens a workflow from the specified file name
+
+        Parameters
+        ----------
+        f_name: str
+            The path to the workflow file
+        """
         reader = WorkflowReader(self.factory_registry)
         try:
             with open(f_name, 'r') as fobj:
@@ -377,6 +390,7 @@ class WfManagerSetupTask(Task):
             return True
 
     def open_about(self):
+        """Opens an information dialog"""
         information(
             None,
             textwrap.dedent(
@@ -407,6 +421,9 @@ class WfManagerSetupTask(Task):
 
         # Flag that a computation is running
         self.computation_running = True
+        # Run any plugin injected ui hooks before execution
+        # For example, the UI Notification Hooks Manager sets up sockets
+        # to communicate with the server before executing a workflow
         try:
             for hook_manager in self.ui_hooks_managers:
                 try:
@@ -426,6 +443,7 @@ class WfManagerSetupTask(Task):
             # Clear the analysis model before attempting to run
             self.analysis_model.clear()
 
+            # Execute the bdss on a different thread
             future = self.executor.submit(self._execute_bdss, tmpfile_path)
             future.add_done_callback(self._execution_done_callback)
         except Exception as e:
@@ -522,6 +540,9 @@ class WfManagerSetupTask(Task):
     # Plugin Status
 
     def open_plugins(self):
+        """Opens a dialogue window displaying information about the currently
+        loaded plugins
+        """
         plugins = [plugin
                    for plugin in self.window.application.plugin_manager
                    if isinstance(plugin, BaseExtensionPlugin)]
@@ -561,6 +582,7 @@ class WfManagerSetupTask(Task):
             for kpi, weight in zip(event.optimal_kpis, event.weights):
                 data.extend([kpi.value, weight])
             for i,data_val in enumerate(data[:]):
+                # FIXME: Handle non-numerical data
                 try:
                     data[i] = float(data_val)
                 except ValueError:
@@ -578,14 +600,27 @@ class WfManagerSetupTask(Task):
 
     @on_trait_change('side_pane.run_enabled')
     def set_toolbar_run_btn_state(self):
+        """ Sets the run button to be enabled/disabled, matching the
+        value of :attr:`side_pane.run_enabled
+        <.left_side_pane.tree_pane.TreePane.run_enabled>`
+        """
         self.run_enabled = self.side_pane.run_enabled
 
     @on_trait_change('workflow_model')
     def update_side_pane_model(self):
+        """ Updates the local :attr:`workflow_model`, to match
+        :attr:`side_pane.workflow_model
+        <.left_side_pane.tree_pane.TreePane.workflow_model>`, which will
+        change as the user modifies a workflow via the UI."""
         self.side_pane.workflow_model = self.workflow_model
 
     @on_trait_change('computation_running')
     def update_pane_active_status(self):
+        """Disables the saving/loading toolbar buttons and the TreePane UI
+        if a computation is running, and re-enables them when it finishes."""
+        # FIXME: Why is this (not None) here? Presumably not having it meant
+        #        things were fired before the window was created, but it
+        #        doesn't seem that this should be the case.
         if self.window is not None:
             self.side_pane.ui_enabled = not self.computation_running
             self.save_load_enabled = not self.computation_running
@@ -594,6 +629,7 @@ class WfManagerSetupTask(Task):
 
     @on_trait_change('side_pane.run_button')
     def run_button_clicked(self):
+        """ Calls :func:`run_bdss` and runs the BDSS!"""
         self.run_bdss()
 
     # Synchronization with Window
