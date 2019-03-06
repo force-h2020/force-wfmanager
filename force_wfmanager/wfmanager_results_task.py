@@ -3,15 +3,13 @@ import logging
 from pyface.api import ImageResource
 from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
-
 from traits.api import Bool, Instance, List, on_trait_change
 
 from force_bdss.api import Workflow
-
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.graph_pane import GraphPane
 from force_wfmanager.left_side_pane.results_pane import ResultsPane
-from force_wfmanager.TaskToggleGroupAccelerator import (
+from force_wfmanager.task_toggle_group_accelerator import (
     TaskToggleGroupAccelerator
 )
 
@@ -20,6 +18,15 @@ log = logging.getLogger(__name__)
 
 class WfManagerResultsTask(Task):
     """Task responsible for running the Workflow and displaying the results."""
+
+    #: Side Pane containing the tree editor for the Workflow and the Run button
+    side_pane = Instance(ResultsPane)
+
+    #: The menu bar for this task.
+    menu_bar = Instance(SMenuBar)
+
+    #: The tool bars for this task.
+    tool_bars = List(SToolBar)
 
     id = 'force_wfmanager.wfmanager_results_task'
     name = 'Results'
@@ -30,15 +37,6 @@ class WfManagerResultsTask(Task):
     #: Analysis model. Contains the results that are displayed in the plot
     #: and table
     analysis_model = Instance(AnalysisModel, allow_none=False)
-
-    #: Side Pane containing the tree editor for the Workflow and the Run button
-    side_pane = Instance(ResultsPane)
-
-    #: The menu bar for this task.
-    menu_bar = Instance(SMenuBar)
-
-    #: The tool bars for this task.
-    tool_bars = List(SToolBar)
 
     #: Is the 'run' toolbar button active
     run_enabled = Bool(True)
@@ -84,6 +82,10 @@ class WfManagerResultsTask(Task):
                 TaskAction(
                     name='Plugins...',
                     method='setup_task.open_plugins'
+                ),
+                TaskAction(
+                    name='Exit',
+                    method='exit',
                 ),
                 name='&File'
             ),
@@ -172,7 +174,7 @@ class WfManagerResultsTask(Task):
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
         return TaskLayout(
-            left=PaneItem('force_wfmanager.results_pane'),
+            top=PaneItem('force_wfmanager.results_pane'),
         )
 
     def _workflow_model_default(self):
@@ -209,4 +211,4 @@ class WfManagerResultsTask(Task):
             self.window.activate_task(self.setup_task)
 
     def exit(self):
-        self.window.application.exit()
+        self.window.close()

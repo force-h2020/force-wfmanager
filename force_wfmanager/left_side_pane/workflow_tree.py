@@ -1,456 +1,689 @@
-from traits.api import Instance, on_trait_change, Unicode, Event, Property
+from functools import partial, wraps
 
+from traits.api import (
+    Callable, Event, Instance, Property, Unicode, on_trait_change
+)
 from traitsui.api import (
-    TreeEditor, TreeNode, UItem, View, Menu, Action, ModelView, UReadonly,
-    VGroup, InstanceEditor, Group, OKButton, TextEditor
+    Action, Group, Menu, ModelView, TextEditor,
+    TreeEditor, TreeNode, UItem, UReadonly, View, VGroup
 )
 
-from force_bdss.api import (KPISpecification, Workflow, IFactoryRegistryPlugin,
-                            ExecutionLayer, verify_workflow)
-
-from force_wfmanager.left_side_pane.data_source_model_view import \
+from force_bdss.api import (
+    ExecutionLayer, IFactoryRegistryPlugin, KPISpecification, Workflow,
+    verify_workflow
+)
+from force_wfmanager.left_side_pane.data_source_model_view import (
     DataSourceModelView
-from force_wfmanager.left_side_pane.execution_layer_model_view import \
+)
+from force_wfmanager.left_side_pane.execution_layer_model_view import (
     ExecutionLayerModelView
-
-# Create an empty view and menu for objects that have no data to display:
-from force_wfmanager.left_side_pane.kpi_specification_model_view import \
+)
+from force_wfmanager.left_side_pane.kpi_specification_model_view import (
     KPISpecificationModelView
+)
 from force_wfmanager.left_side_pane.mco_model_view import MCOModelView
-from force_wfmanager.left_side_pane.mco_parameter_model_view import \
+from force_wfmanager.left_side_pane.mco_parameter_model_view import (
     MCOParameterModelView
-from force_wfmanager.left_side_pane.new_entity_modal import NewEntityModal
-from force_wfmanager.left_side_pane.notification_listener_model_view import \
+)
+from force_wfmanager.left_side_pane.new_entity_creator import NewEntityCreator
+from force_wfmanager.left_side_pane.notification_listener_model_view import (
     NotificationListenerModelView
-from force_wfmanager.left_side_pane.workflow_model_view import \
+)
+from force_wfmanager.left_side_pane.workflow_model_view import (
     WorkflowModelView
+)
 from force_wfmanager.left_side_pane.view_utils import model_info
 
 
+# Create an empty view and menu for objects that have no data to display:
 no_view = View()
 no_menu = Menu()
 
+# -------------------
 # Actions!
+# -------------------
 
+# A string to be used as the enabled_when argument for the actions.
+# For reference, in the enabled_when expression namespace, handler is
+# the WorkflowTree instance, object is the modelview for the selected node
 call_modelview_editable = 'handler.modelview_editable(object)'
 
-# For reference, in the enabled_when expression namespace, handler is
-# the WorkflowTree instance, object is the modelview for a particular node -
-# in this case an MCOModelView
-
+# MCO Actions
 new_mco_action = Action(name='New MCO...', action='new_mco')
 delete_mco_action = Action(name='Delete', action='delete_mco')
 edit_mco_action = Action(name='Edit...', action='edit_mco',
                          enabled_when=call_modelview_editable)
 
+# Notification Listener Actions
 new_notification_listener_action = Action(
     name='New Notification Listener...',
-    action='new_notification_listener')
+    action='new_notification_listener'
+)
 delete_notification_listener_action = Action(
     name='Delete',
-    action='delete_notification_listener')
+    action='delete_notification_listener'
+)
 edit_notification_listener_action = Action(
     name='Edit...',
     action='edit_notification_listener',
-    enabled_when=call_modelview_editable)
+    enabled_when=call_modelview_editable
+)
+
+# Parameter Actions
 new_parameter_action = Action(name='New Parameter...', action='new_parameter')
-edit_parameter_action = Action(name='Edit...', action='edit_parameter',
-                               enabled_when=call_modelview_editable)
+edit_parameter_action = Action(
+    name='Edit...', action='edit_parameter',
+    enabled_when=call_modelview_editable
+)
 delete_parameter_action = Action(name='Delete', action='delete_parameter')
+
+# KPI Actions
 new_kpi_action = Action(name='New KPI...', action='new_kpi')
 delete_kpi_action = Action(name="Delete", action='delete_kpi')
+
+# Execution Layer Actions
 new_layer_action = Action(name="New Layer...", action='new_layer')
 delete_layer_action = Action(name='Delete', action='delete_layer')
-new_data_source_action = Action(name='New DataSource...',
-                                action='new_data_source')
+
+# DataSource Actions
+new_data_source_action = Action(
+    name='New DataSource...',
+    action='new_data_source'
+)
 delete_data_source_action = Action(name='Delete', action='delete_data_source')
-edit_data_source_action = Action(name='Edit...', action='edit_data_source',
-                                 enabled_when=call_modelview_editable)
+edit_data_source_action = Action(
+    name='Edit...', action='edit_data_source',
+    enabled_when=call_modelview_editable
+)
 
 
-#: Wrapper to call workflow verification after each method
+#: Wrapper to perform workflow verification after a method or function call
 def triggers_verify(func):
+    """Decorator for functions which make changes requiring the workflow to
+    be verified"""
+    @wraps(func)
     def wrap(self, *args, **kwargs):
         func(self, *args, **kwargs)
         self.verify_workflow_event = True
     return wrap
 
 
+def selection(func):
+    """ Decorator for functions called on selecting something in the tree
+    editor. Clears the `selected_factory_name`, `entity_creator`,
+    `add_new_entity` and `remove_entity` attributes before they are set
+    based on the selection choice
+    """
+    @wraps(func)
+    def wrap(self, *args, **kwargs):
+        self.selected_factory_name = 'None'
+        self.entity_creator = None
+        self.add_new_entity = None
+        self.remove_entity = None
+        func(self, *args, **kwargs)
+    return wrap
+
+
 class TreeNodeWithStatus(TreeNode):
-    """ Custom TreeNode class for workflow elements """
+    """ Custom TreeNode class for workflow elements. Allows setting a
+    workflow element's icon depending on whether it has an error or not.
+    """
 
     def get_icon(self, object, is_expanded):
+        """ Overrides get_icon method of TreeNode.
+
+        Parameters
+        ----------
+        object: ModelView
+            The ModelView assigned to this TreeNode
+        is_expanded: bool
+            True if the TreeNode is expanded, i.e. child nodes of this
+            TreeNode are also visible in the UI.
+        """
         return 'icons/valid.png' if object.valid else 'icons/invalid.png'
 
     def when_label_changed(self, object, listener, remove):
+        """ Overrides/Extends when_label_change method of TreeNode.
+        This method sets up the listener as normal, where it responds to
+        changes in the TreeNode label. Additionally, it sets the listener
+        to respond to changes in the 'valid' attribute of a ModelView.
+
+        Parameters
+        ----------
+        object: ModelView
+            The ModelView assigned to this TreeNode
+        listener: method
+            The _label_updated method from TreeEditor
+        remove: bool
+            Whether to remove the listener from object
+
+        Notes
+        -----
+        This is done as the method label_updated in tree_editor.py is one of
+        the few handler methods to call update_icon. Since we also want to
+        update the icon in response to a property change, this is a logical
+        place to add the extra functionality.
+        Unfortunately, the calls take place at the toolkit (qt, wx) level
+        rather than at traitsUI level so this can't be done more directly.
+        """
         super(TreeNodeWithStatus, self).when_label_changed(
             object, listener, remove
         )
         object.on_trait_change(listener, 'valid')
 
 
-class ModelEditDialog(ModelView):
-    """Editing modelview to show the model in a nice box."""
-
-    traits_view = View(
-        Group(
-            UItem('model',
-                  style='custom',
-                  editor=InstanceEditor(),
-                  ),
-            style="custom",
-            label="Configuration Options",
-            show_border=True
-            ),
-        title='Edit Element',
-        width=800,
-        height=600,
-        resizable=True,
-        kind="livemodal",
-        buttons=[OKButton]
-        )
-
-
 class WorkflowTree(ModelView):
-    """ Part of the GUI containing the tree editor displaying the Workflow """
+    """ Part of the GUI containing the tree editor displaying the Workflow."""
 
-    tree_editor = TreeEditor(
-        nodes=[
-            # Root node "Workflow"
-            TreeNodeWithStatus(
-                node_for=[WorkflowModelView],
-                auto_open=True,
-                children='',
-                label='=Workflow',
-                view=no_view,
-                menu=no_menu,
-            ),
-            # Folder node "Notification" containing the Notification listeners
-            TreeNode(
-                node_for=[WorkflowModelView],
-                auto_open=True,
-                children='notification_listeners_mv',
-                label='=Notification Listeners',
-                view=no_view,
-                menu=Menu(new_notification_listener_action),
-            ),
-            # Node representing the Notification Listener
-            TreeNodeWithStatus(
-                node_for=[NotificationListenerModelView],
-                auto_open=True,
-                children='',
-                label='label',
-                view=no_view,
-                menu=Menu(edit_notification_listener_action,
-                          delete_notification_listener_action),
-            ),
-            # Folder node "MCO" containing the MCO
-            TreeNode(
-                node_for=[WorkflowModelView],
-                auto_open=True,
-                children='mco_mv',
-                label='=MCO',
-                view=no_view,
-                menu=Menu(new_mco_action),
-            ),
-            # Node representing the MCO
-            TreeNodeWithStatus(
-                node_for=[MCOModelView],
-                auto_open=True,
-                children='',
-                label='label',
-                view=no_view,
-                menu=Menu(edit_mco_action, delete_mco_action),
-            ),
-            # Folder node "Parameters" containing the MCO parameters
-            TreeNode(
-                node_for=[MCOModelView],
-                auto_open=True,
-                children='mco_parameters_mv',
-                label='=Parameters',
-                view=no_view,
-                menu=Menu(new_parameter_action),
-            ),
-            #: Node representing an MCO parameter
-            TreeNodeWithStatus(
-                node_for=[MCOParameterModelView],
-                auto_open=True,
-                children='',
-                label='label',
-                menu=Menu(edit_parameter_action, delete_parameter_action),
-            ),
-            TreeNode(
-                node_for=[MCOModelView],
-                auto_open=True,
-                children='kpis_mv',
-                label='=KPIs',
-                view=no_view,
-                menu=Menu(new_kpi_action),
-            ),
-            TreeNodeWithStatus(
-                node_for=[KPISpecificationModelView],
-                auto_open=True,
-                children='',
-                label='label',
-                menu=Menu(delete_kpi_action),
-            ),
-            #: Node representing the layers
-            TreeNode(
-                node_for=[WorkflowModelView],
-                auto_open=True,
-                children='execution_layers_mv',
-                label='=Execution Layers',
-                view=no_view,
-                menu=Menu(new_layer_action),
-            ),
-            TreeNodeWithStatus(
-                node_for=[ExecutionLayerModelView],
-                auto_open=True,
-                children='data_sources_mv',
-                label='label',
-                view=no_view,
-                menu=Menu(new_data_source_action, delete_layer_action),
-            ),
-            TreeNodeWithStatus(
-                node_for=[DataSourceModelView],
-                auto_open=True,
-                children='',
-                label='label',
-                menu=Menu(edit_data_source_action, delete_data_source_action),
-            ),
-        ],
-        orientation="vertical",
-        selected="selected_mv",
-    )
+    # -------------------
+    # Required Attributes
+    # -------------------
 
-    #: The workflow model
+    #: The BDSS Workflow displayed in the WorkflowTree. Updated when
+    #: ``TreePane.workflow_model`` changes
     model = Instance(Workflow, allow_none=False)
 
-    #: The workflow model view
-    workflow_mv = Instance(WorkflowModelView, allow_none=False)
-
-    #: Available MCO factories
+    #: A registry of the available factories
     _factory_registry = Instance(IFactoryRegistryPlugin)
 
-    #: The currently selected modelview
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
+    #: A View containing the UI elements for this class
+    traits_view = View()
+
+    #: The ModelView for the BDSS Workflow
+    workflow_mv = Instance(WorkflowModelView, allow_none=False)
+
+    #: The ModelView currently selected in the WorkflowTree. Updated
+    #: automatically when a new ModelView is selected by the user
     selected_mv = Instance(ModelView)
 
-    #: The error message relating to selected_mv
-    selected_error = Property(Unicode(),
-                              depends_on="selected_mv,"
-                                         "selected_mv.error_message,"
-                                         "selected_mv.label")
+    # ------------------
+    # Derived Attributes
+    # ------------------
 
-    #: An event which runs a verification check on the current workflow
+    #: The name of the currently selected factory group. This will be None
+    #: if a non-factory or nothing is selected, or (for example) "MCO" if the
+    #: MCO folder is selected.
+    #: Listens to: :func:`~selected_mv`
+    selected_factory_name = Unicode()
+
+    #: Creates new instances of DataSource, MCO, Notification Listener or
+    #: MCO Parameters - depending on the plugins currently installed.
+    #: Listens to: :func:`~selected_mv`
+    entity_creator = Instance(NewEntityCreator)
+
+    #: A method which adds the new instance from entity_creator to the
+    #: appropriate place in the Workflow.
+    #: Listens to: :func:`~selected_mv`
+    add_new_entity = Callable()
+
+    #: A method which removes the currently selected instance from the
+    #: Workflow.
+    #: Listens to: :func:`~selected_mv`
+    remove_entity = Callable()
+
+    #: An event which runs a verification check on the current workflow when
+    #: triggered.
+    #: Listens to: :func:`~workflow_mv.verify_workflow_event`
     verify_workflow_event = Event
 
-    traits_view = View(
-        Group(
-            VGroup(
-                UItem(name='workflow_mv',
-                      editor=tree_editor,
-                      show_label=False
-                      ),
+    # ----------
+    # Properties
+    # ----------
+
+    #: The error message currently displayed in the UI.
+    selected_error = Property(
+        Unicode(),
+        depends_on="selected_mv,selected_mv.error_message,selected_mv.label"
+    )
+
+    def default_traits_view(self):
+        """The layout of the View for the WorkflowTree"""
+        tree_editor = TreeEditor(
+            nodes=[
+                # Root node "Workflow"
+                TreeNodeWithStatus(
+                    node_for=[WorkflowModelView],
+                    auto_open=True,
+                    children='',
+                    name='Workflow',
+                    label='=Workflow',
+                    view=no_view,
+                    menu=no_menu,
+                    on_select=self.workflow_selected
                 ),
-            VGroup(
-                UReadonly(
-                    name='selected_error',
-                    editor=TextEditor(),
-                    ),
-                label='Workflow Errors',
-                show_border=True
+                # Folder node "Notification" containing the
+                # Notification listeners
+                TreeNode(
+                    node_for=[WorkflowModelView],
+                    auto_open=True,
+                    children='notification_listeners_mv',
+                    name='Notification Listeners',
+                    label='=Notification Listeners',
+                    view=no_view,
+                    menu=no_menu,
+                    on_select=partial(
+                        self.factory,
+                        self._factory_registry.notification_listener_factories,
+                        self.new_notification_listener,
+                        'Notification Listener',
+                    )
                 ),
-            ),
-        width=800,
-        height=600,
-        resizable=True,
+                # Node representing the Notification Listener
+                TreeNodeWithStatus(
+                    node_for=[NotificationListenerModelView],
+                    auto_open=True,
+                    children='',
+                    label='label',
+                    name='Notification Listeners',
+                    view=no_view,
+                    menu=Menu(delete_notification_listener_action),
+                    on_select=partial(
+                        self.instance,
+                        self.delete_notification_listener
+                    )
+                ),
+                # Folder node "MCO" containing the MCO
+                TreeNode(
+                    node_for=[WorkflowModelView],
+                    auto_open=True,
+                    children='mco_mv',
+                    label='=MCO',
+                    name='MCO',
+                    view=no_view,
+                    menu=no_menu,
+                    on_select=partial(
+                        self.factory,
+                        self._factory_registry.mco_factories,
+                        self.new_mco,
+                        'MCO'
+                    )
+                ),
+                # Node representing the MCO
+                TreeNodeWithStatus(
+                    node_for=[MCOModelView],
+                    auto_open=True,
+                    children='',
+                    label='label',
+                    name='MCO',
+                    view=no_view,
+                    menu=Menu(delete_mco_action),
+                    on_select=partial(self.instance, self.delete_mco)
+                ),
+                # Folder node "Parameters" containing the MCO parameters
+                TreeNode(
+                    node_for=[MCOModelView],
+                    auto_open=True,
+                    children='mco_parameters_mv',
+                    label='=Parameters',
+                    name='Parameters',
+                    view=no_view,
+                    menu=no_menu,
+                    on_select=partial(
+                        self.factory,
+                        self.parameter_factories,
+                        self.new_parameter,
+                        'Parameter'
+                    )
+                ),
+                #: Node representing an MCO parameter
+                TreeNodeWithStatus(
+                    node_for=[MCOParameterModelView],
+                    auto_open=True,
+                    children='',
+                    name='Parameters',
+                    label='label',
+                    menu=Menu(delete_parameter_action),
+                    on_select=partial(self.instance, self.delete_parameter)
+                ),
+                TreeNode(
+                    node_for=[MCOModelView],
+                    auto_open=True,
+                    children='kpis_mv',
+                    label='=KPIs',
+                    name='KPIs',
+                    view=no_view,
+                    menu=Menu(new_kpi_action),
+                    on_select=partial(
+                        self.factory,
+                        None,
+                        self.new_kpi,
+                        'KPI'
+                    )
+                ),
+                TreeNodeWithStatus(
+                    node_for=[KPISpecificationModelView],
+                    auto_open=True,
+                    children='',
+                    label='label',
+                    name='KPIs',
+                    menu=Menu(delete_kpi_action),
+                    on_select=partial(self.instance, self.delete_kpi)
+                ),
+                #: Node representing the layers
+                TreeNode(
+                    node_for=[WorkflowModelView],
+                    auto_open=True,
+                    children='execution_layers_mv',
+                    label='=Execution Layers',
+                    name='Execution Layers',
+                    view=no_view,
+                    menu=Menu(new_layer_action),
+                    on_select=partial(
+                        self.factory,
+                        None,
+                        self.new_layer,
+                        'Execution Layer'
+                    )
+                ),
+                TreeNodeWithStatus(
+                    node_for=[ExecutionLayerModelView],
+                    auto_open=True,
+                    children='data_sources_mv',
+                    label='label',
+                    name='DataSources',
+                    view=no_view,
+                    menu=Menu(delete_layer_action),
+                    on_select=partial(
+                        self.factory_instance,
+                        self._factory_registry.data_source_factories,
+                        self.new_data_source,
+                        'Data Source',
+                        self.delete_data_source
+                    )
+                ),
+                TreeNodeWithStatus(
+                    node_for=[DataSourceModelView],
+                    auto_open=True,
+                    children='',
+                    label='label',
+                    name='DataSources',
+                    menu=Menu(delete_data_source_action),
+                    on_select=partial(self.instance, self.delete_data_source)
+                ),
+            ],
+            orientation="horizontal",
+            editable=False,
+            selected="selected_mv",
         )
 
-    def __init__(self, model, factory_registry, *args, **kwargs):
-        super(WorkflowTree, self).__init__(*args, **kwargs)
-        self.model = model
-        self._factory_registry = factory_registry
+        view = View(
+            Group(
+                VGroup(
+                    UItem(name='workflow_mv',
+                          editor=tree_editor,
+                          show_label=False
+                          ),
+                ),
+                VGroup(
+                    UReadonly(
+                        name='selected_error',
+                        editor=TextEditor(),
+                    ),
+                    label='Workflow Errors',
+                    show_border=True
+                ),
+            ),
+            width=500,
+            resizable=True,
+        )
+
+        return view
 
     def _workflow_mv_default(self):
+        """A default WorkflowModelView"""
         return WorkflowModelView(model=self.model)
 
     @on_trait_change('model')
     def update_model_view(self):
         """Update the workflow modelview's model and verify, on either loading
-        a new workflow, or an internal change to the workflow"""
-
+        a new workflow, or an internal change to the workflow.
+        """
         self.workflow_mv = WorkflowModelView(model=self.model)
         self.verify_workflow_event = True
 
-    @triggers_verify
-    def new_mco(self, ui_info, object):
-        """ Opens a dialog for creating a MCO """
+    # Item Selection Actions - create an appropriate NewEntityModal,
+    # set add_new_entity to be for the right object type and provide a way to
+    # add things by double clicking
 
-        workflow_mv = self.workflow_mv
+    @selection
+    def factory_instance(self, from_registry, create_fn, factory_group_name,
+                         delete_fn, modelview):
+        """Called on selecting a node in the TreeEditor which represents an
+        instance in the workflow, but also represents a factory for creating
+        new instances.
+        For example an ExecutionLayerModelView represents an ExecutionLayer
+        object, but is also a factory for new DataSources.
 
-        modal = NewEntityModal(factories=self._factory_registry.mco_factories)
-        modal.edit_traits()
-        result = modal.current_model
+        Parameters
+        ----------
+        from_registry: List(BaseFactory) or Callable
+            A list of factories available for this node
+        create_fn: function
+            A function which adds a newly created instance to the Workflow
+        factory_group_name: String
+            A name showing which group (MCO, Datasource etc.) the factory
+            belongs to
+        delete_fn: function
+            A function which removes the object from the workflow
+        modelview: ModelView
+            The modelview of the currently selected node
+        """
 
-        if result is not None:
-            workflow_mv.set_mco(result)
+        self.factory.__wrapped__(self, from_registry, create_fn,
+                                 factory_group_name, modelview)
+        self.instance.__wrapped__(self, delete_fn, modelview)
 
-    @triggers_verify
-    def edit_mco(self, ui_info, object):
-        ModelEditDialog(model=object.model).edit_traits()
+    @selection
+    def factory(self, from_registry, create_fn, factory_group_name, modelview):
+        """Called on selecting a node in the TreeEditor which represents a
+        factory.
 
-    @triggers_verify
-    def delete_mco(self, ui_info, object):
-        """Deletes the MCO"""
+        Parameters
+        ----------
+        from_registry: List(BaseFactory) or Callable
+            A list of factories available for this node
+        create_fn: function
+            A function which adds a newly created instance to the Workflow
+        factory_group_name: String
+            A name showing which group (MCO, Datasource etc.) the factory
+            belongs to
+        modelview: ModelView
+            The modelview of the currently selected node
+        """
+        self.add_new_entity = partial(create_fn, None, modelview)
+        if from_registry is not None:
+            try:
+                # For a non-constant factory list (parameter factories)
+                visible_factories = [
+                    f for f in from_registry() if f.ui_visible
+                ]
+            except TypeError:
+                visible_factories = [f for f in from_registry if f.ui_visible]
+            entity_creator = NewEntityCreator(
+                factories=visible_factories,
+                dclick_function=self.add_new_entity
+            )
+            self.entity_creator = entity_creator
+        else:
+            self.entity_creator = None
+        self.selected_factory_name = factory_group_name
 
-        self.workflow_mv.set_mco(None)
+    @selection
+    def instance(self, delete_fn, modelview):
+        """Called on selecting a a node in the TreeEditor which represents an
+        object in the workflow
 
-    @triggers_verify
-    def new_notification_listener(self, ui_info, object):
-        """ Opens a dialog for creating a notification listener"""
+        Parameters
+        ----------
+        delete_fn: function
+            A function which removes the object from the workflow
+        modelview: ModelView
+            The modelview of the currently selected node
+        """
 
-        workflow_mv = self.workflow_mv
+        self.remove_entity = partial(delete_fn, None, modelview)
 
-        visible_factories = [
-            f for f in self._factory_registry.notification_listener_factories
-            if f.ui_visible
-        ]
-        modal = NewEntityModal(
-            factories=visible_factories
-        )
-        modal.edit_traits()
-        result = modal.current_model
+    @selection
+    def workflow_selected(self, workflow_mv):
+        """Called on selecting the top node in the WorkflowTree
 
-        if result is not None:
-            workflow_mv.add_notification_listener(result)
+        Parameters
+        ----------
+        workflow_mv: WorkflowModelView
+            Unused, automatically passed by TreeEditor on selection
+        """
+        self.selected_factory_name = 'Workflow'
 
-    @triggers_verify
-    def edit_notification_listener(self, ui_info, object):
-        ModelEditDialog(model=object.model).edit_traits()
-
-    @triggers_verify
-    def delete_notification_listener(self, ui_info, object):
-        """Deletes the notification listener"""
-
-        self.workflow_mv.remove_notification_listener(object.model)
-
-    @triggers_verify
-    def new_parameter(self, ui_info, object):
-        parameter_factories = []
+    def parameter_factories(self):
+        """Returns the list of parameter factories for the current MCO."""
         if self.model.mco is not None:
-            parameter_factories = self.model.mco.factory.parameter_factories
+            parameter_factories = (
+                self.model.mco.factory.parameter_factories
+            )
+            return parameter_factories
+        return None
 
-        modal = NewEntityModal(factories=parameter_factories)
-        modal.edit_traits()
-        result = modal.current_model
-
-        if result is not None:
-            object.add_parameter(result)
-
-    @triggers_verify
-    def edit_parameter(self, ui_info, object):
-        ModelEditDialog(model=object.model).edit_traits()
+    # Methods for new entity creation - The args ui_info and object
+    # (the selected modelview) are passed by the WorkflowTree on selection.
+    # Additional (unused) args are passed when calling dclick_function by
+    # double-clicking a specific factory in the NewEntityCreator
 
     @triggers_verify
-    def delete_parameter(self, ui_info, object):
-        if len(self.workflow_mv.mco_mv) > 0:
-            mco_mv = self.workflow_mv.mco_mv[0]
-            mco_mv.remove_parameter(object.model)
+    def new_data_source(self, ui_info, object, *args):
+        """Adds a new datasource to the workflow."""
+        object.add_data_source(self.entity_creator.model)
+        self.entity_creator.reset_model()
 
     @triggers_verify
     def new_kpi(self, ui_info, object):
+        """Adds a new KPI to the workflow"""
         object.add_kpi(KPISpecification())
 
     @triggers_verify
+    def new_layer(self, ui_info, object):
+        """Adds a new execution layer to the workflow"""
+        object.add_execution_layer(ExecutionLayer())
+
+    @triggers_verify
+    def new_mco(self, ui_info, object, *args):
+        """Adds a new mco to the workflow"""
+        object.set_mco(self.entity_creator.model)
+        self.entity_creator.reset_model()
+
+    @triggers_verify
+    def new_notification_listener(self, ui_info, object, *args):
+        """"Adds a new notification listener to the workflow"""
+        object.add_notification_listener(self.entity_creator.model)
+        self.entity_creator.reset_model()
+
+    @triggers_verify
+    def new_parameter(self, ui_info, object, *args):
+        """Adds a new mco parameter to the workflow"""
+        object.add_parameter(self.entity_creator.model)
+        self.entity_creator.reset_model()
+
+    # Methods for deleting entities from the workflow - object is the
+    # modelview being deleted.
+    # E.g. for delete_data_source the object is a DataSourceModelView
+
+    @triggers_verify
+    def delete_data_source(self, ui_info, object):
+        """Delete a data source from the workflow"""
+        self.workflow_mv.remove_data_source(object.model)
+
+    @triggers_verify
     def delete_kpi(self, ui_info, object):
+        """Delete a kpi from the workflow"""
         if len(self.workflow_mv.mco_mv) > 0:
             mco_mv = self.workflow_mv.mco_mv[0]
             mco_mv.remove_kpi(object.model)
 
     @triggers_verify
-    def new_data_source(self, ui_info, object):
-        """ Opens a dialog for creating a Data Source """
-
-        modal = NewEntityModal(
-            factories=self._factory_registry.data_source_factories
-        )
-        modal.edit_traits()
-        result = modal.current_model
-
-        if result is not None:
-            object.add_data_source(result)
-
-    @triggers_verify
-    def delete_data_source(self, ui_info, object):
-        self.workflow_mv.remove_data_source(object.model)
-
-    @triggers_verify
-    def edit_data_source(self, ui_info, object):
-        # This is a live dialog, workaround for issue #58
-        ModelEditDialog(model=object.model).edit_traits()
-
-    @triggers_verify
-    def new_layer(self, ui_info, object):
-        self.workflow_mv.add_execution_layer(ExecutionLayer())
-
-    @triggers_verify
     def delete_layer(self, ui_info, object):
-        """ Delete an element from the workflow """
-
+        """Delete a execution layer from the workflow"""
         self.workflow_mv.remove_execution_layer(object.model)
+
+    @triggers_verify
+    def delete_mco(self, ui_info, object):
+        """Delete a mco from the workflow"""
+        self.workflow_mv.set_mco(None)
+
+    @triggers_verify
+    def delete_notification_listener(self, ui_info, object):
+        """Delete a notification listener from the workflow"""
+        self.workflow_mv.remove_notification_listener(object.model)
+
+    @triggers_verify
+    def delete_parameter(self, ui_info, object):
+        """Delete a mco parameter from the workflow"""
+        if len(self.workflow_mv.mco_mv) > 0:
+            mco_mv = self.workflow_mv.mco_mv[0]
+            mco_mv.remove_parameter(object.model)
+
+    # Workflow Verification
 
     @on_trait_change("workflow_mv.verify_workflow_event")
     def received_verify_request(self):
         """Checks if the root node of workflow tree is requesting a
         verification of the workflow"""
-
         self.verify_workflow_event = True
 
     @on_trait_change("verify_workflow_event")
     def perform_verify_workflow_event(self):
         """Verify the workflow and update error_message traits of
         every ModelView in the workflow"""
-
         errors = verify_workflow(self.model)
-
-        # A (currently hardcoded) dictionary with the mappings between
-        # modelview lists
-        parent_child = {'WorkflowModelView': ['mco_mv',
-                                              'notification_listeners_mv',
-                                              'execution_layers_mv'],
-                        'MCOModelView': ['mco_parameters_mv', 'kpis_mv'],
-                        'ExecutionLayerModelView': ['data_sources_mv']}
 
         # Communicate the verification errors to each level of the
         # workflow tree
-        self.verify_tree(parent_child, errors)
+        self.verify_tree(errors)
 
-    def verify_tree(self, mappings, errors, current_modelview=None):
+    def verify_tree(self, errors, start_modelview=None):
         """ Assign the errors generated by verifier.py to the appropriate
-        ModelView. Parent ModelViews also have error messages from
-        their child ModelViews"""
+        ModelView. This is done recursively, so parent ModelViews also have
+        error messages from their child ModelViews.
+
+        Parameters
+        ----------
+        errors: List(VerifierError)
+            A list of the current workflow errors
+        start_modelview: ModelView
+        """
+        # A dictionary with the mappings between modelview lists
+        mappings = {
+            'WorkflowModelView':
+                ['mco_mv', 'notification_listeners_mv', 'execution_layers_mv'],
+            'MCOModelView': ['mco_parameters_mv', 'kpis_mv'],
+            'ExecutionLayerModelView': ['data_sources_mv']
+        }
 
         # Begin from top-level WorkflowModelView if nothing specified already
-        if current_modelview is None:
-            current_modelview = self.workflow_mv
+        if start_modelview is None:
+            start_modelview = self.workflow_mv
 
         # Get the current modelview's class
-        current_modelview_type = current_modelview.__class__.__name__
+        current_modelview_type = start_modelview.__class__.__name__
 
         # A list of error messages
         message_list = []
 
-        # If the current ModelView has any child modelviews..
+        # If the current ModelView has any child modelviews
+        # retrieve their error messages by calling self.verify_tree
         if current_modelview_type in mappings:
-            # ..retrieve their error messages by calling self.verify_tree
-            for child_modelview_list_name in mappings[current_modelview_type]:
 
-                child_modelview_list = getattr(current_modelview,
-                                               child_modelview_list_name)
+            for child_modelview_list_name in mappings[current_modelview_type]:
+                child_modelview_list = getattr(
+                    start_modelview, child_modelview_list_name
+                )
 
                 for child_modelview in child_modelview_list:
-                    child_modelview_errors = self.verify_tree(mappings, errors,
-                                                              child_modelview)
+                    child_modelview_errors = self.verify_tree(
+                        errors, start_modelview=child_modelview
+                    )
 
                     # Add any unique error messages to the list
                     for message in child_modelview_errors:
@@ -461,7 +694,7 @@ class WorkflowTree(ModelView):
         send_to_parent = message_list[:]
 
         for verifier_error in errors:
-            if current_modelview.model == verifier_error.subject:
+            if start_modelview.model == verifier_error.subject:
                 # Add the local error messages to the list
                 message_list.append(verifier_error.local_error)
                 # If there are any errors to be communicated up the tree,
@@ -470,24 +703,30 @@ class WorkflowTree(ModelView):
                     send_to_parent.append(verifier_error.global_error)
 
         if len(message_list) != 0:
-            current_modelview.valid = False
+            start_modelview.valid = False
         else:
-            current_modelview.valid = True
+            start_modelview.valid = True
 
         # Display message so that errors relevant to this ModelView come first
-        current_modelview.error_message = '\n'.join(reversed(message_list))
+        start_modelview.error_message = '\n'.join(reversed(message_list))
 
         # Pass relevant error messages to parent
         return send_to_parent
 
     def modelview_editable(self, modelview):
         """Checks if the model associated to a ModelView instance
-        has a non-empty, editable view """
+        has a non-empty, editable view
+
+        Parameters
+        ----------
+        modelview: ModelView
+            A ModelView
+        """
 
         return model_info(modelview.model) != []
 
     def _get_selected_error(self):
-
+        """Returns the error messages for the currently selected modelview"""
         if self.selected_mv is None:
             return ERROR_TEMPLATE.format("No Item Selected", "")
 
@@ -504,22 +743,24 @@ class WorkflowTree(ModelView):
                 "Errors for {}:".format(mv_label), body_strings)
 
 
+# HTML Formatting Templates
 ERROR_TEMPLATE = """
-        <html>
-        <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style type="text/css">
-                .container{{
-                    width: 100%;
-                    display: block;
-                }}
-            </style>
-        </head>
-        <body>
-        <h4>{}</h4>
-            {}
-        </body>
-        </html>
+    <html>
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            .container{{
+                width: 100%;
+                display: block;
+            }}
+        </style>
+    </head>
+    <body>
+    <h4>{}</h4>
+        {}
+    </body>
+    </html>
 """
+
 SINGLE_ERROR = """<p>{}<\p>"""

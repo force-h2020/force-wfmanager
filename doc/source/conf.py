@@ -49,6 +49,11 @@ def mock_modules():
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
     print 'mocking {}'.format(MOCK_MODULES)
 
+# mock_modules()
+
+# General Configuration
+# ---------------------
+
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
@@ -58,13 +63,28 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
+    'traits.util.trait_documenter'
 ]
+
+try:
+    import enthought_sphinx_theme
+
+    html_theme_path = [enthought_sphinx_theme.theme_path]
+    html_theme = 'enthought'
+except ImportError as exc:
+    import warnings
+    msg = '''Can't find Enthought Sphinx Theme, using default.
+                Exception was: {}
+                Enthought Sphinx Theme can be downloaded from
+                https://github.com/enthought/enthought-sphinx-theme'''
+    warnings.warn(RuntimeWarning(msg.format(exc)))
+
 
 templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
 project = u'FORCE Workflow Manager'
-copyright = u'2017, FORCE, EU H2020 Project'
+copyright = u'2019, FORCE, EU H2020 Project'
 version = ".".join(RELEASE.split(".")[0:3])
 release = RELEASE
 exclude_patterns = []

@@ -44,10 +44,10 @@ force\_wfmanager\.left\_side\_pane\.tests\.test\_mco\_parameter\_model\_view mod
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.left\_side\_pane\.tests\.test\_new\_entity\_modal module
---------------------------------------------------------------------------
+force\_wfmanager\.left\_side\_pane\.tests\.test\_new\_entity\_creator module
+----------------------------------------------------------------------------
 
-.. automodule:: force_wfmanager.left_side_pane.tests.test_new_entity_modal
+.. automodule:: force_wfmanager.left_side_pane.tests.test_new_entity_creator
     :members:
     :undoc-members:
     :show-inheritance:

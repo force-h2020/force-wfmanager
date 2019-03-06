@@ -1,11 +1,30 @@
 from traits.api import (
-    HasStrictTraits, List, Tuple, Int, on_trait_change, Property, Either
+    Either, HasStrictTraits, Int, List, Property, Tuple, on_trait_change
 )
 
 
 class AnalysisModel(HasStrictTraits):
-    #: List of parameter names
+
+    # --------------------
+    # Dependent Attributes
+    # --------------------
+
+    #: List of parameter names. Set by ``_server_event_mainthread()`` in
+    #: :class:`WFManagerSetupTask
+    #: <force_wfmanager.wfmanager_setup_task.WfManagerSetupTask>`.
     value_names = Tuple()
+
+    #: Shadow trait of the `evaluation_steps` property
+    #: Listens to: :attr:`value_names`
+    _evaluation_steps = List(Tuple())
+
+    #: Selected step, used for highlighting in the table/plot.
+    #: Listens to: :attr:`value_names`
+    _selected_step_index = Either(None, Int())
+
+    # ----------
+    # Properties
+    # ----------
 
     #: Evaluation steps, each evaluation step is a tuple of parameter values,
     #: received from the bdss. Each value can be of any type. The order of
@@ -13,16 +32,13 @@ class AnalysisModel(HasStrictTraits):
     #: value_names
     evaluation_steps = Property(List(Tuple()), depends_on="_evaluation_steps")
 
-    #: Shadow trait of the above property
-    _evaluation_steps = List(Tuple())
-
     #: Property that informs about the currently selected step.
     #: Can be None if nothing is selected. If selected, it must be
     #: in the allowed range of values.
+    #: Listens to :attr:`Plot._plot_index_datasource
+    #: <force_wfmanager.central_pane.plot.Plot._plot_index_datasource>`
     selected_step_index = Property(Either(None, Int),
                                    depends_on="_selected_step_index")
-    #: Selected step, used for highlighting in the table/plot
-    _selected_step_index = Either(None, Int())
 
     @on_trait_change("value_names")
     def _clear_evaluation_steps(self):
@@ -33,6 +49,13 @@ class AnalysisModel(HasStrictTraits):
         return self._evaluation_steps
 
     def add_evaluation_step(self, evaluation_step):
+        """Add the result of an optimisation run to the AnalysisModel
+
+        Parameters
+        ---------
+        evaluation_step: Tuple
+            A pair of values, which can be of any type.
+        """
         if len(self.value_names) == 0:
             raise ValueError("Cannot add evaluation step to an empty "
                              "Analysis model")
@@ -62,7 +85,14 @@ class AnalysisModel(HasStrictTraits):
         self._selected_step_index = value
 
     def clear(self):
+        """ Sets :attr:`value_names` to be empty, removes all entries in the
+        list :attr:`evaluation_steps` and sets :attr:`selected_step_index`
+        to None"""
         self.value_names = ()
 
     def clear_steps(self):
+        """ Removes all entries in the list :attr:`evaluation_steps` and sets
+        :attr:`selected_step_index` to None but does not clear
+        :attr:`value_names`
+        """
         self._clear_evaluation_steps()

@@ -23,10 +23,26 @@ class PluginDialog(HasStrictTraits):
     """Displays a list of the available plugins, together with their
     description.
     """
+    # -------------------
+    # Required Attributes
+    # -------------------
+
+    #: A list of all available plugins
     plugins = List(Instance(BaseExtensionPlugin))
 
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
+    #: The currently selected plugin
     selected_plugin = Instance(BaseExtensionPlugin)
 
+    # --------------------
+    # Dependent Attributes
+    # --------------------
+
+    #: An HTML description of the selected plugin
+    #: Listens to :attr:`selected_plugin`
     selected_plugin_HTML = Unicode()
 
     def __init__(self, plugins):
@@ -76,10 +92,18 @@ class PluginDialog(HasStrictTraits):
         return htmlformat("No plugin selected")
 
 
-def htmlformat(title, version=None,
-               description=None,
-               error_msg=None,
+def htmlformat(title, version=None, description=None, error_msg=None,
                error_tb=None):
+    """Formats information about the plugin as HTML, which is displayed within
+    the PluginDialog window.
+    Parameters
+    ----------
+    title: Unicode
+        The name or id of the plugin.
+    version: Unicode
+
+
+    """
     html = """
         <html>
         <head>
