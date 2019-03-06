@@ -260,7 +260,7 @@ class NewEntityCreator(HasStrictTraits):
         view_info = model_info(self.model)
 
         # Message for a model without editable traits
-        if view_info:
+        if not view_info:
             return htmlformat(model_name, model_desc)
 
         # A list containing trait names and descriptions

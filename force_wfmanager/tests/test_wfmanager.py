@@ -92,7 +92,6 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
         self.wfmanager.run()
         self.setup_task = self.wfmanager.windows[0].tasks[0]
         self.results_task = self.wfmanager.windows[0].tasks[1]
-        print(self.setup_task.factory_registry)
 
     def test_init(self):
         self.create_tasks()
