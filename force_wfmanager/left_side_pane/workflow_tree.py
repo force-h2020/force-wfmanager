@@ -240,8 +240,6 @@ class WorkflowTree(ModelView):
         depends_on="selected_mv,selected_mv.error_message,selected_mv.label"
     )
 
-
-
     def default_traits_view(self):
         """The layout of the View for the WorkflowTree"""
         tree_editor = TreeEditor(
@@ -471,7 +469,7 @@ class WorkflowTree(ModelView):
             belongs to
         delete_fn: function
             A function which removes the object from the workflow
-        modelview: MCOModelView, DataSourceModelView, NotificationListenerModelView, MCOParameterModelView, ExecutionLayerModelView
+        modelview: ModelView
             The modelview of the currently selected node
         """
 
@@ -493,7 +491,7 @@ class WorkflowTree(ModelView):
         factory_group_name: String
             A name showing which group (MCO, Datasource etc.) the factory
             belongs to
-        modelview: MCOModelView, DataSourceModelView, NotificationListenerModelView, MCOParameterModelView, ExecutionLayerModelView
+        modelview: ModelView
             The modelview of the currently selected node
         """
         self.add_new_entity = partial(create_fn, None, modelview)

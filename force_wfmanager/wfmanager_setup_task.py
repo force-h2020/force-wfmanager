@@ -104,8 +104,6 @@ class WfManagerSetupTask(Task):
     def _menu_bar_default(self):
         """A menu bar with functions relevant to the Setup task.
         """
-        # FIXME: Add ids here, it isn't clear why some items have them and
-        #        others don't
         menu_bar = SMenuBar(
             SMenu(
                 TaskAction(
@@ -581,8 +579,7 @@ class WfManagerSetupTask(Task):
             data = [dv.value for dv in event.optimal_point]
             for kpi, weight in zip(event.optimal_kpis, event.weights):
                 data.extend([kpi.value, weight])
-            for i,data_val in enumerate(data[:]):
-                # FIXME: Handle non-numerical data
+            for i, data_val in enumerate(data[:]):
                 try:
                     data[i] = float(data_val)
                 except ValueError:
@@ -618,12 +615,9 @@ class WfManagerSetupTask(Task):
     def update_pane_active_status(self):
         """Disables the saving/loading toolbar buttons and the TreePane UI
         if a computation is running, and re-enables them when it finishes."""
-        # FIXME: Why is this (not None) here? Presumably not having it meant
-        #        things were fired before the window was created, but it
-        #        doesn't seem that this should be the case.
-        if self.window is not None:
-            self.side_pane.ui_enabled = not self.computation_running
-            self.save_load_enabled = not self.computation_running
+
+        self.side_pane.ui_enabled = not self.computation_running
+        self.save_load_enabled = not self.computation_running
 
     # Method call from side pane interaction
 

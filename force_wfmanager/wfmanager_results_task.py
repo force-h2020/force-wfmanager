@@ -185,9 +185,6 @@ class WfManagerResultsTask(Task):
 
     # Synchronization with Setup Task
 
-    # FIXME: Change this so the shared state between the tasks is created in
-    #        wfmanager_plugin.py
-
     @on_trait_change('setup_task.run_enabled')
     def sync_run_enabled(self):
         self.run_enabled = self.setup_task.run_enabled

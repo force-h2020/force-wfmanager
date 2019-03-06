@@ -128,7 +128,8 @@ class SetupPane(TraitsTaskPane):
                     ),
                     UItem(
                         "selected_model", editor=InstanceEditor(),
-                        style="custom", visible_when="selected_model is not None"
+                        style="custom",
+                        visible_when="selected_model is not None"
                     ),
                     # Remove Buttons
                     HGroup(

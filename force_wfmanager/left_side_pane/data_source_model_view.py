@@ -110,6 +110,7 @@ class OutputSlotRow(TableRow):
         """
         self.model.output_slot_info[self.index].name = self.name
 
+
 #: The TraitsUI editor used for :class:`InputSlotRow`
 input_slots_editor = TableEditor(
     sortable=False,

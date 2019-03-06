@@ -42,8 +42,6 @@ class WfManagerPlugin(Plugin):
         return wf_manager_setup_task
 
     def _create_results_task(self):
-        # FIXME: Does not appear to require a factory_registry
-        #        (not used in task)
         factory_registry = self.application.get_plugin(
             FACTORY_REGISTRY_PLUGIN_ID
         )

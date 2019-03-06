@@ -74,7 +74,8 @@ class MCOModelView(ModelView):
         self.model.parameters.append(parameter)
 
     def add_kpi(self, kpi):
-        """Adds a KPISpecification to the MCO model associated with this modelview.
+        """Adds a KPISpecification to the MCO model associated with this
+         modelview.
 
         Parameters
         ----------
@@ -86,7 +87,8 @@ class MCOModelView(ModelView):
     # Remove objects from model
 
     def remove_parameter(self, parameter):
-        """Removes a parameter from the MCO model associated with this modelview..
+        """Removes a parameter from the MCO model associated with this
+        modelview.
 
         Parameters
         ----------
@@ -96,7 +98,8 @@ class MCOModelView(ModelView):
         self.model.parameters.remove(parameter)
 
     def remove_kpi(self, kpi):
-        """Removes a KPISpecification from the MCO model associated with this modelview.
+        """Removes a KPISpecification from the MCO model associated with this
+        modelview.
 
         Parameters
         ----------

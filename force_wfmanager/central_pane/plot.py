@@ -255,14 +255,12 @@ class Plot(HasStrictTraits):
 
         self.resize_plot()
 
-
     @on_trait_change('reset_plot')
     def reset_pressed(self):
         """ Event handler for :attr:`reset_plot`"""
         self.resize_plot()
 
     def resize_plot(self):
-        # TODO: Make return signature the same on all cases, update docstring.
         """ Sets the size of the current plot to have some spacing between the
         largest/smallest value and the plot edge. Also returns the new values
         (X min, X max, Y min, Y max) if the plot area changes or None if it
@@ -294,7 +292,6 @@ class Plot(HasStrictTraits):
         elif len(x_data) == 1:
             self._set_plot_range(x_data[0] - 0.5, x_data[0] + 0.5,
                                  y_data[0] - 0.5, y_data[0] + 0.5)
-            # TODO: Check if this applies to both if statement cases.
             # Replace the old ZoomTool as retaining the same one can lead
             # to issues where the zoom out/in limit is not reset on
             # resizing the plot.

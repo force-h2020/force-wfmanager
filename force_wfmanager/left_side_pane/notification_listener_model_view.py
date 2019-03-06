@@ -30,7 +30,6 @@ class NotificationListenerModelView(ModelView):
     #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
-    # TODO: Implement a method for this
     #: Event to request a verification check on the workflow.
     verify_workflow_event = Event
 
