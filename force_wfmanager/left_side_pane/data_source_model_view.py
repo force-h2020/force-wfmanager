@@ -14,6 +14,12 @@ from .variable_names_registry import VariableNamesRegistry
 
 
 class TableRow(HasStrictTraits):
+    """ Base class representing attributes shared between Input and Output
+    rows"""
+    # -------------------
+    # Required Attributes
+    # -------------------
+
     #: Type of the slot
     type = Unicode()
 
@@ -23,35 +29,57 @@ class TableRow(HasStrictTraits):
     #: Model of the evaluator
     model = Instance(BaseDataSourceModel)
 
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
+    #: A human readable description of the slot
     description = Unicode()
 
     def __init__(self, model, *args, **kwargs):
         self.model = model
-
         super(TableRow, self).__init__(*args, **kwargs)
 
 
 class InputSlotRow(TableRow):
-    #: Name of the slot
-    name = Enum(values='_combobox_values')
+    """Row in the UI representing DataSource inputs. """
+    # -------------------
+    # Required Attributes
+    # -------------------
 
     #: Available variables as input for this evaluator
     available_variables = List(Identifier)
 
+    # ------------------
+    # Derived Attributes
+    # ------------------
+
+    #: Name of the slot.
+    #: Listens to: :attr:`model.input_slot_info.name <TableRow.model>`
+    name = Enum(values='_combobox_values')
+
     #: Possible values for the name of the input, it can be an empty string or
     #: one of the available variables
+    #: Listens to: :attr:`available_variables`
     _combobox_values = List(Identifier)
 
     @on_trait_change('model.input_slot_info.name')
     def update_view(self):
+        """Synchronises the InputSlotRow with the underlying model"""
         self.name = self.model.input_slot_info[self.index].name
 
     @on_trait_change('name')
     def update_model(self):
+        """Synchronises the model if the user changes a model object's name
+        via the UI
+        """
         self.model.input_slot_info[self.index].name = self.name
 
     @on_trait_change('available_variables')
     def update_combobox_values(self):
+        """Updates the values shown in the dropdown menu in the UI when the
+        list of available variables changes
+        """
         self._combobox_values = [''] + self.available_variables
         self.name = ('' if self.name not in self.available_variables
                      else self.name)
@@ -61,18 +89,29 @@ class InputSlotRow(TableRow):
 
 
 class OutputSlotRow(TableRow):
+
+    # ------------------
+    # Derived Attributes
+    # ------------------
+
     #: Name of the slot
+    #: Listens to: :attr:`model.output_slot_info.name <TableRow.model>`
     name = Identifier()
 
     @on_trait_change('model.output_slot_info[]')
     def update_view(self):
+        """ Synchronises the OutputSlotRow with the underlying model"""
         self.name = self.model.output_slot_info[self.index].name
 
     @on_trait_change('name')
-    def update_name(self):
+    def update_model(self):
+        """ Synchronises the model if the user changes a model object's name
+        via the UI
+        """
         self.model.output_slot_info[self.index].name = self.name
 
 
+#: The TraitsUI editor used for :class:`InputSlotRow`
 input_slots_editor = TableEditor(
     sortable=False,
     configurable=False,
@@ -84,6 +123,7 @@ input_slots_editor = TableEditor(
     ]
 )
 
+#: The TraitsUI editor used for :class:`OutputSlotRow`
 output_slots_editor = TableEditor(
     sortable=False,
     configurable=False,
@@ -97,24 +137,33 @@ output_slots_editor = TableEditor(
 
 
 class DataSourceModelView(ModelView):
+
+    # -------------------
+    # Required Attributes
+    # -------------------
+
     #: Model of the evaluator (More restrictive than the ModelView model
     #: attribute)
     model = Instance(BaseDataSourceModel)
 
-    #: Link to the containing layer
+    #: The index of the layer this data source belongs to.
+    layer_index = Int()
+
+    #: Registry of the available variables
+    variable_names_registry = Instance(VariableNamesRegistry)
+
+    #: The execution layer instance containing this data source model view.
     execution_layer_mv = Instance(
         'force_wfmanager.left_side_pane'
         '.execution_layer_model_view.ExecutionLayerModelView'
     )
 
-    #: Registry of the available variables
-    variable_names_registry = Instance(VariableNamesRegistry)
+    # ------------------
+    # Regular Attributes
+    # ------------------
 
-    #: The human readable name of the evaluator
+    #: The human readable name of the data source
     label = Unicode()
-
-    #: The index of the layer this data source belongs to.
-    layer_index = Int()
 
     #: evaluator object, shouldn't be touched
     _data_source = Instance(BaseDataSource)
@@ -125,20 +174,40 @@ class DataSourceModelView(ModelView):
     #: Output slots representation for the table editor
     output_slots_representation = List(OutputSlotRow)
 
+    # --------------------
+    # Dependent Attributes
+    # --------------------
+
     #: Currently selected slot in the table
+    #: Listens to: :attr:`input_slots_editor`, :attr:`output_slots_editor`
     selected_slot_row = Either(Instance(InputSlotRow), Instance(OutputSlotRow))
+
+    #: Event to request a verification check on the workflow
+    #: Listens to: :attr:`input_slots_representation.name
+    #: <input_slots_representation>`, :attr:`output_slots_representation.name
+    #: <output_slots_representation>`
+    verify_workflow_event = Event
+
+    #: Defines if the evaluator is valid or not. Updated by
+    #: :func:`verify_tree
+    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    valid = Bool(True)
+
+    #: An error message for issues in this modelview. Updated by
+    #: :func:`verify_tree
+    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    error_message = Unicode()
+
+    # ----------
+    # Properties
+    # ----------
 
     #: HTML for the selected slot description
     selected_slot_description = Property(HTML, depends_on="selected_slot_row")
 
-    #: Defines if the evaluator is valid or not
-    valid = Bool(True)
-
-    #: An error message for issues in this modelview
-    error_message = Unicode()
-
-    #: Event to request a verification check on the workflow
-    verify_workflow_event = Event
+    # ----
+    # View
+    # ----
 
     #: Base view for the evaluator
     traits_view = View(
@@ -174,13 +243,7 @@ class DataSourceModelView(ModelView):
 
         self._create_slots_tables()
 
-    @on_trait_change('input_slots_representation.name,'
-                     'output_slots_representation.name')
-    def data_source_change(self):
-        self.verify_workflow_event = True
-
-    def _label_default(self):
-        return get_factory_name(self.model.factory)
+    # Initialization
 
     def _create_slots_tables(self):
         """ Initialize the tables for editing the input and output slots
@@ -284,11 +347,95 @@ class DataSourceModelView(ModelView):
 
         self.output_slots_representation[:] = output_representation
 
+    # Defaults
+
+    def _label_default(self):
+        return get_factory_name(self.model.factory)
+
     def __data_source_default(self):
         return self.model.factory.create_data_source()
 
-    @on_trait_change("model.input_slot_info.name,model.output_slot_info.name")
+    @on_trait_change(
+        'input_slots_representation.name,output_slots_representation.name'
+    )
+    def data_source_change(self):
+        """Fires :func:`verify_workflow_event` when an input slot or output
+        slot is changed"""
+        self.verify_workflow_event = True
+
+    # Changed Slots Functions
+
+    @on_trait_change('model.changes_slots')
+    def _update_slots_tables(self):
+        """ Update the tables of slots when a change on the model triggers a
+        change on the shape of the input/output slots"""
+        #: This synchronization maybe is something that should be moved to the
+        #: model.
+        self.input_slots_representation[:] = []
+        self.output_slots_representation[:] = []
+
+        input_slots, output_slots = self._data_source.slots(self.model)
+
+        #: Initialize the input slots
+        self.model.input_slot_info = [
+            InputSlotInfo(name='')
+            for _ in input_slots
+        ]
+
+        #: Initialize the output slots
+        self.model.output_slot_info = [
+            OutputSlotInfo(name='')
+            for _ in output_slots
+        ]
+
+        self._fill_slot_rows(input_slots, output_slots)
+
+    # Avaliable Variables Functions
+
+    @on_trait_change(
+        'variable_names_registry.available_variables[],'
+        'output_slots_representation.name,output_slots_representation.type,'
+        'input_slots_representation.name,input_slots_representation.type'
+    )
+    def update_data_source_input_rows(self):
+        """Updates the available variables attribute for any InputSlotRow
+        of this data source"""
+        for input_slot_row in self.input_slots_representation:
+            available_variables = self._available_variables_by_type(
+                input_slot_row.type)
+            input_slot_row.available_variables = available_variables
+
+    def _available_variables(self):
+        """Returns the available variables for the containing execution layer
+        of this data source
+        """
+        registry = self.variable_names_registry
+        idx = self.layer_index
+
+        return registry.available_variables[idx]
+
+    def _available_variables_by_type(self, variable_type):
+        """Returns the available variables of variable_type for the
+        containing execution layer of this data source
+
+        Parameters
+        ----------
+        variable_type: CUBAType
+            Searches for available variables of this type
+        """
+        registry = self.variable_names_registry
+        idx = self.layer_index
+        if variable_type in registry.available_variables_by_type[idx]:
+            return registry.available_variables_by_type[idx][variable_type]
+        return []
+
+    # Model change functions
+
+    @on_trait_change('model.input_slot_info.name,model.output_slot_info.name')
     def update_slot_info_names(self):
+        """Updates the name displayed in a Input/OutputSlotRow if the name
+        changes in the model.
+        """
         for info, row in zip(self.model.input_slot_info,
                              self.input_slots_representation):
             row.name = info.name
@@ -297,29 +444,7 @@ class DataSourceModelView(ModelView):
                              self.output_slots_representation):
             row.name = info.name
 
-    @on_trait_change('variable_names_registry.available_variables[],'
-                     'output_slots_representation.name,'
-                     'output_slots_representation.type,'
-                     'input_slots_representation.name,'
-                     'input_slots_representation.type')
-    def update_data_source_input_rows(self):
-        for input_slot_row in self.input_slots_representation:
-            available_variables = self._available_variables_by_type(
-                input_slot_row.type)
-            input_slot_row.available_variables = available_variables
-
-    def _available_variables(self):
-        registry = self.variable_names_registry
-        idx = self.layer_index
-
-        return registry.available_variables[idx]
-
-    def _available_variables_by_type(self, variable_type):
-        registry = self.variable_names_registry
-        idx = self.layer_index
-        if variable_type in registry.available_variables_by_type[idx]:
-            return registry.available_variables_by_type[idx][variable_type]
-        return []
+    # Description update on UI selection change
 
     def _get_selected_slot_description(self):
         if self.selected_slot_row is None:

@@ -2,13 +2,14 @@ from envisage.api import Plugin
 from envisage.ui.tasks.api import TaskFactory
 from traits.api import Either, List, Unicode
 
+from force_bdss.api import FACTORY_REGISTRY_PLUGIN_ID
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
-from force_bdss.api import FACTORY_REGISTRY_PLUGIN_ID
 
 
 class WfManagerPlugin(Plugin):
-    """ The basic WfManager """
+    """ The Plugin containing the Workflow Manager UI. This contains the
+    factories which create the Tasks (currently Setup & Results)"""
 
     TASKS = 'envisage.ui.tasks.tasks'
 

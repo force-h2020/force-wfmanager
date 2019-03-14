@@ -3,7 +3,7 @@ from force_bdss.api import BaseDriverEvent, pop_recursive
 
 
 class SerializerError(Exception):
-    """Thrown when the instance cannot be serializer for some reason."""
+    """Thrown when the instance cannot be serialized for some reason."""
 
 
 class EventSerializer(object):
@@ -13,6 +13,18 @@ class EventSerializer(object):
     carrying more complex instances, this serializer will not be enough.
     """
     def serialize(self, event):
+        """Serializes an event into a json string
+
+        Parameters
+        ----------
+        event: BaseDriverEvent
+            The event to be sent via the ZMQ Server
+
+        Raises
+        ------
+        SerializerError
+            Raises if :param event: is not a BaseDriverEvent
+        """
         if not isinstance(event, BaseDriverEvent):
             raise SerializerError("Cannot serialize classes not derived "
                                   "from BaseDriverEvent")

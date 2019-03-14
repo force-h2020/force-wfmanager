@@ -23,14 +23,15 @@ class WfManager(TasksApplication):
         )]
 
     def _window_factory_default(self):
-        """Sets a TaskWindow with closing prompt to be the default window
+        """Sets a TaskWindowClosePrompt to be the default window
         created by TasksApplication (originally a standard TaskWindow)"""
         return TaskWindowClosePrompt
 
     # FIXME: This isn't needed if the bug in traitsui/qt4/ui_panel.py is fixed
     def _prepare_exit(self):
-        """Same functionality as TasksApplication._prepare_exit(), but
-        _save_state is called before application_exiting is fired"""
+        """Overrides `TasksApplication._prepare_exit()`. Has the same
+        functionality as `TasksApplication._prepare_exit()`, but
+        `_save_state()` is called before `application_exiting` is fired"""
         self._save_state()
         self.application_exiting = self
 
@@ -52,11 +53,12 @@ class TaskWindowClosePrompt(TaskWindow):
     """A TaskWindow which asks if you want to save before closing"""
 
     def close(self):
-        """ Closes the window. It first asks the user to
-        save the current Workflow. The user can accept to save, ignore the
-        request, or cancel the quit. If the user wants to save, but the save
-        fails, the application is not closed so he has a chance to try to
-        save again. Overrides close from pyface.tasks.task_window """
+        """ Closes the window. It first prompts the user to
+        save the current Workflow. The user can either save, quit without
+        saving, or cancel. If the user wants to save but the save
+        fails, the application is not closed so data is not lost.
+        Overrides close from `pyface.tasks.task_window`
+        """
 
         # The attached wfmanager_setup_task for saving methods
         setup_task = None

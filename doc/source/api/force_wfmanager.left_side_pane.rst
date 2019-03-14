@@ -51,6 +51,14 @@ force\_wfmanager\.left\_side\_pane\.new\_entity\_creator module
     :undoc-members:
     :show-inheritance:
 
+force\_wfmanager\.left\_side\_pane\.notification\_listener\_model\_view module
+------------------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.left_side_pane.notification_listener_model_view
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 force\_wfmanager\.left\_side\_pane\.tree\_pane module
 -----------------------------------------------------
 

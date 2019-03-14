@@ -27,8 +27,10 @@ def model_info(model):
     view_info = _item_info_from_group(main_group_contents)
 
     # Remove any non-visible traits
-    interactive_view_info = [trait_name for trait_name in view_info
-                             if trait_name in model.visible_traits()]
+    interactive_view_info = [
+        trait_name for trait_name in view_info
+        if trait_name in model.visible_traits()
+    ]
 
     return interactive_view_info
 
@@ -51,7 +53,7 @@ def get_default_background_color():
     """Return the default background color for a Qt Application"""
     palette = QtGui.QPalette()
     rgba_color = palette.window().color().getRgb()
-    html_background_color = '#{:02x}{:02x}{:02x}'.format(rgba_color[0],
-                                                         rgba_color[1],
-                                                         rgba_color[2])
+    html_background_color = '#{:02x}{:02x}{:02x}'.format(
+        rgba_color[0], rgba_color[1], rgba_color[2]
+    )
     return html_background_color

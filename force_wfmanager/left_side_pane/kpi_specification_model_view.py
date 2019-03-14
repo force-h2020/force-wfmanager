@@ -1,33 +1,65 @@
-from traits.api import (Instance, Property, Bool, Enum, List, on_trait_change,
-                        cached_property, Unicode, Event)
-from traitsui.api import ModelView, View, Item, EnumEditor
+from traits.api import (
+    Bool, Enum, Event, Instance, List, Property, Unicode, cached_property,
+    on_trait_change
+)
+from traitsui.api import EnumEditor, Item, ModelView, View
 
 from force_bdss.api import KPISpecification, Identifier
-from force_wfmanager.left_side_pane.variable_names_registry import \
+from force_wfmanager.left_side_pane.variable_names_registry import (
     VariableNamesRegistry
+)
 
 
 class KPISpecificationModelView(ModelView):
+
+    # -------------------
+    # Required Attributes
+    # -------------------
+
     #: KPI model
     model = Instance(KPISpecification, allow_none=False)
 
     #: Registry of the available variables
     variable_names_registry = Instance(VariableNamesRegistry)
 
-    #: The human readable name of the KPI
-    label = Property(depends_on='model.name,model.objective')
+    # ------------------
+    # Regular Attributes
+    # ------------------
 
-    #: Defines if the KPI is valid or not
+    #: Defines if the KPI is valid or not. Set by the function
+    #: verify_tree in workflow_tree.py
     valid = Bool(True)
 
-    #: An error message for issues in this modelview
+    #: An error message for issues in this modelview. Set by the function
+    #: verify_tree in workflow_tree.py
     error_message = Unicode()
 
+    # ------------------
+    # Derived Attributes
+    # ------------------
+
+    #: Event to request a verification check on the workflow
+    #: Listens to: `model.name`,`model.objective`
+    verify_workflow_event = Event
+
     #: The name of the selected KPI
+    #: Listens to: `variable_names_registry.data_source_outputs`
     name = Enum(values='_combobox_values')
 
     #: Values for the combobox
+    #: #: Listens to: `variable_names_registry.data_source_outputs`
     _combobox_values = List(Identifier)
+
+    # ----------
+    # Properties
+    # ----------
+
+    #: The human readable name of the KPI
+    label = Property(depends_on='model.name,model.objective')
+
+    # ----
+    # View
+    # ----
 
     #: Base view for the MCO parameter
     traits_view = View(
@@ -35,9 +67,6 @@ class KPISpecificationModelView(ModelView):
         Item("model.objective"),
         kind="subpanel",
     )
-
-    #: Event to request a verification check on the workflow
-    verify_workflow_event = Event
 
     def __init__(self, model, variable_names_registry, **kwargs):
         super(KPISpecificationModelView, self).__init__(
