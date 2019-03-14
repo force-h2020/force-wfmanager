@@ -240,14 +240,14 @@ class DataSourceModelView(ModelView):
 
         #: Initialize the input slots
         self.model.input_slot_info = [
-            InputSlotInfo(name='')
-            for _ in input_slots
+            InputSlotInfo(name=slot.name)
+            for slot in input_slots
         ]
 
         #: Initialize the output slots
         self.model.output_slot_info = [
-            OutputSlotInfo(name='')
-            for _ in output_slots
+            OutputSlotInfo(name=slot.name)
+            for slot in output_slots
         ]
 
         self._fill_slot_rows(input_slots, output_slots)

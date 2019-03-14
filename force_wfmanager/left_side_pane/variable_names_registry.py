@@ -1,7 +1,9 @@
+import itertools
+import logging
+
 from traits.api import (
     HasStrictTraits, List, Instance, on_trait_change, Property,
     cached_property, Dict, Tuple)
-import logging
 
 from force_bdss.api import Identifier, Workflow
 from force_bdss.local_traits import CUBAType
@@ -64,6 +66,16 @@ class VariableNamesRegistry(HasStrictTraits):
     #: It does not include MCO parameters.
     data_source_outputs = Property(List(Identifier),
                                    depends_on="available_variables_stack")
+
+    #: MCO Parameter names available to the workflow
+    parameters = Property(List(Identifier),
+                          depends_on="available_variables_stack")
+
+    #: KPI names available to the workflow
+    kpi_names = Property(List(Identifier), depends_on='workflow.mco.kpis.name')
+
+    #: Both MCO Parameter and KPI names
+    kpi_params = Property(List(Identifier), depends_on='parameters,kpi_names')
 
     def __init__(self, workflow, *args, **kwargs):
         super(VariableNamesRegistry, self).__init__(*args, **kwargs)
@@ -137,6 +149,26 @@ class VariableNamesRegistry(HasStrictTraits):
         for output_info in stack[1:]:
             res.extend([output[0] for output in output_info])
         return res
+
+    @cached_property
+    def _get_parameters(self):
+        stack = self.available_variables_stack
+
+        res = [output[0] for output in stack[0]]
+        return res
+
+    @cached_property
+    def _get_kpi_names(self):
+        if self.workflow.mco:
+            return [kpi.name for kpi in self.workflow.mco.kpis]
+        else:
+            return []
+
+    @cached_property
+    def _get_kpi_params(self):
+        return [
+            name for name in itertools.chain(self.kpi_names,self.parameters)
+        ]
 
     @cached_property
     def _get_available_variables_by_type(self):
