@@ -1,6 +1,5 @@
 import unittest
 import subprocess
-
 from unittest import mock
 
 from force_bdss.core.data_value import DataValue

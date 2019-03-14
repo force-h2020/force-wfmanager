@@ -35,6 +35,12 @@ class UINotification(BaseNotificationListener):
     _serializer = Instance(EventSerializer)
 
     def initialize(self, model):
+        """ Sets up the zmq sockets and context to connects to the Workflow
+        Manager server. Called when the notification
+        listeners are set up in :mod:`force_bdss.core_mco_driver`. Sends a
+        'HELLO' message to the ZMQ Server in
+        :mod:`force_wfmanager.wfmanager_setup_task`.
+        """
         self._identifier = model.identifier
         self._context = self._create_context()
 
@@ -49,6 +55,9 @@ class UINotification(BaseNotificationListener):
         msg = [x.encode('utf-8')
                for x in ["HELLO", self._identifier, self._proto_version]]
 
+        # Send a special "HELLO" message to the zmq server. This is sent to the
+        # 'sync' socket and should be handled by the '_handle_WAITING_sync'
+        # method in ZMQServer
         self._sync_socket.send_multipart(msg)
         events = self._sync_socket.poll(1000, zmq.POLLIN)
 
@@ -58,8 +67,8 @@ class UINotification(BaseNotificationListener):
             self._close_and_clear_sockets()
             return
 
+        # The server should send back an identical response
         recv = self._sync_socket.recv_multipart()
-
         if recv != msg:
             log.error(
                 ("Unexpected reply in sync"
@@ -69,6 +78,20 @@ class UINotification(BaseNotificationListener):
             return
 
     def deliver(self, event):
+        """ Serializes as JSON and sends a BaseDriverEvent (see
+        :class:`force_bdss.core_driver_events.BaseDriverEvent`) as a message
+        to the ZMQServer.
+
+        Parameters
+        ----------
+        event: BaseDriverEvent
+            The event to send to the server
+
+        Raises
+        ------
+        TypeError:
+            Raises if `event` is not a `BaseDriverEvent`
+        """
         if not self._context:
             return
 
@@ -81,6 +104,7 @@ class UINotification(BaseNotificationListener):
             [x.encode('utf-8') for x in ["MESSAGE", self._identifier, data]])
 
     def finalize(self):
+        """ Disconnects from the ZMQServer."""
         if not self._context:
             return
 
@@ -119,6 +143,8 @@ class UINotification(BaseNotificationListener):
 
     def _create_context(self):
         return zmq.Context()
+
+    # Defaults
 
     def __serializer_default(self):
         return EventSerializer()

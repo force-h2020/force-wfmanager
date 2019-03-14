@@ -1,5 +1,4 @@
 from pyface.action.api import ActionItem
-
 from pyface.tasks.action.api import TaskToggleGroup
 from pyface.tasks.action.task_toggle_group import TaskToggleAction
 

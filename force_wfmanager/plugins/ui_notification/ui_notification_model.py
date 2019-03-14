@@ -5,6 +5,10 @@ from force_wfmanager.local_traits import ZMQSocketURL
 
 
 class UINotificationModel(BaseNotificationListenerModel):
+    """This is a data model for :class:`UINotification
+    <.ui_notification.UINotification>`, which contains the
+    sync and pub sockets, along with an identifier.
+    """
     #: The socket URL where the UI will be found. Synchronization port.
     sync_url = ZMQSocketURL()
 
