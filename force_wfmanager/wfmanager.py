@@ -52,6 +52,9 @@ class WfManager(TasksApplication):
             for task in tasks:
                 window.remove_task(task)
 
+    def _window_size_default(self):
+        return 1680, 1050
+
 
 class TaskWindowClosePrompt(TaskWindow):
     """A TaskWindow which asks if you want to save before closing"""

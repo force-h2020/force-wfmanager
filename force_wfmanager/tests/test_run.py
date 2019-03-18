@@ -16,6 +16,6 @@ class TestRun(unittest.TestCase):
         with mock.patch('force_wfmanager.gui.run.WfManager') as mock_wfmanager:
             mock_wfmanager.side_effect = mock_wfmanager_constructor
 
-            main()
+            main(window_size=(1680, 1050))
 
             self.assertTrue(mock_wfmanager.called)

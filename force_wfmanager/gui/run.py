@@ -20,7 +20,7 @@ push_exception_handler(lambda *args: None, reraise_exceptions=True)
 @click.option('--debug', is_flag=True, default=False,
               help="Prints extra debug information in force_wfmanager.log")
 @click.option(
-    '--window-size', default=(1650, 1080), help="Sets the initial window size"
+    '--window-size', default=(1680, 1050), help="Sets the initial window size"
 )
 @click.argument('workflow_file', type=click.Path(exists=True), required=False,
                 default=None,)
