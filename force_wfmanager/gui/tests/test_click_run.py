@@ -37,6 +37,8 @@ class TestClickRun(unittest.TestCase):
     def test_run_with_debug(self):
         with mock.patch('force_wfmanager.gui.run.WfManager') as mock_wf:
             mock_wf.return_value = MockWfManager()
-            force_wfmanager.gui.run.main(window_size=(1650, 1080), debug=True)
+            force_wfmanager.gui.run.main(
+                window_size=(1650, 1080), debug=True, workflow_file=None
+            )
             self.log = force_wfmanager.gui.run.logging.getLogger(__name__)
             self.assertEqual(self.log.getEffectiveLevel(), 10)

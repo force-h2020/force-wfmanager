@@ -29,7 +29,7 @@ def force_wfmanager(workflow_file, debug, window_size):
     main(workflow_file=workflow_file, debug=debug, window_size=window_size)
 
 
-def main(window_size, workflow_file=None, debug=False):
+def main(window_size, workflow_file, debug):
     """Launches the FORCE workflow manager application"""
     if debug is False:
         logging.basicConfig(filename="force_wfmanager.log", filemode="w")
