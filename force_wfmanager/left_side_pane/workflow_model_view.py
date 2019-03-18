@@ -139,7 +139,6 @@ class WorkflowModelView(ModelView):
         self.notification_listeners_mv = [
             NotificationListenerModelView(
                 model=notification_listener,
-                variable_names_registry=self.variable_names_registry
             )
             for notification_listener in self.model.notification_listeners
             if notification_listener.factory.ui_visible is True

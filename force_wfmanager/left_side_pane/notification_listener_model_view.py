@@ -2,9 +2,6 @@ from traits.api import Instance, Unicode, Bool, Event
 from traitsui.api import ModelView
 
 from force_bdss.api import BaseNotificationListenerModel
-from force_wfmanager.left_side_pane.variable_names_registry import (
-    VariableNamesRegistry
-)
 from force_wfmanager.left_side_pane.view_utils import get_factory_name
 
 
@@ -16,9 +13,6 @@ class NotificationListenerModelView(ModelView):
 
     #: The model object this MV wraps
     model = Instance(BaseNotificationListenerModel)
-
-    #: Registry of the available variables
-    variable_names_registry = Instance(VariableNamesRegistry)
 
     # ------------------
     # Regular Attributes
