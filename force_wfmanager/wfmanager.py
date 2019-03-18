@@ -5,12 +5,16 @@ from envisage.ui.tasks.api import TasksApplication, TaskWindow
 from pyface.api import (CANCEL, ConfirmationDialog, NO, YES)
 from pyface.tasks.api import TaskWindowLayout
 
+from traits.api import Int, Tuple
+
 log = logging.getLogger(__name__)
 
 
 class WfManager(TasksApplication):
     id = 'force_wfmanager.wfmanager'
     name = 'Workflow Manager'
+
+    window_size = Tuple(Int, Int)
 
     # Overridden defaults from TasksApplication/Application
 
@@ -19,7 +23,7 @@ class WfManager(TasksApplication):
         return [TaskWindowLayout(
             *tasks,
             active_task='force_wfmanager.wfmanager_setup_task',
-            size=(1680, 1050)
+            size=self.window_size
         )]
 
     def _window_factory_default(self):
