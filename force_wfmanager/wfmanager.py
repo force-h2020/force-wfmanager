@@ -15,13 +15,17 @@ class WfManager(TasksApplication):
     name = 'Workflow Manager'
 
     window_size = Either(Tuple(Int, Int), None)
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.window_size is not None:
+            self.always_use_default_layout = True
 
     # Overridden defaults from TasksApplication/Application
 
     def _default_layout_default(self):
         tasks = [factory.id for factory in self.task_factories]
         if self.window_size is not None:
-            self.always_use_default_layout = True
             return [TaskWindowLayout(
                 *tasks,
                 active_task='force_wfmanager.wfmanager_setup_task',
