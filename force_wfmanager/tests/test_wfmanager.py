@@ -152,6 +152,7 @@ class TestTaskWindowClosePrompt(unittest.TestCase):
     def setUp(self):
         super(TestTaskWindowClosePrompt, self).setUp()
         self.wfmanager = dummy_wfmanager()
+        self.create_tasks()
 
     def create_tasks(self):
         self.wfmanager.run()
@@ -159,7 +160,6 @@ class TestTaskWindowClosePrompt(unittest.TestCase):
         self.results_task = self.wfmanager.windows[0].tasks[1]
 
     def test_exit_application_with_saving(self):
-        self.create_tasks()
         self.setup_task.save_workflow = mock.Mock(return_value=True)
         window = TaskWindowClosePrompt(application=self.wfmanager)
         with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog:
@@ -170,7 +170,6 @@ class TestTaskWindowClosePrompt(unittest.TestCase):
             self.assertTrue(close_result)
 
     def test_exit_application_with_saving_failure(self):
-        self.create_tasks()
         self.setup_task.save_workflow = mock.Mock(return_value=False)
         window = TaskWindowClosePrompt(application=self.wfmanager)
         with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog:
@@ -181,7 +180,6 @@ class TestTaskWindowClosePrompt(unittest.TestCase):
             self.assertFalse(close_result)
 
     def test_exit_application_without_saving(self):
-        self.create_tasks()
         self.setup_task.save_workflow = mock.Mock(return_value=True)
         window = TaskWindowClosePrompt(application=self.wfmanager)
         with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog:
@@ -192,7 +190,6 @@ class TestTaskWindowClosePrompt(unittest.TestCase):
             self.assertTrue(close_result)
 
     def test_cancel_exit_application(self):
-        self.create_tasks()
         self.setup_task.save_workflow = mock.Mock(return_value=True)
         window = TaskWindowClosePrompt(application=self.wfmanager)
         with mock.patch(CONFIRMATION_DIALOG_PATH) as mock_confirm_dialog:

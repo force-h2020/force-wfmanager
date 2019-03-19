@@ -17,16 +17,26 @@ push_exception_handler(lambda *args: None, reraise_exceptions=True)
 
 @click.command()
 @click.version_option(version=__version__)
-@click.option('--debug', is_flag=True, default=False,
-              help="Prints extra debug information in force_wfmanager.log")
-@click.argument('workflow_file', type=click.Path(exists=True), required=False,
-                default=None,)
-def force_wfmanager(workflow_file, debug):
+@click.option(
+    '--debug', is_flag=True, default=False,
+    help="Prints extra debug information in force_wfmanager.log"
+)
+@click.option(
+    '--window-size', nargs=2, type=int,
+    help="Sets the initial window size"
+)
+@click.argument(
+    'workflow_file', type=click.Path(exists=True), required=False,
+    default=None
+)
+def force_wfmanager(workflow_file, debug, window_size):
     """Launches the FORCE workflow manager application"""
-    main(workflow_file=workflow_file, debug=debug)
+    if not window_size:
+        window_size = None
+    main(workflow_file=workflow_file, debug=debug, window_size=window_size)
 
 
-def main(workflow_file=None, debug=False):
+def main(workflow_file, debug, window_size):
     """Launches the FORCE workflow manager application"""
     if debug is False:
         logging.basicConfig(filename="force_wfmanager.log", filemode="w")
@@ -52,5 +62,5 @@ def main(workflow_file=None, debug=False):
     except NoMatches:
         log.info("No extensions found")
 
-    wfmanager = WfManager(plugins=plugins)
+    wfmanager = WfManager(plugins=plugins, window_size=window_size)
     wfmanager.run()

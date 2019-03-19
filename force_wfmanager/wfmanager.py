@@ -5,6 +5,8 @@ from envisage.ui.tasks.api import TasksApplication, TaskWindow
 from pyface.api import (CANCEL, ConfirmationDialog, NO, YES)
 from pyface.tasks.api import TaskWindowLayout
 
+from traits.api import Either, Int, Tuple
+
 log = logging.getLogger(__name__)
 
 
@@ -12,15 +14,29 @@ class WfManager(TasksApplication):
     id = 'force_wfmanager.wfmanager'
     name = 'Workflow Manager'
 
+    window_size = Either(Tuple(Int, Int), None)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.window_size is not None:
+            self.always_use_default_layout = True
+
     # Overridden defaults from TasksApplication/Application
 
     def _default_layout_default(self):
         tasks = [factory.id for factory in self.task_factories]
-        return [TaskWindowLayout(
-            *tasks,
-            active_task='force_wfmanager.wfmanager_setup_task',
-            size=(1680, 1050)
-        )]
+        if self.window_size is not None:
+            return [TaskWindowLayout(
+                *tasks,
+                active_task='force_wfmanager.wfmanager_setup_task',
+                size=self.window_size
+            )]
+        else:
+            return [TaskWindowLayout(
+                *tasks,
+                active_task='force_wfmanager.wfmanager_setup_task',
+                size=(1680, 1050)
+            )]
 
     def _window_factory_default(self):
         """Sets a TaskWindowClosePrompt to be the default window
