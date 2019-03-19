@@ -15,7 +15,7 @@ class WfManager(TasksApplication):
     name = 'Workflow Manager'
 
     window_size = Either(Tuple(Int, Int), None)
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.window_size is not None:
