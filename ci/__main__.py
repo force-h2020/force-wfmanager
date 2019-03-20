@@ -1,17 +1,16 @@
 import click
 from subprocess import check_call
 
-DEFAULT_PYTHON_VERSION = "3.5"
-PYTHON_VERSIONS = ["3.5"]
+DEFAULT_PYTHON_VERSION = "3.6"
+PYTHON_VERSIONS = ["3.6"]
 
 ADDITIONAL_CORE_DEPS = [
-    "pyface==6.0.0-1",
+    "pyface==6.0.0-2",
     "pygments==2.2.0-1",
     "pyqt==4.11.4-7",
     "qt==4.8.7-7",
     "sip==4.17-4",
-    "traits==4.6.0-1",
-    "traitsui==6.0.0-1",
+    "traitsui==6.0.0-2",
     "numpy==1.13.3-3",
     "chaco==4.7.1-2",
     "pyzmq==16.0.0-4",
