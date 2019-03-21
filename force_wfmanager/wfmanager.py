@@ -64,6 +64,14 @@ class WfManager(TasksApplication):
             for task in tasks:
                 window.remove_task(task)
 
+    # FIXME: If the underlying envisage TasksApplication function is fixed to
+    #        work correctly, this will not be needed
+    def create_window(self, layout, restore, **traits):
+        window = super(WfManager, self).create_window(
+            layout, not restore, **traits
+        )
+        return window
+
 
 class TaskWindowClosePrompt(TaskWindow):
     """A TaskWindow which asks if you want to save before closing"""
