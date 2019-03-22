@@ -52,7 +52,7 @@ class ResultTable(HasStrictTraits):
     # ----
     # View
     # ----
-    def traits_view(self):
+    def default_traits_view(self):
         editor = TabularEditor(adapter=self.tabular_adapter,
                                show_titles=True,
                                auto_update=False,
