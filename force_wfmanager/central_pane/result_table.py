@@ -1,20 +1,24 @@
 from traits.api import (
     Either, HasStrictTraits, Instance, List, Property, Tuple, on_trait_change
 )
-from traitsui.api import TableEditor, UItem, View
+from traitsui.api import TabularEditor, UItem, View
+from traitsui.tabular_adapter import TabularAdapter
 from traitsui.table_column import ListColumn
 
 from .analysis_model import AnalysisModel
 
 
 class ResultTable(HasStrictTraits):
-
     # -------------------
     # Required Attributes
     # -------------------
 
     #: The model for the result table
     analysis_model = Instance(AnalysisModel)
+
+    #: Adapter initialised with dummy columns to circumvent
+    #: issues raised when setting up the View with no columns
+    tabular_adapter = Instance(TabularAdapter, ())
 
     # --------------------
     # Dependent Attributes
@@ -37,23 +41,6 @@ class ResultTable(HasStrictTraits):
         List(ListColumn), depends_on='analysis_model.value_names'
     )
 
-    # ----
-    # View
-    # ----
-
-    view = View(
-        UItem("rows", editor=TableEditor(
-            sortable=False,
-            configurable=False,
-            columns_name='columns',
-            # Using rows instead of row because of a traitsui bug
-            selection_mode='rows',
-            selected='_selected_rows',
-        ))
-    )
-
-    # Properties
-
     def _get_rows(self):
         return self.analysis_model.evaluation_steps
 
@@ -62,8 +49,25 @@ class ResultTable(HasStrictTraits):
                 for index, name
                 in enumerate(self.analysis_model.value_names)]
 
-    # Response to model change
+    # ----
+    # View
+    # ----
+    def traits_view(self):
+        editor = TabularEditor(adapter=self.tabular_adapter,
+                               show_titles=True,
+                               auto_update=False,
+                               editable=False)
 
+        return View(UItem("rows", editor=editor))
+
+    # Response to model initialisation
+    @on_trait_change('analysis_model.value_names')
+    def _update_adapter(self):
+        self.tabular_adapter.columns = (
+            [name for name in self.analysis_model.value_names])
+        self.tabular_adapter.format = '% 5.4E'
+
+    # Response to model change
     @on_trait_change('analysis_model.selected_step_index')
     def update_table(self):
         """ Updates the selected row in the table according to the model """
@@ -75,11 +79,10 @@ class ResultTable(HasStrictTraits):
             ]
 
     # Response to new selection by user in UI
-
     @on_trait_change('_selected_rows[]')
     def update_model(self):
         """ Updates the model according to the selected row in the table """
-        if len(self._selected_rows) == 0:
+        if not self._selected_rows:
             self.analysis_model.selected_step_index = None
         else:
             self.analysis_model.selected_step_index = \
