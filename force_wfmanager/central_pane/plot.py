@@ -1,5 +1,7 @@
 from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
+from chaco.api import ColormappedSelectionOverlay, LinearMapper
+from chaco.api import ColorBar, HPlotContainer, viridis
 from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
 from enable.api import KeySpec
@@ -30,6 +32,9 @@ class Plot(HasStrictTraits):
 
     #: Second parameter used for the plot
     y = Enum(values='_value_names')
+
+    #: Optional third parameter used to set colour of points
+    color_by = Enum(values='_value_names')
 
     #: Button to reset plot view. The button is active if :attr:`reset_enabled`
     #: is *True* and inactive if it is *False*.
@@ -81,6 +86,7 @@ class Plot(HasStrictTraits):
         HGroup(
             Item('x'),
             Item('y'),
+            Item('color_by')
         ),
         UItem('_plot', editor=ComponentEditor()),
         VGroup(
@@ -94,9 +100,18 @@ class Plot(HasStrictTraits):
 
         self.update_data_arrays()
 
-    # Defaults
-
     def __plot_default(self):
+        self.update_plot()
+        return self._plot
+
+    @on_trait_change('color_by')
+    def update_plot(self):
+        if self.color_by is None:
+            self._plot = self.plot_scatter()
+        else:
+            self._plot = self.plot_cmap_scatter_plot()
+
+    def plot_scatter(self):
         plot = ChacoPlot(self._plot_data)
 
         scatter_plot = plot.plot(
@@ -142,10 +157,82 @@ class Plot(HasStrictTraits):
 
         return plot
 
+    def plot_cmap_scatter_plot(self):
+        plot = ChacoPlot(self._plot_data)
+
+        cmap_scatter_plot = plot.plot(
+            ('x', 'y', 'color_by'),
+            type="cmap_scatter",
+            name="Plot",
+            marker="circle",
+            color_mapper=viridis,
+            fill_alpha=0.8,
+            marker_size=6,
+            outline_color="black",
+            index_sort="ascending",
+            bgcolor="white")[0]
+
+        plot.set(title="Plot", padding=75, line_width=1)
+
+        # Add pan and zoom tools
+        plot.tools.append(PanTool(plot))
+        plot.overlays.append(ZoomTool(plot))
+
+        # Add the selection tool
+        cmap_scatter_plot.tools.append(ScatterInspector(
+            cmap_scatter_plot,
+            threshold=10,
+            selection_mode="single",
+        ))
+        overlay = ScatterInspectorOverlay(
+            cmap_scatter_plot,
+            hover_color="blue",
+            hover_marker_size=6,
+            selection_marker_size=6,
+            selection_color="blue",
+            selection_outline_color="blue",
+            selection_line_width=3)
+        cmap_scatter_plot.overlays.append(overlay)
+
+        # Add colorbar (see cmap_scatter demo)
+        cmap_renderer = plot.plots["Plot"][0]
+
+        # Attach some tools to the plot
+        plot.tools.append(PanTool(plot, constrain_key="shift"))
+        zoom = ZoomTool(component=plot, tool_mode="box", always_on=False)
+        plot.overlays.append(zoom)
+        selection = ColormappedSelectionOverlay(cmap_renderer, fade_alpha=0.35,
+                                                selection_type="mask")
+        cmap_renderer.overlays.append(selection)
+
+        # Create the colorbar, handing in the appropriate range and colormap
+        index_mapper = LinearMapper(range=plot.color_mapper.range)
+        colorbar = ColorBar(index_mapper=index_mapper,
+                            color_mapper=plot.color_mapper,
+                            orientation='v',
+                            resizable='v',
+                            width=30,
+                            padding=20)
+        colorbar.plot = cmap_renderer
+        colorbar.padding_top = plot.padding_top
+        colorbar.padding_bottom = plot.padding_bottom
+
+        # Create a container to position the plot and the colorbar side-by-side
+        container = HPlotContainer(use_backbuffer=True)
+        container.add(plot)
+        container.add(colorbar)
+        container.bgcolor = "lightgray"
+
+        # Initialize plot datasource
+        self._plot_index_datasource = cmap_scatter_plot.index
+
+        return plot
+
     def __plot_data_default(self):
         plot_data = ArrayPlotData()
         plot_data.set_data('x', [])
         plot_data.set_data('y', [])
+        plot_data.set_data('color_by', [])
         return plot_data
 
     def __data_arrays_default(self):
@@ -240,18 +327,20 @@ class Plot(HasStrictTraits):
 
     # Response to UI changes
 
-    @on_trait_change('x,y')
+    @on_trait_change('x,y,color_by')
     def _update_plot_data(self):
         """Set the plot data model to the appropriate arrays so that they
         can be displayed when either X or Y selections have been changed.
         """
-        if self.x is None or self.y is None or self._data_arrays == []:
+        if self.x is None or self.y is None or self.color_by is None or self._data_arrays == []:
             self._plot_data.set_data('x', [])
             self._plot_data.set_data('y', [])
+            self._plot_data.set_data('color_by', [])
             return
 
         x_index = self.analysis_model.value_names.index(self.x)
         y_index = self.analysis_model.value_names.index(self.y)
+        c_index = self.analysis_model.value_names.index(self.color_by)
 
         # Set the axis labels
         self._plot.x_axis.title = self.x
@@ -259,6 +348,7 @@ class Plot(HasStrictTraits):
 
         self._plot_data.set_data('x', self._data_arrays[x_index])
         self._plot_data.set_data('y', self._data_arrays[y_index])
+        self._plot_data.set_data('color_by', self._data_arrays[c_index])
 
         self.resize_plot()
 
