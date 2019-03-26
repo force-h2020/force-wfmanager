@@ -111,7 +111,11 @@ class WorkflowInfo(HasTraits):
                 visible_when="selected_factory == 'Workflow'"
             ),
 
-            horizontal_centre(UItem('image', editor=ImageEditor())),
+            horizontal_centre(
+                UItem('image', editor=ImageEditor(scale=True,
+                                                  allow_upscaling=False,
+                                                  preserve_aspect_ratio=True))
+            ),
 
         )
     )
