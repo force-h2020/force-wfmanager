@@ -2,6 +2,7 @@ from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
 from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
+from enable.api import KeySpec
 from traits.api import (
     Button, Bool, Enum, HasStrictTraits, Instance, List, Property, Tuple,
     on_trait_change
@@ -111,22 +112,28 @@ class Plot(HasStrictTraits):
         plot.set(title="Plot", padding=75, line_width=1)
 
         # Add pan and zoom tools
-        plot.tools.append(PanTool(plot))
-        plot.overlays.append(ZoomTool(plot))
+        scatter_plot.tools.append(PanTool(plot))
+        scatter_plot.overlays.append(ZoomTool(plot))
+
+        # Set the scatterplot's default selection marker invisible as it
+        # lead to artifacts on axis when switching between plotted cols
+        scatter_plot.set(selection_color=(0, 0, 0, 0),
+                         selection_outline_color=(0, 0, 0, 0))
 
         # Add the selection tool
         scatter_plot.tools.append(ScatterInspector(
             scatter_plot,
             threshold=10,
+            multiselect_modifier=KeySpec(None, "shift"),
             selection_mode="multi",
         ))
         overlay = ScatterInspectorOverlay(
             scatter_plot,
-            hover_color="blue",
+            hover_color=(0, 0, 1, 1),
             hover_marker_size=6,
-            selection_marker_size=6,
-            selection_color="blue",
-            selection_outline_color="blue",
+            selection_marker_size=20,
+            selection_color=(0, 0, 1, 0.5),
+            selection_outline_color=(0, 0, 0, 0.8),
             selection_line_width=3)
         scatter_plot.overlays.append(overlay)
 
