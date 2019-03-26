@@ -1,5 +1,6 @@
 from traits.api import (
-    Either, HasStrictTraits, Instance, List, Property, Tuple, on_trait_change
+    Either, HasStrictTraits, Instance, List, Property, Tuple, on_trait_change,
+    Event, Int
 )
 from traitsui.api import TabularEditor, UItem, View
 from traitsui.tabular_adapter import TabularAdapter
@@ -26,6 +27,10 @@ class ResultTable(HasStrictTraits):
 
     #: Selected evaluation steps in the table
     _selected_rows = Either(List(Tuple), None)
+
+    #: When the selected row changes, this event will be triggered
+    #: to return the index of that row, so that it can be scrolled to
+    _scroll_to_row = Event(Int)
 
     # ----------
     # Properties
@@ -55,7 +60,11 @@ class ResultTable(HasStrictTraits):
     def traits_view(self):
         editor = TabularEditor(adapter=self.tabular_adapter,
                                show_titles=True,
+                               selected="_selected_rows",
                                auto_update=False,
+                               multi_select=True,
+                               scroll_to_row='_scroll_to_row',
+                               scroll_to_row_hint='visible',
                                editable=False)
 
         return View(UItem("rows", editor=editor))
@@ -88,3 +97,4 @@ class ResultTable(HasStrictTraits):
             self.analysis_model.selected_step_index = \
                 self.analysis_model.evaluation_steps.index(
                     self._selected_rows[0])
+            self._scroll_to_row = self.analysis_model.selected_step_index
