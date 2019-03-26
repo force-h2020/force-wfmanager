@@ -77,14 +77,14 @@ class ResultTable(HasStrictTraits):
         self.tabular_adapter.format = '% 5.4E'
 
     # Response to model change
-    @on_trait_change('analysis_model.selected_step_index')
+    @on_trait_change('analysis_model.selected_step_indices')
     def update_table(self):
         """ Updates the selected row in the table according to the model """
-        if self.analysis_model.selected_step_index is None:
+        if self.analysis_model.selected_step_indices is None:
             self._selected_rows = []
         else:
             self._selected_rows = [
-                self.rows[self.analysis_model.selected_step_index]
+                self.rows[ind] for ind in self.analysis_model.selected_step_indices
             ]
 
     # Response to new selection by user in UI
@@ -92,9 +92,10 @@ class ResultTable(HasStrictTraits):
     def update_model(self):
         """ Updates the model according to the selected row in the table """
         if not self._selected_rows:
-            self.analysis_model.selected_step_index = None
+            self.analysis_model.selected_step_indices = None
         else:
-            self.analysis_model.selected_step_index = \
-                self.analysis_model.evaluation_steps.index(
-                    self._selected_rows[0])
-            self._scroll_to_row = self.analysis_model.selected_step_index
+            self.analysis_model.selected_step_indices = [
+                self.analysis_model.evaluation_steps.index(row)
+                for row in self._selected_rows
+            ]
+            self._scroll_to_row = self.analysis_model.selected_step_indices[0]

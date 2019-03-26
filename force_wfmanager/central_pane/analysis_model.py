@@ -20,7 +20,7 @@ class AnalysisModel(HasStrictTraits):
 
     #: Selected step, used for highlighting in the table/plot.
     #: Listens to: :attr:`value_names`
-    _selected_step_index = Either(None, Int())
+    _selected_step_indices = Either(None, List(Int()))
 
     # ----------
     # Properties
@@ -37,13 +37,13 @@ class AnalysisModel(HasStrictTraits):
     #: in the allowed range of values.
     #: Listens to :attr:`Plot._plot_index_datasource
     #: <force_wfmanager.central_pane.plot.Plot._plot_index_datasource>`
-    selected_step_index = Property(Either(None, Int),
-                                   depends_on="_selected_step_index")
+    selected_step_indices = Property(Either(None, List(Int)),
+                                     depends_on="_selected_step_indices")
 
     @on_trait_change("value_names")
     def _clear_evaluation_steps(self):
         self._evaluation_steps[:] = []
-        self._selected_step_index = None
+        self._selected_step_indices = None
 
     def _get_evaluation_steps(self):
         return self._evaluation_steps
@@ -68,31 +68,33 @@ class AnalysisModel(HasStrictTraits):
 
         self._evaluation_steps.append(evaluation_step)
 
-    def _get_selected_step_index(self):
-        return self._selected_step_index
+    def _get_selected_step_indices(self):
+        return self._selected_step_indices
 
-    def _set_selected_step_index(self, value):
-        if (isinstance(value, int) and not
-                (0 <= value < len(self._evaluation_steps))):
-            raise ValueError(
-                "Invalid value for selection index {}. Current "
-                "number of steps = {}".format(
-                    value,
-                    len(self._evaluation_steps)
-                )
-            )
-
-        self._selected_step_index = value
+    def _set_selected_step_indices(self, values):
+        if values:
+            self._selected_step_indices = values
+            for value in values:
+                if (isinstance(value, int) and not
+                        (0 <= value < len(self._evaluation_steps))):
+                    raise ValueError(
+                        "Invalid value for selection index {}. Current "
+                        "number of steps = {}".format(
+                            value,
+                            len(self._evaluation_steps)
+                        )
+                    )
 
     def clear(self):
         """ Sets :attr:`value_names` to be empty, removes all entries in the
-        list :attr:`evaluation_steps` and sets :attr:`selected_step_index`
+        list :attr:`evaluation_steps` and sets :attr:`selected_step_indices`
         to None"""
         self.value_names = ()
+        self._clear_evaluation_steps()
 
     def clear_steps(self):
         """ Removes all entries in the list :attr:`evaluation_steps` and sets
-        :attr:`selected_step_index` to None but does not clear
+        :attr:`selected_step_indices` to None but does not clear
         :attr:`value_names`
         """
         self._clear_evaluation_steps()

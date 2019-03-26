@@ -60,10 +60,10 @@ class Plot(HasStrictTraits):
     _plot_data = Instance(ArrayPlotData)
 
     #: Datasource of the plot (used for selection handling)
-    #: Listens to: :attr:`analysis_model.selected_step_index
+    #: Listens to: :attr:`analysis_model.selected_step_indices
     #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.\
-    #: selected_step_index>`
-    _plot_index_datasource = Instance(ArrayDataSource)
+    #: selected_step_indices>`
+    _plot_indices_datasource = Instance(ArrayDataSource)
 
     # ----------
     # Properties
@@ -118,7 +118,7 @@ class Plot(HasStrictTraits):
         scatter_plot.tools.append(ScatterInspector(
             scatter_plot,
             threshold=10,
-            selection_mode="single",
+            selection_mode="multi",
         ))
         overlay = ScatterInspectorOverlay(
             scatter_plot,
@@ -131,7 +131,7 @@ class Plot(HasStrictTraits):
         scatter_plot.overlays.append(overlay)
 
         # Initialize plot datasource
-        self._plot_index_datasource = scatter_plot.index
+        self._plot_indices_datasource = scatter_plot.index
 
         return plot
 
@@ -304,25 +304,24 @@ class Plot(HasStrictTraits):
                     y_data[0] + 0.5)
         return None
 
-    @on_trait_change('analysis_model.selected_step_index')
-    def update_selected_point(self):
-        """ Updates the selected point in the plot according to the model """
-        if self.analysis_model.selected_step_index is None:
-            self._plot_index_datasource.metadata['selections'] = []
+    @on_trait_change('analysis_model.selected_step_indices')
+    def update_selected_points(self):
+        """ Updates the selected points in the plot according to the model """
+        if self.analysis_model.selected_step_indices is None:
+            self._plot_indices_datasource.metadata['selections'] = []
         else:
-            self._plot_index_datasource.metadata['selections'] = [
-                self.analysis_model.selected_step_index
-            ]
+            self._plot_indices_datasource.metadata['selections'] = \
+                self.analysis_model.selected_step_indices
 
-    @on_trait_change('_plot_index_datasource.metadata_changed')
+    @on_trait_change('_plot_indices_datasource.metadata_changed')
     def update_model(self):
         """ Updates the model according to the selected point in the plot """
-        selected_indices = self._plot_index_datasource.metadata.get(
+        selected_indices = self._plot_indices_datasource.metadata.get(
             'selections', [])
         if len(selected_indices) == 0:
-            self.analysis_model.selected_step_index = None
+            self.analysis_model.selected_step_indices = None
         else:
-            self.analysis_model.selected_step_index = selected_indices[0]
+            self.analysis_model.selected_step_indices = selected_indices
 
     def _set_plot_range(self, x_low, x_high, y_low, y_high):
         """ Helper method to set the size of the current _plot
