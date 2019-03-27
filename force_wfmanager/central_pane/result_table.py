@@ -84,7 +84,8 @@ class ResultTable(HasStrictTraits):
             self._selected_rows = []
         else:
             self._selected_rows = [
-                self.rows[ind] for ind in self.analysis_model.selected_step_indices
+                self.rows[ind]
+                for ind in self.analysis_model.selected_step_indices
             ]
 
     # Response to new selection by user in UI
@@ -92,7 +93,7 @@ class ResultTable(HasStrictTraits):
     def update_model(self):
         """ Updates the model according to the selected row in the table """
         if not self._selected_rows:
-            self.analysis_model.selected_step_indices = None
+            self.analysis_model._selected_step_indices = None
         else:
             self.analysis_model.selected_step_indices = [
                 self.analysis_model.evaluation_steps.index(row)

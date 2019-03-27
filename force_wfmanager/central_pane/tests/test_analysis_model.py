@@ -12,7 +12,7 @@ class TestAnalysisModel(unittest.TestCase):
     def test_analysis_init(self):
         self.assertEqual(len(self.analysis.value_names), 0)
         self.assertEqual(len(self.analysis.evaluation_steps), 0)
-        self.assertEqual(self.analysis.selected_step_index, None)
+        self.assertEqual(self.analysis.selected_step_indices, None)
 
     def test_add_evaluation_step(self):
         self.analysis.value_names = ('foo', 'bar')
@@ -34,24 +34,30 @@ class TestAnalysisModel(unittest.TestCase):
         self.analysis.add_evaluation_step((3, 4))
         self.analysis.add_evaluation_step((5, 6))
 
-        self.analysis.selected_step_index = 0
-        self.analysis.selected_step_index = 2
-        self.analysis.selected_step_index = None
-
-        with self.assertRaises(ValueError):
-            self.analysis.selected_step_index = 3
+        self.analysis.selected_step_indices = [0]
+        self.analysis.selected_step_indices = [2]
+        self.analysis.selected_step_indices = None
 
         with self.assertRaises(TraitError):
-            self.analysis.selected_step_index = 3.0
+            self.analysis.selected_step_indices = 1
 
         with self.assertRaises(ValueError):
-            self.analysis.selected_step_index = -1
+            self.analysis.selected_step_indices = [3]
 
         with self.assertRaises(TraitError):
-            self.analysis.selected_step_index = "hello"
+            self.analysis.selected_step_indices = [3.0]
+
+        with self.assertRaises(ValueError):
+            self.analysis.selected_step_indices = [-1]
+
+        with self.assertRaises(TraitError):
+            self.analysis.selected_step_indices = "hello"
+
+        with self.assertRaises(TraitError):
+            self.analysis.selected_step_indices = ["hello"]
 
         self.analysis.value_names = ('bar', 'baz')
-        self.assertEqual(self.analysis.selected_step_index, None)
+        self.assertEqual(self.analysis.selected_step_indices, None)
         self.assertEqual(self.analysis.evaluation_steps, [])
 
     def test_clear(self):
@@ -59,10 +65,10 @@ class TestAnalysisModel(unittest.TestCase):
         self.analysis.add_evaluation_step((1, 2))
         self.analysis.add_evaluation_step((3, 4))
         self.analysis.add_evaluation_step((5, 6))
-        self.analysis.selected_step_index = 0
+        self.analysis.selected_step_indices = [0]
 
         self.analysis.clear()
 
         self.assertEqual(self.analysis.value_names, ())
         self.assertEqual(self.analysis.evaluation_steps, [])
-        self.assertEqual(self.analysis.selected_step_index, None)
+        self.assertEqual(self.analysis.selected_step_indices, None)

@@ -11,7 +11,7 @@ class ZMQSocketURL(BaseUnicode):
         """Checks that this is a valid tcp address """
         super(ZMQSocketURL, self).validate(object, name, value)
         m = re.match(
-            "tcp://(\\d{1,3})\.(\\d{1,3})\.(\\d{1,3})\.(\\d{1,3}):(\\d+)",
+            "tcp://(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3}):(\\d+)",
             value)
         if m is None:
             self.error(object, name, value)

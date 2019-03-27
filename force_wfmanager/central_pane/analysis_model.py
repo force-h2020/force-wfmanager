@@ -72,11 +72,12 @@ class AnalysisModel(HasStrictTraits):
         return self._selected_step_indices
 
     def _set_selected_step_indices(self, values):
-        if values:
-            self._selected_step_indices = values
+        self._selected_step_indices = values
+        if values is not None:
             for value in values:
                 if (isinstance(value, int) and not
                         (0 <= value < len(self._evaluation_steps))):
+                    self._selected_step_indices = None
                     raise ValueError(
                         "Invalid value for selection index {}. Current "
                         "number of steps = {}".format(

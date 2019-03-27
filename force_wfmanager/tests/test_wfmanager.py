@@ -123,8 +123,12 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
 
     def test_switch_task(self):
         self.create_tasks()
-        self.assertEqual(self.wfmanager.windows[0].active_task,
-                         self.setup_task)
+        self.assertEqual(
+            self.wfmanager.windows[0].active_task,
+            self.setup_task,
+            msg='Note: this test can fail locally if a saved application '
+                'memento exists with the results task in focus'
+        )
         self.wfmanager.windows[0].active_task.switch_task()
         self.assertEqual(self.wfmanager.windows[0].active_task,
                          self.results_task)
