@@ -1,7 +1,8 @@
 from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
-from chaco.api import Plot as ChacoPlot, ScatterPlot
+from chaco.api import Plot as ChacoPlot
+from chaco.api import BaseXYPlot, ColormappedScatterPlot
 from chaco.default_colormaps import (
-    color_map_functions, discrete_color_map_functions, viridis,
+    color_map_functions, discrete_color_map_functions, viridis, Dark2
 )
 from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
@@ -40,13 +41,12 @@ class Plot(HasStrictTraits):
     #: Optional choice of colormap
     colormap_type = Enum('Continuous', 'Discrete')
     colormap = Enum(values='_available_colormaps',
-                    depends_on='_available_colormaps[]')
+                    depends_on='_available_colormaps')
     color_plot = Bool(False)
 
     #: Button to reset plot view. The button is active if :attr:`reset_enabled`
     #: is *True* and inactive if it is *False*.
     reset_plot = Button('Reset View')
-    _scatter = Instance(ScatterPlot)
 
     # --------------------
     # Dependent Attributes
@@ -65,6 +65,9 @@ class Plot(HasStrictTraits):
     )
     __discrete_colormaps = List(discrete_color_map_functions)
     _available_colormaps = __continuous_colormaps
+
+    #: Exposes particular attributes of the plot for tweaking
+    _axis = Instance(BaseXYPlot)
 
     #: A local copy of the analysis model's value names
     #: Listens to: :attr:`analysis_model.value_names
@@ -131,7 +134,7 @@ class Plot(HasStrictTraits):
     def __plot_default(self):
         return self.plot_scatter()
 
-    @on_trait_change('color_plot')
+    @on_trait_change('color_plot,colormap')
     def change_plot_style(self):
         if self.color_plot:
             self._plot = self.plot_cmap_scatter()
@@ -140,9 +143,12 @@ class Plot(HasStrictTraits):
 
         self._plot.request_redraw()
 
-    @on_trait_change('colormap')
-    def update_plot_colormapper(self):
-        self._scatter.color_mapper = self.colormap
+    # @on_trait_change('colormap')
+    # def update_plot_colormapper(self):
+        # if isinstance(self._axis, ColormappedScatterPlot):
+            # print('updated colormap on _axis')
+            # self._axis.set_trait('color_mapper', self.colormap)
+            # self._axis = self.colormap
 
     def plot_scatter(self):
         plot = ChacoPlot(self._plot_data)
@@ -186,6 +192,7 @@ class Plot(HasStrictTraits):
 
         # Initialize plot datasource
         self._plot_index_datasource = scatter_plot.index
+        self._axis = scatter_plot
 
         return plot
 
@@ -198,7 +205,7 @@ class Plot(HasStrictTraits):
             name="Plot",
             marker="circle",
             color_mapper=self.colormap,
-            # fill_alpha=0.8,
+            fill_alpha=0.8,
             marker_size=4,
             outline_color="black",
             index_sort="ascending",
@@ -227,8 +234,8 @@ class Plot(HasStrictTraits):
             selection_line_width=3)
 
         cmap_scatter_plot.overlays.append(overlay)
-        self._plot_indices_datasource = cmap_scatter_plot.index
-        self._scatter = cmap_scatter_plot
+        self._plot_index_datasource = cmap_scatter_plot.index
+        self._axis = cmap_scatter_plot
 
         return plot
 
