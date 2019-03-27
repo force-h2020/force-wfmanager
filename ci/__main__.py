@@ -17,7 +17,8 @@ ADDITIONAL_CORE_DEPS = [
 ]
 
 # Pick particular TraitsUI commit until TabularEditor fixes are merged.
-PIP_DEPS = ['git+https://github.com/enthought/traitsui.git@8302d8a09f3c05798ff588c3e6f46634d7ae1613']
+PIP_DEPS = ['git+https://github.com/enthought/traitsui.git'
+            '@8302d8a09f3c05798ff588c3e6f46634d7ae1613']
 
 
 @click.group()
