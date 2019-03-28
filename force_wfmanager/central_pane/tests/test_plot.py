@@ -62,10 +62,6 @@ class TestPlot(unittest.TestCase):
         self.plot.colormap_type = 'Continuous'
         self.plot.colormap = viridis
 
-        self.assertEqual(self.plot._axis.colormapper, viridis)
-
-
-
     def test_push_new_evaluation_steps(self):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
