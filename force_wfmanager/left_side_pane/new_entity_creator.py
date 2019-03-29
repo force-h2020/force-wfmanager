@@ -270,17 +270,19 @@ class NewEntityCreator(HasStrictTraits):
         for model_attr_name in view_info:
             model_attr = self.model.trait(model_attr_name)
             model_attr_desc = model_attr.desc
+            model_attr_label = model_attr.label
+
+            if model_attr_label is not None:
+                name = model_attr_label
+            else:
+                name = model_attr_name.replace("_", " ").capitalize()
 
             if model_attr_desc is not None:
-                name_desc_pairs.append([model_attr_name, model_attr_desc])
+                name_desc_pairs.append([name, model_attr_desc])
             else:
                 name_desc_pairs.append([
-                    model_attr_name, "No description available."
+                    name, "No description available."
                 ])
-
-        # Format names as in the Instance Editor
-        name_desc_pairs = [[name.replace("_", " ").capitalize(), desc]
-                           for name, desc in name_desc_pairs]
 
         # Create a HTML string with all the model's parameters
         return htmlformat(model_name, model_desc, name_desc_pairs)
@@ -295,7 +297,11 @@ def htmlformat(factory_title=None, factory_description=None,
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
             <style type="text/css">
+                body{{
+                    font-family: sans-serif;
+                }}
                 .container{{
+                    font-family: sans-serif;
                     width: 100%;
                     display: block;
                 }}

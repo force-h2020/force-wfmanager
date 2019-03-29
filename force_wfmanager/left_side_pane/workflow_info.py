@@ -174,6 +174,7 @@ ERROR_TEMPLATE = """
         <style type="text/css">
             .container{{
                 width: 100%;
+                font-family: sans-serif;
                 display: block;
             }}
         </style>
