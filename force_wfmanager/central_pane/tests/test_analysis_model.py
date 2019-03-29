@@ -66,6 +66,16 @@ class TestAnalysisModel(unittest.TestCase):
         self.analysis.add_evaluation_step((3, 4))
         self.analysis.add_evaluation_step((5, 6))
         self.analysis.selected_step_indices = [0]
+        self.analysis.selected_step_indices = [0, 1, 2]
+        self.analysis.selected_step_indices = [0, 2]
+
+        with self.assertRaises(ValueError):
+            self.analysis.selected_step_indices = [0, 3]
+        with self.assertRaises(ValueError):
+            self.analysis.selected_step_indices = [5, 6]
+
+        with self.assertRaises(TraitError):
+            self.analysis.selected_step_indices = 0
 
         self.analysis.clear()
 
