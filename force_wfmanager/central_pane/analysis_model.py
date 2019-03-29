@@ -72,12 +72,14 @@ class AnalysisModel(HasStrictTraits):
         return self._selected_step_indices
 
     def _set_selected_step_indices(self, values):
-        self._selected_step_indices = values
+        """ Check the requested indices of selected rows, and use the
+        requested values if they exist in the table, or are None.
+
+        """
         if values is not None:
             for value in values:
                 if (isinstance(value, int) and not
                         (0 <= value < len(self._evaluation_steps))):
-                    self._selected_step_indices = None
                     raise ValueError(
                         "Invalid value for selection index {}. Current "
                         "number of steps = {}".format(
@@ -85,6 +87,8 @@ class AnalysisModel(HasStrictTraits):
                             len(self._evaluation_steps)
                         )
                     )
+
+        self._selected_step_indices = values
 
     def clear(self):
         """ Sets :attr:`value_names` to be empty, removes all entries in the
