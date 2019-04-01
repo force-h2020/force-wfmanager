@@ -89,7 +89,8 @@ class WorkflowInfo(HasTraits):
     traits_view = View(
         VGroup(
             Group(
-                UReadonly('plugin_names', editor=ListStrEditor()),
+                UReadonly('plugin_names',
+                          editor=ListStrEditor(editable=False)),
                 show_border=True,
                 label='Available Plugins'
             ),
