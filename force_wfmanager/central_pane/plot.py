@@ -1,8 +1,8 @@
 from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
-from chaco.api import BaseXYPlot, ColormappedScatterPlot
+from chaco.api import BaseXYPlot
 from chaco.default_colormaps import (
-    color_map_functions, discrete_color_map_functions, viridis, Dark2
+    color_map_functions, discrete_color_map_functions, viridis
 )
 from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
@@ -37,6 +37,9 @@ class Plot(HasStrictTraits):
 
     #: Optional third parameter used to set colour of points
     color_by = Enum(values='_value_names')
+
+    #: Colour options button:
+    color_options = Button('Color...')
 
     #: Optional choice of colormap
     colormap_type = Enum('Continuous', 'Discrete')
@@ -103,20 +106,19 @@ class Plot(HasStrictTraits):
     # View
     # ----
 
-    view = View(VGroup(
-        HGroup(
-            Item('x'),
-            Item('y'),
-            Item('color_plot'),
-            Item('color_by'),
-            Item('colormap_type'),
-            Item('colormap'),
-        ),
-        UItem('_plot', editor=ComponentEditor()),
+    view = View(
         VGroup(
-            UItem('reset_plot', enabled_when='reset_enabled')
+            HGroup(
+                Item('x'),
+                Item('y'),
+                UItem('color_options'),
+            ),
+            UItem('_plot', editor=ComponentEditor()),
+            VGroup(
+                UItem('reset_plot', enabled_when='reset_enabled')
+            )
         )
-    ))
+    )
 
     def __init__(self, analysis_model, *args, **kwargs):
         self.analysis_model = analysis_model
@@ -140,15 +142,6 @@ class Plot(HasStrictTraits):
             self._plot = self.plot_cmap_scatter()
         else:
             self._plot = self.plot_scatter()
-
-        self._plot.request_redraw()
-
-    # @on_trait_change('colormap')
-    # def update_plot_colormapper(self):
-        # if isinstance(self._axis, ColormappedScatterPlot):
-            # print('updated colormap on _axis')
-            # self._axis.set_trait('color_mapper', self.colormap)
-            # self._axis = self.colormap
 
     def plot_scatter(self):
         plot = ChacoPlot(self._plot_data)
@@ -250,7 +243,6 @@ class Plot(HasStrictTraits):
         return [[] for _ in range(len(self.analysis_model.value_names))]
 
     # Properties
-
     def _get_reset_enabled(self):
         x_data = self._plot_data.get_data('x')
         if len(x_data) > 0:
@@ -258,7 +250,6 @@ class Plot(HasStrictTraits):
         return False
 
     # Response to analysis model changes
-
     @on_trait_change('analysis_model.value_names')
     def update_value_names(self):
         """ Sets the value names in the plot to match those it the analysis
@@ -368,6 +359,18 @@ class Plot(HasStrictTraits):
     def reset_pressed(self):
         """ Event handler for :attr:`reset_plot`"""
         self.resize_plot()
+
+    @on_trait_change('color_options')
+    def color_options_pressed(self):
+        """ Event handler for :attr:`color_options` button. """
+        view = View(
+            Item('color_plot'),
+            Item('color_by', enabled_when='color_plot'),
+            Item('colormap_type', enabled_when='color_plot'),
+            Item('colormap', enabled_when='color_plot'),
+            kind='livemodal'
+        )
+        self.edit_traits(view=view)
 
     def resize_plot(self):
         """ Sets the size of the current plot to have some spacing between the
