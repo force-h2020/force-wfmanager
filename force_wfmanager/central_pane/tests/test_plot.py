@@ -160,19 +160,19 @@ class TestPlot(unittest.TestCase):
 
         # From plot to the model
         plot_metadata['selections'] = [1]
-        self.assertEqual(self.analysis_model.selected_step_index, 1)
+        self.assertEqual(self.analysis_model.selected_step_indices, [1])
 
         plot_metadata['selections'] = [0]
-        self.assertEqual(self.analysis_model.selected_step_index, 0)
+        self.assertEqual(self.analysis_model.selected_step_indices, [0])
 
         plot_metadata['selections'] = []
-        self.assertIsNone(self.analysis_model.selected_step_index)
+        self.assertIsNone(self.analysis_model.selected_step_indices)
 
         # From model to the plot
-        self.analysis_model.selected_step_index = 1
+        self.analysis_model.selected_step_indices = [1]
         self.assertEqual(plot_metadata['selections'], [1])
 
-        self.analysis_model.selected_step_index = None
+        self.analysis_model.selected_step_indices = None
         self.assertEqual(plot_metadata['selections'], [])
 
     def test_resize_plot(self):

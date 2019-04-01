@@ -16,6 +16,10 @@ ADDITIONAL_CORE_DEPS = [
     "pyzmq==16.0.0-4",
 ]
 
+# Pick particular TraitsUI commit until TabularEditor fixes are merged.
+PIP_DEPS = ['git+https://github.com/enthought/traitsui.git'
+            '@8302d8a09f3c05798ff588c3e6f46634d7ae1613']
+
 
 @click.group()
 def cli():
@@ -38,6 +42,7 @@ def install(python_version):
         "edm", "install", "-e", env_name,
         "--yes"] + ADDITIONAL_CORE_DEPS)
 
+    edm_run(env_name, ["pip", "install"] + [dep for dep in PIP_DEPS])
     edm_run(env_name, ["pip", "install", "-e", "."])
 
 

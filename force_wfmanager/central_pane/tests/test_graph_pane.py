@@ -12,7 +12,7 @@ class TestGraphPane(unittest.TestCase):
     def test_pane_init(self):
         self.assertEqual(len(self.pane.analysis_model.value_names), 0)
         self.assertEqual(len(self.pane.analysis_model.evaluation_steps), 0)
-        self.assertIsNone(self.pane.analysis_model.selected_step_index)
+        self.assertIsNone(self.pane.analysis_model.selected_step_indices)
 
         self.assertEqual(
             self.pane.plot.analysis_model.evaluation_steps,

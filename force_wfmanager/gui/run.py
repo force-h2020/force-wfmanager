@@ -1,5 +1,5 @@
-import click
 import logging
+import click
 
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
@@ -22,6 +22,11 @@ push_exception_handler(lambda *args: None, reraise_exceptions=True)
     help="Prints extra debug information in force_wfmanager.log"
 )
 @click.option(
+    '--profile', is_flag=True, default=False,
+    help="Run GUI under cProfile, creating .prof and .pstats "
+         "files in the current directory."
+)
+@click.option(
     '--window-size', nargs=2, type=int,
     help="Sets the initial window size"
 )
@@ -29,20 +34,31 @@ push_exception_handler(lambda *args: None, reraise_exceptions=True)
     'workflow_file', type=click.Path(exists=True), required=False,
     default=None
 )
-def force_wfmanager(workflow_file, debug, window_size):
+def force_wfmanager(workflow_file, debug, window_size, profile):
     """Launches the FORCE workflow manager application"""
     if not window_size:
         window_size = None
-    main(workflow_file=workflow_file, debug=debug, window_size=window_size)
+
+    main(workflow_file=workflow_file,
+         debug=debug,
+         window_size=window_size,
+         profile=profile)
 
 
-def main(workflow_file, debug, window_size):
+def main(workflow_file, debug, window_size, profile):
     """Launches the FORCE workflow manager application"""
     if debug is False:
         logging.basicConfig(filename="force_wfmanager.log", filemode="w")
     else:
         logging.basicConfig(filename="force_wfmanager.log", filemode="w",
                             level=logging.DEBUG)
+
+    if profile:
+        import cProfile
+        import pstats
+        profiler = cProfile.Profile()
+        profiler.enable()
+
     log = logging.getLogger(__name__)
 
     plugins = [CorePlugin(), TasksPlugin(), FactoryRegistryPlugin(),
@@ -64,3 +80,16 @@ def main(workflow_file, debug, window_size):
 
     wfmanager = WfManager(plugins=plugins, window_size=window_size)
     wfmanager.run()
+
+    if profile:
+        profiler.disable()
+        from sys import version_info
+        fname = 'force_wfmanager-{}-{}.{}.{}'.format(__version__,
+                                                     version_info.major,
+                                                     version_info.minor,
+                                                     version_info.micro)
+
+        profiler.dump_stats(fname + '.prof')
+        with open(fname + '.pstats', 'w') as fp:
+            stats = pstats.Stats(profiler, stream=fp).sort_stats('cumulative')
+            stats.print_stats()

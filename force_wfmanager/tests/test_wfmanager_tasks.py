@@ -326,8 +326,9 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                 old_workflow,
                 self.setup_task.workflow_model)
             self.assertNotEqual(
-               old_workflow,
-               self.setup_task.side_pane.workflow_tree.model)
+                old_workflow,
+                self.setup_task.side_pane.workflow_tree.model
+            )
 
     def test_read_failure(self):
         mock_open = mock.mock_open()
@@ -524,7 +525,7 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                     (OSError("whatever"), "whatever")]:
                 self.assertTrue(
                     _check_exception_behavior(exc).startswith(
-                        "Execution of BDSS failed. \n\n"+msg))
+                        "Execution of BDSS failed. \n\n" + msg))
 
     def test_run_bdss_write_failure(self):
         with mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \

@@ -2,6 +2,7 @@ from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
 from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
+from enable.api import KeySpec
 from traits.api import (
     Button, Bool, Enum, HasStrictTraits, Instance, List, Property, Tuple,
     on_trait_change
@@ -60,9 +61,9 @@ class Plot(HasStrictTraits):
     _plot_data = Instance(ArrayPlotData)
 
     #: Datasource of the plot (used for selection handling)
-    #: Listens to: :attr:`analysis_model.selected_step_index
+    #: Listens to: :attr:`analysis_model.selected_step_indices
     #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.\
-    #: selected_step_index>`
+    #: selected_step_indices>`
     _plot_index_datasource = Instance(ArrayDataSource)
 
     # ----------
@@ -111,22 +112,28 @@ class Plot(HasStrictTraits):
         plot.set(title="Plot", padding=75, line_width=1)
 
         # Add pan and zoom tools
-        plot.tools.append(PanTool(plot))
-        plot.overlays.append(ZoomTool(plot))
+        scatter_plot.tools.append(PanTool(plot))
+        scatter_plot.overlays.append(ZoomTool(plot))
+
+        # Set the scatterplot's default selection marker invisible as it
+        # lead to artifacts on axis when switching between plotted cols
+        scatter_plot.set(selection_color=(0, 0, 0, 0),
+                         selection_outline_color=(0, 0, 0, 0))
 
         # Add the selection tool
         scatter_plot.tools.append(ScatterInspector(
             scatter_plot,
             threshold=10,
-            selection_mode="single",
+            multiselect_modifier=KeySpec(None, "shift"),
+            selection_mode="multi",
         ))
         overlay = ScatterInspectorOverlay(
             scatter_plot,
-            hover_color="blue",
+            hover_color=(0, 0, 1, 1),
             hover_marker_size=6,
-            selection_marker_size=6,
-            selection_color="blue",
-            selection_outline_color="blue",
+            selection_marker_size=20,
+            selection_color=(0, 0, 1, 0.5),
+            selection_outline_color=(0, 0, 0, 0.8),
             selection_line_width=3)
         scatter_plot.overlays.append(overlay)
 
@@ -304,15 +311,14 @@ class Plot(HasStrictTraits):
                     y_data[0] + 0.5)
         return None
 
-    @on_trait_change('analysis_model.selected_step_index')
-    def update_selected_point(self):
-        """ Updates the selected point in the plot according to the model """
-        if self.analysis_model.selected_step_index is None:
+    @on_trait_change('analysis_model.selected_step_indices')
+    def update_selected_points(self):
+        """ Updates the selected points in the plot according to the model """
+        if self.analysis_model.selected_step_indices is None:
             self._plot_index_datasource.metadata['selections'] = []
         else:
-            self._plot_index_datasource.metadata['selections'] = [
-                self.analysis_model.selected_step_index
-            ]
+            self._plot_index_datasource.metadata['selections'] = \
+                self.analysis_model.selected_step_indices
 
     @on_trait_change('_plot_index_datasource.metadata_changed')
     def update_model(self):
@@ -320,9 +326,9 @@ class Plot(HasStrictTraits):
         selected_indices = self._plot_index_datasource.metadata.get(
             'selections', [])
         if len(selected_indices) == 0:
-            self.analysis_model.selected_step_index = None
+            self.analysis_model.selected_step_indices = None
         else:
-            self.analysis_model.selected_step_index = selected_indices[0]
+            self.analysis_model.selected_step_indices = selected_indices
 
     def _set_plot_range(self, x_low, x_high, y_low, y_high):
         """ Helper method to set the size of the current _plot

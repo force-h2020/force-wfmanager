@@ -1,9 +1,12 @@
 import unittest
+import sys
+import os
 from unittest import mock
 
 from click.testing import CliRunner
 
 import force_wfmanager.gui.run
+from force_wfmanager.version import __version__
 from force_wfmanager.wfmanager import WfManager
 
 
@@ -38,7 +41,29 @@ class TestClickRun(unittest.TestCase):
         with mock.patch('force_wfmanager.gui.run.WfManager') as mock_wf:
             mock_wf.return_value = MockWfManager()
             force_wfmanager.gui.run.main(
-                window_size=(1650, 1080), debug=True, workflow_file=None
+                window_size=(1650, 1080),
+                debug=True,
+                profile=False,
+                workflow_file=None
             )
             self.log = force_wfmanager.gui.run.logging.getLogger(__name__)
             self.assertEqual(self.log.getEffectiveLevel(), 10)
+
+    def test_run_with_profile(self):
+        with mock.patch('force_wfmanager.gui.run.WfManager') as mock_wf:
+            mock_wf.return_value = MockWfManager()
+            force_wfmanager.gui.run.main(
+                window_size=(1650, 1080), debug=False,
+                profile=True, workflow_file=None
+            )
+            root = ('force_wfmanager-{}-{}.{}.{}'
+                    .format(__version__,
+                            sys.version_info.major,
+                            sys.version_info.minor,
+                            sys.version_info.micro))
+            exts = ['.pstats', '.prof']
+            files_exist = [False] * len(exts)
+            for ind, ext in enumerate(exts):
+                files_exist[ind] = os.path.isfile(root + ext)
+                os.remove(root + ext)
+            self.assertTrue(all(files_exist))
