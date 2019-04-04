@@ -74,6 +74,9 @@ class TestPlot(unittest.TestCase):
         self.plot.colormap = 'viridis'
         self.plot.colormap = 'CoolWarm'
 
+        self.plot.color_plot = False
+        self.assertIsInstance(self.plot._axis, ScatterPlot)
+
     def test_push_new_evaluation_steps(self):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))

@@ -145,13 +145,14 @@ class Plot(HasStrictTraits):
 
         self.update_data_arrays()
 
+    # Disable discrete color maps for now
     @on_trait_change('colormap_type')
     def update_colormap_list(self):
-        if self.colormap_type == 'Discrete':
-            self._available_colormaps = self.__discrete_colormaps
-            self._available_colormaps_names = self.__discrete_colormaps_names
-        else:
-            self._available_colormaps_names = self.__continuous_colormaps_names
+        # if self.colormap_type == 'Discrete':
+            # self._available_colormaps = self.__discrete_colormaps
+            # self._available_colormaps_names = self.__discrete_colormaps_names
+        # else:
+        self._available_colormaps_names = self.__continuous_colormaps_names
 
     def __plot_default(self):
         self._plot = self.plot_scatter()
@@ -215,12 +216,9 @@ class Plot(HasStrictTraits):
     @on_trait_change('colormap')
     def _update_cmap(self):
         cmap = self._available_colormaps[self.colormap]
-        try:
-            if isinstance(self._axis, ColormappedScatterPlot):
-                _range = self._axis.color_mapper.range
-                self._axis.color_mapper = cmap(_range)
-        except Exception as e:
-            print(e)
+        if isinstance(self._axis, ColormappedScatterPlot):
+            _range = self._axis.color_mapper.range
+            self._axis.color_mapper = cmap(_range)
 
     def plot_cmap_scatter(self):
         plot = ChacoPlot(self._plot_data)
