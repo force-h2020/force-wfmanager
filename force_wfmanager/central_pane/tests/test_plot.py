@@ -4,6 +4,7 @@ import warnings
 from chaco.api import Plot as ChacoPlot
 from chaco.api import ColormappedScatterPlot, ScatterPlot
 from chaco.api import viridis
+from chaco.abstract_colormap import AbstractColormap
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.plot import Plot
@@ -54,13 +55,22 @@ class TestPlot(unittest.TestCase):
             self.assertEqual(self.plot.color_by, 'color')
             self.assertIsInstance(self.plot._plot, ChacoPlot)
             self.assertIsInstance(self.plot._axis, ColormappedScatterPlot)
+            self.assertIsInstance(self.plot._axis.color_mapper, AbstractColormap)
+            old_cmap = self.plot._axis.color_mapper
+            self.plot.colormap = 'seismic'
+            self.assertIsInstance(self.plot._axis.color_mapper, AbstractColormap)
+            self.assertNotEqual(old_cmap, self.plot._axis.color_mapper)
+            self.assertEqual(old_cmap.range, self.plot._axis.color_mapper.range)
 
         with self.assertRaises(TraitError):
             self.plot.colormap_type = 'Discrete'
-            self.plot.colormap = viridis
+
+        with self.assertRaises(TraitError):
+            self.plot.colormap = 'not_viridis'
 
         self.plot.colormap_type = 'Continuous'
-        self.plot.colormap = viridis
+        self.plot.colormap = 'viridis'
+        self.plot.colormap = 'CoolWarm'
 
     def test_push_new_evaluation_steps(self):
         self.analysis_model.value_names = ('density', 'pressure')
