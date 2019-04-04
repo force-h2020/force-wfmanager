@@ -3,7 +3,6 @@ import warnings
 
 from chaco.api import Plot as ChacoPlot
 from chaco.api import ColormappedScatterPlot, ScatterPlot
-from chaco.api import viridis
 from chaco.abstract_colormap import AbstractColormap
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
@@ -55,12 +54,15 @@ class TestPlot(unittest.TestCase):
             self.assertEqual(self.plot.color_by, 'color')
             self.assertIsInstance(self.plot._plot, ChacoPlot)
             self.assertIsInstance(self.plot._axis, ColormappedScatterPlot)
-            self.assertIsInstance(self.plot._axis.color_mapper, AbstractColormap)
+            self.assertIsInstance(self.plot._axis.color_mapper,
+                                  AbstractColormap)
             old_cmap = self.plot._axis.color_mapper
             self.plot.colormap = 'seismic'
-            self.assertIsInstance(self.plot._axis.color_mapper, AbstractColormap)
+            self.assertIsInstance(self.plot._axis.color_mapper,
+                                  AbstractColormap)
             self.assertNotEqual(old_cmap, self.plot._axis.color_mapper)
-            self.assertEqual(old_cmap.range, self.plot._axis.color_mapper.range)
+            self.assertEqual(old_cmap.range,
+                             self.plot._axis.color_mapper.range)
 
         with self.assertRaises(TraitError):
             self.plot.colormap_type = 'Discrete'
