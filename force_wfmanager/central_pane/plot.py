@@ -2,7 +2,7 @@ from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
 from chaco.api import BaseXYPlot, ColormappedScatterPlot
 from chaco.default_colormaps import (
-    color_map_functions, discrete_color_map_functions
+    color_map_functions
 )
 from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
@@ -41,11 +41,6 @@ class Plot(HasStrictTraits):
     #: Colour options button:
     color_options = Button('Color...')
 
-    #: Optional choice of colormap
-    colormap_type = Enum(
-        'Continuous',
-        # , 'Discrete') # disable discrete cmaps for now
-    )
     colormap = Enum(values='_available_colormaps_names',
                     depends_on='_available_colormaps_names')
 
@@ -63,26 +58,18 @@ class Plot(HasStrictTraits):
     #: Listens to: :attr:`x`, :attr:`y`
     _plot = Instance(Component)
 
-    #: Possible colormaps given color_map type
-    #: Listens to :attr:`colormap_type` and relies on default being the
+    #: List of continuous chaco colormaps.
     #: The default is set by the first entry of this list.
     __continuous_colormaps = Dict(
         {cmap.__str__().split()[1]: cmap
          for cmap in color_map_functions}
     )
-    __discrete_colormaps = Dict(
-        {cmap.__str__().split()[1]: cmap
-         for cmap in discrete_color_map_functions}
-    )
+    #: List of the names of continuous chaco colormaps.
     __continuous_colormaps_names = (
         ['viridis'] +
         [cmap.__str__().split()[1]
          for cmap in color_map_functions
          if cmap.__str__().split()[1] != 'viridis']
-    )
-    __discrete_colormaps_names = (
-        [cmap.__str__().split()[1]
-         for cmap in discrete_color_map_functions]
     )
 
     _available_colormaps = __continuous_colormaps
@@ -138,21 +125,6 @@ class Plot(HasStrictTraits):
             )
         )
     )
-
-    def __init__(self, analysis_model, *args, **kwargs):
-        self.analysis_model = analysis_model
-        super(Plot, self).__init__(*args, **kwargs)
-
-        self.update_data_arrays()
-
-    # Disable discrete color maps for now
-    @on_trait_change('colormap_type')
-    def update_colormap_list(self):
-        # if self.colormap_type == 'Discrete':
-            # self._available_colormaps = self.__discrete_colormaps
-            # self._available_colormaps_names = self.__discrete_colormaps_names
-        # else:
-        self._available_colormaps_names = self.__continuous_colormaps_names
 
     def __plot_default(self):
         self._plot = self.plot_scatter()
@@ -407,7 +379,6 @@ class Plot(HasStrictTraits):
         view = View(
             Item('color_plot'),
             Item('color_by', enabled_when='color_plot'),
-            Item('colormap_type', enabled_when='color_plot'),
             Item('colormap', enabled_when='color_plot'),
             kind='livemodal'
         )

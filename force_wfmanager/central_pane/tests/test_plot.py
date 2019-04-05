@@ -65,12 +65,8 @@ class TestPlot(unittest.TestCase):
                              self.plot._axis.color_mapper.range)
 
         with self.assertRaises(TraitError):
-            self.plot.colormap_type = 'Discrete'
-
-        with self.assertRaises(TraitError):
             self.plot.colormap = 'not_viridis'
 
-        self.plot.colormap_type = 'Continuous'
         self.plot.colormap = 'viridis'
         self.plot.colormap = 'CoolWarm'
 
