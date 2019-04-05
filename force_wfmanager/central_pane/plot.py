@@ -8,8 +8,8 @@ from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
 from enable.api import KeySpec
 from traits.api import (
-    Button, Bool, Enum, HasStrictTraits, Instance, List, Property, Tuple,
-    on_trait_change, Dict,
+    Button, Bool, Dict, Enum, HasStrictTraits, Instance, List, Property, Tuple,
+    on_trait_change
 )
 from traitsui.api import HGroup, Item, UItem, VGroup, View
 
