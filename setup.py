@@ -2,7 +2,7 @@ import os
 from setuptools import setup, find_packages
 
 # Setup version
-VERSION = '0.3.0.dev0'
+VERSION = '0.3.0'
 
 
 # Read description
@@ -43,6 +43,6 @@ setup(
         ]
     },
     install_requires=[
-        "force_bdss >= 0.2.0",
+        "force_bdss >= 0.3.0",
     ]
 )

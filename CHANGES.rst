@@ -4,6 +4,11 @@ Changelog
 Release 0.3.0
 -------------
 
+- Upgraded python version to 3.6 (PR #252)
+- Split workflow into a setup task and a results task (PR #239)
+- Reorganised UI (PR #248)
+- Switched to from TableEditor to TabularEditor in results pane to improve
+  performance (PR #255)
 - Added debug logging option
 
 Release 0.2.0
