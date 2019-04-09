@@ -1,10 +1,14 @@
 from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
+from chaco.api import BaseXYPlot, ColormappedScatterPlot
+from chaco.default_colormaps import (
+    color_map_functions
+)
 from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
 from enable.api import KeySpec
 from traits.api import (
-    Button, Bool, Enum, HasStrictTraits, Instance, List, Property, Tuple,
+    Button, Bool, Dict, Enum, HasStrictTraits, Instance, List, Property, Tuple,
     on_trait_change
 )
 from traitsui.api import HGroup, Item, UItem, VGroup, View
@@ -31,6 +35,17 @@ class Plot(HasStrictTraits):
     #: Second parameter used for the plot
     y = Enum(values='_value_names')
 
+    #: Optional third parameter used to set colour of points
+    color_by = Enum(values='_value_names')
+
+    #: Colour options button:
+    color_options = Button('Color...')
+
+    colormap = Enum(values='_available_colormaps_names',
+                    depends_on='_available_colormaps_names')
+
+    color_plot = Bool(False)
+
     #: Button to reset plot view. The button is active if :attr:`reset_enabled`
     #: is *True* and inactive if it is *False*.
     reset_plot = Button('Reset View')
@@ -42,6 +57,26 @@ class Plot(HasStrictTraits):
     #: The 2D plot
     #: Listens to: :attr:`x`, :attr:`y`
     _plot = Instance(Component)
+
+    #: List of continuous chaco colormaps.
+    #: The default is set by the first entry of this list.
+    __continuous_colormaps = Dict(
+        {cmap.__str__().split()[1]: cmap
+         for cmap in color_map_functions}
+    )
+    #: List of the names of continuous chaco colormaps.
+    __continuous_colormaps_names = (
+        ['viridis'] +
+        [cmap.__str__().split()[1]
+         for cmap in color_map_functions
+         if cmap.__str__().split()[1] != 'viridis']
+    )
+
+    _available_colormaps = __continuous_colormaps
+    _available_colormaps_names = List(__continuous_colormaps_names,
+                                      depends_on='_available_colormaps')
+    #: Exposes particular attributes of the plot for tweaking
+    _axis = Instance(BaseXYPlot)
 
     #: A local copy of the analysis model's value names
     #: Listens to: :attr:`analysis_model.value_names
@@ -77,28 +112,35 @@ class Plot(HasStrictTraits):
     # View
     # ----
 
-    view = View(VGroup(
-        HGroup(
-            Item('x'),
-            Item('y'),
-        ),
-        UItem('_plot', editor=ComponentEditor()),
+    view = View(
         VGroup(
-            UItem('reset_plot', enabled_when='reset_enabled')
+            HGroup(
+                Item('x'),
+                Item('y'),
+                UItem('color_options'),
+            ),
+            UItem('_plot', editor=ComponentEditor()),
+            VGroup(
+                UItem('reset_plot', enabled_when='reset_enabled')
+            )
         )
-    ))
-
-    def __init__(self, analysis_model, *args, **kwargs):
-        self.analysis_model = analysis_model
-        super(Plot, self).__init__(*args, **kwargs)
-
-        self.update_data_arrays()
-
-    # Defaults
+    )
 
     def __plot_default(self):
-        plot = ChacoPlot(self._plot_data)
+        self._plot = self.plot_scatter()
+        self.resize_plot()
+        return self._plot
 
+    @on_trait_change('color_plot')
+    def change_plot_style(self):
+        if self.color_plot:
+            self._plot = self.plot_cmap_scatter()
+        else:
+            self._plot = self.plot_scatter()
+        self.resize_plot()
+
+    def plot_scatter(self):
+        plot = ChacoPlot(self._plot_data)
         scatter_plot = plot.plot(
             ('x', 'y'),
             type="scatter",
@@ -125,7 +167,7 @@ class Plot(HasStrictTraits):
             scatter_plot,
             threshold=10,
             multiselect_modifier=KeySpec(None, "shift"),
-            selection_mode="multi",
+            selection_mode="multi"
         ))
         overlay = ScatterInspectorOverlay(
             scatter_plot,
@@ -139,6 +181,58 @@ class Plot(HasStrictTraits):
 
         # Initialize plot datasource
         self._plot_index_datasource = scatter_plot.index
+        self._axis = scatter_plot
+
+        return plot
+
+    @on_trait_change('colormap')
+    def _update_cmap(self):
+        cmap = self._available_colormaps[self.colormap]
+        if isinstance(self._axis, ColormappedScatterPlot):
+            _range = self._axis.color_mapper.range
+            self._axis.color_mapper = cmap(_range)
+
+    def plot_cmap_scatter(self):
+        plot = ChacoPlot(self._plot_data)
+
+        cmap_scatter_plot = plot.plot(
+            ('x', 'y', 'color_by'),
+            type="cmap_scatter",
+            name="Plot",
+            marker="circle",
+            fill_alpha=0.8,
+            color_mapper=self._available_colormaps[self.colormap],
+            marker_size=4,
+            outline_color="black",
+            index_sort="ascending",
+            line_width=0,
+            bgcolor="white")[0]
+
+        plot.set(title="Plot", padding=75, line_width=1)
+
+        # Add pan and zoom tools
+        cmap_scatter_plot.tools.append(PanTool(plot))
+        cmap_scatter_plot.overlays.append(ZoomTool(plot))
+
+        # Add the selection tool
+        cmap_scatter_plot.tools.append(ScatterInspector(
+            cmap_scatter_plot,
+            threshold=10,
+            multiselect_modifier=KeySpec(None, "shift"),
+            selection_mode="multi"
+        ))
+        overlay = ScatterInspectorOverlay(
+            cmap_scatter_plot,
+            hover_color=(0, 0, 1, 1),
+            hover_marker_size=6,
+            selection_marker_size=20,
+            selection_color=(0, 0, 1, 0.5),
+            selection_outline_color=(0, 0, 0, 0.8),
+            selection_line_width=3)
+
+        cmap_scatter_plot.overlays.append(overlay)
+        self._plot_index_datasource = cmap_scatter_plot.index
+        self._axis = cmap_scatter_plot
 
         return plot
 
@@ -146,13 +240,13 @@ class Plot(HasStrictTraits):
         plot_data = ArrayPlotData()
         plot_data.set_data('x', [])
         plot_data.set_data('y', [])
+        plot_data.set_data('color_by', [])
         return plot_data
 
     def __data_arrays_default(self):
         return [[] for _ in range(len(self.analysis_model.value_names))]
 
     # Properties
-
     def _get_reset_enabled(self):
         x_data = self._plot_data.get_data('x')
         if len(x_data) > 0:
@@ -160,7 +254,6 @@ class Plot(HasStrictTraits):
         return False
 
     # Response to analysis model changes
-
     @on_trait_change('analysis_model.value_names')
     def update_value_names(self):
         """ Sets the value names in the plot to match those it the analysis
@@ -240,18 +333,30 @@ class Plot(HasStrictTraits):
 
     # Response to UI changes
 
+    @on_trait_change('color_by')
+    def _update_color_plot(self):
+        if self.x is None or self.y is None \
+                or self.color_by is None or self._data_arrays == []:
+            self._plot_data.set_data('color_by', [])
+            return
+
+        c_index = self.analysis_model.value_names.index(self.color_by)
+        self._plot_data.set_data('color_by', self._data_arrays[c_index])
+
     @on_trait_change('x,y')
     def _update_plot_data(self):
         """Set the plot data model to the appropriate arrays so that they
         can be displayed when either X or Y selections have been changed.
         """
-        if self.x is None or self.y is None or self._data_arrays == []:
+        if self.x is None or self.y is None \
+                or self.color_by is None or self._data_arrays == []:
             self._plot_data.set_data('x', [])
             self._plot_data.set_data('y', [])
             return
 
         x_index = self.analysis_model.value_names.index(self.x)
         y_index = self.analysis_model.value_names.index(self.y)
+        c_index = self.analysis_model.value_names.index(self.color_by)
 
         # Set the axis labels
         self._plot.x_axis.title = self.x
@@ -259,6 +364,7 @@ class Plot(HasStrictTraits):
 
         self._plot_data.set_data('x', self._data_arrays[x_index])
         self._plot_data.set_data('y', self._data_arrays[y_index])
+        self._plot_data.set_data('color_by', self._data_arrays[c_index])
 
         self.resize_plot()
 
@@ -266,6 +372,17 @@ class Plot(HasStrictTraits):
     def reset_pressed(self):
         """ Event handler for :attr:`reset_plot`"""
         self.resize_plot()
+
+    @on_trait_change('color_options')
+    def color_options_pressed(self):
+        """ Event handler for :attr:`color_options` button. """
+        view = View(
+            Item('color_plot'),
+            Item('color_by', enabled_when='color_plot'),
+            Item('colormap', enabled_when='color_plot'),
+            kind='livemodal'
+        )
+        self.edit_traits(view=view)
 
     def resize_plot(self):
         """ Sets the size of the current plot to have some spacing between the

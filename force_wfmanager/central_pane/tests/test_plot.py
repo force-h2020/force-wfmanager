@@ -2,10 +2,12 @@ import unittest
 import warnings
 
 from chaco.api import Plot as ChacoPlot
+from chaco.api import ColormappedScatterPlot, ScatterPlot
+from chaco.abstract_colormap import AbstractColormap
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.plot import Plot
-from traits.api import push_exception_handler
+from traits.api import push_exception_handler, TraitError
 
 push_exception_handler(reraise_exceptions=True)
 
@@ -40,6 +42,36 @@ class TestPlot(unittest.TestCase):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             self.assertIsInstance(self.plot._plot, ChacoPlot)
+            self.assertIsInstance(self.plot._axis, ScatterPlot)
+
+    def test_cmapped_plot(self):
+        self.analysis_model.value_names = ('density', 'pressure', 'color')
+        self.plot.color_plot = True
+        self.plot.color_by = 'color'
+        self.analysis_model.add_evaluation_step((1.010, 101325, 1))
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.assertEqual(self.plot.color_by, 'color')
+            self.assertIsInstance(self.plot._plot, ChacoPlot)
+            self.assertIsInstance(self.plot._axis, ColormappedScatterPlot)
+            self.assertIsInstance(self.plot._axis.color_mapper,
+                                  AbstractColormap)
+            old_cmap = self.plot._axis.color_mapper
+            self.plot.colormap = 'seismic'
+            self.assertIsInstance(self.plot._axis.color_mapper,
+                                  AbstractColormap)
+            self.assertNotEqual(old_cmap, self.plot._axis.color_mapper)
+            self.assertEqual(old_cmap.range,
+                             self.plot._axis.color_mapper.range)
+
+        with self.assertRaises(TraitError):
+            self.plot.colormap = 'not_viridis'
+
+        self.plot.colormap = 'viridis'
+        self.plot.colormap = 'CoolWarm'
+
+        self.plot.color_plot = False
+        self.assertIsInstance(self.plot._axis, ScatterPlot)
 
     def test_push_new_evaluation_steps(self):
         self.analysis_model.value_names = ('density', 'pressure')
