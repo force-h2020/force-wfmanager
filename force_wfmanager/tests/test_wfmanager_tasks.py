@@ -15,8 +15,8 @@ from pyface.tasks.api import TaskWindow
 
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
-from force_bdss.tests.probe_classes.factory_registry_plugin import \
-    ProbeFactoryRegistryPlugin
+from force_bdss.tests.probe_classes.factory_registry import \
+    ProbeFactoryRegistry
 from force_bdss.api import Workflow, MCOProgressEvent, MCOStartEvent
 
 from force_wfmanager.wfmanager import WfManager
@@ -111,7 +111,7 @@ def get_wfmanager_tasks():
     app = dummy_wfmanager()
     analysis_model = AnalysisModel()
     workflow_model = Workflow()
-    factory_registry_plugin = ProbeFactoryRegistryPlugin()
+    factory_registry_plugin = ProbeFactoryRegistry()
     setup_task = WfManagerSetupTask(
         analysis_model=analysis_model, workflow_model=workflow_model,
         factory_registry=factory_registry_plugin
@@ -170,7 +170,7 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
         self.assertTrue(self.setup_task.zmq_server.start.called)
 
     def test_failed_initialization_of_ui_hooks(self):
-        plugin = ProbeFactoryRegistryPlugin()
+        plugin = ProbeFactoryRegistry()
 
         plugin.ui_hooks_factories[0].create_ui_hooks_manager_raises = True
 

@@ -6,8 +6,8 @@ from force_bdss.api import (
     KPISpecification
 )
 
-from force_bdss.tests.probe_classes.factory_registry_plugin import (
-    ProbeFactoryRegistryPlugin
+from force_bdss.tests.probe_classes.factory_registry import (
+    ProbeFactoryRegistry
 )
 
 
@@ -42,7 +42,7 @@ def mock_notification_listener_factory():
 
 
 def get_workflow_tree():
-    factory_registry = ProbeFactoryRegistryPlugin()
+    factory_registry = ProbeFactoryRegistry()
     mco_factory = factory_registry.mco_factories[0]
     mco = mco_factory.create_model()
     parameter_factory = mco_factory.parameter_factories[0]
@@ -80,7 +80,7 @@ def get_workflow_tree():
 class TestWorkflowTree(unittest.TestCase):
     def setUp(self):
         self.tree = get_workflow_tree()
-        self.factory_registry = ProbeFactoryRegistryPlugin()
+        self.factory_registry = ProbeFactoryRegistry()
 
     def test_ui_initialization(self):
         self.assertIsNotNone(self.tree.model.mco)

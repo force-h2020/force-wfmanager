@@ -9,7 +9,7 @@ from traitsui.api import (
 )
 
 from force_bdss.api import (
-    ExecutionLayer, IFactoryRegistryPlugin, KPISpecification, Workflow,
+    ExecutionLayer, IFactoryRegistry, KPISpecification, Workflow,
     verify_workflow
 )
 from force_wfmanager.left_side_pane.data_source_model_view import (
@@ -184,7 +184,7 @@ class WorkflowTree(ModelView):
     model = Instance(Workflow, allow_none=False)
 
     #: A registry of the available factories
-    _factory_registry = Instance(IFactoryRegistryPlugin)
+    _factory_registry = Instance(IFactoryRegistry)
 
     # ------------------
     # Regular Attributes

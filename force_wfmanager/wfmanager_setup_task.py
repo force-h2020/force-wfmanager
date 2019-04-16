@@ -13,7 +13,7 @@ from pyface.tasks.api import PaneItem, Task, TaskLayout
 from traits.api import Instance, on_trait_change, List, Bool, Unicode, File
 
 from force_bdss.api import (
-    BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistryPlugin,
+    BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
     InvalidFileException, MCOProgressEvent, MCOStartEvent, Workflow,
     WorkflowReader, WorkflowWriter
 )
@@ -41,7 +41,7 @@ class WfManagerSetupTask(Task):
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
     #: Registry of the available factories
-    factory_registry = Instance(IFactoryRegistryPlugin)
+    factory_registry = Instance(IFactoryRegistry)
 
     #: Current workflow file on which the application is writing
     current_file = File()
