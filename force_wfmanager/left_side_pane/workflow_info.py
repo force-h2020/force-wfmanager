@@ -89,7 +89,8 @@ class WorkflowInfo(HasTraits):
     traits_view = View(
         VGroup(
             Group(
-                UReadonly('plugin_names', editor=ListStrEditor()),
+                UReadonly('plugin_names',
+                          editor=ListStrEditor(editable=False)),
                 show_border=True,
                 label='Available Plugins'
             ),
@@ -174,6 +175,7 @@ ERROR_TEMPLATE = """
         <style type="text/css">
             .container{{
                 width: 100%;
+                font-family: sans-serif;
                 display: block;
             }}
         </style>

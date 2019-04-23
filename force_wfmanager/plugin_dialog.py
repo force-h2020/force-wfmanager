@@ -110,8 +110,12 @@ def htmlformat(title, version=None, description=None, error_msg=None,
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
             <style type="text/css">
+                body{{
+                    font-family: sans-serif;
+                }}
                 .container{{
                     width: 100%;
+                    font-family: sans-serif;
                     display: block;
                 }}
             </style>
