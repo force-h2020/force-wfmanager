@@ -4,8 +4,8 @@ from envisage.ui.tasks.tasks_plugin import TasksPlugin
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 from force_bdss.mco.base_mco_model import BaseMCOModel
-from force_bdss.tests.probe_classes.factory_registry_plugin import (
-    ProbeFactoryRegistryPlugin
+from force_bdss.tests.probe_classes.factory_registry import (
+    ProbeFactoryRegistry
 )
 from force_wfmanager.left_side_pane.workflow_model_view import (
     WorkflowModelView
@@ -35,7 +35,7 @@ def mock_wfmanager_plugin(filename):
 def mock_create_setup_task(filename):
     def func():
         wf_manager_task = WfManagerSetupTask(
-            factory_registry=ProbeFactoryRegistryPlugin())
+            factory_registry=ProbeFactoryRegistry())
         if filename is not None:
             wf_manager_task.open_workflow_file(filename)
         return wf_manager_task
@@ -45,7 +45,7 @@ def mock_create_setup_task(filename):
 def mock_create_results_task():
     def func():
         wf_manager_task = WfManagerResultsTask(
-            factory_registry=ProbeFactoryRegistryPlugin())
+            factory_registry=ProbeFactoryRegistry())
         return wf_manager_task
     return func
 
@@ -61,7 +61,7 @@ class TestSetupPane(GuiTestAssistant, unittest.TestCase):
             self.wfmanager.windows[0].tasks[0].side_pane.workflow_tree
         )
         self.workflow_tree.workflow_mv = WorkflowModelView()
-        self.workflow_tree._factory_registry = ProbeFactoryRegistryPlugin()
+        self.workflow_tree._factory_registry = ProbeFactoryRegistry()
 
     def test_add_entity_button(self):
         self.assertEqual(0, len(self.workflow_tree.workflow_mv.mco_mv))

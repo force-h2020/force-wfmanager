@@ -4,7 +4,7 @@ from traits.api import Instance, Button, on_trait_change, Bool
 
 from traitsui.api import View, UItem, VGroup
 
-from force_bdss.api import IFactoryRegistryPlugin, Workflow
+from force_bdss.api import IFactoryRegistry, Workflow
 
 from .workflow_tree import WorkflowTree
 
@@ -31,7 +31,7 @@ class TreePane(TraitsDockPane):
     # -------------------
 
     #: The factory registry containing all the factories
-    factory_registry = Instance(IFactoryRegistryPlugin)
+    factory_registry = Instance(IFactoryRegistry)
 
     # ------------------
     # Regular Attributes

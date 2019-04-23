@@ -5,8 +5,8 @@ from force_bdss.api import (
 )
 from force_bdss.tests.probe_classes.data_source import ProbeDataSourceModel, \
     ProbeDataSourceFactory
-from force_bdss.tests.probe_classes.factory_registry_plugin import \
-    ProbeFactoryRegistryPlugin
+from force_bdss.tests.probe_classes.factory_registry import \
+    ProbeFactoryRegistry
 from force_bdss.tests.probe_classes.mco import ProbeMCOModel, ProbeMCOFactory
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
@@ -78,7 +78,7 @@ class TestWorkflowInfo(unittest.TestCase):
 
     def test_error_messaging(self):
         self.wf_tree = WorkflowTree(
-            _factory_registry=ProbeFactoryRegistryPlugin(),
+            _factory_registry=ProbeFactoryRegistry(),
             model=self.wf_mv_name_registry.model
         )
         self.assertIsNotNone(self.wf_tree.workflow_mv.error_message)
