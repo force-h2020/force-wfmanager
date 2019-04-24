@@ -1,3 +1,4 @@
+import json
 from traits.api import (
     Either, HasStrictTraits, Int, List, Property, Tuple, on_trait_change
 )
@@ -103,3 +104,49 @@ class AnalysisModel(HasStrictTraits):
         :attr:`value_names`
         """
         self._clear_evaluation_steps()
+
+    def write_to_json(self, fp):
+        """ Write the current state of the AnalysisModel to a file in JSON format.
+
+        Parameters
+        ----------
+        fp (a .write() supporting file-like object).
+
+        Returns
+        -------
+        bool: whether the write was successful or not.
+
+        """
+        json_representation = {}
+        for ind, name in enumerate(self.value_names):
+            json_representation[name] = []
+        for step in self.evaluation_steps:
+            for ind, name in enumerate(self.value_names):
+                json_representation[name].append(step[ind])
+        json.dump(json_representation,
+                  fp,
+                  sort_keys=False,
+                  indent=4)
+
+        return True
+
+    def write_to_csv(self, fp):
+        """ Write the current state of the AnalysisModel to a file in a CSV format,
+        that includes column names in the first line.
+
+        Parameters
+        ----------
+        fp (a .write() supporting file-like object).
+
+        Returns
+        -------
+        bool: whether the write was successful or not.
+
+        """
+        fp.write(', '.join(self.value_names) + '\n')
+        for step in self.evaluation_steps:
+            # val can have arbitrary type, so cannot
+            # e.g. specify a floating point precision
+            fp.write(', '.join([str(val) for val in step]) + '\n')
+
+        return True
