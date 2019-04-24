@@ -45,7 +45,7 @@ class WfManagerResultsTask(Task):
     save_load_enabled = Bool(True)
 
     #: Is the results saving button enabled?
-    save_results_enabled = Bool(True)
+    save_results_enabled = Bool(False)
 
     #: Setup Task
     setup_task = Instance(Task)
@@ -199,7 +199,12 @@ class WfManagerResultsTask(Task):
     def _analysis_model_default(self):
         return AnalysisModel()
 
-    # Save AnalysisModel to JSON file
+    # Save AnalysisModel to file and sync its state
+
+    @on_trait_change('analysis_model.save_enabled')
+    def sync_save_enabled(self):
+        self.save_results_enabled = self.analysis_model.save_enabled
+
     def save_analysis_model_as(self):
         """ Shows a dialog to save the analysis model into a JSON file """
         dialog = FileDialog(
@@ -252,7 +257,6 @@ class WfManagerResultsTask(Task):
             return False
         else:
             return True
-
 
     # Synchronization with Setup Task
 

@@ -1,6 +1,6 @@
 import json
 from traits.api import (
-    Either, HasStrictTraits, Int, List, Property, Tuple, on_trait_change
+    Bool, Either, HasStrictTraits, Int, List, Property, Tuple, on_trait_change
 )
 
 
@@ -22,6 +22,9 @@ class AnalysisModel(HasStrictTraits):
     #: Selected step, used for highlighting in the table/plot.
     #: Listens to: :attr:`value_names`
     _selected_step_indices = Either(None, List(Int()))
+
+    #: Tracks whether the current state of AnalysisModel can be saved to file
+    save_enabled = Bool(False)
 
     # ----------
     # Properties
@@ -45,6 +48,7 @@ class AnalysisModel(HasStrictTraits):
     def _clear_evaluation_steps(self):
         self._evaluation_steps[:] = []
         self._selected_step_indices = None
+        self.save_enabled = False
 
     def _get_evaluation_steps(self):
         return self._evaluation_steps
@@ -68,6 +72,7 @@ class AnalysisModel(HasStrictTraits):
                     evaluation_step, self.value_names))
 
         self._evaluation_steps.append(evaluation_step)
+        self.save_enabled = True
 
     def _get_selected_step_indices(self):
         return self._selected_step_indices
@@ -117,6 +122,9 @@ class AnalysisModel(HasStrictTraits):
         bool: whether the write was successful or not.
 
         """
+        if not self._save_enabled:
+            return False
+
         json_representation = {}
         for ind, name in enumerate(self.value_names):
             json_representation[name] = []
@@ -143,6 +151,9 @@ class AnalysisModel(HasStrictTraits):
         bool: whether the write was successful or not.
 
         """
+        if not self._save_enabled:
+            return False
+
         fp.write(', '.join(self.value_names) + '\n')
         for step in self.evaluation_steps:
             # val can have arbitrary type, so cannot
