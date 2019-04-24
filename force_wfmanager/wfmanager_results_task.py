@@ -1,6 +1,6 @@
 import logging
 
-from pyface.api import ImageResource
+from pyface.api import ImageResource, FileDialog, OK, error
 from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Bool, Instance, List, on_trait_change
@@ -44,6 +44,9 @@ class WfManagerResultsTask(Task):
     #: Are the saving and loading menu/toolbar buttons active
     save_load_enabled = Bool(True)
 
+    #: Is the results saving button enabled?
+    save_results_enabled = Bool(True)
+
     #: Setup Task
     setup_task = Instance(Task)
 
@@ -78,6 +81,11 @@ class WfManagerResultsTask(Task):
                     method='setup_task.save_workflow_as',
                     enabled_name='save_load_enabled',
                     accelerator='Shift+Ctrl+S',
+                ),
+                TaskAction(
+                    name='Save Results as...',
+                    method='save_analysis_model_as',
+                    enabled_name='save_results_enabled'
                 ),
                 TaskAction(
                     name='Plugins...',
@@ -137,6 +145,14 @@ class WfManagerResultsTask(Task):
                     image_size=(64, 64)
                 ),
                 TaskAction(
+                    name="Save Results As",
+                    tooltip="Save results table with new filename",
+                    image=ImageResource("baseline_save_black_48dp"),
+                    method="save_analysis_model_as",
+                    enabled_name="save_results_enabled",
+                    image_size=(64, 64)
+                ),
+                TaskAction(
                     name="Plugins",
                     tooltip="View state of loaded plugins",
                     image=ImageResource("baseline_power_black_48dp"),
@@ -182,6 +198,61 @@ class WfManagerResultsTask(Task):
 
     def _analysis_model_default(self):
         return AnalysisModel()
+
+    # Save AnalysisModel to JSON file
+    def save_analysis_model_as(self):
+        """ Shows a dialog to save the analysis model into a JSON file """
+        dialog = FileDialog(
+            action="save as",
+            default_filename="results.json",
+            wildcard='JSON files (*.json)|*.json|CSV files (*.csv)|*.csv',
+        )
+
+        result = dialog.open()
+
+        if result is not OK:
+            return
+
+        current_file = dialog.path
+
+        if self._write_analysis_model(current_file):
+            self.current_file = current_file
+            return True
+        return False
+
+    def _write_analysis_model(self, file_path):
+        """ Write the contents of the analysis model to a JSON file. """
+        try:
+            with open(file_path, 'w') as output:
+                if file_path.endswith('.json'):
+                    self.analysis_model.write_to_json(output)
+                elif file_path.endswith('.csv'):
+                    self.analysis_model.write_to_csv(output)
+                else:
+                    raise IOError('Unrecognised file type, should be one of '
+                                  'JSON/CSV.')
+
+        except IOError as e:
+            error(
+                None,
+                'Cannot save in the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when saving the results table'
+            )
+            log.exception('Error when saving AnalysisModel')
+            return False
+        except Exception as e:
+            error(
+                None,
+                'Cannot save the results table:\n\n{}'.format(
+                    str(e)),
+                'Error when saving results'
+            )
+            log.exception('Error when saving results')
+            return False
+        else:
+            return True
+
 
     # Synchronization with Setup Task
 
