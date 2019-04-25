@@ -23,8 +23,8 @@ class AnalysisModel(HasStrictTraits):
     #: Listens to: :attr:`value_names`
     _selected_step_indices = Either(None, List(Int()))
 
-    #: Tracks whether the current state of AnalysisModel can be saved to file
-    save_enabled = Bool(False)
+    #: Tracks whether the current state of AnalysisModel can be exported file
+    _export_enabled = Bool(False)
 
     # ----------
     # Properties
@@ -35,6 +35,9 @@ class AnalysisModel(HasStrictTraits):
     #: the parameters in each evaluation step must match the order of
     #: value_names
     evaluation_steps = Property(List(Tuple()), depends_on="_evaluation_steps")
+
+    #: If there are results, then they can be exported
+    export_enabled = Property(Bool(), depends_on="_export_enabled")
 
     #: Property that informs about the currently selected step.
     #: Can be None if nothing is selected. If selected, it must be
@@ -48,7 +51,10 @@ class AnalysisModel(HasStrictTraits):
     def _clear_evaluation_steps(self):
         self._evaluation_steps[:] = []
         self._selected_step_indices = None
-        self.save_enabled = False
+        self._export_enabled = False
+
+    def _get_export_enabled(self):
+        return self._export_enabled
 
     def _get_evaluation_steps(self):
         return self._evaluation_steps
@@ -72,7 +78,7 @@ class AnalysisModel(HasStrictTraits):
                     evaluation_step, self.value_names))
 
         self._evaluation_steps.append(evaluation_step)
-        self.save_enabled = True
+        self._export_enabled = True
 
     def _get_selected_step_indices(self):
         return self._selected_step_indices
@@ -110,6 +116,39 @@ class AnalysisModel(HasStrictTraits):
         """
         self._clear_evaluation_steps()
 
+    def from_dict(self, data):
+        """ Load the :attr:`value_names` and :attr:`evaluation_steps`
+        from a dictionary.
+
+        """
+        self.value_names = tuple(key for key in data.keys())
+        steps = []
+        for ind, values in enumerate(data[self.value_names[0]]):
+            step = []
+            for column in self.value_names:
+                step.append(data[column][ind])
+            steps.append(step)
+
+        self._evaluation_steps = steps
+
+    def as_json(self):
+        """ Returns a JSON representation with column names as keys and
+        values stored as lists under those keys.
+
+        Returns
+        -------
+        dict: a dictionary containing the JSON representation.
+
+        """
+        json_representation = {}
+        for ind, name in enumerate(self.value_names):
+            json_representation[name] = []
+        for step in self.evaluation_steps:
+            for ind, name in enumerate(self.value_names):
+                json_representation[name].append(step[ind])
+
+        return json_representation
+
     def write_to_json(self, fp):
         """ Write the current state of the AnalysisModel to a file in JSON format.
 
@@ -122,16 +161,10 @@ class AnalysisModel(HasStrictTraits):
         bool: whether the write was successful or not.
 
         """
-        if not self._save_enabled:
+        if not self._export_enabled:
             return False
 
-        json_representation = {}
-        for ind, name in enumerate(self.value_names):
-            json_representation[name] = []
-        for step in self.evaluation_steps:
-            for ind, name in enumerate(self.value_names):
-                json_representation[name].append(step[ind])
-        json.dump(json_representation,
+        json.dump(self.as_json(),
                   fp,
                   sort_keys=False,
                   indent=4)
@@ -151,7 +184,7 @@ class AnalysisModel(HasStrictTraits):
         bool: whether the write was successful or not.
 
         """
-        if not self._save_enabled:
+        if not self._export_enabled:
             return False
 
         fp.write(', '.join(self.value_names) + '\n')

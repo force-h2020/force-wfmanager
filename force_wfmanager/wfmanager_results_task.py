@@ -1,11 +1,12 @@
 import logging
+import json
 
 from pyface.api import ImageResource, FileDialog, OK, error
 from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Bool, Instance, List, on_trait_change
 
-from force_bdss.api import Workflow
+from force_bdss.api import Workflow, WorkflowWriter
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.graph_pane import GraphPane
 from force_wfmanager.left_side_pane.results_pane import ResultsPane
@@ -44,8 +45,12 @@ class WfManagerResultsTask(Task):
     #: Are the saving and loading menu/toolbar buttons active
     save_load_enabled = Bool(True)
 
-    #: Is the results saving button enabled?
-    save_results_enabled = Bool(False)
+    #: Is the results saving button enabled, i.e. are there results?
+    export_results_enabled = Bool(False)
+
+    #: Is the project save button enabled: are the current results from
+    #: the current workflow?
+    save_project_enabled = Bool(True)
 
     #: Setup Task
     setup_task = Instance(Task)
@@ -84,8 +89,8 @@ class WfManagerResultsTask(Task):
                 ),
                 TaskAction(
                     name='Save Results as...',
-                    method='save_analysis_model_as',
-                    enabled_name='save_results_enabled'
+                    method='export_analysis_model_as',
+                    enabled_name='export_results_enabled'
                 ),
                 TaskAction(
                     name='Plugins...',
@@ -121,35 +126,26 @@ class WfManagerResultsTask(Task):
             ),
             SToolBar(
                 TaskAction(
-                    name="Open",
-                    tooltip="Open workflow",
+                    name="Open Project",
+                    tooltip="Open a project containing a workflow and results",
                     image=ImageResource("baseline_folder_open_black_48dp"),
-                    method="setup_task.open_workflow",
-                    enabled_name="save_load_enabled",
+                    method="open_project",
                     image_size=(64, 64)
                 ),
                 TaskAction(
-                    name="Save",
-                    tooltip="Save workflow",
-                    image=ImageResource("baseline_save_black_48dp"),
-                    method="setup_task.save_workflow",
-                    enabled_name="save_load_enabled",
-                    image_size=(64, 64)
-                ),
-                TaskAction(
-                    name="Save As",
-                    tooltip="Save workflow with new filename",
+                    name="Save Project As",
+                    tooltip="Save results and workflow together as JSON",
                     image=ImageResource("outline_save_black_48dp"),
-                    method="setup_task.save_workflow_as",
-                    enabled_name="save_load_enabled",
+                    method="save_project_as",
+                    enabled_name="save_project_enabled",
                     image_size=(64, 64)
                 ),
                 TaskAction(
-                    name="Save Results As",
-                    tooltip="Save results table with new filename",
+                    name="Export Results",
+                    tooltip="Export results table to a JSON or CSV file",
                     image=ImageResource("baseline_save_black_48dp"),
-                    method="save_analysis_model_as",
-                    enabled_name="save_results_enabled",
+                    method="export_analysis_model_as",
+                    enabled_name="export_results_enabled",
                     image_size=(64, 64)
                 ),
                 TaskAction(
@@ -201,12 +197,15 @@ class WfManagerResultsTask(Task):
 
     # Save AnalysisModel to file and sync its state
 
-    @on_trait_change('analysis_model.save_enabled')
-    def sync_save_enabled(self):
-        self.save_results_enabled = self.analysis_model.save_enabled
+    @on_trait_change('analysis_model.export_enabled')
+    def sync_export_enabled(self):
+        self.export_results_enabled = self.analysis_model.export_enabled
 
-    def save_analysis_model_as(self):
-        """ Shows a dialog to save the analysis model into a JSON file """
+    def export_analysis_model_as(self):
+        """ Shows a dialog to save the :class:`AnalysisModel` as a
+        JSON file.
+
+        """
         dialog = FileDialog(
             action="save as",
             default_filename="results.json",
@@ -216,17 +215,162 @@ class WfManagerResultsTask(Task):
         result = dialog.open()
 
         if result is not OK:
-            return
+            return False
 
         current_file = dialog.path
 
         if self._write_analysis_model(current_file):
             self.current_file = current_file
             return True
+
         return False
 
+    def save_project_as(self):
+        """ Shows a dialog to save the current project as a JSON file. """
+        dialog = FileDialog(
+            action="save as",
+            default_filename="project.json",
+            wildcard='JSON files (*.json)|*.json',
+        )
+
+        result = dialog.open()
+
+        if result is not OK:
+            return False
+
+        current_file = dialog.path
+
+        if self._write_project_file(current_file):
+            self.current_file = current_file
+            return True
+
+        return False
+
+    def _write_project_file(self, file_path):
+        """ Writes a JSON file that contains the :attr:`Workflow` and
+        :attr:`AnalysisModel`.
+
+        """
+        try:
+            with open(file_path, 'w') as output:
+                project_json = {}
+                project_json['analysis_model'] = self.analysis_model.as_json()
+                project_json['workflow'] = WorkflowWriter() \
+                    .get_workflow_data(self.workflow_model)
+                try:
+                    project_json['version'] = WorkflowWriter().version
+                except AttributeError:
+                    project_json['version'] = '1'
+
+                json.dump(project_json, output, indent=4)
+
+        except IOError as e:
+            error(
+                None,
+                'Cannot save in the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when saving the project'
+            )
+            log.exception('Error when saving Project')
+            return False
+
+        except Exception as e:
+            error(
+                None,
+                'Cannot save the Project:\n\n{}'.format(
+                    str(e)),
+                'Error when saving results'
+            )
+            log.exception('Error when the Project')
+            return False
+        else:
+            return True
+
+    def open_project(self):
+        """ Shows a dialog to open a JSON file and load the contents into
+        :attr:`Workflow` and :attr:`AnalysisModel`.
+
+        """
+
+        dialog = FileDialog(
+            action="open",
+            wildcard='JSON files (*.json)|*.json',
+        )
+
+        result = dialog.open()
+
+        if result is not OK:
+            return False
+
+        current_file = dialog.path
+
+        if self._load_project_file(current_file):
+            self.current_file = current_file
+            return True
+
+        return False
+
+    def _load_project_file(self, file_path):
+        """ Load contents of JSON file into:attr:`Workflow` and
+        :attr:`AnalysisModel`.
+
+        """
+
+        try:
+            with open(file_path, 'r') as input:
+                project_json = json.load(input)
+                self.analysis_model.from_dict(project_json['analysis_model'])
+                self.setup_task.analysis_model = self.analysis_model
+
+            self.setup_task.open_workflow_file(file_path)
+            self.workflow_model = self.setup_task.workflow_model
+
+        except KeyError as e:
+            error(
+                None,
+                'Unable to find analysis model:\n\n{}'.format(
+                    str(e)),
+                'Error when loading project'
+            )
+            log.exception('KeyError when loading project')
+            return False
+
+        except IOError as e:
+            error(
+                None,
+                'Unable to load file:\n\n{}'.format(
+                    str(e)),
+                'Error when loading project'
+            )
+            log.exception('Error loading project file')
+            return False
+
+        except Exception as e:
+            error(
+                None,
+                'Unable to load project:\n\n{}'.format(
+                    str(e)),
+                'Error when loading project'
+            )
+            log.exception('Error when loading project')
+            return False
+
+        else:
+            return True
+
     def _write_analysis_model(self, file_path):
-        """ Write the contents of the analysis model to a JSON file. """
+        """ Write the contents of the analysis model to a JSON file.
+
+        Parameters
+        ----------
+        file_path (str)
+            the name of the file to write to.
+
+        Returns
+        -------
+        bool: true if save was successful.
+
+        """
         try:
             with open(file_path, 'w') as output:
                 if file_path.endswith('.json'):
