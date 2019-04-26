@@ -1,5 +1,4 @@
 import unittest
-import json
 from unittest import mock
 
 from traits.trait_errors import TraitError
