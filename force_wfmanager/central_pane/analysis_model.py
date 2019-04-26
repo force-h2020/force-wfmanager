@@ -192,4 +192,3 @@ class AnalysisModel(HasStrictTraits):
             fp.write(', '.join([str(val) for val in step]) + '\n')
 
         return True
-        return True
