@@ -117,19 +117,17 @@ class AnalysisModel(HasStrictTraits):
         self._clear_evaluation_steps()
 
     def from_dict(self, data):
-        """ Load the :attr:`value_names` and :attr:`evaluation_steps`
-        from a dictionary.
+        """ Delete all current data and load :attr:`value_names` and
+        :attr:`evaluation_steps` from a dictionary.
 
         """
+        self._clear_evaluation_steps()
         self.value_names = tuple(key for key in data.keys())
-        steps = []
-        for ind, values in enumerate(data[self.value_names[0]]):
+        for ind, _ in enumerate(data[self.value_names[0]]):
             step = []
             for column in self.value_names:
                 step.append(data[column][ind])
-            steps.append(step)
-
-        self._evaluation_steps = steps
+            self.add_evaluation_step(step)
 
     def as_json(self):
         """ Returns a JSON representation with column names as keys and
@@ -193,4 +191,5 @@ class AnalysisModel(HasStrictTraits):
             # e.g. specify a floating point precision
             fp.write(', '.join([str(val) for val in step]) + '\n')
 
+        return True
         return True

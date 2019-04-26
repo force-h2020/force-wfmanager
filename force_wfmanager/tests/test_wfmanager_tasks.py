@@ -1,5 +1,6 @@
 import unittest
 import subprocess
+import copy
 from unittest import mock
 
 from force_bdss.core.data_value import DataValue
@@ -46,6 +47,7 @@ ZMQSERVER_SETUP_SOCKETS_PATH = \
 RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_results_task.FileDialog'
 RESULTS_FILE_OPEN_PATH = 'force_wfmanager.wfmanager_results_task.open'
 RESULTS_JSON_DUMP_PATH = 'force_wfmanager.wfmanager_results_task.json.dump'
+RESULTS_JSON_LOAD_PATH = 'force_wfmanager.wfmanager_results_task.json.load'
 RESULTS_WORKFLOW_WRITER_PATH = \
     'force_wfmanager.wfmanager_results_task.WorkflowWriter.get_workflow_data'
 
@@ -351,6 +353,50 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                 old_workflow,
                 self.setup_task.side_pane.workflow_tree.model
             )
+
+    def test_open_project(self):
+        mock_open = mock.mock_open()
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog,\
+                mock.patch(RESULTS_JSON_LOAD_PATH) as mock_json, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(WORKFLOW_READER_PATH) as mock_reader:
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
+            mock_reader.side_effect = mock_file_reader
+            mock_json.return_value = {'analysis_model': {'x': [1], 'y': [2]},
+                                      'version': '1',
+                                      'workflow': {}}
+
+            # the workflow gets updated to a new Workflow object
+            old_workflow = self.results_task.workflow_model
+            # but the analysis model gets updated in-place
+            old_analysis = copy.deepcopy(self.results_task.analysis_model)
+            self.assertEqual(
+                old_workflow,
+                self.setup_task.workflow_model)
+
+            self.results_task.open_project()
+
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_reader.called)
+            self.assertTrue(mock_json.called)
+
+            self.assertNotEqual(old_workflow, self.results_task.workflow_model)
+            self.assertNotEqual(old_workflow, self.setup_task.workflow_model)
+            self.assertNotEqual(old_workflow,
+                                self.setup_task.side_pane.workflow_tree.model)
+            self.assertNotEqual(old_analysis.value_names,
+                                self.results_task.analysis_model.value_names)
+            self.assertNotEqual(old_analysis.value_names,
+                                self.setup_task.analysis_model.value_names)
+            self.assertEqual(self.results_task.analysis_model.value_names,
+                             ('x', 'y'))
+            self.assertEqual(self.results_task.analysis_model.evaluation_steps,
+                             [(1, 2)])
+            self.assertEqual(self.setup_task.analysis_model.value_names,
+                             self.results_task.analysis_model.value_names)
+            self.assertEqual(self.setup_task.analysis_model.evaluation_steps,
+                             self.results_task.analysis_model.evaluation_steps)
 
     def test_read_failure(self):
         mock_open = mock.mock_open()
