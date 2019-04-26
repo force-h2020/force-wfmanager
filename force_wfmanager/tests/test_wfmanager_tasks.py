@@ -50,6 +50,7 @@ RESULTS_JSON_DUMP_PATH = 'force_wfmanager.wfmanager_results_task.json.dump'
 RESULTS_JSON_LOAD_PATH = 'force_wfmanager.wfmanager_results_task.json.load'
 RESULTS_WORKFLOW_WRITER_PATH = \
     'force_wfmanager.wfmanager_results_task.WorkflowWriter.get_workflow_data'
+RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_results_task.error'
 
 
 def mock_dialog(dialog_class, result, path=''):
@@ -255,6 +256,24 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
             self.assertTrue(mock_json_dump.called)
             self.assertTrue(mock_file_dialog.called)
 
+    def test_save_project_failure(self):
+        mock_open = mock.mock_open()
+        mock_open.side_effect = IOError("OUPS")
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(RESULTS_ERROR_PATH) as mock_error:
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
+            mock_error.side_effect = mock_show_error
+
+            self.results_task.save_project_as()
+
+            self.assertTrue(mock_open.called)
+            mock_error.assert_called_with(
+                None,
+                'Cannot save in the requested file:\n\nOUPS',
+                'Error when saving the project'
+            )
+
     def test_save_workflow_failure(self):
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
@@ -307,7 +326,7 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
 
             self.assertTrue(mock_information.called)
 
-    def test_open_failure(self):
+    def test_save_as_workflow_failure(self):
         mock_open = mock.mock_open()
         mock_open.side_effect = IOError("OUPS")
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
@@ -397,6 +416,39 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                              self.results_task.analysis_model.value_names)
             self.assertEqual(self.setup_task.analysis_model.evaluation_steps,
                              self.results_task.analysis_model.evaluation_steps)
+
+    def test_open_project_failure(self):
+        mock_open = mock.mock_open()
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog,\
+                mock.patch(RESULTS_JSON_LOAD_PATH) as mock_json, \
+                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(RESULTS_ERROR_PATH) as mock_error, \
+                mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(WORKFLOW_READER_PATH) as mock_reader:
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
+            mock_reader.side_effect = mock_file_reader
+            mock_json.return_value = {'asdfsadf': {'x': [1], 'y': [2]},
+                                      '123456': '1',
+                                      'blah': {}}
+
+            success = self.results_task.open_project()
+            old_workflow = self.results_task.workflow_model
+            old_analysis = self.results_task.analysis_model
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_json.called)
+            self.assertFalse(success)
+            # it should not get to the stage where the wfreader is called
+            self.assertFalse(mock_reader.called)
+            mock_error.assert_called_with(
+                None,
+                'Unable to find analysis model:\n\n{}'
+                .format('\'analysis_model\''),
+                'Error when loading project'
+            )
+            self.assertEqual(old_workflow, self.setup_task.workflow_model)
+            self.assertEqual(old_analysis, self.setup_task.analysis_model)
+            self.assertEqual(old_workflow, self.results_task.workflow_model)
+            self.assertEqual(old_analysis, self.results_task.analysis_model)
 
     def test_read_failure(self):
         mock_open = mock.mock_open()
