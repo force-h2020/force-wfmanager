@@ -253,15 +253,14 @@ class WfManagerResultsTask(Task):
         """
         try:
             with open(file_path, 'w') as output:
+                # create a dictionary that contains analysis model,
+                # workflow and version that can be read back in by
+                # :class:`WorkflowReader`, and dump to JSON
                 project_json = {}
                 project_json['analysis_model'] = self.analysis_model.as_json()
                 project_json['workflow'] = WorkflowWriter() \
                     .get_workflow_data(self.workflow_model)
-                try:
-                    project_json['version'] = WorkflowWriter().version
-                except AttributeError:
-                    project_json['version'] = '1'
-
+                project_json['version'] = WorkflowWriter().version
                 json.dump(project_json, output, indent=4)
 
         except IOError as e:

@@ -43,6 +43,10 @@ SUBPROCESS_PATH = 'force_wfmanager.wfmanager_setup_task.subprocess'
 OS_REMOVE_PATH = 'force_wfmanager.wfmanager_setup_task.os.remove'
 ZMQSERVER_SETUP_SOCKETS_PATH = \
     'force_wfmanager.wfmanager_setup_task.ZMQServer._setup_sockets'
+RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_results_task.FileDialog'
+RESULTS_FILE_OPEN_PATH = 'force_wfmanager.wfmanager_results_task.open'
+RESULTS_JSON_DUMP_PATH = 'force_wfmanager.wfmanager_results_task.json.dump'
+RESULTS_WORKFLOW_WRITER_PATH = 'force_wfmanager.wfmanager_results_task.WorkflowWriter.get_workflow_data'
 
 
 def mock_dialog(dialog_class, result, path=''):
@@ -230,6 +234,23 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
             self.assertTrue(mock_writer.called)
             self.assertTrue(mock_open.called)
             self.assertFalse(mock_file_dialog.called)
+
+    def test_save_project(self):
+        mock_open = mock.mock_open()
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(RESULTS_JSON_DUMP_PATH) as mock_json_dump, \
+                mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(RESULTS_WORKFLOW_WRITER_PATH) as mock_wf_writer:
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, OK, 'file_path')
+            mock_wf_writer.side_effect = mock_file_writer
+
+            self.results_task.save_project_as()
+
+            self.assertTrue(mock_wf_writer.called)
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_json_dump.called)
+            self.assertTrue(mock_file_dialog.called)
 
     def test_save_workflow_failure(self):
         mock_open = mock.mock_open()
@@ -496,7 +517,7 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
-                mock.patch(SUBPROCESS_PATH+".check_call") as mock_check_call, \
+                mock.patch(SUBPROCESS_PATH + ".check_call") as mock_check_call, \
                 mock.patch(ERROR_PATH) as mock_error:
             mock_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
