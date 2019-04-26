@@ -46,7 +46,8 @@ ZMQSERVER_SETUP_SOCKETS_PATH = \
 RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_results_task.FileDialog'
 RESULTS_FILE_OPEN_PATH = 'force_wfmanager.wfmanager_results_task.open'
 RESULTS_JSON_DUMP_PATH = 'force_wfmanager.wfmanager_results_task.json.dump'
-RESULTS_WORKFLOW_WRITER_PATH = 'force_wfmanager.wfmanager_results_task.WorkflowWriter.get_workflow_data'
+RESULTS_WORKFLOW_WRITER_PATH = \
+    'force_wfmanager.wfmanager_results_task.WorkflowWriter.get_workflow_data'
 
 
 def mock_dialog(dialog_class, result, path=''):
@@ -517,19 +518,19 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
         with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
-                mock.patch(SUBPROCESS_PATH + ".check_call") as mock_check_call, \
+                mock.patch(SUBPROCESS_PATH + ".check_call") as mock_chk_call, \
                 mock.patch(ERROR_PATH) as mock_error:
             mock_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
             mock_error.side_effect = mock_show_error
 
             def _check_exception_behavior(exception):
-                mock_check_call.side_effect = exception
+                mock_chk_call.side_effect = exception
 
                 self.assertTrue(self.setup_task.side_pane.ui_enabled)
 
                 with self.event_loop_until_condition(
-                        lambda: mock_check_call.called):
+                        lambda: mock_chk_call.called):
                     self.setup_task.run_bdss()
 
                 ui_enabled = self.setup_task.side_pane.ui_enabled
