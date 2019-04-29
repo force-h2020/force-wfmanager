@@ -1,12 +1,13 @@
 import logging
 import json
+import tempfile
 
 from pyface.api import ImageResource, FileDialog, OK, error
 from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Bool, Instance, List, on_trait_change
 
-from force_bdss.api import Workflow, WorkflowWriter
+from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.graph_pane import GraphPane
 from force_wfmanager.left_side_pane.results_pane import ResultsPane
@@ -32,8 +33,11 @@ class WfManagerResultsTask(Task):
     id = 'force_wfmanager.wfmanager_results_task'
     name = 'Results'
 
-    #: Workflow model.
-    workflow_model = Instance(Workflow, allow_none=False)
+    #: Workflow model used to create the results in the analysis model.
+    #: This trait no longer tracks the workflow stored under
+    #: :attr:`setup_task.workflow_model` and instead is only updated
+    #: when a new run is started.
+    workflow_model = Instance(Workflow, allow_none=True)
 
     #: Analysis model. Contains the results that are displayed in the plot
     #: and table
@@ -47,10 +51,6 @@ class WfManagerResultsTask(Task):
 
     #: Is the results saving button enabled, i.e. are there results?
     export_results_enabled = Bool(False)
-
-    #: Is the project save button enabled: are the current results from
-    #: the current workflow?
-    save_project_enabled = Bool(True)
 
     #: Setup Task
     setup_task = Instance(Task)
@@ -137,7 +137,7 @@ class WfManagerResultsTask(Task):
                     tooltip="Save results and workflow together as JSON",
                     image=ImageResource("outline_save_black_48dp"),
                     method="save_project_as",
-                    enabled_name="save_project_enabled",
+                    enabled_name="export_results_enabled",
                     image_size=(64, 64)
                 ),
                 TaskAction(
@@ -190,7 +190,7 @@ class WfManagerResultsTask(Task):
         )
 
     def _workflow_model_default(self):
-        return Workflow()
+        return None
 
     def _analysis_model_default(self):
         return AnalysisModel()
@@ -316,13 +316,20 @@ class WfManagerResultsTask(Task):
         """
 
         try:
-            with open(file_path, 'r') as input:
-                project_json = json.load(input)
+            with open(file_path, 'r') as fp:
+                project_json = json.load(fp)
+
+                # share the analysis model with the setup_task
                 self.analysis_model.from_dict(project_json['analysis_model'])
                 self.setup_task.analysis_model = self.analysis_model
 
-            self.setup_task.open_workflow_file(file_path)
-            self.workflow_model = self.setup_task.workflow_model
+                # create two separate workflows, so that setup task can be
+                # edited without changing the results task copy
+                reader = WorkflowReader(self.setup_task.factory_registry)
+                fp.seek(0)
+                self.workflow_model = reader.read(fp)
+                fp.seek(0)
+                self.setup_task.workflow_model = reader.read(fp)
 
         except KeyError as e:
             error(
@@ -420,7 +427,16 @@ class WfManagerResultsTask(Task):
                 if task.name == "Workflow Setup":
                     self.setup_task = task
                     self.analysis_model = self.setup_task.analysis_model
-                    self.workflow_model = self.setup_task.workflow_model
+                    # self.workflow_model = self.setup_task.workflow_model
+
+    @on_trait_change('setup_task.computation_running')
+    def cache_running_workflow(self):
+        if self.setup_task.computation_running:
+            with tempfile.TemporaryFile(mode='w+t') as fp:
+                WorkflowWriter().write(self.setup_task.workflow_model, fp)
+                reader = WorkflowReader(self.setup_task.factory_registry)
+                fp.seek(0)
+                self.workflow_model = reader.read(fp)
 
     # Menu/Toolbar Methods
 
