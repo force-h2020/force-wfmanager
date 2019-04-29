@@ -50,6 +50,8 @@ RESULTS_JSON_DUMP_PATH = 'force_wfmanager.wfmanager_results_task.json.dump'
 RESULTS_JSON_LOAD_PATH = 'force_wfmanager.wfmanager_results_task.json.load'
 RESULTS_WORKFLOW_WRITER_PATH = \
     'force_wfmanager.wfmanager_results_task.WorkflowWriter.get_workflow_data'
+RESULTS_WORKFLOW_READER_PATH = \
+    'force_wfmanager.wfmanager_results_task.WorkflowReader'
 RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_results_task.error'
 
 
@@ -379,7 +381,7 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                 mock.patch(RESULTS_JSON_LOAD_PATH) as mock_json, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_READER_PATH) as mock_reader:
+                mock.patch(RESULTS_WORKFLOW_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_reader.side_effect = mock_file_reader
             mock_json.return_value = {'analysis_model': {'x': [1], 'y': [2]},
@@ -401,6 +403,9 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
             self.assertTrue(mock_json.called)
 
             self.assertNotEqual(old_workflow, self.results_task.workflow_model)
+            self.assertNotEqual(self.setup_task.workflow_model,
+                                self.results_task.workflow_model)
+
             self.assertNotEqual(old_workflow, self.setup_task.workflow_model)
             self.assertNotEqual(old_workflow,
                                 self.setup_task.side_pane.workflow_tree.model)
