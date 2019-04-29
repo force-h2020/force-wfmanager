@@ -427,10 +427,15 @@ class WfManagerResultsTask(Task):
                 if task.name == "Workflow Setup":
                     self.setup_task = task
                     self.analysis_model = self.setup_task.analysis_model
-                    # self.workflow_model = self.setup_task.workflow_model
 
     @on_trait_change('setup_task.computation_running')
     def cache_running_workflow(self):
+        """ When a new computation starts running, save a copy of the
+        :attr:`setup_task.workflow_model` as :attr:workflow_model` that
+        can be used when saving the results of the run alongside the
+        workflow that created it.
+
+        """
         if self.setup_task.computation_running:
             with tempfile.TemporaryFile(mode='w+t') as fp:
                 WorkflowWriter().write(self.setup_task.workflow_model, fp)
