@@ -7,6 +7,8 @@ from traits.api import Bool, Instance, List, on_trait_change
 
 from force_bdss.api import Workflow
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
+from force_wfmanager.central_pane.data_view import BaseDataView
+from force_wfmanager.central_pane.data_view_pane import DataViewPane
 from force_wfmanager.central_pane.graph_pane import GraphPane
 from force_wfmanager.left_side_pane.results_pane import ResultsPane
 from force_wfmanager.task_toggle_group_accelerator import (
@@ -21,6 +23,9 @@ class WfManagerResultsTask(Task):
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(ResultsPane)
+
+    #: Side Pane containing the tree editor for the Workflow and the Run button
+    central_pane = Instance(DataViewPane)
 
     #: The menu bar for this task.
     menu_bar = Instance(SMenuBar)
@@ -156,11 +161,15 @@ class WfManagerResultsTask(Task):
             )
         ]
 
+        return
+
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        return GraphPane(self.analysis_model)
+        self.central_pane = self.setup_task.selected_data_view(
+            analysis_model=self.analysis_model)
+        return self.central_pane
 
     def create_dock_panes(self):
         """ Creates the dock panes """

@@ -19,6 +19,7 @@ from force_bdss.api import (
 )
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.setup_pane import SetupPane
+from force_wfmanager.central_pane.data_view_pane import DataViewPane
 from force_wfmanager.plugin_dialog import PluginDialog
 from force_wfmanager.left_side_pane.tree_pane import TreePane
 from force_wfmanager.server.zmq_server import ZMQServer
@@ -67,6 +68,10 @@ class WfManagerSetupTask(Task):
 
     #: The thread pool executor to spawn the BDSS CLI process.
     executor = Instance(ThreadPoolExecutor)
+
+    selected_data_view = Instance(type)
+
+    plugin_data_views = List
 
     #: Path to spawn for the BDSS CLI executable.
     #: This will go to some global configuration option later.
@@ -238,7 +243,7 @@ class WfManagerSetupTask(Task):
     def _side_pane_default(self):
         return TreePane(
             factory_registry=self.factory_registry,
-            workflow_model=self.workflow_model
+            workflow_model=self.workflow_model,
         )
 
     def _workflow_model_default(self):
@@ -618,6 +623,7 @@ class WfManagerSetupTask(Task):
 
         self.side_pane.ui_enabled = not self.computation_running
         self.save_load_enabled = not self.computation_running
+        self.run_enabled = not self.computation_running
 
     # Method call from side pane interaction
 
@@ -635,6 +641,23 @@ class WfManagerSetupTask(Task):
                 if task.name == "Results":
                     self.results_task = task
                     self.results_task.run_enabled = self.run_enabled
+
+    def _plugin_data_views_default(self):
+        plugin_data_views = [DataViewPane]
+        for plugin in self.window.application.plugin_manager:
+            try:
+                if plugin.data_views:
+                    plugin_data_views.extend(plugin.data_views)
+            except Exception:
+                pass
+        return plugin_data_views
+
+    @on_trait_change('side_pane.selected_data_view')
+    def _set_selected_data_view(self):
+        self.selected_data_view = self.side_pane.selected_data_view
+
+    def _selected_data_view_default(self):
+        return self._plugin_data_views_default()[1]
 
     # Menu/Toolbar Methods
 

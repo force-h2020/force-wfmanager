@@ -1,12 +1,13 @@
 from pyface.tasks.api import TraitsDockPane
 
-from traits.api import Instance, Button, on_trait_change, Bool
+from traits.api import Instance, Button, on_trait_change, Bool, Enum, List
 
 from traitsui.api import View, UItem, VGroup
 
 from force_bdss.api import IFactoryRegistry, Workflow
 
 from .workflow_tree import WorkflowTree
+from ..central_pane.data_view_pane import DataViewPane
 
 
 class TreePane(TraitsDockPane):
@@ -67,12 +68,17 @@ class TreePane(TraitsDockPane):
     #: Enable or disable the run button.
     run_enabled = Bool(True)
 
+    plugin_data_views = List
+
+    selected_data_view = Enum(values='plugin_data_views')
+
     # ----
     # View
     # ----
 
     traits_view = View(VGroup(
         UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
+        UItem('selected_data_view', enabled_when='ui_enabled'),
         UItem('run_button', enabled_when="run_enabled")
     ))
 
