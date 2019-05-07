@@ -104,7 +104,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
         self.assertIsInstance(self.setup_task.workflow_model, Workflow)
 
         self.assertIsInstance(self.results_task.analysis_model, AnalysisModel)
-        self.assertIsInstance(self.results_task.workflow_model, Workflow)
+        self.assertEqual(self.results_task.workflow_model, None)
 
     def test_init_with_file(self):
         with mock.patch(WORKFLOW_READER_PATH) as mock_reader:
