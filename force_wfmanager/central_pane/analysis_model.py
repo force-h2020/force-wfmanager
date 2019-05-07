@@ -139,7 +139,7 @@ class AnalysisModel(HasStrictTraits):
 
         """
         json_representation = {}
-        for ind, name in enumerate(self.value_names):
+        for name in self.value_names:
             json_representation[name] = []
         for step in self.evaluation_steps:
             for ind, name in enumerate(self.value_names):
