@@ -9,8 +9,8 @@ from traitsui.api import (
 )
 
 from force_bdss.api import (
-    ExecutionLayer, IFactoryRegistry, KPISpecification, Workflow,
-    verify_workflow
+    ExecutionLayer, IFactoryRegistry, InputSlotInfo, KPISpecification,
+    OutputSlotInfo, Workflow, verify_workflow
 )
 from force_wfmanager.left_side_pane.data_source_model_view import (
     DataSourceModelView
@@ -33,6 +33,11 @@ from force_wfmanager.left_side_pane.workflow_model_view import (
     WorkflowModelView
 )
 from force_wfmanager.left_side_pane.view_utils import model_info
+
+# VerifierError severity constants
+_ERROR = "error"
+_WARNING = "warning"
+_INFO = "information"
 
 
 # Create an empty view and menu for objects that have no data to display:
@@ -703,14 +708,14 @@ class WorkflowTree(ModelView):
                 message_list.append(verifier_error.local_error)
                 # If there are any 'error' level entries, set the modelview
                 # as invalid, and communicate these to the parent modelview.
-                if verifier_error.severity == "error":
+                if verifier_error.severity == _ERROR:
                     send_to_parent.append(verifier_error.global_error)
                     start_modelview.valid = False
 
             # For errors where the subject is an Input/OutputSlotInfo object,
             # check if this is an attribute of the (DataSource) model
-            err_subject_type = verifier_error.subject.__class__.__name__
-            if err_subject_type in ['InputSlotInfo', 'OutputSlotInfo']:
+            err_subject_type = type(verifier_error.subject)
+            if err_subject_type in [InputSlotInfo, OutputSlotInfo]:
                 slots = []
                 slots.extend(
                     getattr(start_modelview.model, 'input_slot_info', [])
@@ -721,7 +726,7 @@ class WorkflowTree(ModelView):
                 if verifier_error.subject in slots:
                     if verifier_error.local_error not in message_list:
                         message_list.append(verifier_error.local_error)
-                    if verifier_error.severity == "error":
+                    if verifier_error.severity == _ERROR:
                         send_to_parent.append(verifier_error.global_error)
                         start_modelview.valid = False
 
