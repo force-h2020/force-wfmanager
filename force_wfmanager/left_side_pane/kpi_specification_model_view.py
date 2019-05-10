@@ -65,7 +65,8 @@ class KPISpecificationModelView(ModelView):
     traits_view = View(
         Item('model.name', editor=EnumEditor(name='object._combobox_values')),
         Item("model.objective"),
-        Item("model.scale_factor"),
+        Item('model.auto_scale'),
+        Item("model.scale_factor", enabled_when='not model.auto_scale'),
         kind="subpanel",
     )
 
