@@ -66,7 +66,7 @@ class KPISpecificationModelView(ModelView):
         Item('model.name', editor=EnumEditor(name='object._combobox_values')),
         Item("model.objective"),
         Item('model.auto_scale'),
-        Item("model.scale_factor", enabled_when='not model.auto_scale'),
+        Item("model.scale_factor", visible_when='not model.auto_scale'),
         kind="subpanel",
     )
 
