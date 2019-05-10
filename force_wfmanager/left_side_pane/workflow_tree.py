@@ -668,7 +668,7 @@ class WorkflowTree(ModelView):
         # Get the current modelview's class
         current_modelview_type = start_modelview.__class__.__name__
 
-        # A list of error messages
+        # A list of error messages to be displayed in the UI
         message_list = []
 
         # If the current ModelView has any child modelviews
@@ -693,15 +693,19 @@ class WorkflowTree(ModelView):
         # A list of messages to pass to the parent ModelView
         send_to_parent = message_list[:]
 
+        start_modelview.valid = True
+
         for verifier_error in errors:
-            # Check whether this model is the subject of an error
+            # Check whether this model is the subject of an error. 'warning'
+            # or 'information' level messages are only displayed locally and
+            # don't invalidate that modelview
             if start_modelview.model == verifier_error.subject:
-                # Add the local error messages to the list
                 message_list.append(verifier_error.local_error)
-                # If there are any errors to be communicated up the tree,
-                # add them to send_to_parent
-                if verifier_error.global_error != '':
+                # If there are any 'error' level entries, set the modelview
+                # as invalid, and communicate these to the parent modelview.
+                if verifier_error.severity == "error":
                     send_to_parent.append(verifier_error.global_error)
+                    start_modelview.valid = False
 
             # For errors where the subject is an Input/OutputSlotInfo object,
             # check if this is an attribute of the (DataSource) model
@@ -715,14 +719,11 @@ class WorkflowTree(ModelView):
                     getattr(start_modelview.model, 'output_slot_info', [])
                 )
                 if verifier_error.subject in slots:
-                    message_list.append(verifier_error.local_error)
-                    if verifier_error.global_error != '':
+                    if verifier_error.local_error not in message_list:
+                        message_list.append(verifier_error.local_error)
+                    if verifier_error.severity == "error":
                         send_to_parent.append(verifier_error.global_error)
-
-        if len(message_list) != 0:
-            start_modelview.valid = False
-        else:
-            start_modelview.valid = True
+                        start_modelview.valid = False
 
         # Display message so that errors relevant to this ModelView come first
         start_modelview.error_message = '\n'.join(reversed(message_list))
