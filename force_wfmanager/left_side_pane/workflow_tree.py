@@ -694,6 +694,7 @@ class WorkflowTree(ModelView):
         send_to_parent = message_list[:]
 
         for verifier_error in errors:
+            # Check whether this model is the subject of an error
             if start_modelview.model == verifier_error.subject:
                 # Add the local error messages to the list
                 message_list.append(verifier_error.local_error)
@@ -701,6 +702,22 @@ class WorkflowTree(ModelView):
                 # add them to send_to_parent
                 if verifier_error.global_error != '':
                     send_to_parent.append(verifier_error.global_error)
+
+            # For errors where the subject is an Input/OutputSlotInfo object,
+            # check if this is an attribute of the (DataSource) model
+            err_subject_type = verifier_error.subject.__class__.__name__
+            if err_subject_type in ['InputSlotInfo', 'OutputSlotInfo']:
+                slots = []
+                slots.extend(
+                    getattr(start_modelview.model, 'input_slot_info', [])
+                )
+                slots.extend(
+                    getattr(start_modelview.model, 'output_slot_info', [])
+                )
+                if verifier_error.subject in slots:
+                    message_list.append(verifier_error.local_error)
+                    if verifier_error.global_error != '':
+                        send_to_parent.append(verifier_error.global_error)
 
         if len(message_list) != 0:
             start_modelview.valid = False
