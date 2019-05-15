@@ -5,7 +5,7 @@ from unittest import mock
 from force_bdss.core.data_value import DataValue
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 from force_bdss.io.workflow_writer import WorkflowWriter
-from force_wfmanager.central_pane.graph_pane import GraphPane
+from force_wfmanager.central_pane.data_view_pane import DataViewPane
 from force_wfmanager.central_pane.setup_pane import SetupPane
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.tests.utils import wait_condition
@@ -158,7 +158,7 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
         self.assertIsInstance(self.results_task.side_pane,
                               ResultsPane)
         self.assertIsInstance(self.results_task.create_central_pane(),
-                              GraphPane)
+                              DataViewPane)
         self.assertIsInstance(self.results_task.workflow_model, Workflow)
         self.assertIsInstance(self.setup_task.workflow_model, Workflow)
         self.assertIsInstance(self.results_task.analysis_model, AnalysisModel)
