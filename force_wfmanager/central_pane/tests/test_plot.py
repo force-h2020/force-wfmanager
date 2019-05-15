@@ -123,6 +123,7 @@ class TestPlot(unittest.TestCase):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
+        self.plot._update_plot_data()
 
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(),
@@ -149,6 +150,7 @@ class TestPlot(unittest.TestCase):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
+        self.plot._update_plot_data()
 
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(),
@@ -217,12 +219,14 @@ class TestPlot(unittest.TestCase):
         # One data point
         self.analysis_model.value_names = ('x', 'y')
         self.analysis_model.add_evaluation_step((2, 3))
+        self.plot._update_plot_data()
         result = self.plot.resize_plot()
         self.assertEqual(result, (1.5, 2.5, 2.5, 3.5))
         self.assertTrue(self.plot._get_reset_enabled())
 
         # More than 1 data point
         self.analysis_model.add_evaluation_step((3, 4))
+        self.plot._update_plot_data()
         result = self.plot.resize_plot()
         self.assertEqual(result, (1.9, 3.1, 2.9, 4.1))
         self.assertTrue(self.plot._get_reset_enabled())
