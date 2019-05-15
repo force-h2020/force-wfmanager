@@ -12,7 +12,7 @@ ADDITIONAL_CORE_DEPS = [
     "sip==4.17-4",
     "traitsui==6.1.0-1",
     "numpy==1.13.3-3",
-    "chaco==4.7.1-2",
+    "chaco==4.7.2-3",
     "pyzmq==16.0.0-4",
 ]
 
