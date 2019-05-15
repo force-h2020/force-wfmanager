@@ -10,7 +10,9 @@ from pyface.api import (
 )
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
-from traits.api import Instance, on_trait_change, List, Bool, Unicode, File
+from traits.api import Instance, on_trait_change, List, Bool, Unicode, File, Property
+from traitsui.item import Item
+from traitsui.view import View
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
@@ -19,12 +21,14 @@ from force_bdss.api import (
 )
 from force_wfmanager.central_pane.analysis_model import AnalysisModel
 from force_wfmanager.central_pane.setup_pane import SetupPane
+from force_wfmanager.contributed_ui import ContributedUI
 from force_wfmanager.plugin_dialog import PluginDialog
 from force_wfmanager.left_side_pane.tree_pane import TreePane
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.task_toggle_group_accelerator import (
     TaskToggleGroupAccelerator
 )
+from force_wfmanager.ui_select_modal import UISelectModal
 
 log = logging.getLogger(__name__)
 
@@ -84,6 +88,13 @@ class WfManagerSetupTask(Task):
 
     #: Results Task
     results_task = Instance(Task)
+
+    #: Plugin contributed UIs
+    contributed_UIs = List(ContributedUI)
+
+    ui_select_enabled = Property(Bool(False), depends_on="contributed_UIs")
+
+    active_custom_ui = Instance(ContributedUI)
 
     # ZMQ Setup
 
@@ -158,6 +169,14 @@ class WfManagerSetupTask(Task):
                 name='&Help'
             ),
             SMenu(TaskToggleGroupAccelerator(), id='View', name='&View'),
+            SMenu(
+                TaskAction(
+                    name="Show custom UIs",
+                    method='ui_select',
+                    enabled_name="ui_select_enabled"
+                ),
+                name='&UI'
+            )
         )
         return menu_bar
 
@@ -204,6 +223,11 @@ class WfManagerSetupTask(Task):
                     method="open_plugins",
                     image_size=(64, 64)
                 ),
+                TaskAction(
+                    name="Custom UI",
+                    tooltip="Load a plugin contributed custom UI.",
+                    method="ui_select"
+                )
             ),
             SToolBar(
                 TaskAction(
@@ -645,3 +669,46 @@ class WfManagerSetupTask(Task):
 
     def exit(self):
         self.window.close()
+
+    # Custom UI
+
+    def _get_ui_select_enabled(self):
+        return self.contributed_UIs != []
+
+    def ui_select(self):
+        plugins = [plugin
+                   for plugin in self.window.application.plugin_manager
+                   if isinstance(plugin, BaseExtensionPlugin)]
+
+        # Plugins guaranteed to have an id, so sort by that if name is not set
+        plugins.sort(
+            key=lambda s: s.name if s.name not in ('', None) else s.id
+        )
+        ui_modal = UISelectModal(
+            contributed_uis=self.contributed_UIs,
+            available_plugins=plugins
+        )
+        ui_modal.edit_traits()
+        ui = ui_modal.selected_ui
+        print(ui)
+        if ui_modal.selected_ui is not None:
+            reader = WorkflowReader(self.factory_registry)
+            try:
+                with open(ui.workflow_file, 'r') as fobj:
+                    self.workflow_model = reader.read(fobj)
+            except InvalidFileException as e:
+                error(
+                    None,
+                    'Cannot read the requested file:\n\n{}'.format(
+                        str(e)),
+                    'Error when reading file'
+                )
+            else:
+                self.current_file = ui.workflow_file
+
+            ui.edit_traits()
+
+            for uuid, name in ui.workflow_map.items():
+                self.workflow_model.update_item_from_uuid(
+                    uuid, name, getattr(ui, name)
+                )
