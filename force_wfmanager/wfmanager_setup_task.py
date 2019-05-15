@@ -644,13 +644,22 @@ class WfManagerSetupTask(Task):
                     self.results_task.run_enabled = self.run_enabled
 
     def _plugin_data_views_default(self):
+        """ Look through all the loaded plugins and try
+        to extract their custom data views.
+
+        """
         plugin_data_views = [DataViewPane]
-        for plugin in self.window.application.plugin_manager:
-            try:
-                if plugin.data_views:
-                    plugin_data_views.extend(plugin.data_views)
-            except Exception:
-                pass
+        # some dodgy exception handling so that tests pass when
+        # self.window is None
+        try:
+            for plugin in self.window.application.plugin_manager:
+                try:
+                    if plugin.data_views:
+                        plugin_data_views.extend(plugin.data_views)
+                except Exception:
+                    pass
+        except AttributeError:
+            pass
         return plugin_data_views
 
     @on_trait_change('side_pane.selected_data_view')
