@@ -1,5 +1,5 @@
 from pyface.tasks.api import TraitsDockPane
-from traits.api import Instance, List
+from traits.api import Instance
 from traitsui.api import VGroup, View, UItem
 
 from force_wfmanager.central_pane.analysis_model import AnalysisModel

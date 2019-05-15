@@ -1,3 +1,13 @@
+""" This submodule implements the following classes:
+
+* :class:`BasePlot` provides a simple 2D scatter plot over
+the columns from the analysis model, with x and y
+selectable with a dropdown.
+* :class:`Plot` extends :class:`BasePlot` to allow for an
+optional colourmap to be applied to a third variable.
+
+"""
+
 from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
 from chaco.api import BaseXYPlot, ColormappedScatterPlot
@@ -9,12 +19,11 @@ from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
 from enable.api import KeySpec
 from traits.api import (
-    Button, Bool, Dict, Enum, HasStrictTraits, Instance, List, Property, Tuple,
+    Button, Bool, Dict, Enum, Instance, List, Property, Tuple,
     on_trait_change, Unicode
 )
 from traitsui.api import HGroup, Item, UItem, VGroup, View
 
-from .analysis_model import AnalysisModel
 from .data_view import BaseDataView
 
 
@@ -387,6 +396,7 @@ class BasePlot(BaseDataView):
         self._plot.range2d.x_range.high_setting = x_high
         self._plot.range2d.y_range.low_setting = y_low
         self._plot.range2d.y_range.high_setting = y_high
+
 
 class Plot(BasePlot):
 

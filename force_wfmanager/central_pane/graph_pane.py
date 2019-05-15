@@ -33,7 +33,7 @@ class GraphPane(TraitsTaskPane):
     # ----
 
     view = View(VGroup(
-            UItem('plot', style='custom'),
+        UItem('plot', style='custom'),
     ))
 
     def __init__(self, analysis_model, *args, **kwargs):
@@ -41,6 +41,8 @@ class GraphPane(TraitsTaskPane):
         self.analysis_model = analysis_model
 
     def _plot_default(self):
+        # by default, this pane displays the full
+        # colourmapped scatter plot
         return Plot(
             analysis_model=self.analysis_model
         )

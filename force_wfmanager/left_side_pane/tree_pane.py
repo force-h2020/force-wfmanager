@@ -7,7 +7,6 @@ from traitsui.api import View, UItem, VGroup
 from force_bdss.api import IFactoryRegistry, Workflow
 
 from .workflow_tree import WorkflowTree
-from ..central_pane.data_view_pane import DataViewPane
 
 
 class TreePane(TraitsDockPane):
@@ -94,7 +93,7 @@ class TreePane(TraitsDockPane):
     def update_run_btn_status(self):
         """Enables/Disables the run button if the workflow is valid/invalid"""
         self.run_enabled = (
-                self.workflow_tree.workflow_mv.valid and self.ui_enabled
+            self.workflow_tree.workflow_mv.valid and self.ui_enabled
         )
 
     @on_trait_change('workflow_model', post_init=True)
