@@ -658,7 +658,8 @@ class WfManagerSetupTask(Task):
         self.selected_data_view = self.side_pane.selected_data_view
 
     def _selected_data_view_default(self):
-        return self._plugin_data_views_default()[1]
+        # This should always fallback to the default DataViewPane.
+        return self._plugin_data_views_default()[0]
 
     # Menu/Toolbar Methods
 
