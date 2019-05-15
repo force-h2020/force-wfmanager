@@ -244,6 +244,7 @@ class WfManagerSetupTask(Task):
         return TreePane(
             factory_registry=self.factory_registry,
             workflow_model=self.workflow_model,
+            plugin_data_views=self.plugin_data_views
         )
 
     def _workflow_model_default(self):
