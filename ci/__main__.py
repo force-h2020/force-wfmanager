@@ -5,7 +5,7 @@ DEFAULT_PYTHON_VERSION = "3.6"
 PYTHON_VERSIONS = ["3.6"]
 
 ADDITIONAL_CORE_DEPS = [
-    "pyface==6.0.0-2",
+    "pyface==6.1.0-1",
     "pygments==2.2.0-1",
     "pyqt==4.11.4-7",
     "qt==4.8.7-7",
