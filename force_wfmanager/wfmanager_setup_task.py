@@ -4,6 +4,7 @@ import logging
 import subprocess
 import tempfile
 import textwrap
+from functools import partial
 
 from pyface.api import (
     FileDialog, GUI, ImageResource, OK, YES, confirm, error, information
@@ -11,6 +12,7 @@ from pyface.api import (
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
 from traits.api import Instance, on_trait_change, List, Bool, Unicode, File, Property
+from traits.trait_types import Int, Any, Button
 from traitsui.item import Item
 from traitsui.view import View
 
@@ -90,11 +92,11 @@ class WfManagerSetupTask(Task):
     results_task = Instance(Task)
 
     #: Plugin contributed UIs
-    contributed_UIs = List(ContributedUI)
+    contributed_UIs = List(Any)
 
     ui_select_enabled = Property(Bool(False), depends_on="contributed_UIs")
 
-    active_custom_ui = Instance(ContributedUI)
+    active_custom_ui = Instance(Any)
 
     # ZMQ Setup
 
@@ -226,7 +228,9 @@ class WfManagerSetupTask(Task):
                 TaskAction(
                     name="Custom UI",
                     tooltip="Load a plugin contributed custom UI.",
-                    method="ui_select"
+                    image=ImageResource("baseline_dvr_black_48dp"),
+                    method="ui_select",
+                    image_size=(64, 64)
                 )
             ),
             SToolBar(
@@ -689,12 +693,11 @@ class WfManagerSetupTask(Task):
             available_plugins=plugins
         )
         ui_modal.edit_traits()
-        ui = ui_modal.selected_ui
-        print(ui)
+        self.ui = ui_modal.selected_ui
         if ui_modal.selected_ui is not None:
             reader = WorkflowReader(self.factory_registry)
             try:
-                with open(ui.workflow_file, 'r') as fobj:
+                with open(self.ui.workflow_file, 'r') as fobj:
                     self.workflow_model = reader.read(fobj)
             except InvalidFileException as e:
                 error(
@@ -704,11 +707,22 @@ class WfManagerSetupTask(Task):
                     'Error when reading file'
                 )
             else:
-                self.current_file = ui.workflow_file
+                self.current_file = self.ui.workflow_file
 
-            ui.edit_traits()
+            self.ui.on_trait_event(
+                self.update_workflow_run_bdss, name='run_button'
+            )
 
-            for uuid, name in ui.workflow_map.items():
+            self.ui.edit_traits()
+
+            for uuid, name in self.ui.workflow_map.items():
                 self.workflow_model.update_item_from_uuid(
-                    uuid, name, getattr(ui, name)
+                    uuid, name, getattr(self.ui, name)
                 )
+
+    def update_workflow_run_bdss(self):
+        for uuid, name in self.ui.workflow_map.items():
+            self.workflow_model.update_item_from_uuid(
+                uuid, name, getattr(self.ui, name)
+            )
+        self.run_bdss()
