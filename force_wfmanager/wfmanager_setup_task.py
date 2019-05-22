@@ -12,10 +12,6 @@ from pyface.api import (
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
 from traits.api import Instance, on_trait_change, List, Bool, Unicode, File, Property
-from traits.trait_types import Int, Any, Button
-from traitsui.item import Item
-from traitsui.view import View
-
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
     InvalidFileException, MCOProgressEvent, MCOStartEvent, Workflow,
@@ -92,11 +88,11 @@ class WfManagerSetupTask(Task):
     results_task = Instance(Task)
 
     #: Plugin contributed UIs
-    contributed_UIs = List(Any)
+    contributed_UIs = List(ContributedUI)
 
     ui_select_enabled = Property(Bool(False), depends_on="contributed_UIs")
 
-    active_custom_ui = Instance(Any)
+    active_custom_ui = Instance(ContributedUI)
 
     # ZMQ Setup
 
@@ -600,16 +596,21 @@ class WfManagerSetupTask(Task):
         if isinstance(event, MCOStartEvent):
             self.analysis_model.clear()
             value_names = list(event.parameter_names)
-            for kpi_name in event.kpi_names:
+            for kpi_name, kpi_obj in zip(event.kpi_names, event.kpi_obj):
                 value_names.extend([kpi_name, kpi_name + " weight"])
+                if kpi_obj in ["LESS THAN", "GREATER THAN"]:
+                    value_names.append(kpi_name+" passed")
+            value_names.append('All KPIs')
             self.analysis_model.value_names = tuple(value_names)
         elif isinstance(event, MCOProgressEvent):
             data = [dv.value for dv in event.optimal_point]
-            for kpi, weight in zip(event.optimal_kpis, event.weights):
-                data.extend([kpi.value, weight])
+            for kpi, weight, result in zip(event.optimal_kpis, event.weights, event.kpi_result):
+                data.extend([kpi.value, weight, result])
+            data.append(event.kpi_result[-1])
             for i, data_val in enumerate(data[:]):
                 try:
-                    data[i] = float(data_val)
+                    if not isinstance(data[i], bool):
+                        data[i] = float(data_val)
                 except ValueError:
                     data[i] = str(data_val)
 
@@ -715,14 +716,14 @@ class WfManagerSetupTask(Task):
 
             self.ui.edit_traits()
 
-            for uuid, name in self.ui.workflow_map.items():
+            for (uuid, wf_name), ui_name in self.ui.workflow_map.items():
                 self.workflow_model.update_item_from_uuid(
-                    uuid, name, getattr(self.ui, name)
+                    uuid, wf_name, getattr(self.ui, ui_name)
                 )
 
     def update_workflow_run_bdss(self):
-        for uuid, name in self.ui.workflow_map.items():
+        for (uuid, wf_name), ui_name in self.ui.workflow_map.items():
             self.workflow_model.update_item_from_uuid(
-                uuid, name, getattr(self.ui, name)
+                uuid, wf_name, getattr(self.ui, ui_name)
             )
         self.run_bdss()

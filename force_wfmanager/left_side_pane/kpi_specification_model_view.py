@@ -65,6 +65,7 @@ class KPISpecificationModelView(ModelView):
     traits_view = View(
         Item('model.name', editor=EnumEditor(name='object._combobox_values')),
         Item("model.objective"),
+        Item('model.target', visible_when="model.objective in ['GREATER THAN', 'LESS THAN']"),
         kind="subpanel",
     )
 

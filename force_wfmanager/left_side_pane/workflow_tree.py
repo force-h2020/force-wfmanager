@@ -561,7 +561,9 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def new_kpi(self, ui_info, object):
         """Adds a new KPI to the workflow"""
-        object.add_kpi(KPISpecification())
+        # FIXME: Adding new kpi with mco items
+        print(self.model.mco.kpi_opts, self.model, self.model.mco)
+        object.add_kpi(KPISpecification(_objectives=self.model.mco.kpi_opts))
 
     @triggers_verify
     def new_layer(self, ui_info, object):

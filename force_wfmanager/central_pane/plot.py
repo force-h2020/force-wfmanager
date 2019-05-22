@@ -362,7 +362,10 @@ class Plot(HasStrictTraits):
         self._plot.x_axis.title = self.x
         self._plot.y_axis.title = self.y
 
-        self._plot_data.set_data('x', self._data_arrays[x_index])
+
+        x_array = [float(x) for x in self._data_arrays[x_index]]
+
+        self._plot_data.set_data('x', x_array)
         self._plot_data.set_data('y', self._data_arrays[y_index])
         self._plot_data.set_data('color_by', self._data_arrays[c_index])
 

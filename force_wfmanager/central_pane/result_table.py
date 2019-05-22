@@ -74,7 +74,7 @@ class ResultTable(HasStrictTraits):
     def _update_adapter(self):
         self.tabular_adapter.columns = (
             [name for name in self.analysis_model.value_names])
-        self.tabular_adapter.format = '% 5.4E'
+        self.tabular_adapter.format = '%s' #'% 5.4E'
 
     # Response to model change
     @on_trait_change('analysis_model.selected_step_indices')
