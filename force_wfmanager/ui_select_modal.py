@@ -6,8 +6,8 @@ from traits.api import (
     on_trait_change
 )
 from traitsui.api import (
-    Handler, HGroup, Item, OKCancelButtons, Spring, TextEditor, View, VGroup, UItem,
-    UReadonly
+    Handler, HGroup, Item, OKCancelButtons, Spring, TextEditor, View, VGroup,
+    UItem, UReadonly
 )
 from pyface.api import FileDialog, OK, error
 
@@ -27,14 +27,21 @@ class UISelectModal(HasRequiredTraits):
 
     #: A list of contributed UIs received from plugins
     contributed_uis = List(ContributedUI, required=True)
+
     #: A list of available plugins
     available_plugins = List(Instance(BaseExtensionPlugin), required=True)
-    avail_plugin_info = Dict()
+
+    #: A dictionary of plugin names and versions, generated from
+    #: available_plugins`
+    _avail_plugin_info = Dict()
 
     #: Mapping allowing selection of a UI by its name
     ui_name_map = Dict(Unicode, Instance(ContributedUI))
+
     #: The name of the currently seleted UI
     selected_ui_name = Enum(Unicode, values='_contributed_ui_names')
+
+    #: List of discovered ContributedUI names
     _contributed_ui_names = List(Unicode)
 
     #: The currently selected UI
@@ -43,7 +50,11 @@ class UISelectModal(HasRequiredTraits):
     #: The description for the currently selected UI
     selected_ui_desc = Unicode()
 
+    #: The path of the currently selected workflow file
     selected_ui_workflow_file = Unicode()
+
+    #: Opens an alternative workflow file (Provided the UI contents can also
+    #: be mapped to items in the workflow)
     open_workflow_file = Button("Open alternative workflow file..")
 
     traits_view = View(VGroup(
@@ -80,7 +91,7 @@ class UISelectModal(HasRequiredTraits):
 
     @on_trait_change("selected_ui_name")
     def select_ui(self):
-        # Set selected_ui and update description
+        """Set selected_ui and update description shown in the UI."""
         if not self.selected_ui_name:
             self.selected_ui = None
         else:
@@ -93,7 +104,7 @@ class UISelectModal(HasRequiredTraits):
     def _ui_name_map_default(self):
         return {ui.name: ui for ui in self.contributed_uis}
 
-    def _avail_plugin_info_default(self):
+    def __avail_plugin_info_default(self):
         return {
             plugin.name: plugin.version for plugin in self.available_plugins
         }
@@ -183,6 +194,7 @@ class UISelectModal(HasRequiredTraits):
 
         depth_search(wf_dict, self.selected_ui.workflow_map)
         return wf_map
+
 
 FORMATTED_DESCRIPTION = """
     <html>

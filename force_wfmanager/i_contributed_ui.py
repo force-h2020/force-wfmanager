@@ -3,7 +3,7 @@ from traitsui.api import View
 
 class IContributedUI(Interface):
 
-    #: Name
+    #: Name for the UI in selection screen
     name = Unicode()
 
     #: Description of UI
@@ -16,7 +16,7 @@ class IContributedUI(Interface):
     workflow_file = Unicode()
 
     #: A map from (workflow element uuid, attribute name) to
-    #: (ui name, ui value)
+    #: (ui display name)
     workflow_map = Dict()
 
     #: A TraitsUI view for the workflow model

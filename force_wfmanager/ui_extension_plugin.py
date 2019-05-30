@@ -16,5 +16,6 @@ class UIExtensionPlugin(BaseExtensionPlugin):
     def get_contributed_UIs(self):
         """Returns a list of custom UIs contributed by this plugin"""
         raise NotImplementedError(
-            f"get_contributed_UIs must be implemented in the "
-            f"{self.__class__.__name__} class to contribute custom UIs")
+            f"The function 'get_contributed_UIs' must be implemented in the "
+            f"{self.__class__.__name__} class"
+        )
