@@ -1,7 +1,6 @@
-import unittest
 import subprocess
 import copy
-from unittest import mock
+from unittest import mock, TestCase
 from testfixtures import LogCapture
 
 from pyface.constant import OK, CANCEL, YES
@@ -152,7 +151,7 @@ def dummy_wfmanager():
     return wfmanager
 
 
-class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
+class TestWFManagerTasks(GuiTestAssistant, TestCase):
     def setUp(self):
         super(TestWFManagerTasks, self).setUp()
         self.setup_task, self.results_task = get_wfmanager_tasks()

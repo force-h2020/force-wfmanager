@@ -1,4 +1,4 @@
-import unittest
+from unittest import TestCase
 import testfixtures
 
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
@@ -50,7 +50,7 @@ class Plugin2(BaseExtensionPlugin):
         raise Exception("Boom")
 
 
-class TestPluginDialog(GuiTestAssistant, unittest.TestCase):
+class TestPluginDialog(GuiTestAssistant, TestCase):
 
     def test_htmlformat(self):
         self.assertIn("<h1>xxx</h1>", htmlformat("xxx"))

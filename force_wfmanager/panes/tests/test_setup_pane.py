@@ -1,4 +1,5 @@
-import unittest
+from unittest import TestCase
+
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
@@ -50,7 +51,7 @@ def mock_create_results_task():
     return func
 
 
-class TestSetupPane(GuiTestAssistant, unittest.TestCase):
+class TestSetupPane(GuiTestAssistant, TestCase):
 
     def setUp(self):
         super(TestSetupPane, self).setUp()

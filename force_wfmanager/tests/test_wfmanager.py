@@ -1,5 +1,4 @@
-import unittest
-import unittest.mock as mock
+from unittest import mock, TestCase
 
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
@@ -81,7 +80,7 @@ def mock_window(wfmanager):
     return window
 
 
-class TestWfManager(GuiTestAssistant, unittest.TestCase):
+class TestWfManager(GuiTestAssistant, TestCase):
     def setUp(self):
         super(TestWfManager, self).setUp()
         self.wfmanager = dummy_wfmanager()
@@ -150,7 +149,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
         self.assertTrue(self.setup_task.window.close.called)
 
 
-class TestTaskWindowClosePrompt(unittest.TestCase):
+class TestTaskWindowClosePrompt(TestCase):
 
     def setUp(self):
         super(TestTaskWindowClosePrompt, self).setUp()
