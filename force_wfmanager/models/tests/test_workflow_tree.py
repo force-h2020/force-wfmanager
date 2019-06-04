@@ -18,7 +18,7 @@ from force_wfmanager.models.new_entity_creator import NewEntityCreator
 
 
 NEW_ENTITY_MODAL_PATH = (
-    "force_wfmanager.left_side_pane.workflow_tree.NewEntityModal"
+    "force_wfmanager.models.workflow_tree.NewEntityModal"
 )
 
 
