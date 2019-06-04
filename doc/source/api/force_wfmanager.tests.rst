@@ -4,14 +4,6 @@ force\_wfmanager\.tests package
 Submodules
 ----------
 
-force\_wfmanager\.tests\.test\_local\_traits module
----------------------------------------------------
-
-.. automodule:: force_wfmanager.tests.test_local_traits
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 force\_wfmanager\.tests\.test\_run module
 -----------------------------------------
 

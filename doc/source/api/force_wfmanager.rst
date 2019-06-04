@@ -6,22 +6,17 @@ Subpackages
 
 .. toctree::
 
-    force_wfmanager.central_pane
-    force_wfmanager.left_side_pane
+    force_wfmanager.models
+    force_wfmanager.panes
     force_wfmanager.plugins
     force_wfmanager.server
     force_wfmanager.tests
+    force_wfmanager.ui
+    force_wfmanager.utils
+    force_wfmanager.views
 
 Submodules
 ----------
-
-force\_wfmanager\.local\_traits module
---------------------------------------
-
-.. automodule:: force_wfmanager.local_traits
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 force\_wfmanager\gui\.run module
 --------------------------------

@@ -6,7 +6,19 @@ Subpackages
 
 .. toctree::
 
-    force_wfmanager.plugins.ui_notification
+    force_wfmanager.plugins.tests
+
+Submodules
+----------
+
+force\_wfmanager\.plugins\.plugin\_dialog
+---------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.plugins.plugin_dialog
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
