@@ -1,5 +1,5 @@
 import unittest
-import mock
+from unittest import mock
 
 from force_bdss.api import (
     BaseMCOModel, Workflow, BaseNotificationListenerFactory, ExecutionLayer,
