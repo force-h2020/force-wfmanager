@@ -2,34 +2,34 @@ import unittest
 import subprocess
 import copy
 from unittest import mock
+from testfixtures import LogCapture
 
-from force_bdss.core.data_value import DataValue
-from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
-from force_bdss.io.workflow_writer import WorkflowWriter
-from force_wfmanager.central_pane.graph_pane import GraphPane
-from force_wfmanager.central_pane.setup_pane import SetupPane
-from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.tests.utils import wait_condition
 from pyface.constant import OK, CANCEL, YES
 from pyface.file_dialog import FileDialog
 from pyface.tasks.api import TaskWindow
-
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+
+from envisage.core_plugin import CorePlugin
+from envisage.ui.tasks.tasks_plugin import TasksPlugin
 
 from force_bdss.tests.probe_classes.factory_registry import \
     ProbeFactoryRegistry
 from force_bdss.api import Workflow, MCOProgressEvent, MCOStartEvent
+from force_bdss.core.data_value import DataValue
+from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
+from force_bdss.io.workflow_writer import WorkflowWriter
 
+from force_wfmanager.panes.graph_pane import GraphPane
+from force_wfmanager.panes.setup_pane import SetupPane
+from force_wfmanager.server.zmq_server import ZMQServer
+from force_wfmanager.tests.utils import wait_condition
 from force_wfmanager.wfmanager import WfManager
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
-from force_wfmanager.left_side_pane.tree_pane import TreePane
-from force_wfmanager.left_side_pane.results_pane import ResultsPane
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
+from force_wfmanager.panes.tree_pane import TreePane
+from force_wfmanager.panes.results_pane import ResultsPane
+from force_wfmanager.models.analysis_model import AnalysisModel
 
-from envisage.core_plugin import CorePlugin
-from envisage.ui.tasks.tasks_plugin import TasksPlugin
-from testfixtures import LogCapture
 
 CONFIRMATION_DIALOG_PATH = \
     'force_wfmanager.wfmanager_setup_task.ConfirmationDialog'

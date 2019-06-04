@@ -8,10 +8,10 @@ from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Bool, Instance, List, on_trait_change
 
 from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
-from force_wfmanager.central_pane.graph_pane import GraphPane
-from force_wfmanager.left_side_pane.results_pane import ResultsPane
-from force_wfmanager.task_toggle_group_accelerator import (
+from force_wfmanager.models.analysis_model import AnalysisModel
+from force_wfmanager.panes.graph_pane import GraphPane
+from force_wfmanager.panes.results_pane import ResultsPane
+from force_wfmanager.utils.task_toggle_group_accelerator import (
     TaskToggleGroupAccelerator
 )
 

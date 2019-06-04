@@ -17,12 +17,12 @@ from force_bdss.api import (
     InvalidFileException, MCOProgressEvent, MCOStartEvent, Workflow,
     WorkflowReader, WorkflowWriter
 )
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
-from force_wfmanager.central_pane.setup_pane import SetupPane
-from force_wfmanager.plugin_dialog import PluginDialog
-from force_wfmanager.left_side_pane.tree_pane import TreePane
+from force_wfmanager.models.analysis_model import AnalysisModel
+from force_wfmanager.panes.setup_pane import SetupPane
+from force_wfmanager.plugins.plugin_dialog import PluginDialog
+from force_wfmanager.panes.tree_pane import TreePane
 from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.task_toggle_group_accelerator import (
+from force_wfmanager.utils.task_toggle_group_accelerator import (
     TaskToggleGroupAccelerator
 )
 

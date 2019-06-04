@@ -1,12 +1,8 @@
 import unittest
 import unittest.mock as mock
 
-from force_wfmanager.wfmanager_plugin import WfManagerPlugin
-
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
-from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
-from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
 from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
@@ -16,9 +12,12 @@ from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
 
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
+from force_wfmanager.wfmanager_plugin import WfManagerPlugin
+from force_wfmanager.models.analysis_model import AnalysisModel
 from force_wfmanager.tests import fixtures
 from force_wfmanager.wfmanager import WfManager, TaskWindowClosePrompt
+from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
+from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
 WORKFLOW_READER_PATH = 'force_wfmanager.wfmanager_setup_task.WorkflowReader'
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
