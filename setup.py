@@ -38,7 +38,7 @@ setup(
         ],
         "force.bdss.extensions": [
             "ui_notification = "
-            "force_wfmanager.ui.ui_notification_plugin:"
+            "force_wfmanager.notifications.ui_notification_plugin:"
             "UINotificationPlugin",
         ]
     },

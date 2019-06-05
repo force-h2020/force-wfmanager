@@ -11,8 +11,8 @@ from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
 
-from force_wfmanager.wfmanager_plugin import WfManagerPlugin
-from force_wfmanager.models.analysis_model import AnalysisModel
+from force_wfmanager.ui.wfmanager_plugin import WfManagerPlugin
+from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.tests import fixtures
 from force_wfmanager.wfmanager import WfManager, TaskWindowClosePrompt
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
