@@ -20,14 +20,6 @@ force\_wfmanager\.tests\.test\_wfmanager module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.tests\.test\_wfmanager\_plugin module
--------------------------------------------------------
-
-.. automodule:: force_wfmanager.tests.test_wfmanager_plugin
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 force\_wfmanager\.tests\.test\_wfmanager\_tasks module
 ------------------------------------------------------------
 

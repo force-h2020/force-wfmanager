@@ -6,14 +6,12 @@ Subpackages
 
 .. toctree::
 
-    force_wfmanager.models
-    force_wfmanager.panes
-    force_wfmanager.plugins
+    force_wfmanager.model
+    force_wfmanager.notifications
     force_wfmanager.server
     force_wfmanager.tests
     force_wfmanager.ui
     force_wfmanager.utils
-    force_wfmanager.views
 
 Submodules
 ----------
@@ -38,14 +36,6 @@ force\_wfmanager\.wfmanager module
 ----------------------------------
 
 .. automodule:: force_wfmanager.wfmanager
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-force\_wfmanager\.wfmanager\_plugin module
-------------------------------------------
-
-.. automodule:: force_wfmanager.wfmanager_plugin
     :members:
     :undoc-members:
     :show-inheritance:

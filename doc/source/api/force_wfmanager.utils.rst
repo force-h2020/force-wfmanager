@@ -27,13 +27,6 @@ force\_wfmanager\.utils\.task\_toggle\_group\_accelerator module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.utils\.view\_utils module
----------------------------------------------------
-
-.. automodule:: force_wfmanager.utils.view_utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 Module contents
 ---------------
