@@ -3,11 +3,11 @@ from traits.api import Instance
 from traitsui.api import VGroup, View, UItem
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.results.result_table import ResultTable
+from force_wfmanager.ui.results.results_table import ResultsTable
 
 
 class ResultsPane(TraitsDockPane):
-    """ A TraitsDockPane which displays a ResultTable in the UI."""
+    """ A TraitsDockPane which displays a ResultsTable in the UI."""
 
     # -------------------
     # Required Attributes
@@ -44,19 +44,19 @@ class ResultsPane(TraitsDockPane):
 
     #: The table displaying the results.
     #: Listens to: :attr:`analysis_model`
-    result_table = Instance(ResultTable)
+    results_table = Instance(ResultsTable)
 
     # ----
     # View
     # ----
 
     traits_view = View(VGroup(
-        UItem('result_table', style='custom'),
+        UItem('results_table', style='custom'),
     ))
 
     # Defaults
 
-    def _result_table_default(self):
-        return ResultTable(
+    def _results_table_default(self):
+        return ResultsTable(
             analysis_model=self.analysis_model
         )

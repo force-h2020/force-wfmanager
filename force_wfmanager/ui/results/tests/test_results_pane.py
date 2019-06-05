@@ -15,12 +15,12 @@ class TestResultsPane(unittest.TestCase):
         self.assertIsNone(self.pane.analysis_model.selected_step_indices)
 
         self.assertEqual(
-            self.pane.result_table.analysis_model.evaluation_steps,
+            self.pane.results_table.analysis_model.evaluation_steps,
             self.pane.analysis_model.evaluation_steps
         )
 
         self.assertEqual(
-            self.pane.result_table.analysis_model.value_names,
+            self.pane.results_table.analysis_model.value_names,
             self.pane.analysis_model.value_names
         )
 
@@ -30,5 +30,5 @@ class TestResultsPane(unittest.TestCase):
         self.pane.analysis_model.add_evaluation_step((23, 52, 'C02'))
         self.assertEqual(len(self.pane.analysis_model.evaluation_steps), 2)
         self.assertEqual(
-            len(self.pane.result_table.analysis_model.evaluation_steps),
+            len(self.pane.results_table.analysis_model.evaluation_steps),
             2)

@@ -9,7 +9,7 @@ from traitsui.table_column import ListColumn
 from force_wfmanager.model.analysis_model import AnalysisModel
 
 
-class ResultTable(HasStrictTraits):
+class ResultsTable(HasStrictTraits):
     # -------------------
     # Required Attributes
     # -------------------
