@@ -19,8 +19,8 @@ from force_bdss.api import (
 )
 from force_wfmanager.models.analysis_model import AnalysisModel
 from force_wfmanager.panes.setup_pane import SetupPane
-from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.panes.tree_pane import TreePane
+from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.utils.task_toggle_group_accelerator import (
     TaskToggleGroupAccelerator
@@ -599,7 +599,7 @@ class WfManagerSetupTask(Task):
     def set_toolbar_run_btn_state(self):
         """ Sets the run button to be enabled/disabled, matching the
         value of :attr:`side_pane.run_enabled
-        <.left_side_pane.tree_pane.TreePane.run_enabled>`
+        <.panes.tree_pane.TreePane.run_enabled>`
         """
         self.run_enabled = self.side_pane.run_enabled
 
@@ -607,7 +607,7 @@ class WfManagerSetupTask(Task):
     def update_side_pane_model(self):
         """ Updates the local :attr:`workflow_model`, to match
         :attr:`side_pane.workflow_model
-        <.left_side_pane.tree_pane.TreePane.workflow_model>`, which will
+        <.panes.tree_pane.TreePane.workflow_model>`, which will
         change as the user modifies a workflow via the UI."""
         self.side_pane.workflow_model = self.workflow_model
 

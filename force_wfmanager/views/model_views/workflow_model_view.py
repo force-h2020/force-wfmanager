@@ -58,13 +58,13 @@ class WorkflowModelView(ModelView):
     #: Event to request a verification check on the workflow
     #: Listens to:
     #: :func:`MCOModelView.verify_workflow_event
-    #: <force_wfmanager.left_side_pane.mco_model_view\
+    #: <force_wfmanager.views.model_views.mco_model_view\
     #: .MCOModelView.verify_workflow_event>`,
     #: :func:`ExecutionLayerModelView.verify_workflow_event
-    #: <force_wfmanager.left_side_pane.execution_layer_model_view.\
+    #: <force_wfmanager.views.model_views.execution_layer_model_view.\
     #: ExecutionLayerModelView.verify_workflow_event>`,
     #: :func:`NotificationListenerModelView.verify_workflow_event
-    #: <force_wfmanager.left_side_pane.notification_listener_model_view.\
+    #: <force_wfmanager.views.model_views.notification_listener_model_view.\
     #: NotificationListenerModelView.verify_workflow_event>`
     verify_workflow_event = Event
 

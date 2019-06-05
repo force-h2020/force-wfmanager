@@ -44,41 +44,41 @@ class SetupPane(TraitsTaskPane):
     # ------------------
 
     #: The currently selected ModelView in the WorkflowTree.
-    #: Listens to: :attr:`left_side_pane.workflow_tree.selected_mv
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.selected_mv>`
+    #: Listens to: :attr:`models.workflow_tree.selected_mv
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.selected_mv>`
     selected_mv = Instance(ModelView)
 
     #: The model from selected_mv.
-    #: Listens to: :attr:`left_side_pane.workflow_tree.selected_mv
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.selected_mv>`
+    #: Listens to: :attr:`models.workflow_tree.selected_mv
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.selected_mv>`
     selected_model = Instance(BaseModel)
 
     #: The name of the currently selected factory. If no factory is selected,
     #: this is set to 'None' (with type Unicode, not NoneType!)
-    #: Listens to: :attr:`left_side_pane.workflow_tree.selected_factory_name
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.\
+    #: Listens to: :attr:`models.workflow_tree.selected_factory_name
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
     #: selected_factory_name>`
     selected_factory_name = Unicode('Workflow')
 
     #: A function which adds a new entity to the workflow tree, using the
     #: currently selected factory. For example, if the 'DataSources' factory
     #: is selected, this function would be ``new_data_source()``.
-    #: Listens to: :attr:`left_side_pane.workflow_tree.add_new_entity
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.\
+    #: Listens to: :attr:`models.workflow_tree.add_new_entity
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
     #: add_new_entity>`
     add_new_entity = Callable()
 
     #: A function to remove the currently selected modelview from the
     #: workflow tree.
-    #: Listens to: :attr:`left_side_pane.workflow_tree.remove_entity
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.\
+    #: Listens to: :attr:`models.workflow_tree.remove_entity
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
     #: remove_entity>`
     remove_entity = Callable()
 
     #: A NewEntityModal object displaying the factories of the currently
     #: selected group.
-    #: Listens to: :attr:`left_side_pane.workflow_tree.entity_creator
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.\
+    #: Listens to: :attr:`models.workflow_tree.entity_creator
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
     #: entity_creator>`
     entity_creator = Instance(NewEntityCreator)
 

@@ -46,12 +46,12 @@ class MCOModelView(ModelView):
 
     #: Defines if the MCO is valid or not. Updated by
     #: :func:`verify_tree
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Updated by
     #: :func:`verify_tree
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
     # Workflow Verification

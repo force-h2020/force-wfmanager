@@ -27,7 +27,7 @@ class NotificationListenerModelView(ModelView):
 
     #: An error message for issues in this modelview. Updated by
     #: :func:`workflow_tree.WorkflowTree.verify_tree
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
     #: Event to request a verification check on the workflow.
@@ -35,7 +35,7 @@ class NotificationListenerModelView(ModelView):
 
     #: Defines if the Notification listener is valid or not. Updated by
     #: :func:`workflow_tree.WorkflowTree.verify_tree
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
     def _label_default(self):

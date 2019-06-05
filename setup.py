@@ -31,14 +31,14 @@ setup(
     description='Workflow manager',
     long_description=README_TEXT,
     packages=find_packages(),
-    package_data={'force_wfmanager.left_side_pane': 'icons/*'},
+    package_data={'force_wfmanager.models': 'icons/*'},
     entry_points={
         'gui_scripts': [
             'force_wfmanager = force_wfmanager.gui.run:force_wfmanager'
         ],
         "force.bdss.extensions": [
             "ui_notification = "
-            "force_wfmanager.plugins.ui_notification.ui_notification_plugin:"
+            "force_wfmanager.ui.ui_notification_plugin:"
             "UINotificationPlugin",
         ]
     },
