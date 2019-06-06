@@ -3,6 +3,7 @@ from envisage.ui.tasks.api import TaskFactory
 from traits.api import Either, List, Unicode
 
 from force_bdss.api import IFactoryRegistry
+from force_wfmanager.io.workflow_io import write_workflow_file
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
@@ -37,7 +38,8 @@ class WfManagerPlugin(Plugin):
             factory_registry=factory_registry,
         )
         if self.workflow_file is not None:
-            wf_manager_setup_task.open_workflow_file(self.workflow_file)
+            write_workflow_file(wf_manager_setup_task,
+                               self.workflow_file)
 
         return wf_manager_setup_task
 

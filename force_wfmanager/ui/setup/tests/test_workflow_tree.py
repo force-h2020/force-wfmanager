@@ -335,6 +335,3 @@ class TestWorkflowElementNode(unittest.TestCase):
         obj.valid = False
         self.assertEqual(wfelement_node.get_icon(obj, False),
                          'invalid.png')
-
-        self.assertEqual(wfelement_node.get_icon_path(obj),
-                         '/Users/flongford/FORCE/force-wfmanager/force_wfmanager/images/')

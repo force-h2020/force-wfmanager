@@ -17,8 +17,9 @@ from force_wfmanager.tests import fixtures
 from force_wfmanager.wfmanager import WfManager, TaskWindowClosePrompt
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
+from force_wfmanager.io.workflow_io import load_workflow_file
 
-WORKFLOW_READER_PATH = 'force_wfmanager.wfmanager_setup_task.WorkflowReader'
+WORKFLOW_READER_PATH = 'force_wfmanager.io.workflow_io.WorkflowReader'
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
 
 
@@ -43,7 +44,7 @@ def mock_create_setup_task(filename):
         wf_manager_task = WfManagerSetupTask(
             factory_registry=ProbeFactoryRegistry())
         if filename is not None:
-            wf_manager_task.open_workflow_file(filename)
+            load_workflow_file(wf_manager_task, filename)
         return wf_manager_task
     return func
 

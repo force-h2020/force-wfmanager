@@ -14,6 +14,8 @@ from force_wfmanager.ui.results.results_pane import ResultsPane
 from force_wfmanager.wfmanager import (
     TaskToggleGroupAccelerator
 )
+from force_wfmanager.io.analysis_model_io import write_analysis_model
+from force_wfmanager.io.project_io import write_project_file, load_project_file
 
 log = logging.getLogger(__name__)
 
@@ -219,7 +221,7 @@ class WfManagerResultsTask(Task):
 
         current_file = dialog.path
 
-        if self._write_analysis_model(current_file):
+        if write_analysis_model(self, current_file):
             self.current_file = current_file
             return True
 
@@ -240,50 +242,11 @@ class WfManagerResultsTask(Task):
 
         current_file = dialog.path
 
-        if self._write_project_file(current_file):
+        if write_project_file(self, current_file):
             self.current_file = current_file
             return True
 
         return False
-
-    def _write_project_file(self, file_path):
-        """ Writes a JSON file that contains the :attr:`Workflow` and
-        :attr:`AnalysisModel`.
-
-        """
-        try:
-            with open(file_path, 'w') as output:
-                # create a dictionary that contains analysis model,
-                # workflow and version that can be read back in by
-                # :class:`WorkflowReader`, and dump to JSON
-                project_json = {}
-                project_json['analysis_model'] = self.analysis_model.as_json()
-                project_json['workflow'] = WorkflowWriter() \
-                    .get_workflow_data(self.workflow_model)
-                project_json['version'] = WorkflowWriter().version
-                json.dump(project_json, output, indent=4)
-
-        except IOError as e:
-            error(
-                None,
-                'Cannot save in the requested file:\n\n{}'.format(
-                    str(e)),
-                'Error when saving the project'
-            )
-            log.exception('Error when saving Project')
-            return False
-
-        except Exception as e:
-            error(
-                None,
-                'Cannot save the Project:\n\n{}'.format(
-                    str(e)),
-                'Error when saving results'
-            )
-            log.exception('Error when the Project')
-            return False
-        else:
-            return True
 
     def open_project(self):
         """ Shows a dialog to open a JSON file and load the contents into
@@ -303,110 +266,11 @@ class WfManagerResultsTask(Task):
 
         current_file = dialog.path
 
-        if self._load_project_file(current_file):
+        if load_project_file(self, current_file):
             self.current_file = current_file
             return True
 
         return False
-
-    def _load_project_file(self, file_path):
-        """ Load contents of JSON file into:attr:`Workflow` and
-        :attr:`AnalysisModel`.
-
-        """
-
-        try:
-            with open(file_path, 'r') as fp:
-                project_json = json.load(fp)
-
-                # share the analysis model with the setup_task
-                self.analysis_model.from_dict(project_json['analysis_model'])
-                self.setup_task.analysis_model = self.analysis_model
-
-                # create two separate workflows, so that setup task can be
-                # edited without changing the results task copy
-                reader = WorkflowReader(self.setup_task.factory_registry)
-                fp.seek(0)
-                self.workflow_model = reader.read(fp)
-                fp.seek(0)
-                self.setup_task.workflow_model = reader.read(fp)
-
-        except KeyError as e:
-            error(
-                None,
-                'Unable to find analysis model:\n\n{}'.format(
-                    str(e)),
-                'Error when loading project'
-            )
-            log.exception('KeyError when loading project')
-            return False
-
-        except IOError as e:
-            error(
-                None,
-                'Unable to load file:\n\n{}'.format(
-                    str(e)),
-                'Error when loading project'
-            )
-            log.exception('Error loading project file')
-            return False
-
-        except Exception as e:
-            error(
-                None,
-                'Unable to load project:\n\n{}'.format(
-                    str(e)),
-                'Error when loading project'
-            )
-            log.exception('Error when loading project')
-            return False
-
-        else:
-            return True
-
-    def _write_analysis_model(self, file_path):
-        """ Write the contents of the analysis model to a JSON file.
-
-        Parameters
-        ----------
-        file_path (str)
-            the name of the file to write to.
-
-        Returns
-        -------
-        bool: true if save was successful.
-
-        """
-        try:
-            with open(file_path, 'w') as output:
-                if file_path.endswith('.json'):
-                    self.analysis_model.write_to_json(output)
-                elif file_path.endswith('.csv'):
-                    self.analysis_model.write_to_csv(output)
-                else:
-                    raise IOError('Unrecognised file type, should be one of '
-                                  'JSON/CSV.')
-
-        except IOError as e:
-            error(
-                None,
-                'Cannot save in the requested file:\n\n{}'.format(
-                    str(e)),
-                'Error when saving the results table'
-            )
-            log.exception('Error when saving AnalysisModel')
-            return False
-        except Exception as e:
-            error(
-                None,
-                'Cannot save the results table:\n\n{}'.format(
-                    str(e)),
-                'Error when saving results'
-            )
-            log.exception('Error when saving results')
-            return False
-        else:
-            return True
 
     # Synchronization with Setup Task
 
