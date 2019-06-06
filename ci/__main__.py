@@ -14,6 +14,7 @@ ADDITIONAL_CORE_DEPS = [
     "numpy==1.13.3-3",
     "chaco==4.7.1-2",
     "pyzmq==16.0.0-4",
+    "mock==2.0.0-1"
 ]
 
 # Pick particular TraitsUI commit until TabularEditor fixes are merged.
