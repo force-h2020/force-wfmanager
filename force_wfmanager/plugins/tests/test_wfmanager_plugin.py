@@ -3,7 +3,7 @@ from unittest import mock
 
 from envisage.api import Application
 
-from force_wfmanager.ui.wfmanager_plugin import WfManagerPlugin
+from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
 
 
 class TestWfManagerPlugin(unittest.TestCase):
@@ -22,7 +22,7 @@ class TestWfManagerPlugin(unittest.TestCase):
             return
 
         with mock.patch(
-                "force_wfmanager.ui.wfmanager_plugin"
+                "force_wfmanager.plugins.wfmanager_plugin"
                 ".WfManagerSetupTask") as mock_setup_task:
             mock_setup_task.side_effect = mock_wfmanager_task_constructor
 
@@ -30,7 +30,7 @@ class TestWfManagerPlugin(unittest.TestCase):
             self.assertTrue(mock_setup_task.called)
 
         with mock.patch(
-                "force_wfmanager.ui.wfmanager_plugin"
+                "force_wfmanager.plugins.wfmanager_plugin"
                 ".WfManagerResultsTask") as mock_results_task:
             mock_results_task.side_effect = mock_wfmanager_task_constructor
 

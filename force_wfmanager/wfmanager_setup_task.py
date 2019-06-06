@@ -20,7 +20,7 @@ from force_bdss.api import (
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.tree_pane import TreePane
-from force_wfmanager.ui.plugin_dialog import PluginDialog
+from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.utils.task_toggle_group_accelerator import (
     TaskToggleGroupAccelerator

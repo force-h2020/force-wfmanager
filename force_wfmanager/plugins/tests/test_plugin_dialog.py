@@ -5,7 +5,7 @@ from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from traits.api import HasTraits, Instance
 
 from force_bdss.base_extension_plugin import BaseExtensionPlugin
-from force_wfmanager.ui.plugin_dialog import htmlformat, PluginDialog
+from force_wfmanager.plugins.plugin_dialog import htmlformat, PluginDialog
 
 
 class UIDummy:

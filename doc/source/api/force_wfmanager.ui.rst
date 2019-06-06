@@ -13,14 +13,6 @@ Subpackages
 Submodules
 ----------
 
-force\_wfmanager\.ui\.plugin\_dialog
---------------------------------------
-
-.. automodule:: force_wfmanager.ui.plugin_dialog
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 force\_wfmanager\.ui\.view\_utils module
 ------------------------------------------
 
@@ -28,16 +20,6 @@ force\_wfmanager\.ui\.view\_utils module
     :members:
     :undoc-members:
     :show-inheritance:
-
-
-force\_wfmanager\.ui\.wfmanager\_plugin module
-----------------------------------------------
-
-.. automodule:: force_wfmanager.ui.wfmanager_plugin
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

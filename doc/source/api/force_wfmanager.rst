@@ -8,6 +8,7 @@ Subpackages
 
     force_wfmanager.model
     force_wfmanager.notifications
+    force_wfmanager.plugins
     force_wfmanager.server
     force_wfmanager.tests
     force_wfmanager.ui

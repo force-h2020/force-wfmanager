@@ -12,7 +12,7 @@ from force_wfmanager.ui.setup.workflow_model_view import (
     WorkflowModelView
 )
 from force_wfmanager.wfmanager import WfManager
-from force_wfmanager.ui.wfmanager_plugin import WfManagerPlugin
+from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
