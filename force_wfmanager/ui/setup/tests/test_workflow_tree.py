@@ -331,7 +331,10 @@ class TestWorkflowElementNode(unittest.TestCase):
         obj = mock.Mock()
         obj.valid = True
         self.assertEqual(wfelement_node.get_icon(obj, False),
-                         'icons/valid.png')
+                         'valid.png')
         obj.valid = False
         self.assertEqual(wfelement_node.get_icon(obj, False),
-                         'icons/invalid.png')
+                         'invalid.png')
+
+        self.assertEqual(wfelement_node.get_icon_path(obj),
+                         '/Users/flongford/FORCE/force-wfmanager/force_wfmanager/images/')
