@@ -5,7 +5,7 @@ from traitsui.api import ModelView
 from force_bdss.api import BaseMCOModel
 from force_wfmanager.ui.setup.kpi_specification_model_view import \
     KPISpecificationModelView
-from force_wfmanager.model.variable_names_registry import \
+from force_wfmanager.ui.variable_names_registry import \
     VariableNamesRegistry
 
 from .mco_parameter_model_view import MCOParameterModelView

@@ -3,9 +3,10 @@ from traits.api import (Instance, Unicode, Bool, on_trait_change, List, Int,
 from traitsui.api import ModelView
 
 from force_bdss.api import ExecutionLayer
+
 from .data_source_model_view import \
     DataSourceModelView
-from force_wfmanager.model.variable_names_registry import \
+from force_wfmanager.ui.variable_names_registry import \
     VariableNamesRegistry
 
 

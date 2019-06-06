@@ -8,7 +8,7 @@ from force_wfmanager.ui.setup.execution_layer_model_view import (
 from force_wfmanager.ui.setup.mco_model_view import MCOModelView
 from force_wfmanager.ui.setup.notification_listener_model_view \
     import NotificationListenerModelView
-from force_wfmanager.model.variable_names_registry import (
+from force_wfmanager.ui.variable_names_registry import (
     VariableNamesRegistry
 )
 

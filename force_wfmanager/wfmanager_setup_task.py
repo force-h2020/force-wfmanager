@@ -22,7 +22,7 @@ from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.tree_pane import TreePane
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.utils.task_toggle_group_accelerator import (
+from force_wfmanager.wfmanager import (
     TaskToggleGroupAccelerator
 )
 
@@ -224,8 +224,8 @@ class WfManagerSetupTask(Task):
         )
 
     def create_central_pane(self):
-        """ Creates the central pane which contains the analysis part
-        (pareto front and output KPI values)
+        """ Creates the central pane which contains the layer info part
+        (factory selection and new object configuration editors)
         """
         return SetupPane(workflow_model=self.workflow_model)
 

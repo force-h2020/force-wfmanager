@@ -11,7 +11,7 @@ from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.results.graph_pane import GraphPane
 from force_wfmanager.ui.results.results_pane import ResultsPane
-from force_wfmanager.utils.task_toggle_group_accelerator import (
+from force_wfmanager.wfmanager import (
     TaskToggleGroupAccelerator
 )
 

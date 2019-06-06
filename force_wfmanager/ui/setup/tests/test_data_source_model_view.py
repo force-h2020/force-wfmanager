@@ -12,7 +12,7 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
 
 from force_wfmanager.ui.setup.data_source_model_view import \
     DataSourceModelView
-from force_wfmanager.model.variable_names_registry import \
+from force_wfmanager.ui.variable_names_registry import \
     VariableNamesRegistry
 
 

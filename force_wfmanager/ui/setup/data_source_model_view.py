@@ -11,7 +11,7 @@ from force_bdss.api import (BaseDataSourceModel, BaseDataSource, Identifier,
 
 from force_wfmanager.ui.view_utils import (
     get_factory_name, get_default_background_color)
-from force_wfmanager.model.variable_names_registry import (
+from force_wfmanager.ui.variable_names_registry import (
     VariableNamesRegistry)
 
 

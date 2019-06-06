@@ -5,7 +5,7 @@ from traits.api import (
 from traitsui.api import EnumEditor, Item, ModelView, View
 
 from force_bdss.api import KPISpecification, Identifier
-from force_wfmanager.model.variable_names_registry import (
+from force_wfmanager.ui.variable_names_registry import (
     VariableNamesRegistry
 )
 
