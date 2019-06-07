@@ -7,6 +7,7 @@ from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Bool, Instance, List, on_trait_change
 
 from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
+
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.results.graph_pane import GraphPane
 from force_wfmanager.ui.results.results_pane import ResultsPane
