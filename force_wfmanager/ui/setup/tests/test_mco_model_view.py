@@ -8,7 +8,7 @@ from force_wfmanager.ui.setup.mco_model_view import MCOModelView
 from force_wfmanager.ui.setup.mco_parameter_model_view import \
     MCOParameterModelView
 
-from force_wfmanager.ui.variable_names_registry import \
+from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
 from force_wfmanager.ui.setup.workflow_tree import Workflow
 

@@ -2,7 +2,7 @@ import unittest
 from traits.testing.unittest_tools import UnittestTools
 
 from force_bdss.api import OutputSlotInfo
-from force_wfmanager.ui.tests.test_variable_names_registry import \
+from force_wfmanager.utils.tests.test_variable_names_registry import \
     basic_variable_names_registry
 
 from force_bdss.api import KPISpecification

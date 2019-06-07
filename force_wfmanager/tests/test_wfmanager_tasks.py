@@ -6,6 +6,7 @@ from testfixtures import LogCapture
 from pyface.constant import OK, CANCEL, YES
 from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+from pyface.tasks.api import TaskWindow
 
 from force_bdss.tests.probe_classes.factory_registry import \
     ProbeFactoryRegistry
@@ -21,7 +22,10 @@ from force_wfmanager.tests.utils import wait_condition
 from force_wfmanager.ui.setup.tree_pane import TreePane
 from force_wfmanager.ui.results.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
-from .dummy_wfmanager import get_dummy_wfmanager_tasks
+
+from .dummy_methods import mock_file_reader, mock_dialog
+from .dummy_classes import (
+    DummyWfManager, DummyWfManagerSetupTask, DummyWfManagerResultsTask)
 
 
 CONFIRMATION_DIALOG_PATH = \
@@ -50,15 +54,6 @@ RESULTS_WORKFLOW_READER_PATH = \
 RESULTS_ERROR_PATH = 'force_wfmanager.io.project_io.error'
 
 
-def mock_dialog(dialog_class, result, path=''):
-    def mock_dialog_call(*args, **kwargs):
-        dialog = mock.Mock(spec=dialog_class)
-        dialog.open = lambda: result
-        dialog.path = path
-        return dialog
-    return mock_dialog_call
-
-
 def mock_file_writer(*args, **kwargs):
     def write(*args, **kwargs):
         return ''
@@ -71,15 +66,6 @@ def mock_confirm_function(result):
     def mock_conf(*args, **kwargs):
         return result
     return mock_conf
-
-
-def mock_file_reader(*args, **kwargs):
-    def read(*args, **kwargs):
-        workflow = Workflow()
-        return workflow
-    reader = mock.Mock(spec=WorkflowReader)
-    reader.read = read
-    return reader
 
 
 def mock_file_reader_failure(*args, **kwargs):
@@ -108,6 +94,40 @@ def mock_subprocess(*args, **kwargs):
 
 def mock_info_dialog(*args, **kwargs):
     return args
+
+
+def get_dummy_wfmanager_tasks():
+    # Returns the Setup and Results Tasks, with a mock TaskWindow and dummy
+    # Application which does not have an event loop.
+
+    app = DummyWfManager(mode=1)
+
+    analysis_model = AnalysisModel()
+    workflow_model = Workflow()
+    factory_registry_plugin = ProbeFactoryRegistry()
+
+    setup_test = DummyWfManagerSetupTask(
+        analysis_model=analysis_model, workflow_model=workflow_model,
+        factory_registry=factory_registry_plugin
+    )
+
+    results_task = DummyWfManagerResultsTask(
+        analysis_model=analysis_model, workflow_model=workflow_model,
+        factory_registry=factory_registry_plugin
+    )
+    tasks = [setup_test, results_task]
+
+    for task in tasks:
+        mock_window = mock.Mock(spec=TaskWindow)
+        mock_window.tasks = tasks
+        task.window = mock_window
+        task.window.application = app
+        task.window.application.factory_registry = factory_registry_plugin
+
+        task.create_central_pane()
+        task.create_dock_panes()
+
+    return tasks[0], tasks[1]
 
 
 class TestWFManagerTasks(GuiTestAssistant, TestCase):

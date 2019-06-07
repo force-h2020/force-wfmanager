@@ -32,7 +32,7 @@ from force_wfmanager.ui.setup.notification_listener_model_view \
 from force_wfmanager.ui.setup.workflow_model_view import (
     WorkflowModelView
 )
-from force_wfmanager.ui.view_utils import model_info
+from force_wfmanager.ui.ui_utils import model_info
 
 # VerifierError severity constants
 _ERROR = "error"

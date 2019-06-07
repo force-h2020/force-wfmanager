@@ -15,7 +15,7 @@ from force_wfmanager.ui.setup.new_entity_creator import (
      NewEntityCreator
 )
 from force_wfmanager.ui.setup.workflow_tree import WorkflowModelView
-from force_wfmanager.ui.view_utils import model_info
+from force_wfmanager.ui.ui_utils import model_info
 
 
 class UIDummy:

@@ -10,7 +10,7 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
 
 from force_wfmanager.ui.setup.workflow_model_view import \
     WorkflowModelView
-from force_wfmanager.ui.variable_names_registry import \
+from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
 from force_bdss.tests.probe_classes.data_source import (ProbeDataSourceFactory,
                                                         ProbeDataSourceModel)

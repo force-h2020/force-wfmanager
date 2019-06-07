@@ -3,7 +3,7 @@ from unittest import mock, TestCase
 from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
-from force_bdss.api import (Workflow, WorkflowReader)
+from force_bdss.api import Workflow
 from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
@@ -12,7 +12,8 @@ from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.tests import fixtures
 from force_wfmanager.wfmanager import TaskWindowClosePrompt
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
-from .dummy_wfmanager import get_dummy_wfmanager
+from .dummy_methods import mock_file_reader, mock_dialog
+from .dummy_classes import DummyWfManager
 
 WORKFLOW_READER_PATH = 'force_wfmanager.io.workflow_io.WorkflowReader'
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
@@ -26,24 +27,6 @@ def mock_create_results_task():
     return func
 
 
-def mock_dialog(dialog_class, result, path=''):
-    def mock_dialog_call(*args, **kwargs):
-        dialog = mock.Mock(spec=dialog_class)
-        dialog.open = lambda: result
-        dialog.path = path
-        return dialog
-    return mock_dialog_call
-
-
-def mock_file_reader(*args, **kwargs):
-    def read(*args, **kwargs):
-        workflow = Workflow()
-        return workflow
-    reader = mock.Mock(spec=WorkflowReader)
-    reader.read = read
-    return reader
-
-
 def mock_window(wfmanager):
     window = mock.Mock(TaskWindowClosePrompt)
     window.application = wfmanager
@@ -53,7 +36,7 @@ def mock_window(wfmanager):
 class TestWfManager(GuiTestAssistant, TestCase):
     def setUp(self):
         super(TestWfManager, self).setUp()
-        self.wfmanager = get_dummy_wfmanager()
+        self.wfmanager = DummyWfManager()
 
     def create_tasks(self):
 
@@ -77,7 +60,7 @@ class TestWfManager(GuiTestAssistant, TestCase):
     def test_init_with_file(self):
         with mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_reader.side_effect = mock_file_reader
-            self.wfmanager = get_dummy_wfmanager(
+            self.wfmanager = DummyWfManager(
                 fixtures.get('evaluation-4.json'))
             self.create_tasks()
             self.assertEqual(self.setup_task.current_file.split('/')[-1],
@@ -124,7 +107,7 @@ class TestTaskWindowClosePrompt(TestCase):
 
     def setUp(self):
         super(TestTaskWindowClosePrompt, self).setUp()
-        self.wfmanager = get_dummy_wfmanager()
+        self.wfmanager = DummyWfManager()
         self.create_tasks()
 
     def create_tasks(self):

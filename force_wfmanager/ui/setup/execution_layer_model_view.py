@@ -6,7 +6,7 @@ from force_bdss.api import ExecutionLayer
 
 from .data_source_model_view import \
     DataSourceModelView
-from force_wfmanager.ui.variable_names_registry import \
+from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
 
 

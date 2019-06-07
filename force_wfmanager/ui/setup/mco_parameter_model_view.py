@@ -4,7 +4,7 @@ from traitsui.api import View, Item, ModelView
 
 from force_bdss.api import BaseMCOParameter
 
-from force_wfmanager.ui.view_utils import get_factory_name
+from force_wfmanager.ui.ui_utils import get_factory_name
 
 
 class MCOParameterModelView(ModelView):

@@ -9,7 +9,7 @@ from traitsui.api import (
 from envisage.plugin import Plugin
 
 from force_bdss.api import BaseFactory, BaseMCOParameter, BaseModel
-from force_wfmanager.ui.view_utils import model_info
+from force_wfmanager.ui.ui_utils import model_info
 
 no_view = View()
 no_menu = Menu()

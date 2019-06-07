@@ -7,7 +7,7 @@ from traitsui.api import (
     TableEditor, TextEditor, UReadonly, ObjectColumn
 )
 
-from force_wfmanager.ui.variable_names_registry import \
+from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
 from force_wfmanager.ui.setup.workflow_model_view import \
     WorkflowModelView

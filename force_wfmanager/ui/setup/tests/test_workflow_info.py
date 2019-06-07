@@ -10,7 +10,7 @@ from force_bdss.tests.probe_classes.factory_registry import \
 from force_bdss.tests.probe_classes.mco import ProbeMCOModel, ProbeMCOFactory
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
-from force_wfmanager.ui.variable_names_registry import \
+from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
 from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
 from force_wfmanager.ui.setup.workflow_model_view import \

@@ -8,7 +8,7 @@ from force_bdss.core.workflow import Workflow
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 
-from force_wfmanager.ui.variable_names_registry import (
+from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry)
 
 
