@@ -4,14 +4,21 @@ force\_wfmanager\.tests package
 Submodules
 ----------
 
-force\_wfmanager\.tests\.dummy\_wfmanager module
+force\_wfmanager\.tests\.dummy\_classes module
 -------------------------------------------------
 
-.. automodule:: force_wfmanager.tests.dummy_wfmanager
+.. automodule:: force_wfmanager.tests.dummy_classes
     :members:
     :undoc-members:
     :show-inheritance:
 
+force\_wfmanager\.tests\.dummy\_methods module
+-------------------------------------------------
+
+.. automodule:: force_wfmanager.tests.dummy_methods
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 force\_wfmanager\.tests\.test\_run module
 -----------------------------------------

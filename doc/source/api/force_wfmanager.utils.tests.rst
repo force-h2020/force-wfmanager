@@ -12,6 +12,15 @@ force\_wfmanager\.utils\.tests\.test\_local\_traits module
     :undoc-members:
     :show-inheritance:
 
+force\_wfmanager\.utils\.tests\.test\_variable\_names\_registry module
+--------------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.utils.tests.test_variable_names_registry
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 Module contents
 ---------------
 

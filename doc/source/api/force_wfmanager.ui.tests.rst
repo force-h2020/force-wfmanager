@@ -4,23 +4,13 @@ force\_wfmanager\.ui\.tests package
 Submodules
 ----------
 
-force\_wfmanager\.plugins\.ui\.test\_factory\_name module
--------------------------------------------------------------
-
-.. automodule:: force_wfmanager.ui.tests.test_factory_name
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-force\_wfmanager\.ui\.tests\.test\_variable\_names\_registry module
+force\_wfmanager\.ui\.tests\.test\_ui\_utils module
 --------------------------------------------------------------------------
 
-.. automodule:: force_wfmanager.ui.tests.test_variable_names_registry
+.. automodule:: force_wfmanager.ui.tests.test_ui_utils
     :members:
     :undoc-members:
     :show-inheritance:
-
 
 Module contents
 ---------------
