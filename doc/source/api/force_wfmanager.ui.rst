@@ -21,6 +21,15 @@ force\_wfmanager\.ui\.view\_utils module
     :undoc-members:
     :show-inheritance:
 
+force\_wfmanager\.ui\.variable\_names\_registry module
+--------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.ui.variable_names_registry
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 Module contents
 ---------------
 

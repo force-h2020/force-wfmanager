@@ -1,8 +1,7 @@
 import logging
-import json
 import tempfile
 
-from pyface.api import ImageResource, FileDialog, OK, error
+from pyface.api import ImageResource, FileDialog, OK
 from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Bool, Instance, List, on_trait_change

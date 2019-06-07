@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    force_wfmanager.io
     force_wfmanager.model
     force_wfmanager.notifications
     force_wfmanager.plugins

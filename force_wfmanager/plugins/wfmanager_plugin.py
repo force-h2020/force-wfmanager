@@ -39,7 +39,7 @@ class WfManagerPlugin(Plugin):
         )
         if self.workflow_file is not None:
             write_workflow_file(wf_manager_setup_task,
-                               self.workflow_file)
+                                self.workflow_file)
 
         return wf_manager_setup_task
 

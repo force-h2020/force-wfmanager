@@ -14,8 +14,8 @@ from traits.api import Instance, on_trait_change, List, Bool, Unicode, File
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
-    InvalidFileException, MCOProgressEvent, MCOStartEvent, Workflow,
-    WorkflowReader, WorkflowWriter
+    MCOProgressEvent, MCOStartEvent, Workflow,
+    WorkflowWriter
 )
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.setup.setup_pane import SetupPane

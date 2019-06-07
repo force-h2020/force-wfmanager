@@ -20,15 +20,6 @@ force\_wfmanager\.model\.analysis\_model module
     :show-inheritance:
 
 
-force\_wfmanager\.model\.variable\_names\_registry module
---------------------------------------------------------------------
-
-.. automodule:: force_wfmanager.model.variable_names_registry
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
 Module contents
 ---------------
 

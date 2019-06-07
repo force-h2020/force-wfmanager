@@ -1,8 +1,5 @@
 from unittest import mock, TestCase
 
-from envisage.core_plugin import CorePlugin
-from envisage.ui.tasks.tasks_plugin import TasksPlugin
-
 from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
@@ -11,42 +8,14 @@ from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
 
-from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.tests import fixtures
-from force_wfmanager.wfmanager import WfManager, TaskWindowClosePrompt
+from force_wfmanager.wfmanager import TaskWindowClosePrompt
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
-from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
-from force_wfmanager.io.workflow_io import load_workflow_file
+from .dummy_wfmanager import get_dummy_wfmanager
 
 WORKFLOW_READER_PATH = 'force_wfmanager.io.workflow_io.WorkflowReader'
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
-
-
-def dummy_wfmanager(filename=None):
-    plugins = [CorePlugin(), TasksPlugin(),
-               mock_wfmanager_plugin(filename)]
-    wfmanager = WfManager(plugins=plugins)
-    # 'Run' the application by creating windows without an event loop
-    wfmanager.run = wfmanager._create_windows
-    return wfmanager
-
-
-def mock_wfmanager_plugin(filename):
-    plugin = WfManagerPlugin()
-    plugin._create_setup_task = mock_create_setup_task(filename)
-    plugin._create_results_task = mock_create_results_task()
-    return plugin
-
-
-def mock_create_setup_task(filename):
-    def func():
-        wf_manager_task = WfManagerSetupTask(
-            factory_registry=ProbeFactoryRegistry())
-        if filename is not None:
-            load_workflow_file(wf_manager_task, filename)
-        return wf_manager_task
-    return func
 
 
 def mock_create_results_task():
@@ -84,7 +53,7 @@ def mock_window(wfmanager):
 class TestWfManager(GuiTestAssistant, TestCase):
     def setUp(self):
         super(TestWfManager, self).setUp()
-        self.wfmanager = dummy_wfmanager()
+        self.wfmanager = get_dummy_wfmanager()
 
     def create_tasks(self):
 
@@ -108,7 +77,8 @@ class TestWfManager(GuiTestAssistant, TestCase):
     def test_init_with_file(self):
         with mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_reader.side_effect = mock_file_reader
-            self.wfmanager = dummy_wfmanager(fixtures.get('evaluation-4.json'))
+            self.wfmanager = get_dummy_wfmanager(
+                fixtures.get('evaluation-4.json'))
             self.create_tasks()
             self.assertEqual(self.setup_task.current_file.split('/')[-1],
                              'evaluation-4.json')
@@ -154,7 +124,7 @@ class TestTaskWindowClosePrompt(TestCase):
 
     def setUp(self):
         super(TestTaskWindowClosePrompt, self).setUp()
-        self.wfmanager = dummy_wfmanager()
+        self.wfmanager = get_dummy_wfmanager()
         self.create_tasks()
 
     def create_tasks(self):

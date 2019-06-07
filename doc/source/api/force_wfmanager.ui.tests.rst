@@ -13,6 +13,15 @@ force\_wfmanager\.plugins\.ui\.test\_factory\_name module
     :show-inheritance:
 
 
+force\_wfmanager\.ui\.tests\.test\_variable\_names\_registry module
+--------------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.ui.tests.test_variable_names_registry
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 Module contents
 ---------------
 
