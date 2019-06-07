@@ -13,23 +13,23 @@ from force_bdss.api import (
     ExecutionLayer, IFactoryRegistry, InputSlotInfo, KPISpecification,
     OutputSlotInfo, Workflow, verify_workflow
 )
-from force_wfmanager.ui.setup.data_source_model_view import (
+from force_wfmanager.ui.setup.model_views.data_source_model_view import (
     DataSourceModelView
 )
-from force_wfmanager.ui.setup.execution_layer_model_view import (
+from force_wfmanager.ui.setup.model_views.execution_layer_model_view import (
     ExecutionLayerModelView
 )
-from force_wfmanager.ui.setup.kpi_specification_model_view import (
+from force_wfmanager.ui.setup.model_views.kpi_specification_model_view import (
     KPISpecificationModelView
 )
-from force_wfmanager.ui.setup.mco_model_view import MCOModelView
-from force_wfmanager.ui.setup.mco_parameter_model_view import (
+from force_wfmanager.ui.setup.model_views.mco_model_view import MCOModelView
+from force_wfmanager.ui.setup.model_views.mco_parameter_model_view import (
     MCOParameterModelView
 )
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
-from force_wfmanager.ui.setup.notification_listener_model_view \
+from force_wfmanager.ui.setup.model_views.notification_listener_model_view \
     import NotificationListenerModelView
-from force_wfmanager.ui.setup.workflow_model_view import (
+from force_wfmanager.ui.setup.model_views.workflow_model_view import (
     WorkflowModelView
 )
 from force_wfmanager.ui.ui_utils import model_info

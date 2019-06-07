@@ -2,11 +2,11 @@ from traits.api import Bool, Event, Instance, List, Unicode, on_trait_change
 from traitsui.api import ModelView
 
 from force_bdss.api import Workflow
-from force_wfmanager.ui.setup.execution_layer_model_view import (
+from force_wfmanager.ui.setup.model_views.execution_layer_model_view import (
     ExecutionLayerModelView
 )
-from force_wfmanager.ui.setup.mco_model_view import MCOModelView
-from force_wfmanager.ui.setup.notification_listener_model_view \
+from force_wfmanager.ui.setup.model_views.mco_model_view import MCOModelView
+from force_wfmanager.ui.setup.model_views.notification_listener_model_view \
     import NotificationListenerModelView
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry

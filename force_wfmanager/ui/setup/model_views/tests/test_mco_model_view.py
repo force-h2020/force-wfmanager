@@ -4,8 +4,8 @@ from force_bdss.api import KPISpecification
 from force_bdss.tests.dummy_classes.extension_plugin import \
     DummyExtensionPlugin
 
-from force_wfmanager.ui.setup.mco_model_view import MCOModelView
-from force_wfmanager.ui.setup.mco_parameter_model_view import \
+from force_wfmanager.ui.setup.model_views.mco_model_view import MCOModelView
+from force_wfmanager.ui.setup.model_views.mco_parameter_model_view import \
     MCOParameterModelView
 
 from force_wfmanager.utils.variable_names_registry import \

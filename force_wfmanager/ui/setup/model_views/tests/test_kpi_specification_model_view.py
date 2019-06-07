@@ -6,7 +6,7 @@ from force_wfmanager.utils.tests.test_variable_names_registry import \
     basic_variable_names_registry
 
 from force_bdss.api import KPISpecification
-from force_wfmanager.ui.setup.kpi_specification_model_view import \
+from force_wfmanager.ui.setup.model_views.kpi_specification_model_view import \
     KPISpecificationModelView
 
 

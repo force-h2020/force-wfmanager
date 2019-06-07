@@ -4,7 +4,7 @@ from force_bdss.tests.dummy_classes.extension_plugin import \
     DummyExtensionPlugin
 from force_bdss.tests.probe_classes.mco import ProbeParameterFactory
 
-from force_wfmanager.ui.setup.mco_parameter_model_view import \
+from force_wfmanager.ui.setup.model_views.mco_parameter_model_view import \
     MCOParameterModelView
 
 

@@ -3,7 +3,7 @@ from traits.api import Instance, List, Unicode, on_trait_change, Bool, Event
 from traitsui.api import ModelView
 
 from force_bdss.api import BaseMCOModel
-from force_wfmanager.ui.setup.kpi_specification_model_view import \
+from force_wfmanager.ui.setup.model_views.kpi_specification_model_view import \
     KPISpecificationModelView
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
