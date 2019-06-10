@@ -11,6 +11,8 @@ def write_workflow_file(workflow_model, file_path):
 
     Parameters
     ----------
+    workflow_model:
+        Workflow model to be written to file
     file_path: str
         The file_path pointing to the file in which you want to write the
         workflow
@@ -25,6 +27,8 @@ def load_workflow_file(factory_registry, file_path):
 
     Parameters
     ----------
+    factory_registry:
+        Workflow factory registry
     file_path: str
         The file_path pointing to the file in which you want to read the
         workflow
