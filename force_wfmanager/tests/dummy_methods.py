@@ -1,6 +1,6 @@
 from unittest import mock
 
-from force_bdss.api import Workflow, WorkflowReader
+from force_bdss.api import Workflow, WorkflowReader, WorkflowWriter
 from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
@@ -8,7 +8,6 @@ from force_bdss.tests.probe_classes.factory_registry import (
 from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
-from force_wfmanager.io.workflow_io import load_workflow_file
 
 
 def mock_create_setup_task(filename):
@@ -16,7 +15,7 @@ def mock_create_setup_task(filename):
         wf_manager_task = WfManagerSetupTask(
             factory_registry=ProbeFactoryRegistry())
         if filename is not None:
-            load_workflow_file(wf_manager_task, filename)
+            wf_manager_task._load_workflow(filename)
         return wf_manager_task
     return func
 
@@ -52,3 +51,11 @@ def mock_file_reader(*args, **kwargs):
     reader = mock.Mock(spec=WorkflowReader)
     reader.read = read
     return reader
+
+
+def mock_file_writer(*args, **kwargs):
+    def write(*args, **kwargs):
+        return ''
+    writer = mock.Mock(spec=WorkflowWriter)
+    writer.write = write
+    return writer

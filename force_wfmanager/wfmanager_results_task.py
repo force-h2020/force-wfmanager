@@ -1,7 +1,8 @@
 import logging
 import tempfile
+import copy
 
-from pyface.api import ImageResource, FileDialog, OK
+from pyface.api import ImageResource, FileDialog, OK, error
 from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Bool, Instance, List, on_trait_change
@@ -221,11 +222,47 @@ class WfManagerResultsTask(Task):
 
         current_file = dialog.path
 
-        if write_analysis_model(self, current_file):
-            self.current_file = current_file
+        if self._write_analysis(current_file):
             return True
 
         return False
+
+    def _write_analysis(self, file_path):
+        """ Write the contents of the analysis model to a JSON file.
+
+        Parameters
+        ----------
+        file_path (str)
+            the name of the file to write to.
+
+        Returns
+        -------
+        bool: true if save was successful.
+
+        """
+        try:
+            write_analysis_model(self.analysis_model, file_path)
+        except IOError as e:
+            error(
+                None,
+                'Cannot save in the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when saving the results table'
+            )
+            log.exception('Error when saving AnalysisModel')
+            return False
+        except Exception as e:
+            error(
+                None,
+                'Cannot save the results table:\n\n{}'.format(
+                    str(e)),
+                'Error when saving results'
+            )
+            log.exception('Error when saving results')
+            return False
+        else:
+            self.current_file = file_path
+            return True
 
     def save_project_as(self):
         """ Shows a dialog to save the current project as a JSON file. """
@@ -242,11 +279,42 @@ class WfManagerResultsTask(Task):
 
         current_file = dialog.path
 
-        if write_project_file(self, current_file):
+        if self._write_project(current_file):
             self.current_file = current_file
             return True
 
         return False
+
+    def _write_project(self, file_path):
+        """ Writes a JSON file that contains the :attr:`Workflow` and
+        :attr:`AnalysisModel`.
+
+        """
+        try:
+            write_project_file(self.workflow_model,
+                               self.analysis_model, file_path)
+
+        except IOError as e:
+            error(
+                None,
+                'Cannot save in the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when saving the project'
+            )
+            log.exception('Error when saving Project')
+            return False
+
+        except Exception as e:
+            error(
+                None,
+                'Cannot save the Project:\n\n{}'.format(
+                    str(e)),
+                'Error when saving results'
+            )
+            log.exception('Error when the Project')
+            return False
+        else:
+            return True
 
     def open_project(self):
         """ Shows a dialog to open a JSON file and load the contents into
@@ -266,11 +334,62 @@ class WfManagerResultsTask(Task):
 
         current_file = dialog.path
 
-        if load_project_file(self, current_file):
-            self.current_file = current_file
+        if self._load_project(current_file):
             return True
 
         return False
+
+    def _load_project(self, file_path):
+        """ Load contents of JSON file into:attr:`Workflow` and
+        :attr:`AnalysisModel`.
+
+        """
+        try:
+            (analysis_model_dict,
+             self.workflow_model) = load_project_file(
+                self.factory_registry, file_path)
+
+            # create two separate workflows, so that setup task can be
+            # edited without changing the results task copy
+            self.setup_task.workflow_model = copy.copy(self.workflow_model)
+
+            # share the analysis model with the setup_task
+            self.analysis_model.from_dict(analysis_model_dict)
+            self.setup_task.analysis_model = self.analysis_model
+
+        except KeyError as e:
+            error(
+                None,
+                'Unable to find analysis model:\n\n{}'.format(
+                    str(e)),
+                'Error when loading project'
+            )
+            log.exception('KeyError when loading project')
+            return False
+
+        except IOError as e:
+            error(
+                None,
+                'Unable to load file:\n\n{}'.format(
+                    str(e)),
+                'Error when loading project'
+            )
+            log.exception('Error loading project file')
+            return False
+
+        except Exception as e:
+            error(
+                None,
+                'Unable to load project:\n\n{}'.format(
+                    str(e)),
+                'Error when loading project'
+            )
+            log.exception('Error when loading project')
+            return False
+
+        else:
+            self.current_file = file_path
+            return True
 
     # Synchronization with Setup Task
 

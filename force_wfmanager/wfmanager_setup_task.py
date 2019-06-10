@@ -15,7 +15,7 @@ from traits.api import Instance, on_trait_change, List, Bool, Unicode, File
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
     MCOProgressEvent, MCOStartEvent, Workflow,
-    WorkflowWriter
+    InvalidFileException
 )
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.setup.setup_pane import SetupPane
@@ -26,8 +26,8 @@ from force_wfmanager.wfmanager import (
     TaskToggleGroupAccelerator
 )
 from force_wfmanager.io.workflow_io import (
-    write_workflow_file, load_workflow_file)
-
+    write_workflow_file, load_workflow_file
+)
 log = logging.getLogger(__name__)
 
 
@@ -283,9 +283,29 @@ class WfManagerSetupTask(Task):
             wildcard='JSON files (*.json)|*.json|'
         )
         result = dialog.open()
-        f_name = dialog.path
+        file_path = dialog.path
         if result is OK:
-            load_workflow_file(self, f_name)
+            self._load_workflow(file_path)
+
+    def _load_workflow(self, file_path):
+        """ Loads a workflow from the specified file name
+        Parameters
+        ----------
+        f_name: str
+            The path to the workflow file
+        """
+        try:
+            self.workflow_model = load_workflow_file(
+                self.factory_registry, file_path)
+        except InvalidFileException as e:
+            error(
+                None,
+                'Cannot read the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when reading file'
+            )
+        else:
+            self.current_file = file_path
 
     def save_workflow(self):
         """ Saves the workflow into the currently used file. If there is no
@@ -293,7 +313,7 @@ class WfManagerSetupTask(Task):
         if len(self.current_file) == 0:
             return self.save_workflow_as()
 
-        if not write_workflow_file(self, self.current_file):
+        if not self._write_workflow(self.current_file):
             self.current_file = ''
             return False
         return True
@@ -313,10 +333,56 @@ class WfManagerSetupTask(Task):
 
         current_file = dialog.path
 
-        if write_workflow_file(self, current_file):
+        if self._write_workflow(current_file):
             self.current_file = current_file
             return True
         return False
+
+    def _write_workflow(self, file_path):
+        """ Creates a JSON file in the file_path and write the workflow
+        description in it
+        Parameters
+        ----------
+        file_path: str
+            The file_path pointing to the file in which you want to write the
+            workflow
+        Returns
+        -------
+        Boolean:
+            True if it was a success to write in the file, False otherwise
+        """
+        for hook_manager in self.ui_hooks_managers:
+            try:
+                hook_manager.before_save(self)
+            except Exception:
+                log.exception(
+                    "Failed before_save hook "
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__)
+                )
+
+        try:
+            write_workflow_file(self.workflow_model, file_path)
+        except IOError as e:
+            error(
+                None,
+                'Cannot save in the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when saving workflow'
+            )
+            log.exception('Error when saving workflow')
+            return False
+        except Exception as e:
+            error(
+                None,
+                'Cannot save the workflow:\n\n{}'.format(
+                    str(e)),
+                'Error when saving workflow'
+            )
+            log.exception('Error when saving workflow')
+            return False
+        else:
+            return True
 
     def open_about(self):
         """Opens an information dialog"""
@@ -366,8 +432,7 @@ class WfManagerSetupTask(Task):
 
             # Creates a temporary file containing the workflow
             tmpfile_path = tempfile.mktemp()
-            with open(tmpfile_path, 'w') as output:
-                WorkflowWriter().write(self.workflow_model, output)
+            write_workflow_file(self.workflow_model, tmpfile_path)
 
             # Clear the analysis model before attempting to run
             self.analysis_model.clear()

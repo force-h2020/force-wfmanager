@@ -23,7 +23,7 @@ from force_wfmanager.ui.setup.tree_pane import TreePane
 from force_wfmanager.ui.results.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
-from .dummy_methods import mock_file_reader, mock_dialog
+from .dummy_methods import mock_file_reader, mock_file_writer, mock_dialog
 from .dummy_classes import (
     DummyWfManager, DummyWfManagerSetupTask, DummyWfManagerResultsTask)
 
@@ -33,12 +33,10 @@ CONFIRMATION_DIALOG_PATH = \
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_setup_task.FileDialog'
 INFORMATION_PATH = 'force_wfmanager.wfmanager_setup_task.information'
 CONFIRM_PATH = 'force_wfmanager.wfmanager_setup_task.confirm'
-BDSS_WRITER_PATH = 'force_wfmanager.wfmanager_setup_task.WorkflowWriter'
 FILE_OPEN_PATH = 'force_wfmanager.io.workflow_io.open'
 WORKFLOW_WRITER_PATH = 'force_wfmanager.io.workflow_io.WorkflowWriter'
 WORKFLOW_READER_PATH = 'force_wfmanager.io.workflow_io.WorkflowReader'
-WORKFLOW_ERROR_PATH = 'force_wfmanager.io.workflow_io.error'
-ERROR_PATH = 'force_wfmanager.wfmanager_setup_task.error'
+SETUP_ERROR_PATH = 'force_wfmanager.wfmanager_setup_task.error'
 SUBPROCESS_PATH = 'force_wfmanager.wfmanager_setup_task.subprocess'
 OS_REMOVE_PATH = 'force_wfmanager.wfmanager_setup_task.os.remove'
 ZMQSERVER_SETUP_SOCKETS_PATH = \
@@ -47,19 +45,11 @@ RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_results_task.FileDialog'
 RESULTS_FILE_OPEN_PATH = 'force_wfmanager.io.project_io.open'
 RESULTS_JSON_DUMP_PATH = 'force_wfmanager.io.project_io.json.dump'
 RESULTS_JSON_LOAD_PATH = 'force_wfmanager.io.project_io.json.load'
-RESULTS_WORKFLOW_WRITER_PATH = \
+RESULTS_WRITER_PATH = \
     'force_wfmanager.io.project_io.WorkflowWriter.get_workflow_data'
-RESULTS_WORKFLOW_READER_PATH = \
+RESULTS_READER_PATH = \
     'force_wfmanager.io.project_io.WorkflowReader'
-RESULTS_ERROR_PATH = 'force_wfmanager.io.project_io.error'
-
-
-def mock_file_writer(*args, **kwargs):
-    def write(*args, **kwargs):
-        return ''
-    writer = mock.Mock(spec=WorkflowWriter)
-    writer.write = write
-    return writer
+RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_results_task.error'
 
 
 def mock_confirm_function(result):
@@ -199,7 +189,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             with LogCapture() as capture:
                 self.setup_task.save_workflow()
 
-            capture.check(('force_wfmanager.io.workflow_io',
+            capture.check(('force_wfmanager.wfmanager_setup_task',
                            'ERROR',
                            'Failed before_save hook for hook manager '
                            'ProbeUIHooksManager'))
@@ -224,7 +214,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(RESULTS_JSON_DUMP_PATH) as mock_json_dump, \
                 mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(RESULTS_WORKFLOW_WRITER_PATH) as mock_wf_writer:
+                mock.patch(RESULTS_WRITER_PATH) as mock_wf_writer:
             mock_file_dialog.side_effect = mock_dialog(
                 FileDialog, OK, 'file_path')
             mock_wf_writer.side_effect = mock_file_writer
@@ -274,7 +264,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         mock_open.side_effect = Exception("OUPS")
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_ERROR_PATH) as mock_error:
+                mock.patch(SETUP_ERROR_PATH) as mock_error:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_error.side_effect = mock_show_error
 
@@ -311,7 +301,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         mock_open.side_effect = IOError("OUPS")
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_ERROR_PATH) as mock_error:
+                mock.patch(SETUP_ERROR_PATH) as mock_error:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_error.side_effect = mock_show_error
 
@@ -359,7 +349,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(RESULTS_JSON_LOAD_PATH) as mock_json, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(RESULTS_WORKFLOW_READER_PATH) as mock_reader:
+                mock.patch(RESULTS_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_reader.side_effect = mock_file_reader
             mock_json.return_value = {'analysis_model': {'x': [1], 'y': [2]},
@@ -407,7 +397,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(RESULTS_ERROR_PATH) as mock_error, \
                 mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(RESULTS_WORKFLOW_READER_PATH) as mock_reader:
+                mock.patch(RESULTS_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_reader.side_effect = mock_file_reader
             mock_json.return_value = {'asdfsadf': {'x': [1], 'y': [2]},
@@ -437,7 +427,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_ERROR_PATH) as mock_error, \
+                mock.patch(SETUP_ERROR_PATH) as mock_error, \
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_error.side_effect = mock_show_error
@@ -500,7 +490,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
     def test_zmq_server_failure(self):
         with mock.patch(ZMQSERVER_SETUP_SOCKETS_PATH) as setup_sockets, \
-                mock.patch(ERROR_PATH) as mock_error, \
+                mock.patch(SETUP_ERROR_PATH) as mock_error, \
                 self.event_loop_until_condition(lambda: mock_error.called):
 
             setup_sockets.side_effect = Exception("boom")
@@ -600,7 +590,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
                 mock.patch(SUBPROCESS_PATH + ".check_call") as mock_chk_call, \
-                mock.patch(ERROR_PATH) as mock_error:
+                mock.patch(SETUP_ERROR_PATH) as mock_error:
             mock_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
             mock_error.side_effect = mock_show_error
@@ -631,8 +621,8 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                         "Execution of BDSS failed. \n\n" + msg))
 
     def test_run_bdss_write_failure(self):
-        with mock.patch(BDSS_WRITER_PATH) as mock_writer, \
-                mock.patch(ERROR_PATH) as mock_error:
+        with mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
+                mock.patch(SETUP_ERROR_PATH) as mock_error:
             workflow_writer = mock.Mock(spec=WorkflowWriter)
             workflow_writer.write.side_effect = Exception("write failed")
             mock_writer.return_value = workflow_writer
