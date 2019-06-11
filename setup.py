@@ -31,7 +31,7 @@ setup(
     description='Workflow manager',
     long_description=README_TEXT,
     packages=find_packages(),
-    package_data={'force_wfmanager.images': 'icons/*'},
+    package_data={'force_wfmanager': ['*.png']},
     entry_points={
         'gui_scripts': [
             'force_wfmanager = force_wfmanager.gui.run:force_wfmanager'
