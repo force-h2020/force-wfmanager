@@ -12,10 +12,10 @@ force\_wfmanager\.tests\.dummy\_classes module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.tests\.dummy\_methods module
+force\_wfmanager\.tests\.mock\_methods module
 -------------------------------------------------
 
-.. automodule:: force_wfmanager.tests.dummy_methods
+.. automodule:: force_wfmanager.tests.mock_methods
     :members:
     :undoc-members:
     :show-inheritance:

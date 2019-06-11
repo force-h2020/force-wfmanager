@@ -58,7 +58,7 @@ class WorkflowInfo(HasTraits):
     #: An error message for the entire workflow
     error_message = Unicode()
 
-    #: The force project logo! Stored at Images/Force_Logo.png
+    #: The force project logo! Stored at images/Force_Logo.png
     image = ImageResource('Force_Logo.png')
 
     #: A list of TableRow instances, each representing a variable

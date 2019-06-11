@@ -23,7 +23,7 @@ from force_wfmanager.ui.setup.tree_pane import TreePane
 from force_wfmanager.ui.results.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
-from .dummy_methods import mock_file_reader, mock_file_writer, mock_dialog
+from .mock_methods import mock_file_reader, mock_file_writer, mock_dialog
 from .dummy_classes import (
     DummyWfManager, DummyWfManagerSetupTask, DummyWfManagerResultsTask)
 

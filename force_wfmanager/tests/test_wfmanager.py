@@ -4,33 +4,16 @@ from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 from force_bdss.api import Workflow
-from force_bdss.tests.probe_classes.factory_registry import (
-    ProbeFactoryRegistry
-)
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.tests import fixtures
 from force_wfmanager.wfmanager import TaskWindowClosePrompt
-from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
-from .dummy_methods import mock_file_reader, mock_dialog
+
+from .mock_methods import mock_file_reader, mock_dialog
 from .dummy_classes import DummyWfManager
 
 WORKFLOW_READER_PATH = 'force_wfmanager.io.workflow_io.WorkflowReader'
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
-
-
-def mock_create_results_task():
-    def func():
-        wf_manager_task = WfManagerResultsTask(
-            factory_registry=ProbeFactoryRegistry())
-        return wf_manager_task
-    return func
-
-
-def mock_window(wfmanager):
-    window = mock.Mock(TaskWindowClosePrompt)
-    window.application = wfmanager
-    return window
 
 
 class TestWfManager(GuiTestAssistant, TestCase):

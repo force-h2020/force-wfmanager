@@ -13,7 +13,7 @@ from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 from force_wfmanager.wfmanager import WfManager
 
-from .dummy_methods import mock_wfmanager_plugin
+from .mock_methods import mock_wfmanager_plugin
 
 
 class DummyWfManager(WfManager):

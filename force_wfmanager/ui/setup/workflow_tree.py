@@ -1,4 +1,3 @@
-import pkg_resources
 from functools import partial, wraps
 
 from traits.api import (
@@ -145,21 +144,7 @@ class TreeNodeWithStatus(TreeNode):
             True if the TreeNode is expanded, i.e. child nodes of this
             TreeNode are also visible in the UI.
         """
-        return 'valid.png' if object.valid else 'invalid.png'
-
-    def get_icon_path(self, object):
-        """ Overrides get_icon_path method of TreeNode.
-
-        Parameters
-        ----------
-        object: ModelView
-            The ModelView assigned to this TreeNode
-        """
-        resource_package = pkg_resources.get_distribution(
-            'force_wfmanager').location
-        img_dir = resource_package + '/force_wfmanager/images/'
-
-        return img_dir
+        return 'icons/valid.png' if object.valid else 'icons/invalid.png'
 
     def when_label_changed(self, object, listener, remove):
         """ Overrides/Extends when_label_change method of TreeNode.
