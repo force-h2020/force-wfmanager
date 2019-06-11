@@ -119,6 +119,18 @@ class SetupPane(TraitsTaskPane):
         (parameters etc.) of the currently selected modelview. This varies
         depending on what type of modelview is selected."""
         view = View(VGroup(
+            # Main view with Force logo
+            VGroup(
+                UItem(
+                    "current_info",
+                    editor=InstanceEditor(),
+                    style="custom",
+                    visible_when=(
+                        "selected_factory_name in ['Workflow', 'KPI',"
+                        "'Execution Layer']"
+                    )
+                )
+            ),
             HGroup(
                 # Instance View
                 VGroup(
@@ -174,17 +186,6 @@ class SetupPane(TraitsTaskPane):
                         show_border=True,
                     ),
                 ),
-            ),
-            VGroup(
-                UItem(
-                    "current_info",
-                    editor=InstanceEditor(),
-                    style="custom",
-                    visible_when=(
-                        "selected_factory_name in ['Workflow', 'KPI',"
-                        "'Execution Layer']"
-                    )
-                )
             ),
         ),
             width=500,

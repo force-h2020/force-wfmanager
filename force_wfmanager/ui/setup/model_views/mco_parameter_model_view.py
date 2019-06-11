@@ -73,5 +73,5 @@ class MCOParameterModelView(ModelView):
         return get_factory_name(self.model.factory)
 
 
-class MCOParameterGrid(ModelView):
+class MCOParameterModelViewGrid(ModelView):
     pass

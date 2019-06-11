@@ -90,11 +90,17 @@ class WorkflowInfo(HasTraits):
 
     traits_view = View(
         VGroup(
+            horizontal_centre(
+                UItem('image', editor=ImageEditor(scale=True,
+                                                  allow_upscaling=False,
+                                                  preserve_aspect_ratio=True))
+            ),
             Group(
                 UReadonly('plugin_names',
                           editor=ListStrEditor(editable=False)),
                 show_border=True,
-                label='Available Plugins'
+                label='Available Plugins',
+                visible_when="selected_factory not in ['KPI']"
             ),
             Group(
                 UReadonly('non_kpi_variables_rep', editor=table_edit),
@@ -112,12 +118,6 @@ class WorkflowInfo(HasTraits):
                 show_border=True,
                 label='Workflow Errors',
                 visible_when="selected_factory == 'Workflow'"
-            ),
-
-            horizontal_centre(
-                UItem('image', editor=ImageEditor(scale=True,
-                                                  allow_upscaling=False,
-                                                  preserve_aspect_ratio=True))
             ),
 
         )

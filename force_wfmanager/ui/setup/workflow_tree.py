@@ -396,7 +396,7 @@ class WorkflowTree(ModelView):
                         self._factory_registry.data_source_factories,
                         self.new_data_source,
                         'Data Source',
-                        self.delete_data_source
+                        self.delete_layer
                     )
                 ),
                 TreeNodeWithStatus(
