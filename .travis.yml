@@ -3,6 +3,8 @@ cache:
   directories:
       - "$HOME/.cache"
       - "$HOME/.ccache"
+services:
+    - docker
 before_install:
     - ccache -s
     - export PATH=/usr/lib/ccache:${PATH}
