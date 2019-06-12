@@ -19,7 +19,7 @@ script:
     - edm run -- python -m ci flake8
     - export ETS_TOOLKIT=qt4
     - export DISPLAY=:99.0
-    - sh -e /etc/init.d/xvfb start
+    - xvfb-run make test
     - edm run -- python -m ci test
     - edm run -- python -m ci docs
 after_success:
