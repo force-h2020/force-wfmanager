@@ -6,7 +6,9 @@ Subpackages
 
 .. toctree::
 
-    force_wfmanager.ui.setup.model_views
+    force_wfmanager.ui.setup.mco
+    force_wfmanager.ui.setup.execution_layers
+    force_wfmanager.ui.setup.notification_listeners
     force_wfmanager.ui.setup.tests
 
 Submodules
@@ -50,6 +52,14 @@ force\_wfmanager\.ui\.setup\.workflow\_tree
 -------------------------------------------------------
 
 .. automodule:: force_wfmanager.ui.setup.workflow_tree
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force\_wfmanager\.ui\.setup\.workflow\_model\_view module
+-----------------------------------------------------------
+
+.. automodule:: force_wfmanager.ui.setup.workflow_model_view
     :members:
     :undoc-members:
     :show-inheritance:

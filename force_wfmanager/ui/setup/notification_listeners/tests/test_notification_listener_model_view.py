@@ -4,7 +4,8 @@ from force_bdss.tests.probe_classes.notification_listener import \
     ProbeNotificationListenerFactory
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
-from force_wfmanager.ui.setup.model_views.notification_listener_model_view \
+from force_wfmanager.ui.setup.notification_listeners.\
+    notification_listener_model_view \
     import NotificationListenerModelView
 
 

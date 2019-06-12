@@ -2,12 +2,11 @@ from traits.api import Bool, Event, Instance, List, Unicode, on_trait_change
 from traitsui.api import ModelView
 
 from force_bdss.api import Workflow
-from force_wfmanager.ui.setup.model_views.execution_layer_model_view import (
-    ExecutionLayerModelView
-)
-from force_wfmanager.ui.setup.model_views.mco_model_view import MCOModelView
-from force_wfmanager.ui.setup.model_views.notification_listener_model_view \
-    import NotificationListenerModelView
+from force_wfmanager.ui.setup.execution_layers.execution_layer_model_view\
+    import ExecutionLayerModelView
+from force_wfmanager.ui.setup.mco.mco_model_view import MCOModelView
+from force_wfmanager.ui.setup.notification_listeners.\
+    notification_listener_model_view import NotificationListenerModelView
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
@@ -58,13 +57,14 @@ class WorkflowModelView(ModelView):
     #: Event to request a verification check on the workflow
     #: Listens to:
     #: :func:`MCOModelView.verify_workflow_event
-    #: <force_wfmanager.views.model_views.mco_model_view\
+    #: <force_wfmanager.views.execution_layers.mco_model_view\
     #: .MCOModelView.verify_workflow_event>`,
     #: :func:`ExecutionLayerModelView.verify_workflow_event
-    #: <force_wfmanager.views.model_views.execution_layer_model_view.\
+    #: <force_wfmanager.views.execution_layers.execution_layer_model_view.\
     #: ExecutionLayerModelView.verify_workflow_event>`,
     #: :func:`NotificationListenerModelView.verify_workflow_event
-    #: <force_wfmanager.views.model_views.notification_listener_model_view.\
+    #: <force_wfmanager.views.execution_layers.\
+    # notification_listener_model_view.\
     #: NotificationListenerModelView.verify_workflow_event>`
     verify_workflow_event = Event
 

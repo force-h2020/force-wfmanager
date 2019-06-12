@@ -37,6 +37,16 @@ force\_wfmanager\.ui\.setup\.tests\.test\_workflow\_tree module
     :show-inheritance:
 
 
+force\_wfmanager\.ui\.setup\.tests\.test\_workflow\_model\_view module
+-------------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.ui.setup.tests.test_workflow_model_view
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+
 Module contents
 ---------------
 

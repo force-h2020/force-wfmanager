@@ -13,7 +13,7 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
 from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
-from force_wfmanager.ui.setup.model_views.workflow_model_view import \
+from force_wfmanager.ui.setup.workflow_model_view import \
     WorkflowModelView
 from force_wfmanager.ui.setup.workflow_tree import WorkflowTree
 

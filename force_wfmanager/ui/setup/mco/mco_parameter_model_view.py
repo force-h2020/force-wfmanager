@@ -71,7 +71,3 @@ class MCOParameterModelView(ModelView):
 
     def _label_default(self):
         return get_factory_name(self.model.factory)
-
-
-class MCOParameterModelViewGrid(ModelView):
-    pass

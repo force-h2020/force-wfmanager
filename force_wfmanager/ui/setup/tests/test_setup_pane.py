@@ -8,7 +8,7 @@ from force_bdss.mco.base_mco_model import BaseMCOModel
 from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
-from force_wfmanager.ui.setup.model_views.workflow_model_view import (
+from force_wfmanager.ui.setup.workflow_model_view import (
     WorkflowModelView
 )
 from force_wfmanager.wfmanager import WfManager

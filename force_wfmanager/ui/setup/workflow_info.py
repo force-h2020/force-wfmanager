@@ -9,7 +9,7 @@ from traitsui.api import (
 
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
-from force_wfmanager.ui.setup.model_views.workflow_model_view import \
+from force_wfmanager.ui.setup.workflow_model_view import \
     WorkflowModelView
 
 # Item positioning shortcuts
@@ -91,9 +91,13 @@ class WorkflowInfo(HasTraits):
     traits_view = View(
         VGroup(
             horizontal_centre(
-                UItem('image', editor=ImageEditor(scale=True,
-                                                  allow_upscaling=False,
-                                                  preserve_aspect_ratio=True))
+                Group(
+                    UItem('image',
+                          editor=ImageEditor(scale=True,
+                                             allow_upscaling=False,
+                                             preserve_aspect_ratio=True)),
+                    visible_when="selected_factory == 'Workflow'"
+                )
             ),
             Group(
                 UReadonly('plugin_names',

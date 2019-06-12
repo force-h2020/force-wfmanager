@@ -12,23 +12,22 @@ from force_bdss.api import (
     ExecutionLayer, IFactoryRegistry, InputSlotInfo, KPISpecification,
     OutputSlotInfo, Workflow, verify_workflow
 )
-from force_wfmanager.ui.setup.model_views.data_source_model_view import (
-    DataSourceModelView
-)
-from force_wfmanager.ui.setup.model_views.execution_layer_model_view import (
-    ExecutionLayerModelView
-)
-from force_wfmanager.ui.setup.model_views.kpi_specification_model_view import (
+from force_wfmanager.ui.setup.execution_layers.data_source_model_view \
+    import DataSourceModelView
+from force_wfmanager.ui.setup.execution_layers.execution_layer_model_view \
+    import ExecutionLayerModelView
+
+from force_wfmanager.ui.setup.mco.kpi_specification_model_view import (
     KPISpecificationModelView
 )
-from force_wfmanager.ui.setup.model_views.mco_model_view import MCOModelView
-from force_wfmanager.ui.setup.model_views.mco_parameter_model_view import (
+from force_wfmanager.ui.setup.mco.mco_model_view import MCOModelView
+from force_wfmanager.ui.setup.mco.mco_parameter_model_view import (
     MCOParameterModelView
 )
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
-from force_wfmanager.ui.setup.model_views.notification_listener_model_view \
-    import NotificationListenerModelView
-from force_wfmanager.ui.setup.model_views.workflow_model_view import (
+from force_wfmanager.ui.setup.notification_listeners.\
+    notification_listener_model_view import NotificationListenerModelView
+from force_wfmanager.ui.setup.workflow_model_view import (
     WorkflowModelView
 )
 from force_wfmanager.ui.ui_utils import model_info
@@ -259,36 +258,47 @@ class WorkflowTree(ModelView):
                     menu=no_menu,
                     on_select=self.workflow_selected
                 ),
-                # Folder node "Notification" containing the
-                # Notification listeners
+
+                #: Node representing the Execution layers
                 TreeNode(
                     node_for=[WorkflowModelView],
                     auto_open=True,
-                    children='notification_listeners_mv',
-                    name='Notification Listeners',
-                    label='=Notification Listeners',
+                    children='execution_layers_mv',
+                    label='=Execution Layers',
+                    name='Execution Layers',
                     view=no_view,
-                    menu=no_menu,
+                    menu=Menu(new_layer_action),
                     on_select=partial(
                         self.factory,
-                        self._factory_registry.notification_listener_factories,
-                        self.new_notification_listener,
-                        'Notification Listener',
+                        None,
+                        self.new_layer,
+                        'Execution Layer'
                     )
                 ),
-                # Node representing the Notification Listener
                 TreeNodeWithStatus(
-                    node_for=[NotificationListenerModelView],
+                    node_for=[ExecutionLayerModelView],
+                    auto_open=True,
+                    children='data_sources_mv',
+                    label='label',
+                    name='DataSources',
+                    view=no_view,
+                    menu=Menu(delete_layer_action),
+                    on_select=partial(
+                        self.factory_instance,
+                        self._factory_registry.data_source_factories,
+                        self.new_data_source,
+                        'Data Source',
+                        self.delete_layer
+                    )
+                ),
+                TreeNodeWithStatus(
+                    node_for=[DataSourceModelView],
                     auto_open=True,
                     children='',
                     label='label',
-                    name='Notification Listeners',
-                    view=no_view,
-                    menu=Menu(delete_notification_listener_action),
-                    on_select=partial(
-                        self.instance,
-                        self.delete_notification_listener
-                    )
+                    name='DataSources',
+                    menu=Menu(delete_data_source_action),
+                    on_select=partial(self.instance, self.delete_data_source)
                 ),
                 # Folder node "MCO" containing the MCO
                 TreeNode(
@@ -364,49 +374,40 @@ class WorkflowTree(ModelView):
                     children='',
                     label='label',
                     name='KPIs',
+                    view=no_view,
                     menu=Menu(delete_kpi_action),
                     on_select=partial(self.instance, self.delete_kpi)
                 ),
-                #: Node representing the layers
+                # Folder node "Notification" containing the
+                # Notification listeners
                 TreeNode(
                     node_for=[WorkflowModelView],
                     auto_open=True,
-                    children='execution_layers_mv',
-                    label='=Execution Layers',
-                    name='Execution Layers',
+                    children='notification_listeners_mv',
+                    name='Notification Listeners',
+                    label='=Notification Listeners',
                     view=no_view,
-                    menu=Menu(new_layer_action),
+                    menu=no_menu,
                     on_select=partial(
                         self.factory,
-                        None,
-                        self.new_layer,
-                        'Execution Layer'
+                        self._factory_registry.notification_listener_factories,
+                        self.new_notification_listener,
+                        'Notification Listener',
                     )
                 ),
+                # Node representing the Notification Listener
                 TreeNodeWithStatus(
-                    node_for=[ExecutionLayerModelView],
-                    auto_open=True,
-                    children='data_sources_mv',
-                    label='label',
-                    name='DataSources',
-                    view=no_view,
-                    menu=Menu(delete_layer_action),
-                    on_select=partial(
-                        self.factory_instance,
-                        self._factory_registry.data_source_factories,
-                        self.new_data_source,
-                        'Data Source',
-                        self.delete_layer
-                    )
-                ),
-                TreeNodeWithStatus(
-                    node_for=[DataSourceModelView],
+                    node_for=[NotificationListenerModelView],
                     auto_open=True,
                     children='',
                     label='label',
-                    name='DataSources',
-                    menu=Menu(delete_data_source_action),
-                    on_select=partial(self.instance, self.delete_data_source)
+                    name='Notification Listeners',
+                    view=no_view,
+                    menu=Menu(delete_notification_listener_action),
+                    on_select=partial(
+                        self.instance,
+                        self.delete_notification_listener
+                    )
                 ),
             ],
             orientation="horizontal",
