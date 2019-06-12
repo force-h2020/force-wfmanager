@@ -2,10 +2,6 @@ dxs_plugins:
 language: generic
 sudo: false
 
-dist: xenial
-services:
-  - xvfb
-
 env:
  global:
    - INSTALL_EDM_VERSION=1.10.1
@@ -23,16 +19,16 @@ matrix:
    env: CI_PYTHON_VERSION=“py36”
 
 before_install:
- - mkdir -p “${HOME}/.cache/download”
- - export DISPLAY=:99.0
- - if [[ ${TRAVIS_OS_NAME} == “linux” ]] ; then sh -e /etc/init.d/xvfb start; fi
- - if [[ ${TRAVIS_OS_NAME} == “linux” ]]; then sh -e install-edm-linux.sh; export PATH=“${HOME}/edm/bin:${PATH}“; fi
- - if [[ ${TRAVIS_OS_NAME} == “osx” ]]; then sh -e install-edm-osx.sh; export PATH=“${PATH}:/usr/local/bin”; fi
- - edm install -y --version 3.6 -e bootstrap click setuptools
- - git clone git://github.com/force-h2020/force-bdss.git
- - pushd force-bdss && edm run -- python -m ci build-env && edm run -- python -m ci install && popd
+      - mkdir -p “${HOME}/.cache/download”
+      - export DISPLAY=:99.0
+      - if [[ ${TRAVIS_OS_NAME} == “linux” ]] ; then sh -e /etc/init.d/xvfb start; fi
+      - if [[ ${TRAVIS_OS_NAME} == “linux” ]]; then sh -e install-edm-linux.sh; export PATH=“${HOME}/edm/bin:${PATH}“; fi
+      - if [[ ${TRAVIS_OS_NAME} == “osx” ]]; then sh -e install-edm-osx.sh; export PATH=“${PATH}:/usr/local/bin”; fi
+      - edm install -y --version 3.6 -e bootstrap click setuptools
+      - git clone git://github.com/force-h2020/force-bdss.git
+      - pushd force-bdss && edm run -- python -m ci build-env && edm run -- python -m ci install && popd
 install:
- - edm run -e bootstrap -- python -m ci install
+    - edm run -e bootstrap -- python -m ci install
 script:
  - edm run -e bootstrap -- python -m ci flake8
  - edm run -e bootstrap -- python -m ci test
