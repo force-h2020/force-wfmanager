@@ -3,7 +3,7 @@ cache:
   directories:
       - "$HOME/.cache"
       - "$HOME/.ccache"
-dist: xenial
+dist: bionic
 services:
     - xvfb
 before_install:
@@ -25,4 +25,3 @@ script:
 after_success:
     - edm run -- python -m ci coverage
     - bash <(curl -s https://codecov.io/bash)
-
