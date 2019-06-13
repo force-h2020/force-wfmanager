@@ -79,7 +79,7 @@ class Plot(HasStrictTraits):
     _axis = Instance(BaseXYPlot)
 
     #: A local copy of the analysis model's value names
-    #: Listens to: :attr:`analysis_model.value_names
+    #: Listens to: :attr:`ç.value_names
     #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.value_names>`
     _value_names = Tuple()
 
@@ -131,6 +131,26 @@ class Plot(HasStrictTraits):
         self.resize_plot()
         return self._plot
 
+    def _get_scatter_inspector_overlay(self, scatter_plot):
+
+        inspector = ScatterInspector(
+            scatter_plot,
+            threshold=10,
+            multiselect_modifier=KeySpec(None, "shift"),
+            selection_mode="multi"
+        )
+
+        overlay = ScatterInspectorOverlay(
+            scatter_plot,
+            hover_color=(0, 0, 1, 1),
+            hover_marker_size=6,
+            selection_marker_size=20,
+            selection_color=(0, 0, 1, 0.5),
+            selection_outline_color=(0, 0, 0, 0.8),
+            selection_line_width=3)
+
+        return inspector, overlay
+
     @on_trait_change('color_plot')
     def change_plot_style(self):
         if self.color_plot:
@@ -163,20 +183,8 @@ class Plot(HasStrictTraits):
                          selection_outline_color=(0, 0, 0, 0))
 
         # Add the selection tool
-        scatter_plot.tools.append(ScatterInspector(
-            scatter_plot,
-            threshold=10,
-            multiselect_modifier=KeySpec(None, "shift"),
-            selection_mode="multi"
-        ))
-        overlay = ScatterInspectorOverlay(
-            scatter_plot,
-            hover_color=(0, 0, 1, 1),
-            hover_marker_size=6,
-            selection_marker_size=20,
-            selection_color=(0, 0, 1, 0.5),
-            selection_outline_color=(0, 0, 0, 0.8),
-            selection_line_width=3)
+        inspector, overlay = self._get_scatter_inspector_overlay(scatter_plot)
+        scatter_plot.tools.append(inspector)
         scatter_plot.overlays.append(overlay)
 
         # Initialize plot datasource
@@ -215,22 +223,10 @@ class Plot(HasStrictTraits):
         cmap_scatter_plot.overlays.append(ZoomTool(plot))
 
         # Add the selection tool
-        cmap_scatter_plot.tools.append(ScatterInspector(
-            cmap_scatter_plot,
-            threshold=10,
-            multiselect_modifier=KeySpec(None, "shift"),
-            selection_mode="multi"
-        ))
-        overlay = ScatterInspectorOverlay(
-            cmap_scatter_plot,
-            hover_color=(0, 0, 1, 1),
-            hover_marker_size=6,
-            selection_marker_size=20,
-            selection_color=(0, 0, 1, 0.5),
-            selection_outline_color=(0, 0, 0, 0.8),
-            selection_line_width=3)
-
+        inspector, overlay = self._get_scatter_inspector_overlay(cmap_scatter_plot)
+        cmap_scatter_plot.tools.append(inspector)
         cmap_scatter_plot.overlays.append(overlay)
+
         self._plot_index_datasource = cmap_scatter_plot.index
         self._axis = cmap_scatter_plot
 
