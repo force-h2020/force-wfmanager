@@ -1,3 +1,4 @@
+import os
 import unittest
 import unittest.mock as mock
 
@@ -111,7 +112,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
             mock_reader.side_effect = mock_file_reader
             self.wfmanager = dummy_wfmanager(fixtures.get('evaluation-4.json'))
             self.create_tasks()
-            self.assertEqual(self.setup_task.current_file.split('/')[-1],
+            self.assertEqual(os.path.basename(self.setup_task.current_file),
                              'evaluation-4.json')
             self.assertEqual(mock_reader.call_count, 1)
 
