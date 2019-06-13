@@ -110,14 +110,14 @@ class TestZMQServer(unittest.TestCase):
 
     @contextlib.contextmanager
     def mock_started_server(self, events_received, errors_received):
-            with self.mock_server(events_received, errors_received) as server:
-                server.start()
-                wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
+        with self.mock_server(events_received, errors_received) as server:
+            server.start()
+            wait_condition(lambda: server.state == ZMQServer.STATE_WAITING)
 
-                yield server
+            yield server
 
-                server._inproc_socket.data = ''.encode('utf-8')
-                wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
+            server._inproc_socket.data = ''.encode('utf-8')
+            wait_condition(lambda: server.state == ZMQServer.STATE_STOPPED)
 
     @contextlib.contextmanager
     def mock_server(self, events_received, errors_received):

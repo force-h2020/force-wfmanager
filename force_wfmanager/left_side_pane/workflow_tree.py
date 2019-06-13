@@ -787,4 +787,4 @@ ERROR_TEMPLATE = """
     </html>
 """
 
-SINGLE_ERROR = """<p>{}<\p>"""
+SINGLE_ERROR = r"""<p>{}<\p>"""
