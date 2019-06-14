@@ -1,7 +1,7 @@
 import copy
 from unittest import mock, TestCase
 
-from pyface.constant import OK
+from pyface.api import OK, CANCEL
 from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from pyface.tasks.api import TaskWindow
@@ -36,6 +36,7 @@ RESULTS_READER_PATH = \
 RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_review_task.error'
 ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.write_analysis_model'
 ANALYSIS_FILE_OPEN_PATH = 'force_wfmanager.io.analysis_model_io.open'
+ANALYSIS_ERROR_PATH = 'force_wfmanager.io.analysis_model_io.IOError'
 
 
 def get_probe_wfmanager_tasks():
@@ -107,6 +108,17 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertTrue(mock_file_dialog.called)
             self.assertTrue(mock_open.called)
 
+    def test_save_analysis_failure(self):
+        mock_open = mock.mock_open()
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False):
+
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, CANCEL)
+
+            self.assertFalse(self.review_task.export_analysis_model_as())
+            self.assertTrue(mock_file_dialog.called)
+            self.assertFalse(mock_open.called)
 
     def test_save_project(self):
         mock_open = mock.mock_open()
