@@ -229,13 +229,13 @@ class ZMQServer(threading.Thread):
         self.ports = None
         try:
             self._pub_socket.close()
-        except:
+        except Exception:
             pass
         self._pub_socket = None
 
         try:
             self._sync_socket.close()
-        except:
+        except Exception:
             pass
         self._sync_socket = None
 
@@ -247,7 +247,7 @@ class ZMQServer(threading.Thread):
         self._close_network_sockets_noexc()
         try:
             self._inproc_socket.close()
-        except:
+        except Exception:
             pass
 
         self._inproc_socket = None
