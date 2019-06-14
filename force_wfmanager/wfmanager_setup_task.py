@@ -299,7 +299,7 @@ class WfManagerSetupTask(Task):
         try:
             self.workflow_model = load_workflow_file(
                 self.factory_registry, file_path)
-        except InvalidFileException as e:
+        except (InvalidFileException, FileNotFoundError) as e:
             error(
                 None,
                 'Cannot read the requested file:\n\n{}'.format(

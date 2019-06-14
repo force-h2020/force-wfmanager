@@ -34,7 +34,8 @@ RESULTS_WRITER_PATH = \
 RESULTS_READER_PATH = \
     'force_wfmanager.io.project_io.WorkflowReader'
 RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_review_task.error'
-ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.write_analysis_model'
+ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.' \
+                      'write_analysis_model'
 ANALYSIS_FILE_OPEN_PATH = 'force_wfmanager.io.analysis_model_io.open'
 ANALYSIS_ERROR_PATH = 'force_wfmanager.io.analysis_model_io.IOError'
 
