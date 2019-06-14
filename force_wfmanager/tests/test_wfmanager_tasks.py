@@ -37,7 +37,6 @@ RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_review_task.error'
 ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.' \
                       'write_analysis_model'
 ANALYSIS_FILE_OPEN_PATH = 'force_wfmanager.io.analysis_model_io.open'
-ANALYSIS_ERROR_PATH = 'force_wfmanager.io.analysis_model_io.IOError'
 
 
 def get_probe_wfmanager_tasks():
@@ -103,7 +102,17 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False):
 
             mock_file_dialog.side_effect = mock_dialog(
-                FileDialog, OK, 'file_path.json')
+                FileDialog, OK, 'test_file.json')
+
+            self.assertTrue(self.review_task.export_analysis_model_as())
+            self.assertTrue(mock_file_dialog.called)
+            self.assertTrue(mock_open.called)
+
+        mock_open = mock.mock_open()
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False):
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, OK, 'test_file.csv')
 
             self.assertTrue(self.review_task.export_analysis_model_as())
             self.assertTrue(mock_file_dialog.called)
@@ -120,6 +129,43 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertFalse(self.review_task.export_analysis_model_as())
             self.assertTrue(mock_file_dialog.called)
             self.assertFalse(mock_open.called)
+
+        mock_open = mock.mock_open()
+        mock_open.side_effect = IOError("OUPS")
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False),\
+                mock.patch(RESULTS_ERROR_PATH) as mock_error:
+            mock_error.side_effect = mock_show_error
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, OK, '')
+
+            self.assertFalse(self.review_task.export_analysis_model_as())
+            self.assertTrue(mock_file_dialog.called)
+            self.assertTrue(mock_open.called)
+
+            mock_error.assert_called_with(
+                None,
+                'Cannot save in the requested file:\n\nOUPS',
+                'Error when saving the results table'
+            )
+
+        mock_open = mock.mock_open()
+        mock_open.side_effect = RuntimeError("OUPS")
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False), \
+                mock.patch(RESULTS_ERROR_PATH) as mock_error:
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, OK, '')
+
+            self.assertFalse(self.review_task.export_analysis_model_as())
+            self.assertTrue(mock_file_dialog.called)
+            self.assertTrue(mock_open.called)
+
+            mock_error.assert_called_with(
+                None,
+                'Cannot save the results table:\n\nOUPS',
+                'Error when saving results'
+            )
 
     def test_save_project(self):
         mock_open = mock.mock_open()
@@ -204,6 +250,21 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                              self.review_task.analysis_model.evaluation_steps)
 
     def test_open_project_failure(self):
+        mock_open = mock.mock_open()
+        mock_open.side_effect = IOError('OUPS')
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog,\
+                mock.patch(RESULTS_ERROR_PATH) as mock_error:
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
+
+            self.assertFalse(self.review_task.open_project())
+            error_msg = ("Unable to load file:\n\n[Errno 2] "
+                         "No such file or directory: ''")
+            mock_error.assert_called_with(
+                None,
+                error_msg,
+                'Error when loading project'
+            )
+
         mock_open = mock.mock_open()
         with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog,\
                 mock.patch(RESULTS_JSON_LOAD_PATH) as mock_json, \

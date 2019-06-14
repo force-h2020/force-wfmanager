@@ -1,9 +1,3 @@
-import logging
-
-
-log = logging.getLogger(__name__)
-
-
 def write_analysis_model(analysis_model, file_path):
     """ Write the contents of the analysis model to a JSON or CSV file.
 
