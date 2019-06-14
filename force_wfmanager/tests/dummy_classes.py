@@ -9,7 +9,7 @@ from force_bdss.api import (
 from force_bdss.tests.dummy_classes.data_source import DummyDataSource, \
     DummyDataSourceModel
 
-from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
+from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 from force_wfmanager.wfmanager import WfManager
 
@@ -37,7 +37,7 @@ class DummyWfManagerSetupTask(WfManagerSetupTask):
     pass
 
 
-class DummyWfManagerResultsTask(WfManagerResultsTask):
+class DummyWfManagerReviewTask(WfManagerReviewTask):
     pass
 
 

@@ -20,7 +20,8 @@ from force_wfmanager.ui.setup.execution_layers.execution_layer_model_view \
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import (
     KPISpecificationModelView
 )
-from force_wfmanager.ui.setup.mco.mco_model_view import MCOModelView
+from force_wfmanager.ui.setup.mco.mco_model_view import \
+    MCOModelView
 from force_wfmanager.ui.setup.mco.mco_parameter_model_view import (
     MCOParameterModelView
 )
@@ -245,6 +246,7 @@ class WorkflowTree(ModelView):
 
     def default_traits_view(self):
         """The layout of the View for the WorkflowTree"""
+
         tree_editor = TreeEditor(
             nodes=[
                 # Root node "Workflow"

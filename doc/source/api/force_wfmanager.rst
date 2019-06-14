@@ -50,10 +50,10 @@ force\_wfmanager\.wfmanager\_setup\_task module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.wfmanager\_results\_task module
+force\_wfmanager\.wfmanager\_review\_task module
 -------------------------------------------------
 
-.. automodule:: force_wfmanager.wfmanager_results_task
+.. automodule:: force_wfmanager.wfmanager_review_task
     :members:
     :undoc-members:
     :show-inheritance:

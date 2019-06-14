@@ -6,7 +6,7 @@ from force_bdss.tests.probe_classes.factory_registry import (
 )
 
 from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
-from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
+from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
 
@@ -15,14 +15,14 @@ def mock_create_setup_task(filename):
         wf_manager_task = WfManagerSetupTask(
             factory_registry=ProbeFactoryRegistry())
         if filename is not None:
-            wf_manager_task._load_workflow(filename)
+            wf_manager_task.load_workflow(filename)
         return wf_manager_task
     return func
 
 
-def mock_create_results_task():
+def mock_create_review_task():
     def func():
-        wf_manager_task = WfManagerResultsTask(
+        wf_manager_task = WfManagerReviewTask(
             factory_registry=ProbeFactoryRegistry())
         return wf_manager_task
     return func
@@ -31,7 +31,7 @@ def mock_create_results_task():
 def mock_wfmanager_plugin(filename):
     plugin = WfManagerPlugin()
     plugin._create_setup_task = mock_create_setup_task(filename)
-    plugin._create_results_task = mock_create_results_task()
+    plugin._create_review_task = mock_create_review_task()
     return plugin
 
 

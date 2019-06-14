@@ -15,17 +15,17 @@ from force_bdss.core.data_value import DataValue
 from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
 from force_bdss.io.workflow_writer import WorkflowWriter
 
-from force_wfmanager.ui.results.graph_pane import GraphPane
+from force_wfmanager.ui.review.graph_pane import GraphPane
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.tests.utils import wait_condition
 from force_wfmanager.ui.setup.tree_pane import TreePane
-from force_wfmanager.ui.results.results_pane import ResultsPane
+from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
 from .mock_methods import mock_file_reader, mock_file_writer, mock_dialog
 from .dummy_classes import (
-    DummyWfManager, DummyWfManagerSetupTask, DummyWfManagerResultsTask)
+    DummyWfManager, DummyWfManagerSetupTask, DummyWfManagerReviewTask)
 
 
 CONFIRMATION_DIALOG_PATH = \
@@ -41,7 +41,7 @@ SUBPROCESS_PATH = 'force_wfmanager.wfmanager_setup_task.subprocess'
 OS_REMOVE_PATH = 'force_wfmanager.wfmanager_setup_task.os.remove'
 ZMQSERVER_SETUP_SOCKETS_PATH = \
     'force_wfmanager.wfmanager_setup_task.ZMQServer._setup_sockets'
-RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_results_task.FileDialog'
+RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_review_task.FileDialog'
 RESULTS_FILE_OPEN_PATH = 'force_wfmanager.io.project_io.open'
 RESULTS_JSON_DUMP_PATH = 'force_wfmanager.io.project_io.json.dump'
 RESULTS_JSON_LOAD_PATH = 'force_wfmanager.io.project_io.json.load'
@@ -49,7 +49,7 @@ RESULTS_WRITER_PATH = \
     'force_wfmanager.io.project_io.WorkflowWriter.get_workflow_data'
 RESULTS_READER_PATH = \
     'force_wfmanager.io.project_io.WorkflowReader'
-RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_results_task.error'
+RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_review_task.error'
 
 
 def mock_confirm_function(result):
@@ -101,11 +101,11 @@ def get_dummy_wfmanager_tasks():
         factory_registry=factory_registry_plugin
     )
 
-    results_task = DummyWfManagerResultsTask(
+    review_task = DummyWfManagerReviewTask(
         analysis_model=analysis_model, workflow_model=workflow_model,
         factory_registry=factory_registry_plugin
     )
-    tasks = [setup_test, results_task]
+    tasks = [setup_test, review_task]
 
     for task in tasks:
         mock_window = mock.Mock(spec=TaskWindow)
@@ -123,7 +123,7 @@ def get_dummy_wfmanager_tasks():
 class TestWFManagerTasks(GuiTestAssistant, TestCase):
     def setUp(self):
         super(TestWFManagerTasks, self).setUp()
-        self.setup_task, self.results_task = get_dummy_wfmanager_tasks()
+        self.setup_task, self.review_task = get_dummy_wfmanager_tasks()
 
     def test_init(self):
         self.assertIsInstance(self.setup_task.create_central_pane(),
@@ -131,15 +131,15 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         self.assertEqual(len(self.setup_task.create_dock_panes()), 1)
         self.assertIsInstance(self.setup_task.side_pane, TreePane)
 
-        self.assertEqual(len(self.results_task.create_dock_panes()),
+        self.assertEqual(len(self.review_task.create_dock_panes()),
                          1)
-        self.assertIsInstance(self.results_task.side_pane,
+        self.assertIsInstance(self.review_task.side_pane,
                               ResultsPane)
-        self.assertIsInstance(self.results_task.create_central_pane(),
+        self.assertIsInstance(self.review_task.create_central_pane(),
                               GraphPane)
-        self.assertIsInstance(self.results_task.workflow_model, Workflow)
+        self.assertIsInstance(self.review_task.workflow_model, Workflow)
         self.assertIsInstance(self.setup_task.workflow_model, Workflow)
-        self.assertIsInstance(self.results_task.analysis_model, AnalysisModel)
+        self.assertIsInstance(self.review_task.analysis_model, AnalysisModel)
         self.assertIsInstance(self.setup_task.analysis_model, AnalysisModel)
 
     def test_zmq_start(self):
@@ -219,7 +219,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 FileDialog, OK, 'file_path')
             mock_wf_writer.side_effect = mock_file_writer
 
-            self.results_task.save_project_as()
+            self.review_task.save_project_as()
 
             self.assertTrue(mock_wf_writer.called)
             self.assertTrue(mock_open.called)
@@ -235,7 +235,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_error.side_effect = mock_show_error
 
-            self.results_task.save_project_as()
+            self.review_task.save_project_as()
 
             self.assertTrue(mock_open.called)
             mock_error.assert_called_with(
@@ -357,38 +357,38 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                                       'workflow': {}}
 
             # the workflow gets updated to a new Workflow object
-            old_workflow = self.results_task.workflow_model
+            old_workflow = self.review_task.workflow_model
             # but the analysis model gets updated in-place
-            old_analysis = copy.deepcopy(self.results_task.analysis_model)
+            old_analysis = copy.deepcopy(self.review_task.analysis_model)
             self.assertEqual(
                 old_workflow,
                 self.setup_task.workflow_model)
 
-            self.results_task.open_project()
+            self.review_task.open_project()
 
             self.assertTrue(mock_open.called)
             self.assertTrue(mock_reader.called)
             self.assertTrue(mock_json.called)
 
-            self.assertNotEqual(old_workflow, self.results_task.workflow_model)
+            self.assertNotEqual(old_workflow, self.review_task.workflow_model)
             self.assertNotEqual(self.setup_task.workflow_model,
-                                self.results_task.workflow_model)
+                                self.review_task.workflow_model)
 
             self.assertNotEqual(old_workflow, self.setup_task.workflow_model)
             self.assertNotEqual(old_workflow,
                                 self.setup_task.side_pane.workflow_tree.model)
             self.assertNotEqual(old_analysis.value_names,
-                                self.results_task.analysis_model.value_names)
+                                self.review_task.analysis_model.value_names)
             self.assertNotEqual(old_analysis.value_names,
                                 self.setup_task.analysis_model.value_names)
-            self.assertEqual(self.results_task.analysis_model.value_names,
+            self.assertEqual(self.review_task.analysis_model.value_names,
                              ('x', 'y'))
-            self.assertEqual(self.results_task.analysis_model.evaluation_steps,
+            self.assertEqual(self.review_task.analysis_model.evaluation_steps,
                              [(1, 2)])
             self.assertEqual(self.setup_task.analysis_model.value_names,
-                             self.results_task.analysis_model.value_names)
+                             self.review_task.analysis_model.value_names)
             self.assertEqual(self.setup_task.analysis_model.evaluation_steps,
-                             self.results_task.analysis_model.evaluation_steps)
+                             self.review_task.analysis_model.evaluation_steps)
 
     def test_open_project_failure(self):
         mock_open = mock.mock_open()
@@ -404,9 +404,9 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                                       '123456': '1',
                                       'blah': {}}
 
-            success = self.results_task.open_project()
-            old_workflow = self.results_task.workflow_model
-            old_analysis = self.results_task.analysis_model
+            success = self.review_task.open_project()
+            old_workflow = self.review_task.workflow_model
+            old_analysis = self.review_task.analysis_model
             self.assertTrue(mock_open.called)
             self.assertTrue(mock_json.called)
             self.assertFalse(success)
@@ -420,8 +420,8 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             )
             self.assertEqual(old_workflow, self.setup_task.workflow_model)
             self.assertEqual(old_analysis, self.setup_task.analysis_model)
-            self.assertEqual(old_workflow, self.results_task.workflow_model)
-            self.assertEqual(old_analysis, self.results_task.analysis_model)
+            self.assertEqual(old_workflow, self.review_task.workflow_model)
+            self.assertEqual(old_analysis, self.review_task.analysis_model)
 
     def test_read_failure(self):
         mock_open = mock.mock_open()

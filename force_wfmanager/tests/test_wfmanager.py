@@ -25,7 +25,7 @@ class TestWfManager(GuiTestAssistant, TestCase):
 
         self.wfmanager.run()
         self.setup_task = self.wfmanager.windows[0].tasks[0]
-        self.results_task = self.wfmanager.windows[0].tasks[1]
+        self.review_task = self.wfmanager.windows[0].tasks[1]
 
     def test_init(self):
         self.create_tasks()
@@ -37,8 +37,8 @@ class TestWfManager(GuiTestAssistant, TestCase):
         self.assertIsInstance(self.setup_task.analysis_model, AnalysisModel)
         self.assertIsInstance(self.setup_task.workflow_model, Workflow)
 
-        self.assertIsInstance(self.results_task.analysis_model, AnalysisModel)
-        self.assertEqual(self.results_task.workflow_model, None)
+        self.assertIsInstance(self.review_task.analysis_model, AnalysisModel)
+        self.assertEqual(self.review_task.workflow_model, None)
 
     def test_init_with_file(self):
         with mock.patch(WORKFLOW_READER_PATH) as mock_reader:
@@ -62,11 +62,11 @@ class TestWfManager(GuiTestAssistant, TestCase):
             self.wfmanager.windows[0].active_task,
             self.setup_task,
             msg='Note: this test can fail locally if a saved application '
-                'memento exists with the results task in focus'
+                'memento exists with the review task in focus'
         )
         self.wfmanager.windows[0].active_task.switch_task()
         self.assertEqual(self.wfmanager.windows[0].active_task,
-                         self.results_task)
+                         self.review_task)
         self.wfmanager.windows[0].active_task.switch_task()
         self.assertEqual(self.wfmanager.windows[0].active_task,
                          self.setup_task)
@@ -75,8 +75,8 @@ class TestWfManager(GuiTestAssistant, TestCase):
         self.create_tasks()
         for window in self.wfmanager.windows:
             window.close = mock.Mock(return_value=True)
-        self.results_task.exit()
-        self.assertTrue(self.results_task.window.close.called)
+        self.review_task.exit()
+        self.assertTrue(self.review_task.window.close.called)
 
     def test_setup_task_exit(self):
         self.create_tasks()
@@ -96,7 +96,7 @@ class TestTaskWindowClosePrompt(TestCase):
     def create_tasks(self):
         self.wfmanager.run()
         self.setup_task = self.wfmanager.windows[0].tasks[0]
-        self.results_task = self.wfmanager.windows[0].tasks[1]
+        self.review_task = self.wfmanager.windows[0].tasks[1]
 
     def test_exit_application_with_saving(self):
         self.setup_task.save_workflow = mock.Mock(return_value=True)

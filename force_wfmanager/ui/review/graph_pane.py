@@ -3,7 +3,7 @@ from traits.api import Instance
 from traitsui.api import UItem, View, VGroup
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.results.plot import Plot
+from force_wfmanager.ui.review.plot import Plot
 
 
 class GraphPane(TraitsTaskPane):

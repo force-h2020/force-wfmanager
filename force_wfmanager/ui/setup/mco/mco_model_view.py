@@ -113,6 +113,7 @@ class MCOModelView(ModelView):
     @on_trait_change('model.parameters[]')
     def update_mco_parameters_mv(self):
         """ Update the MCOParameterModelView(s) """
+
         self.mco_parameters_mv = [
             MCOParameterModelView(model=parameter)
             for parameter in self.model.parameters]

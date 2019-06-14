@@ -1,61 +1,25 @@
 from unittest import TestCase
 
-from envisage.core_plugin import CorePlugin
-from envisage.ui.tasks.tasks_plugin import TasksPlugin
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 from force_bdss.mco.base_mco_model import BaseMCOModel
 from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
+
+from force_wfmanager.tests.dummy_classes import (
+    DummyWfManager
+)
 from force_wfmanager.ui.setup.workflow_model_view import (
     WorkflowModelView
 )
-from force_wfmanager.wfmanager import WfManager
-from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
-from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
-from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
-
-
-def dummy_wfmanager(filename=None):
-    plugins = [CorePlugin(), TasksPlugin(),
-               mock_wfmanager_plugin(filename)]
-    wfmanager = WfManager(plugins=plugins)
-    # 'Run' the application by creating windows without an event loop
-    wfmanager.run = wfmanager._create_windows
-    return wfmanager
-
-
-def mock_wfmanager_plugin(filename):
-    plugin = WfManagerPlugin()
-    plugin._create_setup_task = mock_create_setup_task(filename)
-    plugin._create_results_task = mock_create_results_task()
-    return plugin
-
-
-def mock_create_setup_task(filename):
-    def func():
-        wf_manager_task = WfManagerSetupTask(
-            factory_registry=ProbeFactoryRegistry())
-        if filename is not None:
-            wf_manager_task.open_workflow_file(filename)
-        return wf_manager_task
-    return func
-
-
-def mock_create_results_task():
-    def func():
-        wf_manager_task = WfManagerResultsTask(
-            factory_registry=ProbeFactoryRegistry())
-        return wf_manager_task
-    return func
 
 
 class TestSetupPane(GuiTestAssistant, TestCase):
 
     def setUp(self):
         super(TestSetupPane, self).setUp()
-        self.wfmanager = dummy_wfmanager()
+        self.wfmanager = DummyWfManager()
         self.wfmanager.run()
         self.setup_pane = self.wfmanager.windows[0].central_pane
         self.workflow_tree = (

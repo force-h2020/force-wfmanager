@@ -10,8 +10,8 @@ from traits.api import Bool, Instance, List, on_trait_change
 from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.results.graph_pane import GraphPane
-from force_wfmanager.ui.results.results_pane import ResultsPane
+from force_wfmanager.ui.review.graph_pane import GraphPane
+from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.wfmanager import (
     TaskToggleGroupAccelerator
 )
@@ -21,7 +21,7 @@ from force_wfmanager.io.project_io import write_project_file, load_project_file
 log = logging.getLogger(__name__)
 
 
-class WfManagerResultsTask(Task):
+class WfManagerReviewTask(Task):
     """Task responsible for running the Workflow and displaying the results."""
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
@@ -33,10 +33,10 @@ class WfManagerResultsTask(Task):
     #: The tool bars for this task.
     tool_bars = List(SToolBar)
 
-    id = 'force_wfmanager.wfmanager_results_task'
-    name = 'Results'
+    id = 'force_wfmanager.wfmanager_review_task'
+    name = 'Review'
 
-    #: Workflow model used to create the results in the analysis model.
+    #: Workflow model used to create the review in the analysis model.
     #: This trait no longer tracks the workflow stored under
     #: :attr:`setup_task.workflow_model` and instead is only updated
     #: when a new run is started.
@@ -59,7 +59,7 @@ class WfManagerResultsTask(Task):
     setup_task = Instance(Task)
 
     def _menu_bar_default(self):
-        """A menu bar with functions relevant to the Results task.
+        """A menu bar with functions relevant to the Review task.
         Functions associated to the shared methods are located
         at the application level."""
         menu_bar = SMenuBar(
@@ -350,7 +350,7 @@ class WfManagerResultsTask(Task):
                 self.factory_registry, file_path)
 
             # create two separate workflows, so that setup task can be
-            # edited without changing the results task copy
+            # edited without changing the review task copy
             self.setup_task.workflow_model = copy.copy(self.workflow_model)
 
             # share the analysis model with the setup_task

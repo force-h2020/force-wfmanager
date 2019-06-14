@@ -1,4 +1,4 @@
-force\_wfmanager\.ui\.results package
+force\_wfmanager\.ui\.review package
 =======================================
 
 Subpackages
@@ -6,39 +6,39 @@ Subpackages
 
 .. toctree::
 
-    force_wfmanager.ui.results.tests
+    force_wfmanager.ui.review.tests
 
 Submodules
 ----------
 
-force\_wfmanager\.ui\.results\.graph\_pane module
+force\_wfmanager\.ui\.review\.graph\_pane module
 -----------------------------------------------------
 
-.. automodule:: force_wfmanager.ui.results.graph_pane
+.. automodule:: force_wfmanager.ui.review.graph_pane
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.ui\.results\.plot module
+force\_wfmanager\.ui\.review\.plot module
 ---------------------------------------------------------
 
-.. automodule:: force_wfmanager.ui.results.plot
+.. automodule:: force_wfmanager.ui.review.plot
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.ui\.results\.results\_table module
+force\_wfmanager\.ui\.review\.results\_table module
 ------------------------------------------------------------------
 
-.. automodule:: force_wfmanager.ui.results.results_table
+.. automodule:: force_wfmanager.ui.review.results_table
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.ui\.results\.results\_pane module
+force\_wfmanager\.ui\.review\.results\_pane module
 --------------------------------------------------------
 
-.. automodule:: force_wfmanager.ui.results.results_pane
+.. automodule:: force_wfmanager.ui.review.results_pane
     :members:
     :undoc-members:
     :show-inheritance:
@@ -48,7 +48,7 @@ force\_wfmanager\.ui\.results\.results\_pane module
 Module contents
 ---------------
 
-.. automodule:: force_wfmanager.ui.results
+.. automodule:: force_wfmanager.ui.review
     :members:
     :undoc-members:
     :show-inheritance:

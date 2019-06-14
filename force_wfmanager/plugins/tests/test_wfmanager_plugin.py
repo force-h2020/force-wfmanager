@@ -16,7 +16,7 @@ class TestWfManagerPlugin(unittest.TestCase):
         self.assertEqual(self.wfmanager_plugin.tasks[0].name,
                          "Workflow Manager (Setup)")
         self.assertEqual(self.wfmanager_plugin.tasks[1].name,
-                         "Workflow Manager (Results)")
+                         "Workflow Manager (Review)")
 
         def mock_wfmanager_task_constructor(*args, **kwargs):
             return
@@ -31,11 +31,11 @@ class TestWfManagerPlugin(unittest.TestCase):
 
         with mock.patch(
                 "force_wfmanager.plugins.wfmanager_plugin"
-                ".WfManagerResultsTask") as mock_results_task:
-            mock_results_task.side_effect = mock_wfmanager_task_constructor
+                ".WfManagerReviewTask") as mock_review_task:
+            mock_review_task.side_effect = mock_wfmanager_task_constructor
 
-            self.wfmanager_plugin._create_results_task()
-            self.assertTrue(mock_results_task.called)
+            self.wfmanager_plugin._create_review_task()
+            self.assertTrue(mock_review_task.called)
 
     def test_init_with_file(self):
         pass

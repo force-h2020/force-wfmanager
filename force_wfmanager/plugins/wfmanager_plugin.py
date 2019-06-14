@@ -3,7 +3,7 @@ from envisage.ui.tasks.api import TaskFactory
 from traits.api import Either, List, Unicode
 
 from force_bdss.api import IFactoryRegistry
-from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
+from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
 
@@ -24,9 +24,9 @@ class WfManagerPlugin(Plugin):
         return [TaskFactory(id='force_wfmanager.wfmanager_setup_task',
                             name='Workflow Manager (Setup)',
                             factory=self._create_setup_task),
-                TaskFactory(id='force_wfmanager.wfmanager_results_task',
-                            name='Workflow Manager (Results)',
-                            factory=self._create_results_task)
+                TaskFactory(id='force_wfmanager.wfmanager_review_task',
+                            name='Workflow Manager (Review)',
+                            factory=self._create_review_task)
                 ]
 
     def _create_setup_task(self):
@@ -37,16 +37,16 @@ class WfManagerPlugin(Plugin):
             factory_registry=factory_registry,
         )
         if self.workflow_file is not None:
-            wf_manager_setup_task._load_workflow(self.workflow_file)
+            wf_manager_setup_task.load_workflow(self.workflow_file)
 
         return wf_manager_setup_task
 
-    def _create_results_task(self):
+    def _create_review_task(self):
         factory_registry = self.application.get_service(
             IFactoryRegistry
         )
-        wf_manager_results_task = WfManagerResultsTask(
+        wf_manager_review_task = WfManagerReviewTask(
             factory_registry=factory_registry
         )
 
-        return wf_manager_results_task
+        return wf_manager_review_task

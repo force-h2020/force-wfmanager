@@ -1,7 +1,7 @@
 import unittest
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.results.results_table import ResultsTable
+from force_wfmanager.ui.review.results_table import ResultsTable
 
 
 class TestResultsTable(unittest.TestCase):

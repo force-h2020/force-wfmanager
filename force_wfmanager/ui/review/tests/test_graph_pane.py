@@ -1,7 +1,7 @@
 import unittest
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.results.graph_pane import GraphPane
+from force_wfmanager.ui.review.graph_pane import GraphPane
 
 
 class TestGraphPane(unittest.TestCase):

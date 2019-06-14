@@ -38,7 +38,7 @@ class WfManagerSetupTask(Task):
     #: Workflow model.
     workflow_model = Instance(Workflow, allow_none=False)
 
-    #: Analysis model. Contains the results that are displayed in the plot
+    #: Analysis model. Contains the review that are displayed in the plot
     #: and table
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
@@ -85,7 +85,7 @@ class WfManagerSetupTask(Task):
     task_group = Instance(TaskToggleGroupAccelerator)
 
     #: Results Task
-    results_task = Instance(Task)
+    review_task = Instance(Task)
 
     # ZMQ Setup
 
@@ -278,20 +278,22 @@ class WfManagerSetupTask(Task):
 
     def open_workflow(self):
         """ Shows a dialog to open a workflow file """
+
         dialog = FileDialog(
             action="open",
             wildcard='JSON files (*.json)|*.json|'
         )
         result = dialog.open()
         file_path = dialog.path
-        if result is OK:
-            self._load_workflow(file_path)
 
-    def _load_workflow(self, file_path):
+        if result is OK:
+            self.load_workflow(file_path)
+
+    def load_workflow(self, file_path):
         """ Loads a workflow from the specified file name
         Parameters
         ----------
-        f_name: str
+        file_path: str
             The path to the workflow file
         """
         try:
@@ -625,19 +627,19 @@ class WfManagerSetupTask(Task):
     # Synchronization with Window
 
     @on_trait_change('window.tasks')
-    def get_results_task(self):
+    def get_review_task(self):
         if self.window is not None:
             for task in self.window.tasks:
-                if task.name == "Results":
-                    self.results_task = task
-                    self.results_task.run_enabled = self.run_enabled
+                if task.name == "Review":
+                    self.review_task = task
+                    self.review_task.run_enabled = self.run_enabled
 
     # Menu/Toolbar Methods
 
     def switch_task(self):
-        """Switches to the results task and verifies startup setting are
+        """Switches to the review task and verifies startup setting are
         correct for toolbars/menus etc."""
-        self.window.activate_task(self.results_task)
+        self.window.activate_task(self.review_task)
 
     def exit(self):
         self.window.close()

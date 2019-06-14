@@ -6,7 +6,7 @@ from chaco.api import ColormappedScatterPlot, ScatterPlot
 from chaco.abstract_colormap import AbstractColormap
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.results.plot import Plot
+from force_wfmanager.ui.review.plot import Plot
 from traits.api import push_exception_handler, TraitError
 
 push_exception_handler(reraise_exceptions=True)

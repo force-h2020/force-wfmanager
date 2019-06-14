@@ -22,12 +22,12 @@ class MCOParameterModelView(ModelView):
 
     #: Defines if the MCO parameter is valid or not. Updated by
     #: :func:`verify_tree
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Updated by
     #: :func:`verify_tree
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
     #: Event to request a verification check on the workflow
@@ -45,11 +45,10 @@ class MCOParameterModelView(ModelView):
     # View
     # ----
 
-    #: Base view for the MCO parameter
     traits_view = View(
         Item("model.name"),
         Item("model.type"),
-        kind="subpanel",
+        kind="subpanel"
     )
 
     # Workflow Validation

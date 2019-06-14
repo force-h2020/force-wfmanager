@@ -8,7 +8,7 @@ Subpackages
 
     force_wfmanager.ui.tests
     force_wfmanager.ui.setup
-    force_wfmanager.ui.results
+    force_wfmanager.ui.review
 
 Submodules
 ----------

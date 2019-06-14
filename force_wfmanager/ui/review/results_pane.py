@@ -3,7 +3,7 @@ from traits.api import Instance
 from traitsui.api import VGroup, View, UItem
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.results.results_table import ResultsTable
+from force_wfmanager.ui.review.results_table import ResultsTable
 
 
 class ResultsPane(TraitsDockPane):
@@ -13,7 +13,7 @@ class ResultsPane(TraitsDockPane):
     # Required Attributes
     # -------------------
 
-    #: The analysis model containing the results
+    #: The analysis model containing the review
     analysis_model = Instance(AnalysisModel)
 
     # ------------------
@@ -42,7 +42,7 @@ class ResultsPane(TraitsDockPane):
     # Dependent Attributes
     # --------------------
 
-    #: The table displaying the results.
+    #: The table displaying the review.
     #: Listens to: :attr:`analysis_model`
     results_table = Instance(ResultsTable)
 
