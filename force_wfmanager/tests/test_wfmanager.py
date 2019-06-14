@@ -106,6 +106,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
 
         self.assertIsInstance(self.results_task.analysis_model, AnalysisModel)
         self.assertEqual(self.results_task.workflow_model, None)
+        self.wfmanager.exit()
 
     def test_init_with_file(self):
         with mock.patch(WORKFLOW_READER_PATH) as mock_reader:
@@ -115,6 +116,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
             self.assertEqual(os.path.basename(self.setup_task.current_file),
                              'evaluation-4.json')
             self.assertEqual(mock_reader.call_count, 1)
+            self.wfmanager.exit()
 
     def test_remove_tasks_on_application_exiting(self):
         self.wfmanager.run()
@@ -136,6 +138,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
         self.wfmanager.windows[0].active_task.switch_task()
         self.assertEqual(self.wfmanager.windows[0].active_task,
                          self.setup_task)
+        self.wfmanager.exit()
 
     def test_result_task_exit(self):
         self.create_tasks()
@@ -143,6 +146,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
             window.close = mock.Mock(return_value=True)
         self.results_task.exit()
         self.assertTrue(self.results_task.window.close.called)
+        self.wfmanager.exit()
 
     def test_setup_task_exit(self):
         self.create_tasks()
@@ -150,6 +154,7 @@ class TestWfManager(GuiTestAssistant, unittest.TestCase):
             window.close = mock.Mock(return_value=True)
         self.setup_task.exit()
         self.assertTrue(self.setup_task.window.close.called)
+        self.wfmanager.exit()
 
 
 class TestTaskWindowClosePrompt(unittest.TestCase):
@@ -158,6 +163,10 @@ class TestTaskWindowClosePrompt(unittest.TestCase):
         super(TestTaskWindowClosePrompt, self).setUp()
         self.wfmanager = dummy_wfmanager()
         self.create_tasks()
+
+    def tearDown(self):
+        # In case a faulty test hasn't succeeded closing via the dialog
+        self.wfmanager.exit()
 
     def create_tasks(self):
         self.wfmanager.run()
