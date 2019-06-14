@@ -11,8 +11,9 @@ from force_wfmanager.tests import fixtures
 from force_wfmanager.wfmanager import TaskWindowClosePrompt
 
 from .mock_methods import mock_file_reader, mock_dialog
-from .dummy_classes import DummyWfManager
+from .probe_classes import ProbeWfManager
 
+SETUP_ERROR_PATH = 'force_wfmanager.wfmanager_setup_task.error'
 WORKFLOW_READER_PATH = 'force_wfmanager.io.workflow_io.WorkflowReader'
 CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
 
@@ -20,7 +21,7 @@ CONFIRMATION_DIALOG_PATH = 'force_wfmanager.wfmanager.ConfirmationDialog'
 class TestWfManager(GuiTestAssistant, TestCase):
     def setUp(self):
         super(TestWfManager, self).setUp()
-        self.wfmanager = DummyWfManager()
+        self.wfmanager = ProbeWfManager()
 
     def create_tasks(self):
 
@@ -44,12 +45,25 @@ class TestWfManager(GuiTestAssistant, TestCase):
     def test_init_with_file(self):
         with mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_reader.side_effect = mock_file_reader
-            self.wfmanager = DummyWfManager(
+            self.wfmanager = ProbeWfManager(
                 fixtures.get('evaluation-4.json'))
             self.create_tasks()
             self.assertEqual(os.path.basename(self.setup_task.current_file),
                              'evaluation-4.json')
             self.assertEqual(mock_reader.call_count, 1)
+
+    def test_init_with_file_failure(self):
+        with mock.patch(SETUP_ERROR_PATH) as mock_error:
+            self.wfmanager = ProbeWfManager("this_file_does_not_exist.json")
+            self.create_tasks()
+            error_msg = ("Cannot read the requested file:\n\n[Errno 2] "
+                         "No such file or directory: "
+                         "'this_file_does_not_exist.json'")
+            mock_error.assert_called_with(
+                None,
+                error_msg,
+                'Error when reading file'
+            )
 
     def test_remove_tasks_on_application_exiting(self):
         self.wfmanager.run()
@@ -91,7 +105,7 @@ class TestTaskWindowClosePrompt(TestCase):
 
     def setUp(self):
         super(TestTaskWindowClosePrompt, self).setUp()
-        self.wfmanager = DummyWfManager()
+        self.wfmanager = ProbeWfManager()
         self.create_tasks()
 
     def create_tasks(self):

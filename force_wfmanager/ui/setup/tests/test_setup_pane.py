@@ -7,8 +7,8 @@ from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
 
-from force_wfmanager.tests.dummy_classes import (
-    DummyWfManager
+from force_wfmanager.tests.probe_classes import (
+    ProbeWfManager
 )
 from force_wfmanager.ui.setup.workflow_model_view import (
     WorkflowModelView
@@ -19,7 +19,7 @@ class TestSetupPane(GuiTestAssistant, TestCase):
 
     def setUp(self):
         super(TestSetupPane, self).setUp()
-        self.wfmanager = DummyWfManager()
+        self.wfmanager = ProbeWfManager()
         self.wfmanager.run()
         self.setup_pane = self.wfmanager.windows[0].central_pane
         self.workflow_tree = (

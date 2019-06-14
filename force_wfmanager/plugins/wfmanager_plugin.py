@@ -9,7 +9,7 @@ from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
 class WfManagerPlugin(Plugin):
     """ The Plugin containing the Workflow Manager UI. This contains the
-    factories which create the Tasks (currently Setup & Results)"""
+    factories which create the Tasks (currently Setup & Review)"""
 
     TASKS = 'envisage.ui.tasks.tasks'
 

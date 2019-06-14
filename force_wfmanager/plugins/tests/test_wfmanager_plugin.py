@@ -6,6 +6,17 @@ from envisage.api import Application
 from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
 
 
+SETUP_TASK = ("force_wfmanager.plugins.wfmanager_plugin"
+              ".WfManagerSetupTask")
+REVIEW_TASK = ("force_wfmanager.plugins.wfmanager_plugin"
+               ".WfManagerReviewTask")
+PLUGIN_SERVICE = 'envisage.api.Plugin.application.get_service'
+
+
+def mock_wfmanager_task_constructor(*args, **kwargs):
+    return
+
+
 class TestWfManagerPlugin(unittest.TestCase):
     def setUp(self):
         self.wfmanager_plugin = WfManagerPlugin(workflow_file=None)
@@ -18,24 +29,20 @@ class TestWfManagerPlugin(unittest.TestCase):
         self.assertEqual(self.wfmanager_plugin.tasks[1].name,
                          "Workflow Manager (Review)")
 
-        def mock_wfmanager_task_constructor(*args, **kwargs):
-            return
-
-        with mock.patch(
-                "force_wfmanager.plugins.wfmanager_plugin"
-                ".WfManagerSetupTask") as mock_setup_task:
+        with mock.patch(SETUP_TASK) as mock_setup_task:
             mock_setup_task.side_effect = mock_wfmanager_task_constructor
 
             self.wfmanager_plugin._create_setup_task()
             self.assertTrue(mock_setup_task.called)
 
-        with mock.patch(
-                "force_wfmanager.plugins.wfmanager_plugin"
-                ".WfManagerReviewTask") as mock_review_task:
+        with mock.patch(REVIEW_TASK) as mock_review_task:
             mock_review_task.side_effect = mock_wfmanager_task_constructor
 
             self.wfmanager_plugin._create_review_task()
             self.assertTrue(mock_review_task.called)
 
     def test_init_with_file(self):
-        pass
+        self.wfmanager_plugin.workflow_file = 'some_workflow_file.json'
+
+        with self.assertRaises(Exception):
+            self.wfmanager_plugin.workflow_file = 0
