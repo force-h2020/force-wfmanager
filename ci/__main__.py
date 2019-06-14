@@ -7,9 +7,9 @@ PYTHON_VERSIONS = ["3.6"]
 ADDITIONAL_CORE_DEPS = [
     "pyface==6.1.0-2",
     "pygments==2.2.0-1",
-    "pyqt==4.12.1-1",
+    "pyqt==4.11.4-7",
     "qt==4.8.7-10",
-    "sip==4.19.2-2",
+    "sip==4.17-4",
     "traitsui==6.1.1-1",
     "numpy==1.15.4-2",
     "chaco==4.7.2-3",
