@@ -34,6 +34,8 @@ RESULTS_WRITER_PATH = \
 RESULTS_READER_PATH = \
     'force_wfmanager.io.project_io.WorkflowReader'
 RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_review_task.error'
+ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.write_analysis_model'
+ANALYSIS_FILE_OPEN_PATH = 'force_wfmanager.io.analysis_model_io.open'
 
 
 def get_probe_wfmanager_tasks():
@@ -92,6 +94,19 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         self.assertIsInstance(self.setup_task.workflow_model, Workflow)
         self.assertIsInstance(self.review_task.analysis_model, AnalysisModel)
         self.assertIsInstance(self.setup_task.analysis_model, AnalysisModel)
+
+    def test_save_analysis(self):
+        mock_open = mock.mock_open()
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False):
+
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, OK, 'file_path.json')
+
+            self.assertTrue(self.review_task.export_analysis_model_as())
+            self.assertTrue(mock_file_dialog.called)
+            self.assertTrue(mock_open.called)
+
 
     def test_save_project(self):
         mock_open = mock.mock_open()
