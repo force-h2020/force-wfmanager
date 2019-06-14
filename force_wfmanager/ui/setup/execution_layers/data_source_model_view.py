@@ -154,12 +154,6 @@ class DataSourceModelView(ModelView):
     #: Registry of the available variables
     variable_names_registry = Instance(VariableNamesRegistry)
 
-    #: The execution layer instance containing this data source model view.
-    execution_layer_mv = Instance(
-        'force_wfmanager.left_side_pane'
-        '.execution_layer_model_view.ExecutionLayerModelView'
-    )
-
     # ------------------
     # Regular Attributes
     # ------------------
@@ -192,12 +186,12 @@ class DataSourceModelView(ModelView):
 
     #: Defines if the evaluator is valid or not. Updated by
     #: :func:`verify_tree
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Updated by
     #: :func:`verify_tree
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
     # ----------

@@ -183,7 +183,8 @@ class Plot(HasStrictTraits):
                          selection_outline_color=(0, 0, 0, 0))
 
         # Add the selection tool
-        inspector, overlay = self._get_scatter_inspector_overlay(scatter_plot)
+        inspector, overlay = self._get_scatter_inspector_overlay(
+            scatter_plot)
         scatter_plot.tools.append(inspector)
         scatter_plot.overlays.append(overlay)
 
@@ -223,7 +224,8 @@ class Plot(HasStrictTraits):
         cmap_scatter_plot.overlays.append(ZoomTool(plot))
 
         # Add the selection tool
-        inspector, overlay = self._get_scatter_inspector_overlay(cmap_scatter_plot)
+        inspector, overlay = self._get_scatter_inspector_overlay(
+            cmap_scatter_plot)
         cmap_scatter_plot.tools.append(inspector)
         cmap_scatter_plot.overlays.append(overlay)
 

@@ -41,17 +41,17 @@ class ExecutionLayerModelView(ModelView):
 
     #: True if the model attribute of this modelview is valid. Updated by
     #: :func:`workflow_tree.WorkflowTree.verify_tree
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Updated by
     #: :func:`workflow_tree.WorkflowTree.verify_tree
-    #: <force_wfmanager.left_side_pane.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
     #: Event to request a verification check on the workflow
     #: Listens to: :attr:`data_sources_mv.verify_workflow_event
-    #: <force_wfmanager.left_side_pane.data_source_model_view.\
+    #: <force_wfmanager.ui.setup.execution_layer.data_source_model_view.\
     #: DataSourceModelView.verify_workflow_event>`
     verify_workflow_event = Event()
 
