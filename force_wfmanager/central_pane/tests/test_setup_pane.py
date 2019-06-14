@@ -63,6 +63,10 @@ class TestSetupPane(GuiTestAssistant, unittest.TestCase):
         self.workflow_tree.workflow_mv = WorkflowModelView()
         self.workflow_tree._factory_registry = ProbeFactoryRegistry()
 
+    def tearDown(self):
+        self.wfmanager.exit()
+        super(TestSetupPane, self).tearDown()
+
     def test_add_entity_button(self):
         self.assertEqual(0, len(self.workflow_tree.workflow_mv.mco_mv))
         self.workflow_tree.factory(
