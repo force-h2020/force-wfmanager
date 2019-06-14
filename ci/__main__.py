@@ -11,8 +11,8 @@ ADDITIONAL_CORE_DEPS = [
     "qt==4.8.7-7",
     "sip==4.17-4",
     "traitsui==6.0.0-2",
-    "numpy==1.13.3-3",
-    "chaco==4.7.1-2",
+    "numpy==1.15.4-2",
+    "chaco==4.7.2-3",
     "pyzmq==16.0.0-4",
     "mock==2.0.0-1"
 ]

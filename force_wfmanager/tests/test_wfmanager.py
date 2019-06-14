@@ -1,3 +1,4 @@
+import os
 from unittest import mock, TestCase
 
 from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
@@ -46,7 +47,7 @@ class TestWfManager(GuiTestAssistant, TestCase):
             self.wfmanager = DummyWfManager(
                 fixtures.get('evaluation-4.json'))
             self.create_tasks()
-            self.assertEqual(self.setup_task.current_file.split('/')[-1],
+            self.assertEqual(os.path.basename(self.setup_task.current_file),
                              'evaluation-4.json')
             self.assertEqual(mock_reader.call_count, 1)
 
