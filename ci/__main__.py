@@ -17,6 +17,7 @@ ADDITIONAL_CORE_DEPS = [
     "mock==2.0.0-3"
 ]
 
+
 @click.group()
 def cli():
     pass

@@ -67,6 +67,7 @@ class WfManager(TasksApplication):
     # FIXME: If the underlying envisage TasksApplication function is fixed to
     #        work correctly, this will not be needed
     def create_window(self, layout, restore, **traits):
+        print("\n\nTEST - ", layout, restore, traits)
         window = super(WfManager, self).create_window(
             layout, not restore, **traits
         )
