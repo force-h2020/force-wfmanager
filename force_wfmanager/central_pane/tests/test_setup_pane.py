@@ -64,6 +64,8 @@ class TestSetupPane(GuiTestAssistant, unittest.TestCase):
         self.workflow_tree._factory_registry = ProbeFactoryRegistry()
 
     def tearDown(self):
+        for plugin in self.wfmanager:
+            self.wfmanager.remove_plugin(plugin)
         self.wfmanager.exit()
         super(TestSetupPane, self).tearDown()
 
