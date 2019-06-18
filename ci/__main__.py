@@ -12,15 +12,15 @@ ADDITIONAL_CORE_DEPS = [
     "numpy==1.15.4-2",
     "chaco==4.7.2-3",
     "pyzmq==16.0.0-7",
-    "mock==2.0.0-3"
+    "mock==2.0.0-3",
 ]
 
-# enthought/pyface#387 handles qtWebEngine/qtWebKit correctly for
-# PyQt5
+# Using enthought/pyface#387 which aims at handling
+# qtWebEngine/qtWebKit correctly for PyQt5
 PIP_DEPS = ['git+https://github.com/enthought/traitsui.git'
             '@534b0b2bca8228faf534cc4083ecdc4600e607cf',
             'git+https://github.com/enthought/pyface.git'
-            '@41928767e823dd4a9390d1860746404e67d70637']
+            '@enh/update-pyqt5-CI']
 
 
 @click.group()
