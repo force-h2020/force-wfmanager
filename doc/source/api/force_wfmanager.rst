@@ -6,22 +6,17 @@ Subpackages
 
 .. toctree::
 
-    force_wfmanager.central_pane
-    force_wfmanager.left_side_pane
+    force_wfmanager.io
+    force_wfmanager.model
+    force_wfmanager.notifications
     force_wfmanager.plugins
     force_wfmanager.server
     force_wfmanager.tests
+    force_wfmanager.ui
+    force_wfmanager.utils
 
 Submodules
 ----------
-
-force\_wfmanager\.local\_traits module
---------------------------------------
-
-.. automodule:: force_wfmanager.local_traits
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 force\_wfmanager\gui\.run module
 --------------------------------
@@ -47,14 +42,6 @@ force\_wfmanager\.wfmanager module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.wfmanager\_plugin module
-------------------------------------------
-
-.. automodule:: force_wfmanager.wfmanager_plugin
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 force\_wfmanager\.wfmanager\_setup\_task module
 -----------------------------------------------
 
@@ -63,10 +50,10 @@ force\_wfmanager\.wfmanager\_setup\_task module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.wfmanager\_results\_task module
+force\_wfmanager\.wfmanager\_review\_task module
 -------------------------------------------------
 
-.. automodule:: force_wfmanager.wfmanager_results_task
+.. automodule:: force_wfmanager.wfmanager_review_task
     :members:
     :undoc-members:
     :show-inheritance:

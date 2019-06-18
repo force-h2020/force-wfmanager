@@ -11,6 +11,15 @@ Subpackages
 Submodules
 ----------
 
+
+force\_wfmanager\.server\.event\_serializer module
+---------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.server.event_serializer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 force\_wfmanager\.server\.event\_deserializer module
 ----------------------------------------------------
 

@@ -1,161 +1,83 @@
-import unittest
-import subprocess
 import copy
-from unittest import mock
+from unittest import mock, TestCase
 
-from force_bdss.core.data_value import DataValue
-from force_bdss.io.workflow_reader import WorkflowReader, InvalidFileException
-from force_bdss.io.workflow_writer import WorkflowWriter
-from force_wfmanager.central_pane.graph_pane import GraphPane
-from force_wfmanager.central_pane.setup_pane import SetupPane
-from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.tests.utils import wait_condition
-from pyface.constant import OK, CANCEL, YES
+from pyface.api import OK, CANCEL
 from pyface.file_dialog import FileDialog
-from pyface.tasks.api import TaskWindow
-
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+from pyface.tasks.api import TaskWindow
 
 from force_bdss.tests.probe_classes.factory_registry import \
     ProbeFactoryRegistry
-from force_bdss.api import Workflow, MCOProgressEvent, MCOStartEvent
+from force_bdss.api import Workflow
+from force_wfmanager.ui.review.graph_pane import GraphPane
+from force_wfmanager.ui.setup.setup_pane import SetupPane
+from force_wfmanager.ui.setup.tree_pane import TreePane
+from force_wfmanager.ui.review.results_pane import ResultsPane
+from force_wfmanager.model.analysis_model import AnalysisModel
 
-from force_wfmanager.wfmanager import WfManager
+from .mock_methods import (
+    mock_file_reader, mock_file_writer, mock_dialog, mock_return_args
+)
+from .dummy_classes import DummyWfManager
+
+from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
-from force_wfmanager.wfmanager_results_task import WfManagerResultsTask
-from force_wfmanager.left_side_pane.tree_pane import TreePane
-from force_wfmanager.left_side_pane.results_pane import ResultsPane
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
 
-from envisage.core_plugin import CorePlugin
-from envisage.ui.tasks.tasks_plugin import TasksPlugin
-from testfixtures import LogCapture
-
-CONFIRMATION_DIALOG_PATH = \
-    'force_wfmanager.wfmanager_setup_task.ConfirmationDialog'
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_setup_task.FileDialog'
-INFORMATION_PATH = 'force_wfmanager.wfmanager_setup_task.information'
-CONFIRM_PATH = 'force_wfmanager.wfmanager_setup_task.confirm'
-FILE_OPEN_PATH = 'force_wfmanager.wfmanager_setup_task.open'
-WORKFLOW_WRITER_PATH = 'force_wfmanager.wfmanager_setup_task.WorkflowWriter'
-WORKFLOW_READER_PATH = 'force_wfmanager.wfmanager_setup_task.WorkflowReader'
-ERROR_PATH = 'force_wfmanager.wfmanager_setup_task.error'
-SUBPROCESS_PATH = 'force_wfmanager.wfmanager_setup_task.subprocess'
-OS_REMOVE_PATH = 'force_wfmanager.wfmanager_setup_task.os.remove'
-ZMQSERVER_SETUP_SOCKETS_PATH = \
-    'force_wfmanager.wfmanager_setup_task.ZMQServer._setup_sockets'
-RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_results_task.FileDialog'
-RESULTS_FILE_OPEN_PATH = 'force_wfmanager.wfmanager_results_task.open'
-RESULTS_JSON_DUMP_PATH = 'force_wfmanager.wfmanager_results_task.json.dump'
-RESULTS_JSON_LOAD_PATH = 'force_wfmanager.wfmanager_results_task.json.load'
-RESULTS_WORKFLOW_WRITER_PATH = \
-    'force_wfmanager.wfmanager_results_task.WorkflowWriter.get_workflow_data'
-RESULTS_WORKFLOW_READER_PATH = \
-    'force_wfmanager.wfmanager_results_task.WorkflowReader'
-RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_results_task.error'
+WORKFLOW_FILE_OPEN_PATH = 'force_wfmanager.io.workflow_io.open'
+RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_review_task.FileDialog'
+RESULTS_FILE_OPEN_PATH = 'force_wfmanager.io.project_io.open'
+RESULTS_JSON_DUMP_PATH = 'force_wfmanager.io.project_io.json.dump'
+RESULTS_JSON_LOAD_PATH = 'force_wfmanager.io.project_io.json.load'
+RESULTS_WRITER_PATH = \
+    'force_wfmanager.io.project_io.WorkflowWriter.get_workflow_data'
+RESULTS_READER_PATH = \
+    'force_wfmanager.io.project_io.WorkflowReader'
+RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_review_task.error'
+ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.' \
+                      'write_analysis_model'
+ANALYSIS_FILE_OPEN_PATH = 'force_wfmanager.io.analysis_model_io.open'
 
 
-def mock_dialog(dialog_class, result, path=''):
-    def mock_dialog_call(*args, **kwargs):
-        dialog = mock.Mock(spec=dialog_class)
-        dialog.open = lambda: result
-        dialog.path = path
-        return dialog
-    return mock_dialog_call
-
-
-def mock_file_writer(*args, **kwargs):
-    def write(*args, **kwargs):
-        return ''
-    writer = mock.Mock(spec=WorkflowWriter)
-    writer.write = write
-    return writer
-
-
-def mock_confirm_function(result):
-    def mock_conf(*args, **kwargs):
-        return result
-    return mock_conf
-
-
-def mock_file_reader(*args, **kwargs):
-    def read(*args, **kwargs):
-        workflow = Workflow()
-        return workflow
-    reader = mock.Mock(spec=WorkflowReader)
-    reader.read = read
-    return reader
-
-
-def mock_file_reader_failure(*args, **kwargs):
-    def read(*args, **kwargs):
-        raise InvalidFileException("OUPS")
-    reader = mock.Mock(spec=WorkflowReader)
-    reader.read = read
-    return reader
-
-
-def mock_os_remove(*args, **kwargs):
-    raise OSError("OUPS")
-
-
-def mock_show_error(*args, **kwargs):
-    return args
-
-
-def mock_subprocess(*args, **kwargs):
-    def check_call(*args, **kwargs):
-        return
-    mock_subprocess_module = mock.Mock(spec=subprocess)
-    mock_subprocess_module.check_call = check_call
-    return mock_subprocess_module
-
-
-def mock_info_dialog(*args, **kwargs):
-    return args
-
-
-def get_wfmanager_tasks():
-    # Returns the Setup and Results Tasks, with a mock TaskWindow and dummy
+def get_probe_wfmanager_tasks():
+    # Returns the Setup and Review Tasks, with a mock TaskWindow and dummy
     # Application which does not have an event loop.
-    app = dummy_wfmanager()
+
+    wf_manager = DummyWfManager()
+
     analysis_model = AnalysisModel()
     workflow_model = Workflow()
     factory_registry_plugin = ProbeFactoryRegistry()
-    setup_task = WfManagerSetupTask(
+
+    wf_manager.factory_registry = factory_registry_plugin
+
+    setup_test = WfManagerSetupTask(
         analysis_model=analysis_model, workflow_model=workflow_model,
         factory_registry=factory_registry_plugin
     )
-    results_task = WfManagerResultsTask(
+
+    review_task = WfManagerReviewTask(
         analysis_model=analysis_model, workflow_model=workflow_model,
         factory_registry=factory_registry_plugin
     )
-    tasks = [setup_task, results_task]
+
+    tasks = [setup_test, review_task]
+    mock_window = mock.Mock(spec=TaskWindow)
+    mock_window.tasks = tasks
+    mock_window.application = wf_manager
 
     for task in tasks:
-        mock_window = mock.Mock(spec=TaskWindow)
-        mock_window.tasks = tasks
         task.window = mock_window
-        task.window.application = app
-        task.window.application.factory_registry = factory_registry_plugin
-
         task.create_central_pane()
         task.create_dock_panes()
 
     return tasks[0], tasks[1]
 
 
-def dummy_wfmanager():
-    plugins = [CorePlugin(), TasksPlugin()]
-    wfmanager = WfManager(plugins=plugins)
-    wfmanager.run = lambda: None
-    return wfmanager
-
-
-class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
+class TestWFManagerTasks(GuiTestAssistant, TestCase):
     def setUp(self):
         super(TestWFManagerTasks, self).setUp()
-        self.setup_task, self.results_task = get_wfmanager_tasks()
+        self.setup_task, self.review_task = get_probe_wfmanager_tasks()
 
     def test_init(self):
         self.assertIsInstance(self.setup_task.create_central_pane(),
@@ -163,95 +85,99 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
         self.assertEqual(len(self.setup_task.create_dock_panes()), 1)
         self.assertIsInstance(self.setup_task.side_pane, TreePane)
 
-        self.assertEqual(len(self.results_task.create_dock_panes()),
+        self.assertEqual(len(self.review_task.create_dock_panes()),
                          1)
-        self.assertIsInstance(self.results_task.side_pane,
+        self.assertIsInstance(self.review_task.side_pane,
                               ResultsPane)
-        self.assertIsInstance(self.results_task.create_central_pane(),
+        self.assertIsInstance(self.review_task.create_central_pane(),
                               GraphPane)
-        self.assertIsInstance(self.results_task.workflow_model, Workflow)
+        self.assertIsInstance(self.review_task.workflow_model, Workflow)
         self.assertIsInstance(self.setup_task.workflow_model, Workflow)
-        self.assertIsInstance(self.results_task.analysis_model, AnalysisModel)
+        self.assertIsInstance(self.review_task.analysis_model, AnalysisModel)
         self.assertIsInstance(self.setup_task.analysis_model, AnalysisModel)
 
-    def test_zmq_start(self):
-        self.setup_task.zmq_server = mock.Mock(spec=ZMQServer)
-        self.setup_task.initialized()
-        self.assertTrue(self.setup_task.zmq_server.start.called)
-
-    def test_failed_initialization_of_ui_hooks(self):
-        plugin = ProbeFactoryRegistry()
-
-        plugin.ui_hooks_factories[0].create_ui_hooks_manager_raises = True
-
-        self.setup_task.factory_registry = plugin
-
-        with LogCapture() as capture:
-            self.assertEqual(len(self.setup_task.ui_hooks_managers), 0)
-
-        capture.check(
-            ('force_wfmanager.wfmanager_setup_task',
-             'ERROR',
-             'Failed to create UI hook manager by factory ProbeUIHooksFactory')
-        )
-
-    def test_save_workflow(self):
+    def test_save_analysis(self):
         mock_open = mock.mock_open()
-        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-
-            hook_manager = self.setup_task.ui_hooks_managers[0]
-            self.assertFalse(hook_manager.before_save_called)
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False):
 
             mock_file_dialog.side_effect = mock_dialog(
-                FileDialog, OK, 'file_path')
-            mock_writer.side_effect = mock_file_writer
+                FileDialog, OK, 'test_file.json')
 
-            self.setup_task.save_workflow()
-
-            self.assertTrue(mock_writer.called)
-            self.assertTrue(mock_open.called)
+            self.assertTrue(self.review_task.export_analysis_model_as())
             self.assertTrue(mock_file_dialog.called)
-
-            self.assertEqual(self.setup_task.current_file, 'file_path')
-            self.assertTrue(hook_manager.before_save_called)
-
-            hook_manager.before_save_raises = True
-            with LogCapture() as capture:
-                self.setup_task.save_workflow()
-
-            capture.check(('force_wfmanager.wfmanager_setup_task',
-                           'ERROR',
-                           'Failed before_save hook for hook manager '
-                           'ProbeUIHooksManager'))
-
-            hook_manager.before_save_raises = False
+            self.assertTrue(mock_open.called)
 
         mock_open = mock.mock_open()
-        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_writer.side_effect = mock_file_writer
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False):
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, OK, 'test_file.csv')
 
-            self.setup_task.save_workflow()
-
-            self.assertTrue(mock_writer.called)
+            self.assertTrue(self.review_task.export_analysis_model_as())
+            self.assertTrue(mock_file_dialog.called)
             self.assertTrue(mock_open.called)
-            self.assertFalse(mock_file_dialog.called)
+
+    def test_save_analysis_failure(self):
+        mock_open = mock.mock_open()
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False):
+
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, CANCEL)
+
+            self.assertFalse(self.review_task.export_analysis_model_as())
+            self.assertTrue(mock_file_dialog.called)
+            self.assertFalse(mock_open.called)
+
+        mock_open = mock.mock_open()
+        mock_open.side_effect = IOError("OUPS")
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False),\
+                mock.patch(RESULTS_ERROR_PATH) as mock_error:
+            mock_error.side_effect = mock_return_args
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, OK, '')
+
+            self.assertFalse(self.review_task.export_analysis_model_as())
+            self.assertTrue(mock_file_dialog.called)
+            self.assertTrue(mock_open.called)
+
+            mock_error.assert_called_with(
+                None,
+                'Cannot save in the requested file:\n\nOUPS',
+                'Error when saving the results table'
+            )
+
+        mock_open = mock.mock_open()
+        mock_open.side_effect = RuntimeError("OUPS")
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
+                mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False), \
+                mock.patch(RESULTS_ERROR_PATH) as mock_error:
+            mock_file_dialog.side_effect = mock_dialog(
+                FileDialog, OK, '')
+
+            self.assertFalse(self.review_task.export_analysis_model_as())
+            self.assertTrue(mock_file_dialog.called)
+            self.assertTrue(mock_open.called)
+
+            mock_error.assert_called_with(
+                None,
+                'Cannot save the results table:\n\nOUPS',
+                'Error when saving results'
+            )
 
     def test_save_project(self):
         mock_open = mock.mock_open()
         with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(RESULTS_JSON_DUMP_PATH) as mock_json_dump, \
                 mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(RESULTS_WORKFLOW_WRITER_PATH) as mock_wf_writer:
+                mock.patch(RESULTS_WRITER_PATH) as mock_wf_writer:
             mock_file_dialog.side_effect = mock_dialog(
                 FileDialog, OK, 'file_path')
             mock_wf_writer.side_effect = mock_file_writer
 
-            self.results_task.save_project_as()
+            self.review_task.save_project_as()
 
             self.assertTrue(mock_wf_writer.called)
             self.assertTrue(mock_open.called)
@@ -265,9 +191,9 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                 mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(RESULTS_ERROR_PATH) as mock_error:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
+            mock_error.side_effect = mock_return_args
 
-            self.results_task.save_project_as()
+            self.review_task.save_project_as()
 
             self.assertTrue(mock_open.called)
             mock_error.assert_called_with(
@@ -276,112 +202,13 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                 'Error when saving the project'
             )
 
-    def test_save_workflow_failure(self):
-        mock_open = mock.mock_open()
-        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_file_dialog.side_effect = mock_dialog(
-                FileDialog, OK, 'file_path')
-            mock_writer.side_effect = mock_file_writer
-
-            self.setup_task.save_workflow()
-
-            self.assertEqual(
-                self.setup_task.current_file,
-                'file_path'
-            )
-
-        mock_open = mock.mock_open()
-        mock_open.side_effect = Exception("OUPS")
-        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(ERROR_PATH) as mock_error:
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
-
-            self.setup_task.save_workflow()
-
-            self.assertEqual(
-                self.setup_task.current_file,
-                ''
-            )
-
-            self.assertTrue(mock_error.called)
-
-    def test_close_saving_dialog(self):
-        mock_open = mock.mock_open()
-        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, CANCEL)
-            mock_writer.side_effect = mock_file_writer
-
-            self.setup_task.save_workflow_as()
-            mock_open.assert_not_called()
-
-    def test_about_action(self):
-        with mock.patch(INFORMATION_PATH) as mock_information:
-            mock_information.side_effect = mock_info_dialog
-
-            self.setup_task.open_about()
-
-            self.assertTrue(mock_information.called)
-
-    def test_save_as_workflow_failure(self):
-        mock_open = mock.mock_open()
-        mock_open.side_effect = IOError("OUPS")
-        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(ERROR_PATH) as mock_error:
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
-
-            self.setup_task.save_workflow_as()
-
-            self.assertTrue(mock_open.called)
-            mock_error.assert_called_with(
-                None,
-                'Cannot save in the requested file:\n\nOUPS',
-                'Error when saving workflow'
-            )
-
-    def test_open_workflow(self):
-        mock_open = mock.mock_open()
-        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_READER_PATH) as mock_reader:
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_reader.side_effect = mock_file_reader
-            old_workflow = self.setup_task.workflow_model
-            self.assertEqual(
-                old_workflow,
-                self.setup_task.workflow_model)
-            self.assertEqual(
-                old_workflow,
-                self.setup_task.side_pane.workflow_tree.model)
-
-            self.setup_task.open_workflow()
-
-            self.assertTrue(mock_open.called)
-            self.assertTrue(mock_reader.called)
-
-            self.assertNotEqual(old_workflow, self.setup_task.workflow_model)
-            self.assertNotEqual(
-                old_workflow,
-                self.setup_task.workflow_model)
-            self.assertNotEqual(
-                old_workflow,
-                self.setup_task.side_pane.workflow_tree.model
-            )
-
     def test_open_project(self):
         mock_open = mock.mock_open()
         with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog,\
                 mock.patch(RESULTS_JSON_LOAD_PATH) as mock_json, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(WORKFLOW_FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(RESULTS_WORKFLOW_READER_PATH) as mock_reader:
+                mock.patch(RESULTS_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_reader.side_effect = mock_file_reader
             mock_json.return_value = {'analysis_model': {'x': [1], 'y': [2]},
@@ -389,56 +216,71 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
                                       'workflow': {}}
 
             # the workflow gets updated to a new Workflow object
-            old_workflow = self.results_task.workflow_model
+            old_workflow = self.review_task.workflow_model
             # but the analysis model gets updated in-place
-            old_analysis = copy.deepcopy(self.results_task.analysis_model)
+            old_analysis = copy.deepcopy(self.review_task.analysis_model)
             self.assertEqual(
                 old_workflow,
                 self.setup_task.workflow_model)
 
-            self.results_task.open_project()
+            self.review_task.open_project()
 
             self.assertTrue(mock_open.called)
             self.assertTrue(mock_reader.called)
             self.assertTrue(mock_json.called)
 
-            self.assertNotEqual(old_workflow, self.results_task.workflow_model)
+            self.assertNotEqual(old_workflow, self.review_task.workflow_model)
             self.assertNotEqual(self.setup_task.workflow_model,
-                                self.results_task.workflow_model)
+                                self.review_task.workflow_model)
 
             self.assertNotEqual(old_workflow, self.setup_task.workflow_model)
             self.assertNotEqual(old_workflow,
                                 self.setup_task.side_pane.workflow_tree.model)
             self.assertNotEqual(old_analysis.value_names,
-                                self.results_task.analysis_model.value_names)
+                                self.review_task.analysis_model.value_names)
             self.assertNotEqual(old_analysis.value_names,
                                 self.setup_task.analysis_model.value_names)
-            self.assertEqual(self.results_task.analysis_model.value_names,
+            self.assertEqual(self.review_task.analysis_model.value_names,
                              ('x', 'y'))
-            self.assertEqual(self.results_task.analysis_model.evaluation_steps,
+            self.assertEqual(self.review_task.analysis_model.evaluation_steps,
                              [(1, 2)])
             self.assertEqual(self.setup_task.analysis_model.value_names,
-                             self.results_task.analysis_model.value_names)
+                             self.review_task.analysis_model.value_names)
             self.assertEqual(self.setup_task.analysis_model.evaluation_steps,
-                             self.results_task.analysis_model.evaluation_steps)
+                             self.review_task.analysis_model.evaluation_steps)
 
     def test_open_project_failure(self):
         mock_open = mock.mock_open()
+        mock_open.side_effect = IOError('OUPS')
+        with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog,\
+                mock.patch(RESULTS_ERROR_PATH) as mock_error:
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
+
+            self.assertFalse(self.review_task.open_project())
+            error_msg = ("Unable to load file:\n\n[Errno 2] "
+                         "No such file or directory: ''")
+            mock_error.assert_called_with(
+                None,
+                error_msg,
+                'Error when loading project'
+            )
+
+        mock_open = mock.mock_open()
         with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog,\
                 mock.patch(RESULTS_JSON_LOAD_PATH) as mock_json, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(WORKFLOW_FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(RESULTS_ERROR_PATH) as mock_error, \
                 mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_READER_PATH) as mock_reader:
+                mock.patch(RESULTS_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_reader.side_effect = mock_file_reader
             mock_json.return_value = {'asdfsadf': {'x': [1], 'y': [2]},
                                       '123456': '1',
                                       'blah': {}}
 
-            success = self.results_task.open_project()
-            old_workflow = self.results_task.workflow_model
-            old_analysis = self.results_task.analysis_model
+            success = self.review_task.open_project()
+            old_workflow = self.review_task.workflow_model
+            old_analysis = self.review_task.analysis_model
             self.assertTrue(mock_open.called)
             self.assertTrue(mock_json.called)
             self.assertFalse(success)
@@ -452,220 +294,5 @@ class TestWFManagerTasks(GuiTestAssistant, unittest.TestCase):
             )
             self.assertEqual(old_workflow, self.setup_task.workflow_model)
             self.assertEqual(old_analysis, self.setup_task.analysis_model)
-            self.assertEqual(old_workflow, self.results_task.workflow_model)
-            self.assertEqual(old_analysis, self.results_task.analysis_model)
-
-    def test_read_failure(self):
-        mock_open = mock.mock_open()
-        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(ERROR_PATH) as mock_error, \
-                mock.patch(WORKFLOW_READER_PATH) as mock_reader:
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
-            mock_reader.side_effect = mock_file_reader_failure
-
-            old_workflow = self.setup_task.workflow_model
-
-            self.setup_task.open_workflow()
-
-            self.assertTrue(mock_open.called)
-            self.assertTrue(mock_reader.called)
-            mock_error.assert_called_with(
-                None,
-                'Cannot read the requested file:\n\nOUPS',
-                'Error when reading file'
-            )
-            self.assertEqual(old_workflow, self.setup_task.workflow_model)
-
-    def test_dispatch_mco_event(self):
-        send_event = self.setup_task._server_event_callback
-        self.assertEqual(self.setup_task.analysis_model.value_names, ())
-        with self.event_loop():
-            send_event(MCOStartEvent(
-                parameter_names=["x"],
-                kpi_names=["y"])
-            )
-
-        self.assertEqual(
-            len(self.setup_task.analysis_model.evaluation_steps),
-            0)
-        self.assertEqual(
-            self.setup_task.analysis_model.value_names,
-            ('x', 'y', 'y weight'))
-
-        with self.event_loop():
-            send_event(MCOProgressEvent(
-                optimal_point=[
-                    DataValue(value=1.0)
-                ],
-                optimal_kpis=[
-                    DataValue(value=2.0)
-                ],
-                weights=[1.0]))
-
-        self.assertEqual(
-            len(self.setup_task.analysis_model.evaluation_steps),
-            1)
-
-    def test_initialize_finalize(self):
-        self.setup_task.zmq_server.start()
-        wait_condition(
-            lambda: (self.setup_task.zmq_server.state ==
-                     ZMQServer.STATE_WAITING))
-
-        self.setup_task.zmq_server.stop()
-
-        self.assertEqual(
-            self.setup_task.zmq_server.state,
-            ZMQServer.STATE_STOPPED)
-
-    def test_zmq_server_failure(self):
-        with mock.patch(ZMQSERVER_SETUP_SOCKETS_PATH) as setup_sockets, \
-                mock.patch(ERROR_PATH) as mock_error, \
-                self.event_loop_until_condition(lambda: mock_error.called):
-
-            setup_sockets.side_effect = Exception("boom")
-            self.setup_task.zmq_server.start()
-
-    def test_open_plugin_dialog(self):
-
-        with self.event_loop():
-            self.setup_task.open_plugins()
-
-    def test_run_bdss(self):
-
-        self.setup_task.analysis_model.value_names = ('x', )
-        self.setup_task.analysis_model.add_evaluation_step((2.0, ))
-        mock_open = mock.mock_open()
-        with mock.patch(CONFIRM_PATH) as mock_confirm, \
-                mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
-                mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
-            mock_confirm.side_effect = mock_confirm_function(YES)
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_writer.side_effect = mock_file_writer
-            mock_subprocess.side_effect = mock_subprocess
-
-            hook_manager = self.setup_task.ui_hooks_managers[0]
-
-            self.assertTrue(self.setup_task.side_pane.ui_enabled)
-            self.assertFalse(hook_manager.before_execution_called)
-            self.assertFalse(hook_manager.after_execution_called)
-
-            with self.event_loop_until_condition(
-                    lambda: _mock_subprocess.check_call.called):
-                self.setup_task.run_bdss()
-
-            with self.event_loop_until_condition(
-                    lambda: self.setup_task.side_pane.ui_enabled):
-                pass
-
-            self.assertTrue(hook_manager.before_execution_called)
-            self.assertTrue(hook_manager.after_execution_called)
-
-    def test_hook_manager_raises(self):
-        with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
-                mock.patch(SUBPROCESS_PATH) as _mock_subprocess:
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_writer.side_effect = mock_file_writer
-            mock_subprocess.side_effect = mock_subprocess
-
-            hook_manager = self.setup_task.ui_hooks_managers[0]
-            hook_manager.before_execution_raises = True
-            with LogCapture() as capture, \
-                    self.event_loop_until_condition(
-                        lambda: _mock_subprocess.check_call.called):
-                self.setup_task.run_bdss()
-
-            capture.check(
-                ('force_wfmanager.wfmanager_setup_task',
-                 'ERROR',
-                 'Failed before_execution hook for hook manager '
-                 'ProbeUIHooksManager')
-            )
-            hook_manager.before_execution_raises = False
-            hook_manager.after_execution_raises = True
-            with LogCapture() as capture, \
-                    self.event_loop_until_condition(
-                        lambda: _mock_subprocess.check_call.called):
-                self.setup_task.run_bdss()
-
-            capture.check(
-                ('force_wfmanager.wfmanager_setup_task',
-                 'ERROR',
-                 'Failed after_execution hook for hook manager '
-                 'ProbeUIHooksManager')
-            )
-
-    def test_run_bdss_cancel(self):
-        self.setup_task.analysis_model.value_names = ('x', )
-        self.setup_task.analysis_model.add_evaluation_step((2.0, ))
-        with mock.patch(CONFIRM_PATH) as mock_confirm:
-            mock_confirm.side_effect = mock_confirm_function(CANCEL)
-
-            self.assertTrue(self.setup_task.side_pane.ui_enabled)
-            self.setup_task.run_bdss()
-            self.assertTrue(self.setup_task.side_pane.ui_enabled)
-
-            mock_confirm.assert_called_with(
-                None,
-                "Are you sure you want to run the computation and "
-                "empty the result table?"
-            )
-
-    def test_run_bdss_failure(self):
-        mock_open = mock.mock_open()
-        with mock.patch(FILE_DIALOG_PATH) as mock_dialog, \
-                mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
-                mock.patch(SUBPROCESS_PATH + ".check_call") as mock_chk_call, \
-                mock.patch(ERROR_PATH) as mock_error:
-            mock_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_writer.side_effect = mock_file_writer
-            mock_error.side_effect = mock_show_error
-
-            def _check_exception_behavior(exception):
-                mock_chk_call.side_effect = exception
-
-                self.assertTrue(self.setup_task.side_pane.ui_enabled)
-
-                with self.event_loop_until_condition(
-                        lambda: mock_chk_call.called):
-                    self.setup_task.run_bdss()
-
-                ui_enabled = self.setup_task.side_pane.ui_enabled
-                with self.event_loop_until_condition(lambda: ui_enabled):
-                    pass
-
-                return mock_error.call_args[0][1]
-
-            for exc, msg in [
-                    (Exception("boom"), 'boom'),
-                    (subprocess.CalledProcessError(1, "fake_command"),
-                        "Command 'fake_command' returned non-zero exit "
-                        "status 1"),
-                    (OSError("whatever"), "whatever")]:
-                self.assertTrue(
-                    _check_exception_behavior(exc).startswith(
-                        "Execution of BDSS failed. \n\n" + msg))
-
-    def test_run_bdss_write_failure(self):
-        with mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, \
-                mock.patch(ERROR_PATH) as mock_error:
-            workflow_writer = mock.Mock(spec=WorkflowWriter)
-            workflow_writer.write.side_effect = Exception("write failed")
-            mock_writer.return_value = workflow_writer
-            mock_error.side_effect = mock_show_error
-
-            self.assertTrue(self.setup_task.side_pane.ui_enabled)
-
-            self.setup_task.run_bdss()
-
-            self.assertTrue(self.setup_task.side_pane.ui_enabled)
-
-            self.assertEqual(
-                mock_error.call_args[0][1],
-                'Unable to run BDSS: write failed')
+            self.assertEqual(old_workflow, self.review_task.workflow_model)
+            self.assertEqual(old_analysis, self.review_task.analysis_model)

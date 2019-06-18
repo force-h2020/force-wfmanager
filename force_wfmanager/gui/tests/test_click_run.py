@@ -7,18 +7,12 @@ from click.testing import CliRunner
 
 import force_wfmanager.gui.run
 from force_wfmanager.version import __version__
-from force_wfmanager.wfmanager import WfManager
+from force_wfmanager.tests.dummy_classes import DummyWfManager
 
 
 def mock_run_constructor(*args, **kwargs):
     mock_wf_run = mock.Mock(spec=force_wfmanager.gui.run)
     mock_wf_run.main = lambda: None
-
-
-class MockWfManager(WfManager):
-
-    def run(self):
-        pass
 
 
 class TestClickRun(unittest.TestCase):
@@ -39,7 +33,7 @@ class TestClickRun(unittest.TestCase):
 
     def test_run_with_debug(self):
         with mock.patch('force_wfmanager.gui.run.WfManager') as mock_wf:
-            mock_wf.return_value = MockWfManager()
+            mock_wf.return_value = DummyWfManager()
             force_wfmanager.gui.run.main(
                 window_size=(1650, 1080),
                 debug=True,
@@ -51,7 +45,7 @@ class TestClickRun(unittest.TestCase):
 
     def test_run_with_profile(self):
         with mock.patch('force_wfmanager.gui.run.WfManager') as mock_wf:
-            mock_wf.return_value = MockWfManager()
+            mock_wf.return_value = DummyWfManager()
             force_wfmanager.gui.run.main(
                 window_size=(1650, 1080), debug=False,
                 profile=True, workflow_file=None
