@@ -20,14 +20,6 @@ force\_wfmanager\.tests\.mock\_methods module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.tests\.test\_run module
------------------------------------------
-
-.. automodule:: force_wfmanager.tests.test_run
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 force\_wfmanager\.tests\.test\_wfmanager module
 -----------------------------------------------
 
