@@ -5,7 +5,7 @@ from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 from .mock_methods import (
-    mock_file_writer, mock_dialog, mock_show_error
+    mock_file_writer, mock_dialog, mock_return_args
 )
 from .test_wfmanager_tasks import get_probe_wfmanager_tasks
 
@@ -47,7 +47,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(RESULTS_ERROR_PATH) as mock_error:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
+            mock_error.side_effect = mock_return_args
 
             self.review_task.save_project_as()
 

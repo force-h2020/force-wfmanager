@@ -16,7 +16,7 @@ from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
 from .mock_methods import (
-    mock_file_reader, mock_file_writer, mock_dialog, mock_show_error
+    mock_file_reader, mock_file_writer, mock_dialog, mock_return_args
 )
 from .dummy_classes import DummyWfManager
 
@@ -135,7 +135,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog, \
                 mock.patch(ANALYSIS_FILE_OPEN_PATH, mock_open, create=False),\
                 mock.patch(RESULTS_ERROR_PATH) as mock_error:
-            mock_error.side_effect = mock_show_error
+            mock_error.side_effect = mock_return_args
             mock_file_dialog.side_effect = mock_dialog(
                 FileDialog, OK, '')
 
@@ -191,7 +191,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(RESULTS_ERROR_PATH) as mock_error:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
+            mock_error.side_effect = mock_return_args
 
             self.review_task.save_project_as()
 

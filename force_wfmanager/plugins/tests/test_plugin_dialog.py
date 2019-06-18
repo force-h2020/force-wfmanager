@@ -2,24 +2,10 @@ from unittest import TestCase
 import testfixtures
 
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
-from traits.api import HasTraits, Instance
 
 from force_bdss.base_extension_plugin import BaseExtensionPlugin
 from force_wfmanager.plugins.plugin_dialog import htmlformat, PluginDialog
-
-
-class UIDummy:
-    def dispose(self):
-        pass
-
-
-class ModalInfoDummy(HasTraits):
-    object = Instance(PluginDialog)
-
-    ui = Instance(UIDummy)
-
-    def _ui_default(self):
-        return UIDummy()
+from force_wfmanager.tests.dummy_classes import DummyModalInfo
 
 
 class Plugin1(BaseExtensionPlugin):
@@ -60,7 +46,7 @@ class TestPluginDialog(GuiTestAssistant, TestCase):
     def _get_dialog(self):
         with testfixtures.LogCapture():
             modal = PluginDialog(plugins=[Plugin1(), Plugin2()])
-        return modal, ModalInfoDummy(object=modal)
+        return modal, DummyModalInfo(object=modal)
 
     def test_dialog(self):
         modal, modal_info = self._get_dialog()

@@ -34,8 +34,8 @@ class ProbeWfManager(WfManager):
 
     def __init__(self, filename=None):
 
-        plugins = [CorePlugin(), TasksPlugin()]
-        plugins += [ProbeWfManagerPlugin(filename)]
+        plugins = [CorePlugin(), TasksPlugin(),
+                   ProbeWfManagerPlugin(filename)]
 
         super(ProbeWfManager, self).__init__(plugins=plugins)
 

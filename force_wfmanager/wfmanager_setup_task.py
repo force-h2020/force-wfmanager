@@ -84,7 +84,7 @@ class WfManagerSetupTask(Task):
 
     task_group = Instance(TaskToggleGroupAccelerator)
 
-    #: Results Task
+    #: Review Task
     review_task = Instance(Task)
 
     # ZMQ Setup
@@ -625,7 +625,6 @@ class WfManagerSetupTask(Task):
         self.run_bdss()
 
     # Synchronization with Window
-
     @on_trait_change('window.tasks')
     def get_review_task(self):
         if self.window is not None:

@@ -18,8 +18,8 @@ from force_wfmanager.tests.utils import wait_condition
 
 
 from .mock_methods import (
-    mock_file_reader, mock_file_writer, mock_dialog, mock_show_error,
-    mock_info_dialog, mock_file_reader_failure, mock_confirm_function,
+    mock_file_reader, mock_file_writer, mock_dialog, mock_return_args,
+    mock_file_reader_failure, mock_confirm_function,
     mock_subprocess
 )
 from .test_wfmanager_tasks import get_probe_wfmanager_tasks
@@ -133,7 +133,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(SETUP_ERROR_PATH) as mock_error:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
+            mock_error.side_effect = mock_return_args
 
             self.setup_task.save_workflow()
 
@@ -157,7 +157,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
     def test_about_action(self):
         with mock.patch(INFORMATION_PATH) as mock_information:
-            mock_information.side_effect = mock_info_dialog
+            mock_information.side_effect = mock_return_args
 
             self.setup_task.open_about()
 
@@ -170,7 +170,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(FILE_OPEN_PATH, mock_open, create=True), \
                 mock.patch(SETUP_ERROR_PATH) as mock_error:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
+            mock_error.side_effect = mock_return_args
 
             self.setup_task.save_workflow_as()
 
@@ -217,7 +217,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(SETUP_ERROR_PATH) as mock_error, \
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_error.side_effect = mock_show_error
+            mock_error.side_effect = mock_return_args
             mock_reader.side_effect = mock_file_reader_failure
 
             old_workflow = self.setup_task.workflow_model
@@ -380,7 +380,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(SETUP_ERROR_PATH) as mock_error:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
-            mock_error.side_effect = mock_show_error
+            mock_error.side_effect = mock_return_args
 
             def _check_exception_behavior(exception):
                 mock_chk_call.side_effect = exception
@@ -413,7 +413,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             workflow_writer = mock.Mock(spec=WorkflowWriter)
             workflow_writer.write.side_effect = Exception("write failed")
             mock_writer.return_value = workflow_writer
-            mock_error.side_effect = mock_show_error
+            mock_error.side_effect = mock_return_args
 
             self.assertTrue(self.setup_task.side_pane.ui_enabled)
 

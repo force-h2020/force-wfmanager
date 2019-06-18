@@ -4,17 +4,13 @@ from unittest import mock
 from envisage.api import Application
 
 from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
-
+from force_wfmanager.tests.mock_methods import mock_return_none
 
 SETUP_TASK = ("force_wfmanager.plugins.wfmanager_plugin"
               ".WfManagerSetupTask")
 REVIEW_TASK = ("force_wfmanager.plugins.wfmanager_plugin"
                ".WfManagerReviewTask")
 PLUGIN_SERVICE = 'envisage.api.Plugin.application.get_service'
-
-
-def mock_wfmanager_task_constructor(*args, **kwargs):
-    return
 
 
 class TestWfManagerPlugin(unittest.TestCase):
@@ -30,13 +26,13 @@ class TestWfManagerPlugin(unittest.TestCase):
                          "Workflow Manager (Review)")
 
         with mock.patch(SETUP_TASK) as mock_setup_task:
-            mock_setup_task.side_effect = mock_wfmanager_task_constructor
+            mock_setup_task.side_effect = mock_return_none
 
             self.wfmanager_plugin._create_setup_task()
             self.assertTrue(mock_setup_task.called)
 
         with mock.patch(REVIEW_TASK) as mock_review_task:
-            mock_review_task.side_effect = mock_wfmanager_task_constructor
+            mock_review_task.side_effect = mock_return_none
 
             self.wfmanager_plugin._create_review_task()
             self.assertTrue(mock_review_task.called)

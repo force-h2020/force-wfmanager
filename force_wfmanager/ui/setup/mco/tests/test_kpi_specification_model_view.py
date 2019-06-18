@@ -3,7 +3,7 @@ from traits.testing.unittest_tools import UnittestTools
 
 from force_bdss.api import OutputSlotInfo
 from force_wfmanager.utils.tests.test_variable_names_registry import \
-    basic_variable_names_registry
+    get_basic_variable_names_registry
 
 from force_bdss.api import KPISpecification
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import \
@@ -12,7 +12,7 @@ from force_wfmanager.ui.setup.mco.kpi_specification_model_view import \
 
 class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
     def setUp(self):
-        self.registry = basic_variable_names_registry()
+        self.registry = get_basic_variable_names_registry()
         self.workflow = self.registry.workflow
         self.param1 = self.workflow.mco.parameters[0]
         self.param2 = self.workflow.mco.parameters[1]

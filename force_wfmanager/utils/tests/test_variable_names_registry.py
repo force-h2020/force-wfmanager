@@ -12,7 +12,7 @@ from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry)
 
 
-def basic_variable_names_registry():
+def get_basic_variable_names_registry():
     plugin = ProbeExtensionPlugin()
     workflow = Workflow()
 
@@ -58,7 +58,7 @@ def basic_variable_names_registry():
 
 class VariableNamesRegistryTest(unittest.TestCase):
     def setUp(self):
-        self.registry = basic_variable_names_registry()
+        self.registry = get_basic_variable_names_registry()
         self.workflow = self.registry.workflow
         self.param1 = self.workflow.mco.parameters[0]
         self.param2 = self.workflow.mco.parameters[1]

@@ -51,8 +51,12 @@ def mock_os_remove(*args, **kwargs):
     raise OSError("OUPS")
 
 
-def mock_show_error(*args, **kwargs):
+def mock_return_args(*args, **kwargs):
     return args
+
+
+def mock_return_none(*args, **kwargs):
+    return
 
 
 def mock_subprocess(*args, **kwargs):
@@ -61,7 +65,3 @@ def mock_subprocess(*args, **kwargs):
     mock_subprocess_module = mock.Mock(spec=subprocess)
     mock_subprocess_module.check_call = check_call
     return mock_subprocess_module
-
-
-def mock_info_dialog(*args, **kwargs):
-    return args

@@ -1,6 +1,6 @@
 import unittest
 
-from traits.api import HasTraits, Instance, Int
+from traits.api import Int
 
 from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeMCOModel
 from force_bdss.tests.probe_classes.data_source import (
@@ -16,20 +16,7 @@ from force_wfmanager.ui.setup.new_entity_creator import (
 )
 from force_wfmanager.ui.setup.workflow_tree import WorkflowModelView
 from force_wfmanager.ui.ui_utils import model_info
-
-
-class UIDummy:
-    def dispose(self):
-        pass
-
-
-class ModalInfoDummy(HasTraits):
-    object = Instance(NewEntityCreator)
-
-    ui = Instance(UIDummy)
-
-    def _ui_default(self):
-        return UIDummy()
+from force_wfmanager.tests.dummy_classes import DummyModalInfo
 
 
 class DataSourceModelDescription(BaseDataSourceModel):
@@ -49,13 +36,13 @@ class TestNewEntityModal(unittest.TestCase):
         modal = NewEntityCreator(
             factories=self.mcos
         )
-        return modal, ModalInfoDummy(object=modal)
+        return modal, DummyModalInfo(object=modal)
 
     def _get_data_selector(self):
         modal = NewEntityCreator(
             factories=self.data_sources
         )
-        return modal, ModalInfoDummy(object=modal)
+        return modal, DummyModalInfo(object=modal)
 
     def test_select_factory(self):
         # Simulate selecting an mco factory in the panel
