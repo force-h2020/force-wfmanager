@@ -5,6 +5,7 @@ from unittest import mock, TestCase
 
 from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+from traits.trait_errors import TraitError
 
 from force_bdss.api import Workflow
 
@@ -82,7 +83,11 @@ class TestWfManager(GuiTestAssistant, TestCase):
         self.wfmanager.state_location = state_dir
 
         with mock.patch('force_wfmanager.wfmanager.log') as mock_log:
-            self.create_tasks()
+            try:
+                self.create_tasks()
+            except TraitError:
+                self.fail("Error: did the corrupted state file make "
+                          "its way through?")
             mock_log.warning.assert_called_once_with(
                 'The state file at {!r} was corrupted and has been removed.'
                 .format(target_state_file))
