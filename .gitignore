@@ -8,4 +8,6 @@ doc/build/
 *.json
 *.log
 *.csv
+*.prof
+*.pstats
 .idea
