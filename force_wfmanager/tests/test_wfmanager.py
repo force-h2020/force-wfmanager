@@ -71,6 +71,7 @@ class TestWfManager(GuiTestAssistant, TestCase):
                 error_msg,
                 'Error when reading file'
             )
+            self.remove_plugins_and_exit()
 
     def test_remove_tasks_on_application_exiting(self):
         self.wfmanager.run()
