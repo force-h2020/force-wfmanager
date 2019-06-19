@@ -4,6 +4,15 @@ force\_wfmanager\.server\.tests package
 Submodules
 ----------
 
+force\_wfmanager\.server\.tests\.test\_event\_serializer module
+-------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.server.tests.test_event_serializer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 force\_wfmanager\.server\.tests\.test\_event\_deserializer module
 -----------------------------------------------------------------
 
