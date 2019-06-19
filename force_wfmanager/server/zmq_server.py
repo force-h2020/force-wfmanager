@@ -3,7 +3,7 @@ import threading
 
 import zmq
 
-from force_wfmanager.server.event_deserializer import (
+from .event_deserializer import (
     EventDeserializer, DeserializerError)
 
 log = logging.getLogger(__name__)
