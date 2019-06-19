@@ -78,10 +78,14 @@ class WfManager(TasksApplication):
 
     def _load_state(self):
         super(WfManager, self)._load_state()
-        if self._state.window_layouts[0].get_active_task() is None:
-            # This is a possible case of corrupted state file. See:
-            # force-h2020/force-wfmanager#289, force-h2020/force-wfmanager#290.
-            # We remove it and try again with a default state.
+        if (
+            self._state.window_layouts
+            and self._state.window_layouts[0].get_active_task() is None
+        ):
+            # This is a possible way a corrupted state file would manifest
+            # itself: see issues force-h2020/force-wfmanager#289,
+            # force-h2020/force-wfmanager#290.
+            # Remove it and try again with a default state.
             state_file = os.path.join(
                 self.state_location, 'application_memento')
             if os.path.exists(state_file):
