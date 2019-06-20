@@ -1,3 +1,4 @@
+import contextlib
 import os
 from unittest import mock, TestCase
 
@@ -23,55 +24,57 @@ class TestWfManager(GuiTestAssistant, TestCase):
         super(TestWfManager, self).setUp()
         self.wfmanager = ProbeWfManager()
 
+    @contextlib.contextmanager
     def create_tasks(self):
-
         self.wfmanager.run()
         self.setup_task = self.wfmanager.windows[0].tasks[0]
         self.review_task = self.wfmanager.windows[0].tasks[1]
-
-    def remove_plugins_and_exit(self):
-        for plugin in self.wfmanager:
-            self.wfmanager.remove_plugin(plugin)
-        self.wfmanager.exit()
+        try:
+            yield
+        finally:
+            for plugin in self.wfmanager:
+                self.wfmanager.remove_plugin(plugin)
+            self.wfmanager.exit()
 
     def test_init(self):
-        self.create_tasks()
-        self.assertEqual(len(self.wfmanager.default_layout), 1)
-        self.assertEqual(len(self.wfmanager.task_factories), 2)
-        self.assertEqual(len(self.wfmanager.windows), 1)
-        self.assertEqual(len(self.wfmanager.windows[0].tasks), 2)
+        with self.create_tasks():
+            self.assertEqual(len(self.wfmanager.default_layout), 1)
+            self.assertEqual(len(self.wfmanager.task_factories), 2)
+            self.assertEqual(len(self.wfmanager.windows), 1)
+            self.assertEqual(len(self.wfmanager.windows[0].tasks), 2)
 
-        self.assertIsInstance(self.setup_task.analysis_model, AnalysisModel)
-        self.assertIsInstance(self.setup_task.workflow_model, Workflow)
+            self.assertIsInstance(
+                self.setup_task.analysis_model, AnalysisModel)
+            self.assertIsInstance(
+                self.setup_task.workflow_model, Workflow)
 
-        self.assertIsInstance(self.review_task.analysis_model, AnalysisModel)
-        self.assertEqual(self.review_task.workflow_model, None)
-        self.remove_plugins_and_exit()
+            self.assertIsInstance(
+                self.review_task.analysis_model, AnalysisModel)
+            self.assertEqual(self.review_task.workflow_model, None)
 
     def test_init_with_file(self):
         with mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_reader.side_effect = mock_file_reader
             self.wfmanager = ProbeWfManager(
                 fixtures.get('evaluation-4.json'))
-            self.create_tasks()
-            self.assertEqual(os.path.basename(self.setup_task.current_file),
-                             'evaluation-4.json')
-            self.assertEqual(mock_reader.call_count, 1)
-            self.remove_plugins_and_exit()
+            with self.create_tasks():
+                self.assertEqual(
+                    os.path.basename(self.setup_task.current_file),
+                    'evaluation-4.json')
+                self.assertEqual(mock_reader.call_count, 1)
 
     def test_init_with_file_failure(self):
         with mock.patch(SETUP_ERROR_PATH) as mock_error:
             self.wfmanager = ProbeWfManager("this_file_does_not_exist.json")
-            self.create_tasks()
-            error_msg = ("Cannot read the requested file:\n\n[Errno 2] "
-                         "No such file or directory: "
-                         "'this_file_does_not_exist.json'")
-            mock_error.assert_called_with(
-                None,
-                error_msg,
-                'Error when reading file'
-            )
-            self.remove_plugins_and_exit()
+            with self.create_tasks():
+                error_msg = ("Cannot read the requested file:\n\n[Errno 2] "
+                             "No such file or directory: "
+                             "'this_file_does_not_exist.json'")
+                mock_error.assert_called_with(
+                    None,
+                    error_msg,
+                    'Error when reading file'
+                )
 
     def test_remove_tasks_on_application_exiting(self):
         self.wfmanager.run()
@@ -80,36 +83,33 @@ class TestWfManager(GuiTestAssistant, TestCase):
         self.assertEqual(len(self.wfmanager.windows[0].tasks), 0)
 
     def test_switch_task(self):
-        self.create_tasks()
-        self.assertEqual(
-            self.wfmanager.windows[0].active_task,
-            self.setup_task,
-            msg='Note: this test can fail locally if a saved application '
-                'memento exists with the review task in focus'
-        )
-        self.wfmanager.windows[0].active_task.switch_task()
-        self.assertEqual(self.wfmanager.windows[0].active_task,
-                         self.review_task)
-        self.wfmanager.windows[0].active_task.switch_task()
-        self.assertEqual(self.wfmanager.windows[0].active_task,
-                         self.setup_task)
-        self.remove_plugins_and_exit()
+        with self.create_tasks():
+            self.assertEqual(
+                self.wfmanager.windows[0].active_task,
+                self.setup_task,
+                msg='Note: this test can fail locally if a saved application '
+                    'memento exists with the review task in focus'
+            )
+            self.wfmanager.windows[0].active_task.switch_task()
+            self.assertEqual(self.wfmanager.windows[0].active_task,
+                             self.review_task)
+            self.wfmanager.windows[0].active_task.switch_task()
+            self.assertEqual(self.wfmanager.windows[0].active_task,
+                             self.setup_task)
 
     def test_result_task_exit(self):
-        self.create_tasks()
-        for window in self.wfmanager.windows:
-            window.close = mock.Mock(return_value=True)
-        self.review_task.exit()
-        self.assertTrue(self.review_task.window.close.called)
-        self.remove_plugins_and_exit()
+        with self.create_tasks():
+            for window in self.wfmanager.windows:
+                window.close = mock.Mock(return_value=True)
+            self.review_task.exit()
+            self.assertTrue(self.review_task.window.close.called)
 
     def test_setup_task_exit(self):
-        self.create_tasks()
-        for window in self.wfmanager.windows:
-            window.close = mock.Mock(return_value=True)
-        self.setup_task.exit()
-        self.assertTrue(self.setup_task.window.close.called)
-        self.remove_plugins_and_exit()
+        with self.create_tasks():
+            for window in self.wfmanager.windows:
+                window.close = mock.Mock(return_value=True)
+            self.setup_task.exit()
+            self.assertTrue(self.setup_task.window.close.called)
 
 
 class TestTaskWindowClosePrompt(TestCase):
