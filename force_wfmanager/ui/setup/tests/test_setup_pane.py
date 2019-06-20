@@ -13,6 +13,16 @@ from force_wfmanager.tests.probe_classes import (
 from force_wfmanager.ui.setup.workflow_model_view import (
     WorkflowModelView
 )
+from force_bdss.tests.probe_classes.data_source import (
+    ProbeDataSourceFactory
+)
+from force_bdss.tests.probe_classes.probe_extension_plugin import (
+    ProbeExtensionPlugin
+)
+from force_wfmanager.ui.setup.execution_layers.data_source_model_view import \
+    DataSourceModelView
+from force_wfmanager.utils.variable_names_registry import \
+    VariableNamesRegistry
 
 
 class TestSetupPane(GuiTestAssistant, TestCase):
@@ -27,6 +37,24 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         )
         self.workflow_tree.workflow_mv = WorkflowModelView()
         self.workflow_tree._factory_registry = ProbeFactoryRegistry()
+
+    def test_sync_selected_mv(self):
+
+        plugin = ProbeExtensionPlugin()
+        factory = ProbeDataSourceFactory(plugin=plugin)
+        variable_names_registry = VariableNamesRegistry(
+            workflow=self.workflow_tree.workflow_mv.model)
+
+        model = factory.create_model()
+        data_source_mv = DataSourceModelView(
+            model=model,
+            variable_names_registry=variable_names_registry
+        )
+        self.workflow_tree.selected_mv = data_source_mv
+        self.assertEqual(self.setup_pane.selected_model, model)
+        self.assertEqual(self.setup_pane.selected_model,
+                         self.workflow_tree.selected_mv.model)
+
 
     def test_add_entity_button(self):
         self.assertEqual(0, len(self.workflow_tree.workflow_mv.mco_mv))

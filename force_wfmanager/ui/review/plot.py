@@ -171,7 +171,7 @@ class Plot(HasStrictTraits):
             marker_size=4,
             bgcolor="white")[0]
 
-        plot.set(title="Plot", padding=75, line_width=1)
+        plot.trait_set(title="Plot", padding=75, line_width=1)
 
         # Add pan and zoom tools
         scatter_plot.tools.append(PanTool(plot))
@@ -179,8 +179,8 @@ class Plot(HasStrictTraits):
 
         # Set the scatterplot's default selection marker invisible as it
         # lead to artifacts on axis when switching between plotted cols
-        scatter_plot.set(selection_color=(0, 0, 0, 0),
-                         selection_outline_color=(0, 0, 0, 0))
+        scatter_plot.trait_set(selection_color=(0, 0, 0, 0),
+                               selection_outline_color=(0, 0, 0, 0))
 
         # Add the selection tool
         inspector, overlay = self._get_scatter_inspector_overlay(
@@ -217,7 +217,7 @@ class Plot(HasStrictTraits):
             line_width=0,
             bgcolor="white")[0]
 
-        plot.set(title="Plot", padding=75, line_width=1)
+        plot.trait_set(title="Plot", padding=75, line_width=1)
 
         # Add pan and zoom tools
         cmap_scatter_plot.tools.append(PanTool(plot))

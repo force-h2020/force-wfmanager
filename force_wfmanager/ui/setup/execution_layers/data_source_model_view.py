@@ -232,6 +232,11 @@ class DataSourceModelView(ModelView):
     )
 
     def __init__(self, model, variable_names_registry, *args, **kwargs):
+        #: FIXME need to make sure default model traits_view was been called
+        # at least once otherwise error checking of any trait in model
+        # does not work
+        model.trait_view()
+
         self.model = model
         self.variable_names_registry = variable_names_registry
 
@@ -332,6 +337,14 @@ class DataSourceModelView(ModelView):
     def data_source_change(self):
         """Fires :func:`verify_workflow_event` when an input slot or output
         slot is changed"""
+        self.verify_workflow_event = True
+
+    @on_trait_change(
+        'model.+'
+    )
+    def data_source_model_change(self):
+        """Fires :func:`verify_workflow_event` when any trait on the
+        data source model is changed"""
         self.verify_workflow_event = True
 
     # Changed Slots Functions
