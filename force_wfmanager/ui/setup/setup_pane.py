@@ -299,6 +299,9 @@ class SetupPane(TraitsTaskPane):
         self.selected_mv = self.task.side_pane.workflow_tree.selected_mv
         if self.selected_mv is not None:
             if isinstance(self.selected_mv.model, BaseModel):
+                #: FIXME - this will raise an AttributeError if
+                #: self.selected_mv.model has not initialised a traits_view
+                #: object
                 self.selected_model = self.selected_mv.model
             else:
                 self.selected_model = None
