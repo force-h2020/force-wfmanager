@@ -19,8 +19,8 @@ from force_bdss.tests.probe_classes.data_source import (
 from force_bdss.tests.probe_classes.probe_extension_plugin import (
     ProbeExtensionPlugin
 )
-from force_wfmanager.ui.setup.execution_layers.data_source_model_view import \
-    DataSourceModelView
+from force_wfmanager.ui.setup.execution_layers.\
+    data_source_model_view import DataSourceModelView
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
 
@@ -54,7 +54,6 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         self.assertEqual(self.setup_pane.selected_model, model)
         self.assertEqual(self.setup_pane.selected_model,
                          self.workflow_tree.selected_mv.model)
-
 
     def test_add_entity_button(self):
         self.assertEqual(0, len(self.workflow_tree.workflow_mv.mco_mv))
