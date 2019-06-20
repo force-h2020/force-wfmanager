@@ -9,18 +9,13 @@ ADDITIONAL_CORE_DEPS = [
     "pyqt5==5.6-1",
     "qt==5.6.2-1",
     "sip==4.18.1-1",
+    "pyface==6.1.1-1",
+    "traitsui==6.1.1-2",
     "numpy==1.15.4-2",
     "chaco==4.7.2-3",
     "pyzmq==16.0.0-7",
     "mock==2.0.0-3",
 ]
-
-# Using enthought/pyface#387 which aims at handling
-# qtWebEngine/qtWebKit correctly for PyQt5
-PIP_DEPS = ['git+https://github.com/enthought/traitsui.git'
-            '@534b0b2bca8228faf534cc4083ecdc4600e607cf',
-            'git+https://github.com/enthought/pyface.git'
-            '@enh/update-pyqt5-CI']
 
 
 @click.group()
@@ -44,8 +39,6 @@ def install(python_version):
         "edm", "install", "-e", env_name,
         "--yes"] + ADDITIONAL_CORE_DEPS)
 
-    for pip_dep in PIP_DEPS:
-        edm_run(env_name, ["pip", "install", pip_dep])
     edm_run(env_name, ["pip", "install", "-e", "."])
 
 
