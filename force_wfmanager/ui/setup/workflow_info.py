@@ -43,7 +43,7 @@ class WorkflowInfo(HasTraits):
     plugins = List(Plugin)
 
     #: The factory currently selected in the SetupPane
-    selected_factory = Unicode()
+    selected_factory_name = Unicode()
 
     #: The top-level workflow modelview
     workflow_mv = Instance(WorkflowModelView)
@@ -96,7 +96,7 @@ class WorkflowInfo(HasTraits):
                           editor=ImageEditor(scale=True,
                                              allow_upscaling=False,
                                              preserve_aspect_ratio=True)),
-                    visible_when="selected_factory == 'Workflow'"
+                    visible_when="selected_factory_name == 'Workflow'"
                 )
             ),
             Group(
@@ -104,13 +104,13 @@ class WorkflowInfo(HasTraits):
                           editor=ListStrEditor(editable=False)),
                 show_border=True,
                 label='Available Plugins',
-                visible_when="selected_factory not in ['KPI']"
+                visible_when="selected_factory_name not in ['KPI']"
             ),
             Group(
                 UReadonly('non_kpi_variables_rep', editor=table_edit),
                 show_border=True,
                 label='Non-KPI Variables',
-                visible_when="selected_factory == 'KPI'"
+                visible_when="selected_factory_name == 'KPI'"
             ),
             Group(
                 UReadonly('workflow_filename_message', editor=TextEditor()),
@@ -121,7 +121,7 @@ class WorkflowInfo(HasTraits):
                 UReadonly('error_message', editor=TextEditor()),
                 show_border=True,
                 label='Workflow Errors',
-                visible_when="selected_factory == 'Workflow'"
+                visible_when="selected_factory_name == 'Workflow'"
             ),
 
         )

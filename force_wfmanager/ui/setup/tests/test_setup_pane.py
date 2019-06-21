@@ -39,7 +39,6 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         self.workflow_tree._factory_registry = ProbeFactoryRegistry()
 
     def test_sync_selected_mv(self):
-
         plugin = ProbeExtensionPlugin()
         factory = ProbeDataSourceFactory(plugin=plugin)
         variable_names_registry = VariableNamesRegistry(
@@ -50,7 +49,12 @@ class TestSetupPane(GuiTestAssistant, TestCase):
             model=model,
             variable_names_registry=variable_names_registry
         )
-        self.workflow_tree.selected_mv = data_source_mv
+
+        try:
+            self.workflow_tree.selected_mv = data_source_mv
+        except AttributeError:
+            self.fail("ProbeDataSourceModel traits_view not found")
+
         self.assertEqual(self.setup_pane.selected_model, model)
         self.assertEqual(self.setup_pane.selected_model,
                          self.workflow_tree.selected_mv.model)
