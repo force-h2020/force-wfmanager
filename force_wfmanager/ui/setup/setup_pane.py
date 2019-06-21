@@ -205,7 +205,6 @@ class SetupPane(TraitsTaskPane):
         return namespace
 
     # Property getters
-
     def _get_selected_mv_editable(self):
         """ Determines if the selected modelview in the WorkflowTree has a
         default or non-default view associated. A default view should not
