@@ -1,6 +1,11 @@
 language: generic
 sudo: false
 
+env:
+  global:
+    - EDM_FULL=1.11.0
+      EDM_X_Y=1.11
+
 matrix:
   include:
   - os: linux
