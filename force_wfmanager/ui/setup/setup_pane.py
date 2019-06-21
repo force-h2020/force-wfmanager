@@ -268,7 +268,7 @@ class SetupPane(TraitsTaskPane):
         return WorkflowInfo(
             plugins=plugins, workflow_mv=workflow_mv,
             workflow_filename=self.task.current_file,
-            selected_factory=self.selected_factory_name
+            selected_factory_name=self.selected_factory_name
         )
 
     def _get_add_new_entity_label(self):
