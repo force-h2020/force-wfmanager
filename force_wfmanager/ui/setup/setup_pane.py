@@ -87,9 +87,7 @@ class SetupPane(TraitsTaskPane):
     # ----------
 
     #: The string displayed on the 'add new entity' button.
-    add_new_entity_label = Property(
-        Unicode(), depends_on='selected_factory_name'
-    )
+    add_new_entity_label = Unicode()
 
     #: A Boolean indicating whether the currently selected modelview is
     #: intended to be editable by the user. This is required to avoid
@@ -101,17 +99,12 @@ class SetupPane(TraitsTaskPane):
     #: A panel displaying extra information about the workflow: Available
     #: Plugins, non-KPI variables, current filenames and any error messages.
     #: Displayed for factories which have a lot of empty screen space.
-    current_info = Property(
-        Instance(WorkflowInfo),
-        depends_on='selected_factory_name,selected_mv,task.current_file'
-    )
+    current_info = Instance(WorkflowInfo)
 
     #: Determines if the add button should be active. KPI and Execution
     #: Layers can always be added, but other workflow items need a specific
     #: factory to be selected.
-    enable_add_button = Property(
-        Bool, depends_on='entity_creator,entity_creator.model'
-    )
+    enable_add_button = Bool()
 
     #: The view when editing an existing instance within the workflow tree
     def default_traits_view(self):
@@ -206,7 +199,7 @@ class SetupPane(TraitsTaskPane):
 
     # Property getters
     @on_trait_change('selected_mv')
-    def get_selected_mv_editable(self):
+    def _get_selected_mv_editable(self):
         """ Determines if the selected modelview in the WorkflowTree has a
         default or non-default view associated. A default view should not
         be editable by the user, a non-default one should be.
@@ -226,9 +219,9 @@ class SetupPane(TraitsTaskPane):
         """
         if self.selected_mv is None or self.selected_mv.trait_views() == []:
             self.selected_mv_editable = False
-        else:
-            self.selected_mv_editable = True
+        self.selected_mv_editable = True
 
+    @on_trait_change('entity_creator,entity_creator.model')
     def _get_enable_add_button(self):
         """ Determines if the add button in the UI should be enabled.
 
@@ -246,11 +239,13 @@ class SetupPane(TraitsTaskPane):
         """
         simple_factories = ['KPI', 'Execution Layer']
         if self.selected_factory_name in simple_factories:
-            return True
-        if self.entity_creator is None or self.entity_creator.model is None:
-            return False
-        return True
+            self.enable_add_button = True
+        elif self.entity_creator is None or self.entity_creator.model is None:
+            self.enable_add_button = False
+        else:
+            self.enable_add_button = True
 
+    @on_trait_change('selected_factory_name,selected_mv,task.current_file')
     def _get_current_info(self):
         """Returns a WorkflowInfo object, which displays general information
         about the workflow and plugins installed. This is displayed when
@@ -266,15 +261,16 @@ class SetupPane(TraitsTaskPane):
             key=lambda s: s.name if s.name not in ('', None) else s.id
         )
 
-        return WorkflowInfo(
+        self.current_info = WorkflowInfo(
             plugins=plugins, workflow_mv=workflow_mv,
             workflow_filename=self.task.current_file,
             selected_factory_name=self.selected_factory_name
         )
 
+    @on_trait_change('selected_factory_name')
     def _get_add_new_entity_label(self):
         """Returns the label displayed on add_new_entity_btn"""
-        return 'Add New {!s}'.format(self.selected_factory_name)
+        self.add_new_entity_label = 'Add New {!s}'.format(self.selected_factory_name)
 
     # Synchronisation with WorkflowTree
 

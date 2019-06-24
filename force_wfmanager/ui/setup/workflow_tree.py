@@ -182,10 +182,7 @@ class WorkflowTree(ModelView):
     # ----------
 
     #: The error message currently displayed in the UI.
-    selected_error = Property(
-        Unicode(),
-        depends_on="selected_mv,selected_mv.error_message,selected_mv.label"
-    )
+    selected_error = Unicode()
 
     def default_traits_view(self):
         """The layout of the View for the WorkflowTree"""
@@ -439,19 +436,19 @@ class WorkflowTree(ModelView):
 
     def on_selection(self, factory_group_name, from_registry, create_fn,
                      delete_fn, modelview):
+        """Update options based on selected model view"""
 
         self.selected_factory_name = factory_group_name
-        add_new_entity = None
-        entity_creator = None
-        remove_entity = None
 
         if create_fn is not None:
-            add_new_entity = partial(create_fn, None, modelview)
-        self.add_new_entity = add_new_entity
+            self.add_new_entity = partial(create_fn, None, modelview)
+        else:
+            self.add_new_entity = None
 
         if delete_fn is not None:
-            remove_entity = partial(delete_fn, None, modelview)
-        self.remove_entity = remove_entity
+            self.remove_entity = partial(delete_fn, None, modelview)
+        else:
+            self.remove_entity = None
 
         if from_registry is not None:
             try:
@@ -465,8 +462,9 @@ class WorkflowTree(ModelView):
                 factories=visible_factories,
                 dclick_function=self.add_new_entity
             )
-
-        self.entity_creator = entity_creator
+            self.entity_creator = entity_creator
+        else:
+            self.entity_creator = None
 
     def parameter_factories(self):
         """Returns the list of parameter factories for the current MCO."""
@@ -672,21 +670,22 @@ class WorkflowTree(ModelView):
         """
         return model_info(modelview.model) != []
 
+    @on_trait_change("selected_mv,selected_mv.error_message,selected_mv.label")
     def _get_selected_error(self):
         """Returns the error messages for the currently selected modelview"""
         if self.selected_mv is None:
-            return ERROR_TEMPLATE.format("No Item Selected", "")
+            self.selected_error = ERROR_TEMPLATE.format("No Item Selected", "")
 
-        if self.selected_mv.error_message == '':
+        elif self.selected_mv.error_message == '':
             mv_label = self.selected_mv.label
-            return ERROR_TEMPLATE.format(
+            self.selected_error = ERROR_TEMPLATE.format(
                 "No errors for {}".format(mv_label), "")
         else:
             mv_label = self.selected_mv.label
             error_list = self.selected_mv.error_message.split('\n')
             body_strings = ''.join([SINGLE_ERROR.format(error)
                                     for error in error_list])
-            return ERROR_TEMPLATE.format(
+            self.selected_error = ERROR_TEMPLATE.format(
                 "Errors for {}:".format(mv_label), body_strings)
 
 
