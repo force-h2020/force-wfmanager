@@ -71,22 +71,6 @@ delete_layer_action = Action(name='Delete', action='delete_layer')
 delete_data_source_action = Action(name='Delete', action='delete_data_source')
 
 
-def selection(func):
-    """ Decorator for functions called on selecting something in the tree
-    editor. Clears the `selected_factory_name`, `entity_creator`,
-    `add_new_entity` and `remove_entity` attributes before they are set
-    based on the selection choice
-    """
-    @wraps(func)
-    def wrap(self, *args, **kwargs):
-        self.selected_factory_name = 'None'
-        self.entity_creator = None
-        self.add_new_entity = None
-        self.remove_entity = None
-        func(self, *args, **kwargs)
-    return wrap
-
-
 class TreeNodeWithStatus(TreeNode):
     """ Custom TreeNode class for workflow elements. Allows setting a
     workflow element's icon depending on whether it has an error or not.
@@ -217,7 +201,13 @@ class WorkflowTree(ModelView):
                     label='=Workflow',
                     view=no_view,
                     menu=no_menu,
-                    on_select=self.workflow_selected
+                    on_select=partial(
+                        self.on_selection,
+                        'Workflow',
+                        None,
+                        None,
+                        None
+                    )
                 ),
 
                 #: Node representing the Execution layers
@@ -230,10 +220,11 @@ class WorkflowTree(ModelView):
                     view=no_view,
                     menu=Menu(new_layer_action),
                     on_select=partial(
-                        self.factory,
+                        self.on_selection,
+                        'Execution Layer',
                         None,
                         self.new_layer,
-                        'Execution Layer'
+                        None
                     )
                 ),
                 TreeNodeWithStatus(
@@ -245,10 +236,10 @@ class WorkflowTree(ModelView):
                     view=no_view,
                     menu=Menu(delete_layer_action),
                     on_select=partial(
-                        self.factory_instance,
+                        self.on_selection,
+                        'Data Source',
                         self._factory_registry.data_source_factories,
                         self.new_data_source,
-                        'Data Source',
                         self.delete_layer
                     )
                 ),
@@ -259,7 +250,13 @@ class WorkflowTree(ModelView):
                     label='label',
                     name='DataSources',
                     menu=Menu(delete_data_source_action),
-                    on_select=partial(self.instance, self.delete_data_source)
+                    on_select=partial(
+                        self.on_selection,
+                        'None',
+                        None,
+                        None,
+                        self.delete_data_source
+                    )
                 ),
                 # Folder node "MCO" containing the MCO
                 TreeNode(
@@ -271,10 +268,11 @@ class WorkflowTree(ModelView):
                     view=no_view,
                     menu=no_menu,
                     on_select=partial(
-                        self.factory,
+                        self.on_selection,
+                        'MCO',
                         self._factory_registry.mco_factories,
                         self.new_mco,
-                        'MCO'
+                        None
                     )
                 ),
                 # Node representing the MCO
@@ -286,7 +284,13 @@ class WorkflowTree(ModelView):
                     name='MCO',
                     view=no_view,
                     menu=Menu(delete_mco_action),
-                    on_select=partial(self.instance, self.delete_mco)
+                    on_select=partial(
+                        self.on_selection,
+                        'None',
+                        None,
+                        None,
+                        self.delete_mco
+                    )
                 ),
                 # Folder node "Parameters" containing the MCO parameters
                 TreeNode(
@@ -298,10 +302,11 @@ class WorkflowTree(ModelView):
                     view=no_view,
                     menu=no_menu,
                     on_select=partial(
-                        self.factory,
+                        self.on_selection,
+                        'Parameter',
                         self.parameter_factories,
                         self.new_parameter,
-                        'Parameter'
+                        None
                     )
                 ),
                 #: Node representing an MCO parameter
@@ -312,7 +317,13 @@ class WorkflowTree(ModelView):
                     name='Parameters',
                     label='label',
                     menu=Menu(delete_parameter_action),
-                    on_select=partial(self.instance, self.delete_parameter)
+                    on_select=partial(
+                        self.on_selection,
+                        'None',
+                        None,
+                        None,
+                        self.delete_parameter
+                    )
                 ),
                 TreeNode(
                     node_for=[MCOModelView],
@@ -323,10 +334,11 @@ class WorkflowTree(ModelView):
                     view=no_view,
                     menu=Menu(new_kpi_action),
                     on_select=partial(
-                        self.factory,
+                        self.on_selection,
+                        'KPI',
                         None,
                         self.new_kpi,
-                        'KPI'
+                        None
                     )
                 ),
                 TreeNodeWithStatus(
@@ -337,7 +349,13 @@ class WorkflowTree(ModelView):
                     name='KPIs',
                     view=no_view,
                     menu=Menu(delete_kpi_action),
-                    on_select=partial(self.instance, self.delete_kpi)
+                    on_select=partial(
+                        self.on_selection,
+                        'None',
+                        None,
+                        None,
+                        self.delete_kpi
+                    )
                 ),
                 # Folder node "Notification" containing the
                 # Notification listeners
@@ -350,10 +368,11 @@ class WorkflowTree(ModelView):
                     view=no_view,
                     menu=no_menu,
                     on_select=partial(
-                        self.factory,
+                        self.on_selection,
+                        'Notification Listener',
                         self._factory_registry.notification_listener_factories,
                         self.new_notification_listener,
-                        'Notification Listener',
+                        None
                     )
                 ),
                 # Node representing the Notification Listener
@@ -366,7 +385,10 @@ class WorkflowTree(ModelView):
                     view=no_view,
                     menu=Menu(delete_notification_listener_action),
                     on_select=partial(
-                        self.instance,
+                        self.on_selection,
+                        'None',
+                        None,
+                        None,
                         self.delete_notification_listener
                     )
                 ),
@@ -415,52 +437,14 @@ class WorkflowTree(ModelView):
     # set add_new_entity to be for the right object type and provide a way to
     # add things by double clicking
 
-    @selection
-    def factory_instance(self, from_registry, create_fn, factory_group_name,
-                         delete_fn, modelview):
-        """Called on selecting a node in the TreeEditor which represents an
-        instance in the workflow, but also represents a factory for creating
-        new instances.
-        For example an ExecutionLayerModelView represents an ExecutionLayer
-        object, but is also a factory for new DataSources.
+    def on_selection(self, factory_group_name, from_registry, create_fn,
+                     delete_fn, modelview):
 
-        Parameters
-        ----------
-        from_registry: List(BaseFactory) or Callable
-            A list of factories available for this node
-        create_fn: function
-            A function which adds a newly created instance to the Workflow
-        factory_group_name: String
-            A name showing which group (MCO, Datasource etc.) the factory
-            belongs to
-        delete_fn: function
-            A function which removes the object from the workflow
-        modelview: ModelView
-            The modelview of the currently selected node
-        """
+        self.selected_factory_name = factory_group_name
 
-        self.factory.__wrapped__(self, from_registry, create_fn,
-                                 factory_group_name, modelview)
-        self.instance.__wrapped__(self, delete_fn, modelview)
+        if create_fn is not None:
+            self.add_new_entity = partial(create_fn, None, modelview)
 
-    @selection
-    def factory(self, from_registry, create_fn, factory_group_name, modelview):
-        """Called on selecting a node in the TreeEditor which represents a
-        factory.
-
-        Parameters
-        ----------
-        from_registry: List(BaseFactory) or Callable
-            A list of factories available for this node
-        create_fn: function
-            A function which adds a newly created instance to the Workflow
-        factory_group_name: String
-            A name showing which group (MCO, Datasource etc.) the factory
-            belongs to
-        modelview: ModelView
-            The modelview of the currently selected node
-        """
-        self.add_new_entity = partial(create_fn, None, modelview)
         if from_registry is not None:
             try:
                 # For a non-constant factory list (parameter factories)
@@ -476,33 +460,9 @@ class WorkflowTree(ModelView):
             self.entity_creator = entity_creator
         else:
             self.entity_creator = None
-        self.selected_factory_name = factory_group_name
 
-    @selection
-    def instance(self, delete_fn, modelview):
-        """Called on selecting a a node in the TreeEditor which represents an
-        object in the workflow
-
-        Parameters
-        ----------
-        delete_fn: function
-            A function which removes the object from the workflow
-        modelview: ModelView
-            The modelview of the currently selected node
-        """
-
-        self.remove_entity = partial(delete_fn, None, modelview)
-
-    @selection
-    def workflow_selected(self, workflow_mv):
-        """Called on selecting the top node in the WorkflowTree
-
-        Parameters
-        ----------
-        workflow_mv: WorkflowModelView
-            Unused, automatically passed by TreeEditor on selection
-        """
-        self.selected_factory_name = 'Workflow'
+        if delete_fn is not None:
+            self.remove_entity = partial(delete_fn, None, modelview)
 
     def parameter_factories(self):
         """Returns the list of parameter factories for the current MCO."""
