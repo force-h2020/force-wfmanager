@@ -77,7 +77,7 @@ class TestNewEntityModal(unittest.TestCase):
 
         modal, modal_info = self._get_mco_selector()
 
-        self.assertFalse(modal._current_model_editable)
+        self.assertFalse(modal.current_model_editable)
 
         self.assertIn("No Model", modal.model_description_HTML)
 
@@ -119,7 +119,7 @@ class TestNewEntityModal(unittest.TestCase):
         modal.selected_factory = self.data_sources[0]
         # An empty DataSourceModel with no editable traits
         modal.model = DummyDataSourceModel(self.data_sources[0])
-        self.assertFalse(modal._current_model_editable)
+        self.assertFalse(modal.current_model_editable)
         self.assertIn("No description available", modal.model_description_HTML)
         self.assertIn("No configuration options available",
                       modal._no_config_options_msg)

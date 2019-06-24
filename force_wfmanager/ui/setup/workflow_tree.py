@@ -155,7 +155,7 @@ class WorkflowTree(ModelView):
     #: if a non-factory or nothing is selected, or (for example) "MCO" if the
     #: MCO folder is selected.
     #: Listens to: :func:`~selected_mv`
-    selected_factory_name = Unicode()
+    selected_factory_name = Unicode('Workflow')
 
     #: Creates new instances of DataSource, MCO, Notification Listener or
     #: MCO Parameters - depending on the plugins currently installed.
@@ -182,7 +182,9 @@ class WorkflowTree(ModelView):
     # ----------
 
     #: The error message currently displayed in the UI.
-    selected_error = Unicode()
+    selected_error = Property(
+        Unicode(), depends_on="selected_mv,selected_mv.error_message,selected_mv.label"
+    )
 
     def default_traits_view(self):
         """The layout of the View for the WorkflowTree"""
@@ -441,12 +443,12 @@ class WorkflowTree(ModelView):
         self.selected_factory_name = factory_group_name
 
         if create_fn is not None:
-            self.add_new_entity = partial(create_fn, None, modelview)
+            self.add_new_entity = partial(create_fn, modelview)
         else:
             self.add_new_entity = None
 
         if delete_fn is not None:
-            self.remove_entity = partial(delete_fn, None, modelview)
+            self.remove_entity = partial(delete_fn, modelview)
         else:
             self.remove_entity = None
 
@@ -475,40 +477,40 @@ class WorkflowTree(ModelView):
             return parameter_factories
         return None
 
-    # Methods for new entity creation - The args ui_info and object
-    # (the selected modelview) are passed by the WorkflowTree on selection.
+    # Methods for new entity creation - The arg object
+    # (the selected modelview) is passed by the WorkflowTree on selection.
     # Additional (unused) args are passed when calling dclick_function by
     # double-clicking a specific factory in the NewEntityCreator
 
-    def new_data_source(self, ui_info, object, *args):
+    def new_data_source(self, object, *args):
         """Adds a new datasource to the workflow."""
         object.add_data_source(self.entity_creator.model)
         self.entity_creator.reset_model()
         self.verify_workflow_event = True
 
-    def new_kpi(self, ui_info, object):
+    def new_kpi(self, object):
         """Adds a new KPI to the workflow"""
         object.add_kpi(KPISpecification())
         self.verify_workflow_event = True
 
-    def new_layer(self, ui_info, object):
+    def new_layer(self, object):
         """Adds a new execution layer to the workflow"""
         object.add_execution_layer(ExecutionLayer())
         self.verify_workflow_event = True
 
-    def new_mco(self, ui_info, object, *args):
+    def new_mco(self, object, *args):
         """Adds a new mco to the workflow"""
         object.set_mco(self.entity_creator.model)
         self.entity_creator.reset_model()
         self.verify_workflow_event = True
 
-    def new_notification_listener(self, ui_info, object, *args):
+    def new_notification_listener(self, object, *args):
         """"Adds a new notification listener to the workflow"""
         object.add_notification_listener(self.entity_creator.model)
         self.entity_creator.reset_model()
         self.verify_workflow_event = True
 
-    def new_parameter(self, ui_info, object, *args):
+    def new_parameter(self, object, *args):
         """Adds a new mco parameter to the workflow"""
         object.add_parameter(self.entity_creator.model)
         self.entity_creator.reset_model()
@@ -518,34 +520,34 @@ class WorkflowTree(ModelView):
     # modelview being deleted.
     # E.g. for delete_data_source the object is a DataSourceModelView
 
-    def delete_data_source(self, ui_info, object):
+    def delete_data_source(self, object):
         """Delete a data source from the workflow"""
         self.workflow_mv.remove_data_source(object.model)
         self.verify_workflow_event = True
 
-    def delete_kpi(self, ui_info, object):
+    def delete_kpi(self, object):
         """Delete a kpi from the workflow"""
         if len(self.workflow_mv.mco_mv) > 0:
             mco_mv = self.workflow_mv.mco_mv[0]
             mco_mv.remove_kpi(object.model)
         self.verify_workflow_event = True
 
-    def delete_layer(self, ui_info, object):
+    def delete_layer(self, object):
         """Delete a execution layer from the workflow"""
         self.workflow_mv.remove_execution_layer(object.model)
         self.verify_workflow_event = True
 
-    def delete_mco(self, ui_info, object):
+    def delete_mco(self, object):
         """Delete a mco from the workflow"""
         self.workflow_mv.set_mco(None)
         self.verify_workflow_event = True
 
-    def delete_notification_listener(self, ui_info, object):
+    def delete_notification_listener(self, object):
         """Delete a notification listener from the workflow"""
         self.workflow_mv.remove_notification_listener(object.model)
         self.verify_workflow_event = True
 
-    def delete_parameter(self, ui_info, object):
+    def delete_parameter(self, object):
         """Delete a mco parameter from the workflow"""
         if len(self.workflow_mv.mco_mv) > 0:
             mco_mv = self.workflow_mv.mco_mv[0]
@@ -670,22 +672,21 @@ class WorkflowTree(ModelView):
         """
         return model_info(modelview.model) != []
 
-    @on_trait_change("selected_mv,selected_mv.error_message,selected_mv.label")
     def _get_selected_error(self):
         """Returns the error messages for the currently selected modelview"""
         if self.selected_mv is None:
-            self.selected_error = ERROR_TEMPLATE.format("No Item Selected", "")
+            return ERROR_TEMPLATE.format("No Item Selected", "")
 
         elif self.selected_mv.error_message == '':
             mv_label = self.selected_mv.label
-            self.selected_error = ERROR_TEMPLATE.format(
+            return ERROR_TEMPLATE.format(
                 "No errors for {}".format(mv_label), "")
         else:
             mv_label = self.selected_mv.label
             error_list = self.selected_mv.error_message.split('\n')
             body_strings = ''.join([SINGLE_ERROR.format(error)
                                     for error in error_list])
-            self.selected_error = ERROR_TEMPLATE.format(
+            return ERROR_TEMPLATE.format(
                 "Errors for {}:".format(mv_label), body_strings)
 
 

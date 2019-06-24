@@ -339,9 +339,7 @@ class DataSourceModelView(ModelView):
         slot is changed"""
         self.verify_workflow_event = True
 
-    @on_trait_change(
-        'model.+'
-    )
+    @on_trait_change('model.+')
     def data_source_model_change(self):
         """Fires :func:`verify_workflow_event` when any trait on the
         data source model is changed"""
@@ -431,6 +429,7 @@ class DataSourceModelView(ModelView):
     # Description update on UI selection change
 
     def _get_selected_slot_description(self):
+        print('selected_slot_description called')
         if self.selected_slot_row is None:
             return DEFAULT_MESSAGE
 

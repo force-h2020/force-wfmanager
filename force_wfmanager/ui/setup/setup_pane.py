@@ -219,9 +219,24 @@ class SetupPane(TraitsTaskPane):
         """
         if self.selected_mv is None or self.selected_mv.trait_views() == []:
             self.selected_mv_editable = False
-        self.selected_mv_editable = True
+        else:
+            self.selected_mv_editable = True
 
-    @on_trait_change('entity_creator,entity_creator.model')
+    @on_trait_change('selected_mv')
+    def _get_selected_model(self):
+        """Checks if the model held by the modelview needs to be displayed
+        in the UI.
+        """
+        if self.selected_mv is not None:
+            if isinstance(self.selected_mv.model, BaseModel):
+                #: FIXME - this will raise an AttributeError if
+                #: self.selected_mv.model has not initialised a traits_view
+                #: object
+                self.selected_model = self.selected_mv.model
+            else:
+                self.selected_model = None
+
+    @on_trait_change('selected_factory_name,entity_creator,entity_creator.model')
     def _get_enable_add_button(self):
         """ Determines if the add button in the UI should be enabled.
 
@@ -274,6 +289,12 @@ class SetupPane(TraitsTaskPane):
 
     # Synchronisation with WorkflowTree
 
+    @on_trait_change('task.side_pane.workflow_tree.selected_mv')
+    def sync_selected_mv(self):
+        """ Synchronise selected_mv with the selected modelview in the tree
+        editor."""
+        self.selected_mv = self.task.side_pane.workflow_tree.selected_mv
+
     @on_trait_change('task.side_pane.workflow_tree.add_new_entity')
     def sync_add_new_entity(self):
         """Synchronises add_new_entity with WorkflowTree"""
@@ -288,21 +309,6 @@ class SetupPane(TraitsTaskPane):
             self.task.side_pane.workflow_tree.remove_entity
         )
 
-    @on_trait_change('task.side_pane.workflow_tree.selected_mv')
-    def sync_selected_mv(self):
-        """ Synchronise selected_mv with the selected modelview in the tree
-        editor. Checks if the model held by the modelview needs to be displayed
-        in the UI."""
-        self.selected_mv = self.task.side_pane.workflow_tree.selected_mv
-        if self.selected_mv is not None:
-            if isinstance(self.selected_mv.model, BaseModel):
-                #: FIXME - this will raise an AttributeError if
-                #: self.selected_mv.model has not initialised a traits_view
-                #: object
-                self.selected_model = self.selected_mv.model
-            else:
-                self.selected_model = None
-
     @on_trait_change('task.side_pane.workflow_tree.selected_factory_name')
     def sync_selected_factory_name(self):
         """Synchronises selected_factory_name with WorkflowTree"""
@@ -313,6 +319,7 @@ class SetupPane(TraitsTaskPane):
     @on_trait_change('task.side_pane.workflow_tree.entity_creator')
     def sync_entity_creator(self):
         """Synchronises entity_creator with WorkflowTree"""
+        print('sync_entity_creator called')
         self.entity_creator = self.task.side_pane.workflow_tree.entity_creator
 
     # Button event handlers for creating and deleting workflow items

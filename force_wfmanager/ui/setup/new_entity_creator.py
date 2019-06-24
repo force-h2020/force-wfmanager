@@ -100,7 +100,7 @@ class NewEntityCreator(HasStrictTraits):
 
     #: A Bool which is True if model has a view with at least one user
     #: editable attribute, False otherwise.
-    _current_model_editable = Property(Bool, depends_on="model")
+    current_model_editable = Bool()
 
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityCreator, self).__init__(*args, **kwargs)
@@ -140,12 +140,12 @@ class NewEntityCreator(HasStrictTraits):
                     VGroup(
                         UItem(
                             "model", style="custom", editor=InstanceEditor(),
-                            visible_when="_current_model_editable is True"
+                            visible_when="current_model_editable is True"
                               ),
                         UItem(
                             "_no_config_options_msg", style="readonly",
                             editor=HTMLEditor(),
-                            visible_when="_current_model_editable is False"
+                            visible_when="current_model_editable is False"
                         ),
                         visible_when="model is not None",
                         style="custom",
@@ -238,11 +238,12 @@ class NewEntityCreator(HasStrictTraits):
         plugin = factory.plugin
         return plugin
 
-    def _get__current_model_editable(self):
+    @on_trait_change('model')
+    def _get_current_model_editable(self):
         """A check which returns True if 1. A view with at least
         one item exists for this model and 2. Those items
         are actually visible to the user."""
-        return model_info(self.model) != []
+        self.current_model_editable = (model_info(self.model) != [])
 
     def _get_model_description_HTML(self):
         """Return a HTML formatted description of the currently selected
