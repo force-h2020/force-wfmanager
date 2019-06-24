@@ -441,9 +441,17 @@ class WorkflowTree(ModelView):
                      delete_fn, modelview):
 
         self.selected_factory_name = factory_group_name
+        add_new_entity = None
+        entity_creator = None
+        remove_entity = None
 
         if create_fn is not None:
-            self.add_new_entity = partial(create_fn, None, modelview)
+            add_new_entity = partial(create_fn, None, modelview)
+        self.add_new_entity = add_new_entity
+
+        if delete_fn is not None:
+            remove_entity = partial(delete_fn, None, modelview)
+        self.remove_entity = remove_entity
 
         if from_registry is not None:
             try:
@@ -457,12 +465,8 @@ class WorkflowTree(ModelView):
                 factories=visible_factories,
                 dclick_function=self.add_new_entity
             )
-            self.entity_creator = entity_creator
-        else:
-            self.entity_creator = None
 
-        if delete_fn is not None:
-            self.remove_entity = partial(delete_fn, None, modelview)
+        self.entity_creator = entity_creator
 
     def parameter_factories(self):
         """Returns the list of parameter factories for the current MCO."""
