@@ -70,16 +70,6 @@ delete_layer_action = Action(name='Delete', action='delete_layer')
 # DataSource Actions
 delete_data_source_action = Action(name='Delete', action='delete_data_source')
 
-#: Wrapper to perform workflow verification after a method or function call
-def triggers_verify(func):
-    """Decorator for functions which make changes requiring the workflow to
-    be verified"""
-    @wraps(func)
-    def wrap(self, *args, **kwargs):
-        func(self, *args, **kwargs)
-        self.verify_workflow_event = True
-    return wrap
-
 
 def selection(func):
     """ Decorator for functions called on selecting something in the tree
@@ -528,77 +518,77 @@ class WorkflowTree(ModelView):
     # Additional (unused) args are passed when calling dclick_function by
     # double-clicking a specific factory in the NewEntityCreator
 
-    @triggers_verify
     def new_data_source(self, ui_info, object, *args):
         """Adds a new datasource to the workflow."""
         object.add_data_source(self.entity_creator.model)
         self.entity_creator.reset_model()
+        self.verify_workflow_event = True
 
-    @triggers_verify
     def new_kpi(self, ui_info, object):
         """Adds a new KPI to the workflow"""
         object.add_kpi(KPISpecification())
+        self.verify_workflow_event = True
 
-    @triggers_verify
     def new_layer(self, ui_info, object):
         """Adds a new execution layer to the workflow"""
         object.add_execution_layer(ExecutionLayer())
+        self.verify_workflow_event = True
 
-    @triggers_verify
     def new_mco(self, ui_info, object, *args):
         """Adds a new mco to the workflow"""
         object.set_mco(self.entity_creator.model)
         self.entity_creator.reset_model()
+        self.verify_workflow_event = True
 
-    @triggers_verify
     def new_notification_listener(self, ui_info, object, *args):
         """"Adds a new notification listener to the workflow"""
         object.add_notification_listener(self.entity_creator.model)
         self.entity_creator.reset_model()
+        self.verify_workflow_event = True
 
-    @triggers_verify
     def new_parameter(self, ui_info, object, *args):
         """Adds a new mco parameter to the workflow"""
         object.add_parameter(self.entity_creator.model)
         self.entity_creator.reset_model()
+        self.verify_workflow_event = True
 
     # Methods for deleting entities from the workflow - object is the
     # modelview being deleted.
     # E.g. for delete_data_source the object is a DataSourceModelView
 
-    @triggers_verify
     def delete_data_source(self, ui_info, object):
         """Delete a data source from the workflow"""
         self.workflow_mv.remove_data_source(object.model)
+        self.verify_workflow_event = True
 
-    @triggers_verify
     def delete_kpi(self, ui_info, object):
         """Delete a kpi from the workflow"""
         if len(self.workflow_mv.mco_mv) > 0:
             mco_mv = self.workflow_mv.mco_mv[0]
             mco_mv.remove_kpi(object.model)
+        self.verify_workflow_event = True
 
-    @triggers_verify
     def delete_layer(self, ui_info, object):
         """Delete a execution layer from the workflow"""
         self.workflow_mv.remove_execution_layer(object.model)
+        self.verify_workflow_event = True
 
-    @triggers_verify
     def delete_mco(self, ui_info, object):
         """Delete a mco from the workflow"""
         self.workflow_mv.set_mco(None)
+        self.verify_workflow_event = True
 
-    @triggers_verify
     def delete_notification_listener(self, ui_info, object):
         """Delete a notification listener from the workflow"""
         self.workflow_mv.remove_notification_listener(object.model)
+        self.verify_workflow_event = True
 
-    @triggers_verify
     def delete_parameter(self, ui_info, object):
         """Delete a mco parameter from the workflow"""
         if len(self.workflow_mv.mco_mv) > 0:
             mco_mv = self.workflow_mv.mco_mv[0]
             mco_mv.remove_parameter(object.model)
+        self.verify_workflow_event = True
 
     # Workflow Verification
 
