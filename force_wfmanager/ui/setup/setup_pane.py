@@ -58,7 +58,7 @@ class SetupPane(TraitsTaskPane):
     #: Listens to: :attr:`models.workflow_tree.selected_factory_name
     #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
     #: selected_factory_name>`
-    selected_factory_name = Unicode('Workflow')
+    selected_factory_name = Unicode()
 
     #: A function which adds a new entity to the workflow tree, using the
     #: currently selected factory. For example, if the 'DataSources' factory
@@ -96,7 +96,7 @@ class SetupPane(TraitsTaskPane):
     #: displaying a default view when a model does not have a View defined for
     #: it. If a modelview has a View defining how it is represented in the UI
     #: then this is used.
-    selected_mv_editable = Property(Bool, depends_on='selected_mv')
+    selected_mv_editable = Bool()
 
     #: A panel displaying extra information about the workflow: Available
     #: Plugins, non-KPI variables, current filenames and any error messages.
@@ -205,7 +205,8 @@ class SetupPane(TraitsTaskPane):
         return namespace
 
     # Property getters
-    def _get_selected_mv_editable(self):
+    @on_trait_change('selected_mv')
+    def get_selected_mv_editable(self):
         """ Determines if the selected modelview in the WorkflowTree has a
         default or non-default view associated. A default view should not
         be editable by the user, a non-default one should be.
@@ -224,8 +225,9 @@ class SetupPane(TraitsTaskPane):
             currently selected
         """
         if self.selected_mv is None or self.selected_mv.trait_views() == []:
-            return False
-        return True
+            self.selected_mv_editable = False
+        else:
+            self.selected_mv_editable = True
 
     def _get_enable_add_button(self):
         """ Determines if the add button in the UI should be enabled.
