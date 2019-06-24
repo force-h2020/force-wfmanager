@@ -1,6 +1,6 @@
 from pyface.tasks.api import TraitsTaskPane
 from traits.api import (
-    Bool, Button, Callable, Instance, Property, Unicode,
+    Bool, Button, Callable, Instance, Unicode,
     on_trait_change
 )
 from traitsui.api import (
@@ -236,7 +236,8 @@ class SetupPane(TraitsTaskPane):
             else:
                 self.selected_model = None
 
-    @on_trait_change('selected_factory_name,entity_creator,entity_creator.model')
+    @on_trait_change('selected_factory_name,entity_creator,'
+                     'entity_creator.model')
     def _get_enable_add_button(self):
         """ Determines if the add button in the UI should be enabled.
 
@@ -285,8 +286,9 @@ class SetupPane(TraitsTaskPane):
     @on_trait_change('selected_factory_name')
     def _get_add_new_entity_label(self):
         """Returns the label displayed on add_new_entity_btn"""
-        self.add_new_entity_label = 'Add New {!s}'.format(self.selected_factory_name)
-
+        self.add_new_entity_label = (
+                'Add New {!s}'.format(self.selected_factory_name)
+        )
     # Synchronisation with WorkflowTree
 
     @on_trait_change('task.side_pane.workflow_tree.selected_mv')
@@ -319,7 +321,6 @@ class SetupPane(TraitsTaskPane):
     @on_trait_change('task.side_pane.workflow_tree.entity_creator')
     def sync_entity_creator(self):
         """Synchronises entity_creator with WorkflowTree"""
-        print('sync_entity_creator called')
         self.entity_creator = self.task.side_pane.workflow_tree.entity_creator
 
     # Button event handlers for creating and deleting workflow items

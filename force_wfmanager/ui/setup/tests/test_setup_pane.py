@@ -40,10 +40,10 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         plugin = ProbeExtensionPlugin()
         factory = ProbeDataSourceFactory(plugin=plugin)
         model = factory.create_model()
-
+        registry = self.workflow_tree.workflow_mv.variable_names_registry
         data_source_mv = DataSourceModelView(
             model=model,
-            variable_names_registry=self.workflow_tree.workflow_mv.variable_names_registry
+            variable_names_registry=registry
         )
 
         try:

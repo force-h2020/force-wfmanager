@@ -1,5 +1,7 @@
 from traits.api import (
-    Instance, Unicode, Bool, on_trait_change, Event, Property)
+    Instance, Unicode, Bool, on_trait_change, Event, Property,
+    cached_property
+)
 from traitsui.api import View, Item, ModelView
 
 from force_bdss.api import BaseMCOParameter
@@ -58,7 +60,7 @@ class MCOParameterModelView(ModelView):
         self.verify_workflow_event = True
 
     # Properties
-
+    @cached_property
     def _get_label(self):
         if self.model.name == '' and self.model.type == '':
             return self._label_default()

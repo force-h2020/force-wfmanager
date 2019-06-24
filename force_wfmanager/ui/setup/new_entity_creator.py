@@ -1,6 +1,6 @@
 from traits.api import (
     Bool, Callable, Dict, Either, HasStrictTraits, Instance, List, ReadOnly,
-    Property, Unicode, on_trait_change
+    Property, Unicode, on_trait_change, cached_property
 )
 from traitsui.api import (
     HSplit, HTMLEditor, InstanceEditor, Menu, TreeEditor, TreeNode, UItem,
@@ -245,6 +245,7 @@ class NewEntityCreator(HasStrictTraits):
         are actually visible to the user."""
         self.current_model_editable = (model_info(self.model) != [])
 
+    @cached_property
     def _get_model_description_HTML(self):
         """Return a HTML formatted description of the currently selected
         model and its parameters. This is constructed from the currently

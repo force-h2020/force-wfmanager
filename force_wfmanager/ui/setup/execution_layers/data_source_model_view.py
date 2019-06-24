@@ -429,7 +429,6 @@ class DataSourceModelView(ModelView):
     # Description update on UI selection change
 
     def _get_selected_slot_description(self):
-        print('selected_slot_description called')
         if self.selected_slot_row is None:
             return DEFAULT_MESSAGE
 

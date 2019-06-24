@@ -1,7 +1,8 @@
-from functools import partial, wraps
+from functools import partial
 
 from traits.api import (
-    Callable, Event, Instance, Property, Unicode, on_trait_change
+    Callable, Event, Instance, Property, Unicode, on_trait_change,
+    cached_property
 )
 from traitsui.api import (
     Action, Group, Menu, ModelView, TextEditor,
@@ -183,7 +184,8 @@ class WorkflowTree(ModelView):
 
     #: The error message currently displayed in the UI.
     selected_error = Property(
-        Unicode(), depends_on="selected_mv,selected_mv.error_message,selected_mv.label"
+        Unicode(), depends_on="selected_mv,selected_mv.error_message,"
+                              "selected_mv.label"
     )
 
     def default_traits_view(self):
@@ -672,6 +674,7 @@ class WorkflowTree(ModelView):
         """
         return model_info(modelview.model) != []
 
+    @cached_property
     def _get_selected_error(self):
         """Returns the error messages for the currently selected modelview"""
         if self.selected_mv is None:
