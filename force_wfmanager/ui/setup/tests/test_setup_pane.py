@@ -38,6 +38,12 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         self.workflow_tree.workflow_mv = WorkflowModelView()
         self.workflow_tree._factory_registry = ProbeFactoryRegistry()
 
+    def tearDown(self):
+        for plugin in self.wfmanager:
+            self.wfmanager.remove_plugin(plugin)
+        self.wfmanager.exit()
+        super(TestSetupPane, self).tearDown()
+
     def test_sync_selected_mv(self):
         plugin = ProbeExtensionPlugin()
         factory = ProbeDataSourceFactory(plugin=plugin)

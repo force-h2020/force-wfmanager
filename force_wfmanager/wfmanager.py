@@ -1,4 +1,5 @@
 import logging
+import os
 
 from envisage.ui.tasks.api import TasksApplication, TaskWindow
 
@@ -68,12 +69,32 @@ class WfManager(TasksApplication):
                 window.remove_task(task)
 
     # FIXME: If the underlying envisage TasksApplication function is fixed to
-    #        work correctly, this will not be needed
+    #        work correctly, this will not be needed.
     def create_window(self, layout, restore, **traits):
+        """ Creates a new TaskWindow.
+        """
         window = super(WfManager, self).create_window(
             layout, not restore, **traits
         )
         return window
+
+    def _load_state(self):
+        super(WfManager, self)._load_state()
+        if (
+            self._state.window_layouts
+            and self._state.window_layouts[0].get_active_task() is None
+        ):
+            # This is a possible way a corrupted state file would manifest
+            # itself: see issues force-h2020/force-wfmanager#289,
+            # force-h2020/force-wfmanager#290.
+            # Remove it and try again with a default state.
+            state_file = os.path.join(
+                self.state_location, 'application_memento')
+            if os.path.exists(state_file):
+                os.unlink(state_file)
+                log.warning("The state file at {!r} was corrupted and has "
+                            "been removed.".format(state_file))
+            super(WfManager, self)._load_state()
 
 
 class TaskWindowClosePrompt(TaskWindow):
