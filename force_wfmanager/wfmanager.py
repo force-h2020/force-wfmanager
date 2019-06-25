@@ -69,8 +69,10 @@ class WfManager(TasksApplication):
                 window.remove_task(task)
 
     # FIXME: If the underlying envisage TasksApplication function is fixed to
-    #        work correctly, this will not be needed
+    #        work correctly, this will not be needed.
     def create_window(self, layout, restore, **traits):
+        """ Creates a new TaskWindow.
+        """
         window = super(WfManager, self).create_window(
             layout, not restore, **traits
         )
