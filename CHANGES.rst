@@ -4,6 +4,9 @@ Changelog
 Release 0.4.0
 -------------
 
+- Rearranged source code file tree to represent current workflow (PR#260)
+
+
 Release 0.3.0
 -------------
 

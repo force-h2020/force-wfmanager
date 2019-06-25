@@ -14,19 +14,21 @@ from traits.api import Instance, on_trait_change, List, Bool, Unicode, File
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
-    InvalidFileException, MCOProgressEvent, MCOStartEvent, Workflow,
-    WorkflowReader, WorkflowWriter
+    MCOProgressEvent, MCOStartEvent, Workflow,
+    InvalidFileException
 )
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
-from force_wfmanager.central_pane.setup_pane import SetupPane
-from force_wfmanager.central_pane.data_view_pane import DataViewPane
-from force_wfmanager.plugin_dialog import PluginDialog
-from force_wfmanager.left_side_pane.tree_pane import TreePane
+from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.ui.review.data_view_pane import DataViewPane
+from force_wfmanager.ui.setup.setup_pane import SetupPane
+from force_wfmanager.ui.setup.tree_pane import TreePane
+from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.task_toggle_group_accelerator import (
+from force_wfmanager.wfmanager import (
     TaskToggleGroupAccelerator
 )
-
+from force_wfmanager.io.workflow_io import (
+    write_workflow_file, load_workflow_file
+)
 log = logging.getLogger(__name__)
 
 
@@ -37,7 +39,7 @@ class WfManagerSetupTask(Task):
     #: Workflow model.
     workflow_model = Instance(Workflow, allow_none=False)
 
-    #: Analysis model. Contains the results that are displayed in the plot
+    #: Analysis model. Contains the review that are displayed in the plot
     #: and table
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
@@ -87,8 +89,8 @@ class WfManagerSetupTask(Task):
 
     task_group = Instance(TaskToggleGroupAccelerator)
 
-    #: Results Task
-    results_task = Instance(Task)
+    #: Review Task
+    review_task = Instance(Task)
 
     # ZMQ Setup
 
@@ -229,8 +231,8 @@ class WfManagerSetupTask(Task):
         )
 
     def create_central_pane(self):
-        """ Creates the central pane which contains the analysis part
-        (pareto front and output KPI values)
+        """ Creates the central pane which contains the layer info part
+        (factory selection and new object configuration editors)
         """
         return SetupPane(workflow_model=self.workflow_model)
 
@@ -282,28 +284,28 @@ class WfManagerSetupTask(Task):
 
     def open_workflow(self):
         """ Shows a dialog to open a workflow file """
+
         dialog = FileDialog(
             action="open",
             wildcard='JSON files (*.json)|*.json|'
         )
         result = dialog.open()
-        f_name = dialog.path
+        file_path = dialog.path
+
         if result is OK:
-            self.open_workflow_file(f_name)
+            self.load_workflow(file_path)
 
-    def open_workflow_file(self, f_name):
-        """ Opens a workflow from the specified file name
-
+    def load_workflow(self, file_path):
+        """ Loads a workflow from the specified file name
         Parameters
         ----------
-        f_name: str
+        file_path: str
             The path to the workflow file
         """
-        reader = WorkflowReader(self.factory_registry)
         try:
-            with open(f_name, 'r') as fobj:
-                self.workflow_model = reader.read(fobj)
-        except InvalidFileException as e:
+            self.workflow_model = load_workflow_file(
+                self.factory_registry, file_path)
+        except (InvalidFileException, FileNotFoundError) as e:
             error(
                 None,
                 'Cannot read the requested file:\n\n{}'.format(
@@ -311,7 +313,7 @@ class WfManagerSetupTask(Task):
                 'Error when reading file'
             )
         else:
-            self.current_file = f_name
+            self.current_file = file_path
 
     def save_workflow(self):
         """ Saves the workflow into the currently used file. If there is no
@@ -347,13 +349,11 @@ class WfManagerSetupTask(Task):
     def _write_workflow(self, file_path):
         """ Creates a JSON file in the file_path and write the workflow
         description in it
-
         Parameters
         ----------
         file_path: str
             The file_path pointing to the file in which you want to write the
             workflow
-
         Returns
         -------
         Boolean:
@@ -370,8 +370,7 @@ class WfManagerSetupTask(Task):
                 )
 
         try:
-            with open(file_path, 'w') as output:
-                WorkflowWriter().write(self.workflow_model, output)
+            write_workflow_file(self.workflow_model, file_path)
         except IOError as e:
             error(
                 None,
@@ -441,8 +440,7 @@ class WfManagerSetupTask(Task):
 
             # Creates a temporary file containing the workflow
             tmpfile_path = tempfile.mktemp()
-            with open(tmpfile_path, 'w') as output:
-                WorkflowWriter().write(self.workflow_model, output)
+            write_workflow_file(self.workflow_model, tmpfile_path)
 
             # Clear the analysis model before attempting to run
             self.analysis_model.clear()
@@ -605,7 +603,7 @@ class WfManagerSetupTask(Task):
     def set_toolbar_run_btn_state(self):
         """ Sets the run button to be enabled/disabled, matching the
         value of :attr:`side_pane.run_enabled
-        <.left_side_pane.tree_pane.TreePane.run_enabled>`
+        <.panes.tree_pane.TreePane.run_enabled>`
         """
         self.run_enabled = self.side_pane.run_enabled
 
@@ -613,7 +611,7 @@ class WfManagerSetupTask(Task):
     def update_side_pane_model(self):
         """ Updates the local :attr:`workflow_model`, to match
         :attr:`side_pane.workflow_model
-        <.left_side_pane.tree_pane.TreePane.workflow_model>`, which will
+        <.panes.tree_pane.TreePane.workflow_model>`, which will
         change as the user modifies a workflow via the UI."""
         self.side_pane.workflow_model = self.workflow_model
 
@@ -634,14 +632,13 @@ class WfManagerSetupTask(Task):
         self.run_bdss()
 
     # Synchronization with Window
-
     @on_trait_change('window.tasks')
-    def get_results_task(self):
+    def get_review_task(self):
         if self.window is not None:
             for task in self.window.tasks:
-                if task.name == "Results":
-                    self.results_task = task
-                    self.results_task.run_enabled = self.run_enabled
+                if task.name == "Review":
+                    self.review_task = task
+                    self.review_task.run_enabled = self.run_enabled
 
     def _plugin_data_views_default(self):
         """ Look through all the loaded plugins and try
@@ -673,9 +670,9 @@ class WfManagerSetupTask(Task):
     # Menu/Toolbar Methods
 
     def switch_task(self):
-        """Switches to the results task and verifies startup setting are
+        """Switches to the review task and verifies startup setting are
         correct for toolbars/menus etc."""
-        self.window.activate_task(self.results_task)
+        self.window.activate_task(self.review_task)
 
     def exit(self):
         self.window.close()

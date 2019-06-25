@@ -1,9 +1,13 @@
 import logging
+import os
 
 from envisage.ui.tasks.api import TasksApplication, TaskWindow
 
 from pyface.api import (CANCEL, ConfirmationDialog, NO, YES)
 from pyface.tasks.api import TaskWindowLayout
+from pyface.action.api import ActionItem
+from pyface.tasks.action.api import TaskToggleGroup
+from pyface.tasks.action.task_toggle_group import TaskToggleAction
 
 from traits.api import Either, Int, Tuple
 
@@ -65,12 +69,32 @@ class WfManager(TasksApplication):
                 window.remove_task(task)
 
     # FIXME: If the underlying envisage TasksApplication function is fixed to
-    #        work correctly, this will not be needed
+    #        work correctly, this will not be needed.
     def create_window(self, layout, restore, **traits):
+        """ Creates a new TaskWindow.
+        """
         window = super(WfManager, self).create_window(
             layout, not restore, **traits
         )
         return window
+
+    def _load_state(self):
+        super(WfManager, self)._load_state()
+        if (
+            self._state.window_layouts
+            and self._state.window_layouts[0].get_active_task() is None
+        ):
+            # This is a possible way a corrupted state file would manifest
+            # itself: see issues force-h2020/force-wfmanager#289,
+            # force-h2020/force-wfmanager#290.
+            # Remove it and try again with a default state.
+            state_file = os.path.join(
+                self.state_location, 'application_memento')
+            if os.path.exists(state_file):
+                os.unlink(state_file)
+                log.warning("The state file at {!r} was corrupted and has "
+                            "been removed.".format(state_file))
+            super(WfManager, self)._load_state()
 
 
 class TaskWindowClosePrompt(TaskWindow):
@@ -124,3 +148,15 @@ class TaskWindowClosePrompt(TaskWindow):
         # Cancel
         elif result is CANCEL:
             return False
+
+
+class TaskToggleGroupAccelerator(TaskToggleGroup):
+    """The standard TaskToggleGroup from pyface, but with a keyboard shortcut
+    for changing tasks (Ctrl + index of task)."""
+    def _get_items(self):
+        items = []
+        for i, task in enumerate(self.window.tasks):
+            action = TaskToggleAction(task=task,
+                                      accelerator='Ctrl+{}'.format(i+1))
+            items.append(ActionItem(action=action))
+        return items
