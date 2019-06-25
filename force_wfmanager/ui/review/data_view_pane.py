@@ -2,9 +2,9 @@ from pyface.tasks.api import TraitsDockPane
 from traits.api import Instance
 from traitsui.api import VGroup, View, UItem
 
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
-from force_wfmanager.central_pane.plot import BasePlot
-from force_wfmanager.central_pane.data_view import BaseDataView
+from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.ui.review.plot import BasePlot
+from force_wfmanager.ui.review.data_view import BaseDataView
 
 
 class DataViewPane(TraitsDockPane):

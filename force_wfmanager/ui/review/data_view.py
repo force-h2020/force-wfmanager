@@ -2,7 +2,7 @@ from traits.api import (
     Instance, HasStrictTraits,
 )
 
-from force_wfmanager.central_pane.analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 
 
 class BaseDataView(HasStrictTraits):
