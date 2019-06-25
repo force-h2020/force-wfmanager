@@ -95,10 +95,18 @@ class TestWfManager(GuiTestAssistant, TestCase):
 
         with mock.patch('force_wfmanager.wfmanager.log') as mock_log:
             try:
-                self.create_tasks()
+                self.wfmanager.run()
+                self.setup_task = self.wfmanager.windows[0].tasks[0]
+                self.review_task = self.wfmanager.windows[0].tasks[1]
             except TraitError:
                 self.fail("Error: did the corrupted state file make "
                           "its way through?")
+            finally:
+                # cleanup
+                for plugin in self.wfmanager:
+                    self.wfmanager.remove_plugin(plugin)
+                self.wfmanager.exit()
+
             mock_log.warning.assert_called_once_with(
                 'The state file at {!r} was corrupted and has been removed.'
                 .format(target_state_file))
