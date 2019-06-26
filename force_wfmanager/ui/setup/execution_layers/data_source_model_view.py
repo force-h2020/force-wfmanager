@@ -231,10 +231,7 @@ class DataSourceModelView(ModelView):
         ),
     )
 
-    def __init__(self, model, variable_names_registry, *args, **kwargs):
-        self.model = model
-        self.variable_names_registry = variable_names_registry
-
+    def __init__(self, *args, **kwargs):
         super(DataSourceModelView, self).__init__(*args, **kwargs)
 
         self._create_slots_tables()
@@ -336,7 +333,7 @@ class DataSourceModelView(ModelView):
 
     # Changed Slots Functions
 
-    @on_trait_change('model.changes_slots')
+    @on_trait_change('model:changes_slots')
     def _update_slots_tables(self):
         """ Update the tables of slots when a change on the model triggers a
         change on the shape of the input/output slots"""
