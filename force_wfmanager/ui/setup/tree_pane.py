@@ -1,7 +1,7 @@
 from pyface.tasks.api import TraitsDockPane
 
 from traits.api import (
-    Instance, Button, on_trait_change, Bool, Property, Unicode
+    Instance, Button, on_trait_change, Bool, Unicode
 )
 from traitsui.api import View, UItem, VGroup, UReadonly, TextEditor, Group
 

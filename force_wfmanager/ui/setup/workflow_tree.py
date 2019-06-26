@@ -5,8 +5,8 @@ from traits.api import (
     cached_property
 )
 from traitsui.api import (
-    Action, Group, Menu, ModelView, TextEditor,
-    TreeEditor, TreeNode, UItem, UReadonly, View, VGroup
+    Action, Group, Menu, ModelView,
+    TreeEditor, TreeNode, UItem, View, VGroup
 )
 
 from force_bdss.api import (
