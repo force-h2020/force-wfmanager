@@ -167,6 +167,14 @@ class WfManagerSetupTask(Task):
         return [
             SToolBar(
                 TaskAction(
+                    name="Run",
+                    tooltip="Run Workflow",
+                    image=ImageResource("baseline_play_arrow_black_48dp"),
+                    method="run_bdss",
+                    enabled_name="run_enabled",
+                    image_size=(64, 64)
+                ),
+                TaskAction(
                     name="View Results",
                     tooltip="View Results",
                     image=ImageResource("baseline_bar_chart_black_48dp"),
@@ -206,23 +214,14 @@ class WfManagerSetupTask(Task):
                     method="open_plugins",
                     image_size=(64, 64)
                 ),
-            ),
-            SToolBar(
-                TaskAction(
-                    name="Run",
-                    tooltip="Run Workflow",
-                    image=ImageResource("baseline_play_arrow_black_48dp"),
-                    method="run_bdss",
-                    enabled_name="run_enabled",
-                    image_size=(64, 64)
-                ),
+
             )
         ]
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
         return TaskLayout(
-            left=PaneItem('force_wfmanager.tree_pane'),
+            left=PaneItem('force_wfmanager.tree_pane')
         )
 
     def create_central_pane(self):

@@ -131,6 +131,7 @@ class SetupPane(TraitsTaskPane):
                     )
                 )
             ),
+
             HGroup(
                 # Instance View
                 VGroup(

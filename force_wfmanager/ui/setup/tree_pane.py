@@ -55,17 +55,17 @@ class TreePane(TraitsDockPane):
     #: Make the pane visible by default
     visible = True
 
-    #: Tree editor for the Workflow
+    #: Tree editor for the Model Workflow
     workflow_tree = Instance(WorkflowTree)
-
-    #: Run button for running the computation
-    run_button = Button('Run')
 
     #: Enables or disables the workflow tree.
     ui_enabled = Bool(True)
 
-    #: Enable or disable the run button.
-    run_enabled = Bool(True)
+    #: MCO button for bringin up the MCO options
+    mco_button = Button('MCO')
+
+    #: MCO button for bringin up the Notification options
+    notification_button = Button('Notifications')
 
     # ----
     # View
@@ -73,7 +73,8 @@ class TreePane(TraitsDockPane):
 
     traits_view = View(VGroup(
         UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
-        UItem('run_button', enabled_when="run_enabled")
+        UItem('mco_button'),
+        UItem('notification_button')
     ))
 
     def _workflow_tree_default(self):
