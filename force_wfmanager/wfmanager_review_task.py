@@ -120,18 +120,18 @@ class WfManagerReviewTask(Task):
         return [
             SToolBar(
                 TaskAction(
-                    name="Setup Workflow",
-                    tooltip="Setup Workflow",
-                    image=ImageResource("outline_build_black_48dp"),
-                    method="switch_task",
-                    image_size=(64, 64)
-                ),
-                TaskAction(
                     name="Run",
                     tooltip="Run Workflow",
                     image=ImageResource("baseline_play_arrow_black_48dp"),
                     method="setup_task.run_bdss",
                     enabled_name="run_enabled",
+                    image_size=(64, 64)
+                ),
+                TaskAction(
+                    name="Setup Workflow",
+                    tooltip="Setup Workflow",
+                    image=ImageResource("outline_build_black_48dp"),
+                    method="switch_task",
                     image_size=(64, 64)
                 )
             ),

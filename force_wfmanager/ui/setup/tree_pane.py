@@ -1,8 +1,9 @@
 from pyface.tasks.api import TraitsDockPane
 
-from traits.api import Instance, Button, on_trait_change, Bool
-
-from traitsui.api import View, UItem, VGroup
+from traits.api import (
+    Instance, Button, on_trait_change, Bool, Property, Unicode
+)
+from traitsui.api import View, UItem, VGroup, UReadonly, TextEditor, Group
 
 from force_bdss.api import IFactoryRegistry, Workflow
 
@@ -67,15 +68,32 @@ class TreePane(TraitsDockPane):
     #: MCO button for bringin up the Notification options
     notification_button = Button('Notifications')
 
+    #: The error message currently displayed in the UI.
+    setup_error = Unicode('')
+
     # ----
     # View
     # ----
 
-    traits_view = View(VGroup(
-        UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
-        UItem('mco_button'),
-        UItem('notification_button')
-    ))
+    traits_view = View(
+        Group(
+            VGroup(
+                UItem('workflow_tree',
+                      style='custom',
+                      enabled_when="ui_enabled"),
+                UItem('mco_button'),
+                UItem('notification_button')
+            ),
+            VGroup(
+                UReadonly(
+                    name='setup_error',
+                    editor=TextEditor()
+                ),
+                label='Workflow Errors',
+                show_border=True,
+            )
+        )
+    )
 
     def _workflow_tree_default(self):
         wf_tree = WorkflowTree(
@@ -84,6 +102,10 @@ class TreePane(TraitsDockPane):
         )
         self.run_enabled = wf_tree.workflow_mv.valid
         return wf_tree
+
+    @on_trait_change("workflow_tree.selected_error")
+    def _sync_setup_error(self):
+        self.setup_error = self.workflow_tree.selected_error
 
     @on_trait_change('workflow_tree.workflow_mv.valid')
     def update_run_btn_status(self):

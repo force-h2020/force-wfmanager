@@ -1,7 +1,8 @@
 from functools import partial, wraps
 
 from traits.api import (
-    Callable, Event, Instance, Property, Unicode, on_trait_change
+    Callable, Event, Instance, Property, Unicode, on_trait_change,
+    cached_property
 )
 from traitsui.api import (
     Action, Group, Menu, ModelView, TextEditor,
@@ -423,16 +424,8 @@ class WorkflowTree(ModelView):
                     UItem(name='workflow_mv',
                           editor=tree_editor,
                           show_label=False
-                          ),
-                ),
-                VGroup(
-                    UReadonly(
-                        name='selected_error',
-                        editor=TextEditor(),
-                    ),
-                    label='Workflow Errors',
-                    show_border=True
-                ),
+                          )
+                )
             ),
             width=500,
             resizable=True,
@@ -750,6 +743,7 @@ class WorkflowTree(ModelView):
 
         return model_info(modelview.model) != []
 
+    @cached_property
     def _get_selected_error(self):
         """Returns the error messages for the currently selected modelview"""
         if self.selected_mv is None:
