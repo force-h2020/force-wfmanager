@@ -73,13 +73,6 @@ class KPISpecificationModelView(ModelView):
 
         return traits_view
 
-    def __init__(self, model, variable_names_registry, **kwargs):
-        super(KPISpecificationModelView, self).__init__(
-            model=model,
-            variable_names_registry=variable_names_registry,
-            **kwargs
-        )
-
     @on_trait_change('model.name,model.objective')
     def kpi_change(self):
         self.verify_workflow_event = True

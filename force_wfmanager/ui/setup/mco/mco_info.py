@@ -81,6 +81,7 @@ class MCOInfo(HasTraits):
                      style='custom',
                      ),
                 show_labels=False,
+                show_border=True
             ),
             VGroup(
                 Item('mco_kpis',
@@ -89,6 +90,7 @@ class MCOInfo(HasTraits):
                      style='custom',
                      ),
                 show_labels=False,
+                show_border=True
             )
         ),
         dock='fixed',
@@ -98,7 +100,7 @@ class MCOInfo(HasTraits):
     # Workflow Verification
 
     @on_trait_change('mco_parameters.verify_workflow_event,'
-                     'kpis_mv.verify_workflow_event')
+                     'mco_kpis.verify_workflow_event')
     def received_verify_request(self):
         self.verify_workflow_event = True
 
@@ -164,7 +166,7 @@ class MCOInfo(HasTraits):
         """Updates the KPI modelview according to the new KPIs in the
         model"""
 
-        self.kpis_mv = [
+        self.mco_kpis = [
             KPISpecificationModelView(
                 variable_names_registry=self.variable_names_registry,
                 model=kpi

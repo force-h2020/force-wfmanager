@@ -152,7 +152,7 @@ class WorkflowInfo(HasTraits):
         if self.workflow_mv.mco_mv is None:
             return kpi_names
         for mco in self.workflow_mv.mco_mv:
-            for kpi in mco.kpis_mv:
+            for kpi in mco.mco_kpis:
                 kpi_names.append(kpi.name)
         return kpi_names
 
