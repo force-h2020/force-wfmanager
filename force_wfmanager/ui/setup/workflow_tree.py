@@ -68,6 +68,8 @@ delete_kpi_action = Action(name="Delete", action='delete_kpi')
 new_layer_action = Action(name="New Layer...", action='new_layer')
 delete_layer_action = Action(name='Delete', action='delete_layer')
 
+# DataSource Actions
+delete_data_source_action = Action(name='Delete', action='delete_data_source')
 
 #: Wrapper to perform workflow verification after a method or function call
 def triggers_verify(func):
