@@ -48,38 +48,16 @@ no_menu = Menu()
 # Actions!
 # -------------------
 
-# A string to be used as the enabled_when argument for the actions.
-# For reference, in the enabled_when expression namespace, handler is
-# the WorkflowTree instance, object is the modelview for the selected node
-call_modelview_editable = 'handler.modelview_editable(object)'
-
 # MCO Actions
-new_mco_action = Action(name='New MCO...', action='new_mco')
 delete_mco_action = Action(name='Delete', action='delete_mco')
-edit_mco_action = Action(name='Edit...', action='edit_mco',
-                         enabled_when=call_modelview_editable)
 
 # Notification Listener Actions
-new_notification_listener_action = Action(
-    name='New Notification Listener...',
-    action='new_notification_listener'
-)
 delete_notification_listener_action = Action(
     name='Delete',
     action='delete_notification_listener'
 )
-edit_notification_listener_action = Action(
-    name='Edit...',
-    action='edit_notification_listener',
-    enabled_when=call_modelview_editable
-)
 
 # Parameter Actions
-new_parameter_action = Action(name='New Parameter...', action='new_parameter')
-edit_parameter_action = Action(
-    name='Edit...', action='edit_parameter',
-    enabled_when=call_modelview_editable
-)
 delete_parameter_action = Action(name='Delete', action='delete_parameter')
 
 # KPI Actions
@@ -89,17 +67,6 @@ delete_kpi_action = Action(name="Delete", action='delete_kpi')
 # Execution Layer Actions
 new_layer_action = Action(name="New Layer...", action='new_layer')
 delete_layer_action = Action(name='Delete', action='delete_layer')
-
-# DataSource Actions
-new_data_source_action = Action(
-    name='New DataSource...',
-    action='new_data_source'
-)
-delete_data_source_action = Action(name='Delete', action='delete_data_source')
-edit_data_source_action = Action(
-    name='Edit...', action='edit_data_source',
-    enabled_when=call_modelview_editable
-)
 
 
 #: Wrapper to perform workflow verification after a method or function call
