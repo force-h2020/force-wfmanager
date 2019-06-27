@@ -1,5 +1,6 @@
 from traits.api import (
-    Instance, Unicode, Bool, on_trait_change, Event, Property)
+    Instance, Unicode, Bool, on_trait_change, Event, Property
+)
 from traitsui.api import View, Item, ModelView
 
 from force_bdss.api import BaseMCOParameter
@@ -39,21 +40,25 @@ class MCOParameterModelView(ModelView):
     # ----------
 
     #: The human readable name of the MCO parameter class
-    label = Property(Unicode(), depends_on="model.name,model.type")
+    label = Property(Unicode(), depends_on="model.[name,type]")
 
     # ----
     # View
     # ----
 
-    traits_view = View(
-        Item("model.name"),
-        Item("model.type"),
-        kind="subpanel"
-    )
+    def default_traits_view(self):
+
+        traits_view = View(
+                Item('model.name'),
+                Item('model.type'),
+                kind='subpanel'
+            )
+
+        return traits_view
 
     # Workflow Validation
 
-    @on_trait_change('model.name,model.type')
+    @on_trait_change('model.[name,type]')
     def parameter_change(self):
         self.verify_workflow_event = True
 

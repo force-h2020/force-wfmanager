@@ -119,3 +119,6 @@ class TreePane(TraitsDockPane):
         """Synchronises :attr:`workflow_tree.model <workflow_tree>`
         with :attr:`workflow_model`"""
         self.workflow_tree.model = self.workflow_model
+
+    def _mco_button_fired(self):
+        self.workflow_tree.selected_factory_name = 'MCO'

@@ -24,3 +24,6 @@ class TestMCOParameterModelViewTest(unittest.TestCase):
         self.mco_param_mv.model.type = 'PRESSURE'
         self.assertEqual(self.mco_param_mv.label,
                          "Probe parameter: PRESSURE P1")
+
+    def test_mco_parameter_traits_view(self):
+        pass

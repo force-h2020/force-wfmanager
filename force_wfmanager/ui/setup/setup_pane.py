@@ -1,13 +1,13 @@
 from pyface.tasks.api import TraitsTaskPane
 from traits.api import (
     Bool, Button, Callable, Instance, Property, Unicode,
-    on_trait_change
+    on_trait_change, HasTraits, Either
 )
 from traitsui.api import (
     ButtonEditor, InstanceEditor, HGroup, ModelView, UItem, View, VGroup
 )
 
-from force_bdss.api import BaseExtensionPlugin, BaseModel, Workflow
+from force_bdss.api import BaseExtensionPlugin, BaseModel, Workflow, BaseMCOModel
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
 from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
 
@@ -46,7 +46,7 @@ class SetupPane(TraitsTaskPane):
     #: The currently selected ModelView in the WorkflowTree.
     #: Listens to: :attr:`models.workflow_tree.selected_mv
     #: <force_wfmanager.models.workflow_tree.WorkflowTree.selected_mv>`
-    selected_mv = Instance(ModelView)
+    selected_mv = Either(Instance(HasTraits), Instance(ModelView))
 
     #: The model from selected_mv.
     #: Listens to: :attr:`models.workflow_tree.selected_mv
@@ -59,6 +59,8 @@ class SetupPane(TraitsTaskPane):
     #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
     #: selected_factory_name>`
     selected_factory_name = Unicode('Workflow')
+
+    mco_display = Instance(BaseMCOModel)
 
     #: A function which adds a new entity to the workflow tree, using the
     #: currently selected factory. For example, if the 'DataSources' factory
@@ -131,7 +133,6 @@ class SetupPane(TraitsTaskPane):
                     )
                 )
             ),
-
             HGroup(
                 # Instance View
                 VGroup(
@@ -204,6 +205,10 @@ class SetupPane(TraitsTaskPane):
             namespace["app"] = None
 
         return namespace
+
+    @on_trait_change('workflow_model')
+    def update_mco_display(self):
+        self.mco_display = self.workflow_model.mco
 
     # Property getters
 

@@ -2,11 +2,11 @@ from functools import partial, wraps
 
 from traits.api import (
     Callable, Event, Instance, Property, Unicode, on_trait_change,
-    cached_property
+    cached_property, Either, HasTraits
 )
 from traitsui.api import (
     Action, Group, Menu, ModelView,
-    TreeEditor, TreeNode, UItem, View, VGroup
+    TreeEditor, TreeNode, UItem, View, VGroup, Item
 )
 
 from force_bdss.api import (
@@ -32,6 +32,7 @@ from force_wfmanager.ui.setup.notification_listeners.\
 from force_wfmanager.ui.setup.workflow_model_view import (
     WorkflowModelView
 )
+from force_wfmanager.ui.setup.mco.mco_info import MCOInfo
 from force_wfmanager.ui.ui_utils import model_info
 
 # VerifierError severity constants
@@ -161,7 +162,7 @@ class WorkflowTree(ModelView):
 
     #: The ModelView currently selected in the WorkflowTree. Updated
     #: automatically when a new ModelView is selected by the user
-    selected_mv = Instance(ModelView)
+    selected_mv = Either(Instance(HasTraits), Instance(ModelView))
 
     # ------------------
     # Derived Attributes
@@ -279,7 +280,7 @@ class WorkflowTree(ModelView):
                 ),
                 # Node representing the MCO
                 TreeNodeWithStatus(
-                    node_for=[MCOModelView],
+                    node_for=[MCOInfo],
                     auto_open=True,
                     children='',
                     label='label',
@@ -288,57 +289,7 @@ class WorkflowTree(ModelView):
                     menu=Menu(delete_mco_action),
                     on_select=partial(self.instance, self.delete_mco)
                 ),
-                # Folder node "Parameters" containing the MCO parameters
-                TreeNode(
-                    node_for=[MCOModelView],
-                    auto_open=True,
-                    children='mco_parameters_mv',
-                    label='=Parameters',
-                    name='Parameters',
-                    view=no_view,
-                    menu=no_menu,
-                    on_select=partial(
-                        self.factory,
-                        self.parameter_factories,
-                        self.new_parameter,
-                        'Parameter'
-                    )
-                ),
-                #: Node representing an MCO parameter
-                TreeNodeWithStatus(
-                    node_for=[MCOParameterModelView],
-                    auto_open=True,
-                    children='',
-                    name='Parameters',
-                    label='label',
-                    menu=Menu(delete_parameter_action),
-                    on_select=partial(self.instance, self.delete_parameter)
-                ),
-                TreeNode(
-                    node_for=[MCOModelView],
-                    auto_open=True,
-                    children='kpis_mv',
-                    label='=KPIs',
-                    name='KPIs',
-                    view=no_view,
-                    menu=Menu(new_kpi_action),
-                    on_select=partial(
-                        self.factory,
-                        None,
-                        self.new_kpi,
-                        'KPI'
-                    )
-                ),
-                TreeNodeWithStatus(
-                    node_for=[KPISpecificationModelView],
-                    auto_open=True,
-                    children='',
-                    label='label',
-                    name='KPIs',
-                    view=no_view,
-                    menu=Menu(delete_kpi_action),
-                    on_select=partial(self.instance, self.delete_kpi)
-                ),
+
                 # Folder node "Notification" containing the
                 # Notification listeners
                 TreeNode(
@@ -615,7 +566,7 @@ class WorkflowTree(ModelView):
         mappings = {
             'WorkflowModelView':
                 ['mco_mv', 'notification_listeners_mv', 'execution_layers_mv'],
-            'MCOModelView': ['mco_parameters_mv', 'kpis_mv'],
+ #           'MCOModelView': ['mco_parameters_mv', 'kpis_mv'],
             'ExecutionLayerModelView': ['data_sources_mv']
         }
 

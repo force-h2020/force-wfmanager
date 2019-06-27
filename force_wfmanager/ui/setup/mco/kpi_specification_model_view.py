@@ -55,20 +55,23 @@ class KPISpecificationModelView(ModelView):
     # ----------
 
     #: The human readable name of the KPI
-    label = Property(depends_on='model.name,model.objective')
+    label = Property(depends_on='model.[name,objective]')
 
     # ----
     # View
     # ----
 
-    #: Base view for the MCO parameter
-    traits_view = View(
-        Item('model.name', editor=EnumEditor(name='object._combobox_values')),
-        Item("model.objective"),
-        Item('model.auto_scale'),
-        Item("model.scale_factor", visible_when='not model.auto_scale'),
-        kind="subpanel",
-    )
+    def default_traits_view(self):
+        #: Base view for the MCO parameter
+        traits_view = View(
+            Item('model.name', editor=EnumEditor(name='object._combobox_values')),
+            Item("model.objective"),
+            Item('model.auto_scale'),
+            Item("model.scale_factor", visible_when='not model.auto_scale'),
+            kind="subpanel",
+        )
+
+        return traits_view
 
     def __init__(self, model, variable_names_registry, **kwargs):
         super(KPISpecificationModelView, self).__init__(

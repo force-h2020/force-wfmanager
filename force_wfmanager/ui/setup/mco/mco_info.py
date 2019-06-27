@@ -1,8 +1,13 @@
 from traits.api import (
-    Instance, List, Unicode, on_trait_change, Bool, Event
+    Instance, List, Unicode, on_trait_change, Bool, Event,
+    HasTraits, Button
 )
-from traitsui.api import ModelView
-from force_bdss.api import BaseMCOModel
+from traitsui.api import (
+    ModelView, View, Item, InstanceEditor, Action, ToolBar,
+    ActionGroup, MenuBar, Menu, VGroup, HGroup, VSplit, UItem,
+    ButtonEditor, ListEditor, HSplit
+)
+from force_bdss.api import BaseMCOModel, BaseMCOParameter
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import \
     KPISpecificationModelView
 from force_wfmanager.utils.variable_names_registry import \
@@ -12,7 +17,7 @@ from .mco_parameter_model_view import MCOParameterModelView
 from force_wfmanager.ui.ui_utils import get_factory_name
 
 
-class MCOModelView(ModelView):
+class MCOInfo(HasTraits):
 
     # -------------------
     # Required Attributes
@@ -29,10 +34,18 @@ class MCOModelView(ModelView):
     # ------------------
 
     #: List of MCO parameters to be displayed in the TreeEditor
-    mco_parameters_mv = List(Instance(MCOParameterModelView))
+    mco_parameters = List(Instance(MCOParameterModelView))
 
     #: List of the KPISpecificationModelView to be displayed in the TreeEditor
-    kpis_mv = List(Instance(KPISpecificationModelView))
+    mco_kpis = List(Instance(KPISpecificationModelView))
+
+    #: Buttons
+
+    add_parameter_button = Button('New Parameter')
+    remove_parameter_button = Button('Delete Parameter')
+
+    add_kpi_button = Button('New KPI')
+    remove_kpi_button = Button('Delete KPI')
 
     #: Label to be used in the TreeEditor
     label = Unicode()
@@ -54,9 +67,37 @@ class MCOModelView(ModelView):
     #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
+    mco_editor = ListEditor(
+        page_name='.label',
+        use_notebook=True,
+        dock_style='tab')
+
+    traits_view = View(
+        VSplit(
+            VGroup(
+                Item('mco_parameters',
+                     editor=mco_editor,
+                     show_label=False,
+                     style='custom',
+                     ),
+                show_labels=False,
+            ),
+            VGroup(
+                Item('mco_kpis',
+                     editor=mco_editor,
+                     show_label=False,
+                     style='custom',
+                     ),
+                show_labels=False,
+            )
+        ),
+        dock='fixed',
+        kind="livemodal"
+    )
+
     # Workflow Verification
 
-    @on_trait_change('mco_parameters_mv.verify_workflow_event,'
+    @on_trait_change('mco_parameters.verify_workflow_event,'
                      'kpis_mv.verify_workflow_event')
     def received_verify_request(self):
         self.verify_workflow_event = True
@@ -111,12 +152,12 @@ class MCOModelView(ModelView):
     # Update modelviews when model changes
 
     @on_trait_change('model.parameters[]')
-    def update_mco_parameters_mv(self):
+    def update_mco_parameters(self):
         """ Update the MCOParameterModelView(s) """
 
-        self.mco_parameters_mv = [
-            MCOParameterModelView(model=parameter)
-            for parameter in self.model.parameters]
+        self.mco_parameters = [
+           MCOParameterModelView(model=parameter)
+           for parameter in self.model.parameters]
 
     @on_trait_change('model.kpis[]')
     def update_kpis(self):

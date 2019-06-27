@@ -10,6 +10,7 @@ from force_wfmanager.ui.setup.notification_listeners.\
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
+from force_wfmanager.ui.setup.mco.mco_info import MCOInfo
 
 
 class WorkflowModelView(ModelView):
@@ -29,7 +30,7 @@ class WorkflowModelView(ModelView):
     # ------------------
 
     #: List of MCO to be displayed in the TreeEditor
-    mco_mv = List(Instance(MCOModelView))
+    mco_mv = List(Instance(MCOInfo))
 
     #: List of DataSources to be displayed in the TreeEditor.
     #: Must be a list otherwise the tree editor will not consider it
@@ -112,7 +113,7 @@ class WorkflowModelView(ModelView):
     def update_mco_mv(self):
         """Updates the MCO model view with the model.mco changes"""
         if self.model.mco is not None:
-            self.mco_mv = [MCOModelView(
+            self.mco_mv = [MCOInfo(
                 variable_names_registry=self.variable_names_registry,
                 model=self.model.mco)]
         else:
