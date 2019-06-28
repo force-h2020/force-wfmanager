@@ -1,10 +1,10 @@
 """ This submodule implements the following classes:
 
 * :class:`BasePlot` provides a simple 2D scatter plot over
-the columns from the analysis model, with x and y
-selectable with a dropdown.
+  the columns from the analysis model, with x and y
+  selectable with a dropdown.
 * :class:`Plot` extends :class:`BasePlot` to allow for an
-optional colourmap to be applied to a third variable.
+  optional colourmap to be applied to a third variable.
 
 """
 
@@ -408,7 +408,6 @@ class BasePlot(BaseDataView):
 
 
 class Plot(BasePlot):
-
     # ------------------
     # Regular Attributes
     # ------------------
