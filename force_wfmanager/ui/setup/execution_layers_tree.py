@@ -262,34 +262,6 @@ class WorkflowTree(ModelView):
                     menu=Menu(delete_data_source_action),
                     on_select=partial(self.instance, self.delete_data_source)
                 ),
-                # Folder node "MCO" containing the MCO
-                TreeNode(
-                    node_for=[WorkflowModelView],
-                    auto_open=True,
-                    children='mco_mv',
-                    label='=MCO',
-                    name='MCO',
-                    view=no_view,
-                    menu=no_menu,
-                    on_select=partial(
-                        self.factory,
-                        self._factory_registry.mco_factories,
-                        self.new_mco,
-                        'MCO'
-                    )
-                ),
-                # Node representing the MCO
-                TreeNodeWithStatus(
-                    node_for=[MCOInfo],
-                    auto_open=True,
-                    children='',
-                    label='label',
-                    name='MCO',
-                    view=no_view,
-                    menu=Menu(delete_mco_action),
-                    on_select=partial(self.instance, self.delete_mco)
-                ),
-
                 # Folder node "Notification" containing the
                 # Notification listeners
                 TreeNode(
@@ -502,13 +474,6 @@ class WorkflowTree(ModelView):
     def delete_data_source(self, ui_info, object):
         """Delete a data source from the workflow"""
         self.workflow_mv.remove_data_source(object.model)
-        self.verify_workflow_event = True
-
-    def delete_kpi(self, ui_info, object):
-        """Delete a kpi from the workflow"""
-        if len(self.workflow_mv.mco_mv) > 0:
-            mco_mv = self.workflow_mv.mco_mv[0]
-            mco_mv.remove_kpi(object.model)
         self.verify_workflow_event = True
 
     def delete_layer(self, ui_info, object):

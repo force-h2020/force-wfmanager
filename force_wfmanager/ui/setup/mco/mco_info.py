@@ -3,9 +3,8 @@ from traits.api import (
     HasTraits, Button
 )
 from traitsui.api import (
-    ModelView, View, Item, InstanceEditor, Action, ToolBar,
-    ActionGroup, MenuBar, Menu, VGroup, HGroup, VSplit, UItem,
-    ButtonEditor, ListEditor, HSplit
+    View, Item, VGroup, HGroup, ObjectColumn,
+    TableEditor, ListEditor, HSplit, UReadonly
 )
 from force_bdss.api import BaseMCOModel, BaseMCOParameter
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import \
@@ -15,6 +14,17 @@ from force_wfmanager.utils.variable_names_registry import \
 
 from .mco_parameter_model_view import MCOParameterModelView
 from force_wfmanager.ui.ui_utils import get_factory_name
+
+
+class TableRow(HasTraits):
+    """A representation of a variable in the workflow. Instances of TableRow
+    are displayed in a table using the TableEditor."""
+
+    #: The variable's type
+    type = Unicode()
+
+    #: The variable's name
+    name = Unicode()
 
 
 class MCOInfo(HasTraits):
@@ -39,8 +49,13 @@ class MCOInfo(HasTraits):
     #: List of the KPISpecificationModelView to be displayed in the TreeEditor
     mco_kpis = List(Instance(KPISpecificationModelView))
 
-    #: Buttons
+    #: The names of the KPIs in the Workflow
+    kpi_names = List(Unicode)
 
+    #: A list of TableRow instances, each representing a variable
+    non_kpi_variables_rep = List(TableRow)
+
+    #: Buttons
     add_parameter_button = Button('New Parameter')
     remove_parameter_button = Button('Delete Parameter')
 
@@ -72,25 +87,55 @@ class MCOInfo(HasTraits):
         use_notebook=True,
         dock_style='tab')
 
+    table_edit = TableEditor(
+        columns=[
+            ObjectColumn(name="name", label="name", resize_mode="stretch"),
+            ObjectColumn(name="type", label="type", resize_mode="stretch")
+        ],
+        auto_size=False,
+    )
+
     traits_view = View(
-        VSplit(
+        HSplit(
             VGroup(
-                Item('mco_parameters',
-                     editor=mco_editor,
-                     show_label=False,
-                     style='custom',
-                     ),
-                show_labels=False,
-                show_border=True
+                VGroup(
+                    Item('mco_parameters',
+                         editor=mco_editor,
+                         show_label=False,
+                         style='custom',
+                         ),
+                    show_labels=False,
+                    show_border=True
+                ),
+                HGroup(
+                    Item('add_parameter_button',
+                         springy=True),
+                    Item('remove_parameter_button'),
+                    show_labels=False,
+                ),
             ),
             VGroup(
-                Item('mco_kpis',
-                     editor=mco_editor,
-                     show_label=False,
-                     style='custom',
-                     ),
-                show_labels=False,
-                show_border=True
+                VGroup(
+                    Item('mco_kpis',
+                         editor=mco_editor,
+                         show_label=False,
+                         style='custom',
+                         ),
+                    show_labels=False,
+                    show_border=True
+                ),
+                HGroup(
+                    UReadonly('non_kpi_variables_rep',
+                              editor=table_edit),
+                    show_border=True,
+                    label='Non-KPI Variables'
+                ),
+                HGroup(
+                    Item('add_kpi_button',
+                         springy=True),
+                    Item('remove_kpi_button'),
+                    show_labels=False,
+                )
             )
         ),
         dock='fixed',
@@ -139,6 +184,7 @@ class MCOInfo(HasTraits):
             The parameter to be removed from the current MCO.
         """
         self.model.parameters.remove(parameter)
+        self.verify_workflow_event = True
 
     def remove_kpi(self, kpi):
         """Removes a KPISpecification from the MCO model associated with this
@@ -150,6 +196,7 @@ class MCOInfo(HasTraits):
             The KPISpecification to be added to the current MCO.
         """
         self.model.kpis.remove(kpi)
+        self.verify_workflow_event = True
 
     # Update modelviews when model changes
 
@@ -178,3 +225,24 @@ class MCOInfo(HasTraits):
 
     def _label_default(self):
         return get_factory_name(self.model.factory)
+
+    def _non_kpi_variables_rep_default(self):
+        non_kpi = []
+        if self.variable_names_registry is None:
+            return non_kpi
+        var_stack = self.variable_names_registry.available_variables_stack
+        for exec_layer in var_stack:
+            for variable in exec_layer:
+                if variable[0] not in self.kpi_names:
+                    variable_rep = TableRow(name=variable[0], type=variable[1])
+                    non_kpi.append(variable_rep)
+        return non_kpi
+
+    def _kpi_names_default(self):
+        kpi_names = []
+        if self.variable_names_registry is None:
+            return kpi_names
+        for kpi in self.mco_kpis:
+            kpi_names.append(kpi.name)
+
+        return kpi_names

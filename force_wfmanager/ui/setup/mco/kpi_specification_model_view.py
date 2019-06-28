@@ -27,11 +27,11 @@ class KPISpecificationModelView(ModelView):
     # ------------------
 
     #: Defines if the KPI is valid or not. Set by the function
-    #: verify_tree in workflow_tree.py
+    #: verify_tree in execution_layers_tree.py
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Set by the function
-    #: verify_tree in workflow_tree.py
+    #: verify_tree in execution_layers_tree.py
     error_message = Unicode()
 
     # ------------------

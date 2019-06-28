@@ -1,7 +1,7 @@
 from traits.api import (
     Instance, Unicode, Bool, on_trait_change, Event, Property
 )
-from traitsui.api import View, Item, ModelView
+from traitsui.api import View, Item, ModelView, Group
 
 from force_bdss.api import BaseMCOParameter
 
@@ -48,9 +48,19 @@ class MCOParameterModelView(ModelView):
 
     def default_traits_view(self):
 
+        content = [Item('model.name'),
+                   Item('model.type')]
+
+        parameter_view = self.model.trait_view()
+
+        for group in parameter_view.content.content:
+            for item in group.content:
+                content.append(
+                    Item(f'model.{item.name}')
+                )
+
         traits_view = View(
-                Item('model.name'),
-                Item('model.type'),
+                Group(content),
                 kind='subpanel'
             )
 
