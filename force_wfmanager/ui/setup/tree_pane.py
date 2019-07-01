@@ -125,9 +125,19 @@ class TreePane(TraitsDockPane):
                 # item has a custom description: just truncate
                 return string if len(string) <= maxlength \
                     else string[:maxlength-3]+"..."
-        self.data_view_descriptions = dict(
-            ((item, shorten(str(item), 60)) for item in self.plugin_data_views)
-        )
+
+        descriptions = []
+        for item in self.plugin_data_views:
+            length = 70
+            if hasattr(item, "description"):
+                item_description = shorten(item.description, length)
+                length -= len(item_description) + 3
+                if length >= 10:
+                    item_description += " (" + shorten(str(item), length) + ")"
+                    descriptions.append((item, item_description))
+            else:
+                descriptions.append((item, shorten(str(item), length)))
+        self.data_view_descriptions = dict(descriptions)
 
     @on_trait_change('workflow_tree.workflow_mv.valid')
     def update_run_btn_status(self):

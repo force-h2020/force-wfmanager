@@ -25,6 +25,9 @@ class DataViewPane(TraitsDockPane):
     #: Name displayed as the title of this pane
     name = 'Default Data View Pane'
 
+    #: Description displayed in the selector dropdown
+    description = 'Default Data View Pane'
+
     #: Remove the possibility to close the pane
     closable = False
 
