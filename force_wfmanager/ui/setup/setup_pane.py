@@ -1,27 +1,30 @@
 from pyface.tasks.api import TraitsTaskPane
 from traits.api import (
     Bool, Button, Callable, Instance, Property, Unicode,
-    on_trait_change, HasTraits, Either
+    on_trait_change, HasTraits, Either, cached_property
 )
 from traitsui.api import (
     ButtonEditor, InstanceEditor, HGroup, ModelView, UItem, View, VGroup
 )
 
-from force_bdss.api import BaseExtensionPlugin, BaseModel, Workflow, BaseMCOModel
+from force_bdss.api import BaseExtensionPlugin, BaseModel, Workflow
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
 from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
+from force_wfmanager.ui.setup.mco.mco_model_view import MCOModelView
+from force_wfmanager.ui.setup.notification_listeners\
+    .communication_model_view import (
+    CommunicationModelView
+)
+from force_wfmanager.ui.setup.workflow_model_view import WorkflowModelView
+
+from force_wfmanager.utils.variable_names_registry import (
+    VariableNamesRegistry
+)
 
 
 class SetupPane(TraitsTaskPane):
     """A TraitsTaskPane containing the factory selection and new object
     configuration editors."""
-
-    # -------------------
-    # Required Attributes
-    # -------------------
-
-    #: The Workflow currently displayed in the WorkflowTree.
-    workflow_model = Instance(Workflow)
 
     # ------------------
     # Regular Attributes
@@ -44,45 +47,46 @@ class SetupPane(TraitsTaskPane):
     # ------------------
 
     #: The currently selected ModelView in the WorkflowTree.
-    #: Listens to: :attr:`models.workflow_tree.selected_mv
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.selected_mv>`
+    #: Listens to: :attr:`models.process_tree.selected_mv
+    #: <force_wfmanager.models.process_tree.WorkflowTree.selected_mv>`
     selected_mv = Either(Instance(HasTraits), Instance(ModelView))
 
     #: The model from selected_mv.
-    #: Listens to: :attr:`models.workflow_tree.selected_mv
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.selected_mv>`
+    #: Listens to: :attr:`models.process_tree.selected_mv
+    #: <force_wfmanager.models.process_tree.WorkflowTree.selected_mv>`
     selected_model = Instance(BaseModel)
 
     #: The name of the currently selected factory. If no factory is selected,
     #: this is set to 'None' (with type Unicode, not NoneType!)
-    #: Listens to: :attr:`models.workflow_tree.selected_factory_name
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
+    #: Listens to: :attr:`models.process_tree.selected_factory_name
+    #: <force_wfmanager.models.process_tree.WorkflowTree.\
     #: selected_factory_name>`
     selected_factory_name = Unicode('Workflow')
-
-    mco_display = Instance(BaseMCOModel)
 
     #: A function which adds a new entity to the workflow tree, using the
     #: currently selected factory. For example, if the 'DataSources' factory
     #: is selected, this function would be ``new_data_source()``.
-    #: Listens to: :attr:`models.workflow_tree.add_new_entity
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
+    #: Listens to: :attr:`models.process_tree.add_new_entity
+    #: <force_wfmanager.models.process_tree.WorkflowTree.\
     #: add_new_entity>`
     add_new_entity = Callable()
 
     #: A function to remove the currently selected modelview from the
     #: workflow tree.
-    #: Listens to: :attr:`models.workflow_tree.remove_entity
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
+    #: Listens to: :attr:`models.process_tree.remove_entity
+    #: <force_wfmanager.models.process_tree.WorkflowTree.\
     #: remove_entity>`
     remove_entity = Callable()
 
     #: A NewEntityModal object displaying the factories of the currently
     #: selected group.
-    #: Listens to: :attr:`models.workflow_tree.entity_creator
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
+    #: Listens to: :attr:`models.process_tree.entity_creator
+    #: <force_wfmanager.models.process_tree.WorkflowTree.\
     #: entity_creator>`
     entity_creator = Instance(NewEntityCreator)
+
+    #: An error message for the entire workflow
+    error_message = Unicode()
 
     # ----------
     # Properties
@@ -112,7 +116,7 @@ class SetupPane(TraitsTaskPane):
     #: Layers can always be added, but other workflow items need a specific
     #: factory to be selected.
     enable_add_button = Property(
-        Bool, depends_on='entity_creator,entity_creator.model'
+        Bool, depends_on='entity_creator.model'
     )
 
     #: The view when editing an existing instance within the workflow tree
@@ -121,18 +125,29 @@ class SetupPane(TraitsTaskPane):
         (parameters etc.) of the currently selected modelview. This varies
         depending on what type of modelview is selected."""
         view = View(VGroup(
-            # Main view with Force logo
+            # Main View with FORCE Logo
             VGroup(
                 UItem(
                     "current_info",
                     editor=InstanceEditor(),
                     style="custom",
                     visible_when=(
-                        "selected_factory_name in ['Workflow', 'KPI',"
-                        "'Execution Layer']"
+                        "selected_factory_name == 'Workflow'"
                     )
                 )
             ),
+            VGroup(
+                UItem(
+                    "selected_mv",
+                    editor=InstanceEditor(),
+                    style="custom",
+                    visible_when=(
+                        "selected_factory_name in ['MCO', "
+                        "'Notification Listeners']"
+                    )
+                )
+            ),
+            # Process Tree View
             HGroup(
                 # Instance View
                 VGroup(
@@ -206,12 +221,8 @@ class SetupPane(TraitsTaskPane):
 
         return namespace
 
-    @on_trait_change('workflow_model')
-    def update_mco_display(self):
-        self.mco_display = self.workflow_model.mco
-
     # Property getters
-
+    @cached_property
     def _get_selected_mv_editable(self):
         """ Determines if the selected modelview in the WorkflowTree has a
         default or non-default view associated. A default view should not
@@ -234,6 +245,7 @@ class SetupPane(TraitsTaskPane):
             return False
         return True
 
+    @cached_property
     def _get_enable_add_button(self):
         """ Determines if the add button in the UI should be enabled.
 
@@ -256,70 +268,64 @@ class SetupPane(TraitsTaskPane):
             return False
         return True
 
-    def _get_current_info(self):
-        """Returns a WorkflowInfo object, which displays general information
-        about the workflow and plugins installed. This is displayed when
-        nodes with less visual content are selected."""
-        workflow_mv = self.task.side_pane.workflow_tree.workflow_mv
-        plugins = [
-            plugin for plugin in self.task.window.application.plugin_manager
-            if isinstance(plugin, BaseExtensionPlugin)
-        ]
-
-        # Plugins guaranteed to have an id, so sort by that if name is not set
-        plugins.sort(
-            key=lambda s: s.name if s.name not in ('', None) else s.id
-        )
-
-        return WorkflowInfo(
-            plugins=plugins, workflow_mv=workflow_mv,
-            workflow_filename=self.task.current_file,
-            selected_factory=self.selected_factory_name
-        )
-
+    @cached_property
     def _get_add_new_entity_label(self):
         """Returns the label displayed on add_new_entity_btn"""
         return 'Add New {!s}'.format(self.selected_factory_name)
 
+    @cached_property
+    def _get_current_info(self):
+        return WorkflowInfo(
+            workflow_filename=self.task.current_file,
+            plugins=self.task.lookup_plugins(),
+            selected_factory_name=self.selected_factory_name,
+            error_message=self.error_message
+        )
+
     # Synchronisation with WorkflowTree
 
-    @on_trait_change('task.side_pane.workflow_tree.add_new_entity')
+    @on_trait_change('task:side_pane:process_tree.add_new_entity')
     def sync_add_new_entity(self):
         """Synchronises add_new_entity with WorkflowTree"""
         self.add_new_entity = (
-            self.task.side_pane.workflow_tree.add_new_entity
+            self.task.side_pane.process_tree.add_new_entity
         )
 
-    @on_trait_change('task.side_pane.workflow_tree.remove_entity')
+    @on_trait_change('task:side_pane:process_tree.remove_entity')
     def sync_remove_entity(self):
         """Synchronises remove_entity with WorkflowTree"""
         self.remove_entity = (
-            self.task.side_pane.workflow_tree.remove_entity
+            self.task.side_pane.process_tree.remove_entity
         )
 
-    @on_trait_change('task.side_pane.workflow_tree.selected_mv')
+    @on_trait_change('task:side_pane:process_tree.selected_mv')
     def sync_selected_mv(self):
         """ Synchronise selected_mv with the selected modelview in the tree
         editor. Checks if the model held by the modelview needs to be displayed
         in the UI."""
-        self.selected_mv = self.task.side_pane.workflow_tree.selected_mv
+        self.selected_mv = self.task.side_pane.process_tree.selected_mv
         if self.selected_mv is not None:
             if isinstance(self.selected_mv.model, BaseModel):
                 self.selected_model = self.selected_mv.model
             else:
                 self.selected_model = None
 
-    @on_trait_change('task.side_pane.workflow_tree.selected_factory_name')
+    @on_trait_change('task:side_pane:process_tree.selected_factory_name')
     def sync_selected_factory_name(self):
         """Synchronises selected_factory_name with WorkflowTree"""
         self.selected_factory_name = (
-            self.task.side_pane.workflow_tree.selected_factory_name
+            self.task.side_pane.process_tree.selected_factory_name
         )
 
-    @on_trait_change('task.side_pane.workflow_tree.entity_creator')
+    @on_trait_change('task:side_pane:process_tree.entity_creator')
     def sync_entity_creator(self):
         """Synchronises entity_creator with WorkflowTree"""
-        self.entity_creator = self.task.side_pane.workflow_tree.entity_creator
+        self.entity_creator = self.task.side_pane.process_tree.entity_creator
+
+    @on_trait_change('task:side_pane:workflow_model_view:error_message')
+    def sync_error_message(self):
+        """Synchronises entity_creator with WorkflowTree"""
+        self.error_message = self.task.side_pane.workflow_model_view.error_message
 
     # Button event handlers for creating and deleting workflow items
 

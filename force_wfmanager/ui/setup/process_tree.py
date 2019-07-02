@@ -18,7 +18,6 @@ from force_wfmanager.ui.setup.process.execution_layer_model_view \
     import ExecutionLayerModelView
 
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
-from force_bdss.core.process import Process
 from force_wfmanager.ui.setup.process.process_model_view import ProcessModelView
 from force_wfmanager.ui.ui_utils import model_info
 from force_wfmanager.utils.variable_names_registry import (
@@ -156,11 +155,6 @@ class ProcessTree(HasTraits):
     #: Listens to: :func:`~selected_mv`
     remove_entity = Callable()
 
-    #: An event which runs a verification check on the current workflow when
-    #: triggered.
-    #: Listens to: :func:`~workflow_mv.verify_workflow_event`
-    verify_workflow_event = Event
-
     # ----------
     # Properties
     # ----------
@@ -250,17 +244,9 @@ class ProcessTree(HasTraits):
 
         return view
 
-    @on_trait_change('process_model_view', post_init=True)
-    def update_model_view(self):
-        """Update the workflow modelview's model and verify, on either loading
-        a new workflow, or an internal change to the workflow.
-        """
-        self.verify_workflow_event = True
-
     # Item Selection Actions - create an appropriate NewEntityModal,
     # set add_new_entity to be for the right object type and provide a way to
     # add things by double clicking
-
     @selection
     def factory_instance(self, from_registry, create_fn, factory_group_name,
                          delete_fn, modelview):
@@ -359,12 +345,12 @@ class ProcessTree(HasTraits):
         """Adds a new datasource to the workflow."""
         object.add_data_source(self.entity_creator.model)
         self.entity_creator.reset_model()
-        self.verify_workflow_event = True
+        self.process_model_view.verify_workflow_event = True
 
     def new_layer(self, ui_info, object):
         """Adds a new execution layer to the workflow"""
         self.process_model_view.add_execution_layer(ExecutionLayer())
-        self.verify_workflow_event = True
+        self.process_model_view.verify_workflow_event = True
 
     # Methods for deleting entities from the workflow - object is the
     # modelview being deleted.
@@ -373,21 +359,14 @@ class ProcessTree(HasTraits):
     def delete_data_source(self, ui_info, object):
         """Delete a data source from the workflow"""
         self.process_model_view.remove_data_source(object.model)
-        self.verify_workflow_event = True
+        self.process_model_view.verify_workflow_event = True
 
     def delete_layer(self, ui_info, object):
         """Delete a execution layer from the workflow"""
         self.process_model_view.remove_execution_layer(object.model)
-        self.verify_workflow_event = True
+        self.process_model_view.verify_workflow_event = True
 
     # Workflow Verification
-
-    @on_trait_change("process_model_view.verify_workflow_event")
-    def received_verify_request(self):
-        """Checks if the root node of workflow tree is requesting a
-        verification of the workflow"""
-        self.verify_workflow_event = True
-
     def modelview_editable(self, modelview):
         """Checks if the model associated to a ModelView instance
         has a non-empty, editable view
@@ -402,6 +381,7 @@ class ProcessTree(HasTraits):
     @cached_property
     def _get_selected_error(self):
         """Returns the error messages for the currently selected modelview"""
+        print('process_tree _get_selected_error called')
         if self.selected_mv is None:
             return ERROR_TEMPLATE.format("No Item Selected", "")
 
