@@ -1,7 +1,8 @@
-from traits.api import (HasStrictTraits, Instance, List, Int,
-                        on_trait_change, Enum, Bool, HTML, Property,
-                        Either, Event, Unicode)
-
+from traits.api import (
+    HasStrictTraits, Instance, List, Int, on_trait_change, Enum,
+    Bool, HTML, Property, Either, Event, Unicode, HasTraits,
+    cached_property
+)
 from traitsui.api import (View, Item, ModelView, TableEditor, VGroup,
                           TextEditor, UReadonly)
 from traitsui.table_column import ObjectColumn
@@ -138,7 +139,7 @@ output_slots_editor = TableEditor(
 )
 
 
-class DataSourceModelView(ModelView):
+class DataSourceModelView(HasTraits):
 
     # -------------------
     # Required Attributes
@@ -182,7 +183,7 @@ class DataSourceModelView(ModelView):
     #: Listens to: :attr:`input_slots_representation.name
     #: <input_slots_representation>`, :attr:`output_slots_representation.name
     #: <output_slots_representation>`
-    verify_workflow_event = Event
+    verify_workflow_event = Event()
 
     #: Defines if the evaluator is valid or not. Updated by
     #: :func:`verify_tree
@@ -231,14 +232,16 @@ class DataSourceModelView(ModelView):
         ),
     )
 
-    def __init__(self, *args, **kwargs):
-        super(DataSourceModelView, self).__init__(*args, **kwargs)
+    # Defaults
 
-        self._create_slots_tables()
+    def _label_default(self):
+        return get_factory_name(self.model.factory)
+
+    def __data_source_default(self):
+        return self.model.factory.create_data_source()
 
     # Initialization
-
-    def _create_slots_tables(self):
+    def _create_slots_tables_default(self):
         """ Initialize the tables for editing the input and output slots
 
         Raises
@@ -314,14 +317,6 @@ class DataSourceModelView(ModelView):
             output_representation.append(slot_representation)
 
         self.output_slots_representation[:] = output_representation
-
-    # Defaults
-
-    def _label_default(self):
-        return get_factory_name(self.model.factory)
-
-    def __data_source_default(self):
-        return self.model.factory.create_data_source()
 
     @on_trait_change(
         'input_slots_representation.name,output_slots_representation.name'
@@ -413,7 +408,7 @@ class DataSourceModelView(ModelView):
             row.name = info.name
 
     # Description update on UI selection change
-
+    @cached_property
     def _get_selected_slot_description(self):
         if self.selected_slot_row is None:
             return DEFAULT_MESSAGE

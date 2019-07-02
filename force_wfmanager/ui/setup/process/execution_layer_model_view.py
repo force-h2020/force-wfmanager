@@ -55,8 +55,20 @@ class ExecutionLayerModelView(HasTraits):
     #: DataSourceModelView.verify_workflow_event>`
     verify_workflow_event = Event()
 
-    # Workflow Verification
+    # Synchronizing UI and model
+    @on_trait_change("model.data_sources[]")
+    def update_data_source_model_views(self):
+        """Updates the data source modelviews on a change in the underlying
+        data source model. """
+        self.data_source_model_views = [
+            DataSourceModelView(
+                layer_index=self.layer_index,
+                model=data_source,
+                variable_names_registry=self.variable_names_registry
+            ) for data_source in self.model.data_sources]
 
+
+    # Workflow Verification
     @on_trait_change('data_source_model_views.verify_workflow_event')
     def received_verify_request(self):
         """Fires :attr:`verify_workflow_event` when a data source contained
@@ -87,16 +99,3 @@ class ExecutionLayerModelView(HasTraits):
             The data source being removed from this execution layer.
          """
         self.model.data_sources.remove(data_source)
-
-    # Synchronizing UI and model
-
-    @on_trait_change("model.data_sources[]")
-    def update_data_source_model_views(self):
-        """Updates the data source modelviews on a change in the underlying
-        data source model. """
-        self.data_source_model_views = [
-            DataSourceModelView(
-                layer_index=self.layer_index,
-                model=data_source,
-                variable_names_registry=self.variable_names_registry
-            ) for data_source in self.model.data_sources]
