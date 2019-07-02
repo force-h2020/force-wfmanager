@@ -6,7 +6,7 @@ from force_bdss.api import Workflow
 from .notification_listener_model_view import NotificationListenerModelView
 
 
-class NotificationListenerInfo(HasTraits):
+class CommunicationModelView(HasTraits):
 
     model = Instance(Workflow)
 
@@ -19,13 +19,13 @@ class NotificationListenerInfo(HasTraits):
     def default_traits_view(self):
 
         traits_view = View(
-            Item('notification_listeners',
+            Item('communication',
                  )
         )
 
         return traits_view
 
-    @on_trait_change("workflow_model.notification_listeners[]")
+    @on_trait_change("model.communication[]")
     def update_notification_listeners_mv(self):
         """Updates the modelviews for the notification listeners, but ignoring
         any which are non UI visible"""
@@ -33,11 +33,11 @@ class NotificationListenerInfo(HasTraits):
             NotificationListenerModelView(
                 model=notification_listener,
             )
-            for notification_listener in self.workflow_model.notification_listeners
+            for notification_listener in self.model.notification_listeners
             if notification_listener.factory.ui_visible is True
         ]
 
-    @on_trait_change('notification_listeners.verify_workflow_event')
+    @on_trait_change('communication.verify_workflow_event')
     def received_verify_request(self):
         self.verify_workflow_event = True
 
