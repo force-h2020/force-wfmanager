@@ -11,7 +11,7 @@ from force_bdss.api import BaseExtensionPlugin, BaseModel, Workflow
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
 from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
 from force_wfmanager.ui.setup.mco.mco_model_view import MCOModelView
-from force_wfmanager.ui.setup.notification_listeners\
+from force_wfmanager.ui.setup.communication\
     .communication_model_view import (
     CommunicationModelView
 )
