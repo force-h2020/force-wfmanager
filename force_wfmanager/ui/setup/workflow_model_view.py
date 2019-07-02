@@ -1,20 +1,14 @@
-from envisage.plugin import Plugin
-
-from pyface.api import ImageResource
 from traits.api import (
-    HasTraits, List, Instance, Unicode, on_trait_change, Bool
+    HasTraits, List, Instance, Unicode, on_trait_change, Bool, Event
 )
-from traitsui.api import (
-    ImageEditor, View, Group, HGroup, UItem, ListStrEditor, VGroup, Spring,
-    ModelView, TextEditor, UReadonly
-)
+from traitsui.api import ModelView
 
 from force_bdss.api import Workflow, verify_workflow, InputSlotInfo, OutputSlotInfo
 
 from force_wfmanager.ui.setup.mco.mco_model_view import MCOModelView
 from force_wfmanager.ui.setup.process.process_model_view import ProcessModelView
-from force_wfmanager.ui.setup.notification_listeners\
-    .notification_listeners_info import NotificationListenerInfo
+from force_wfmanager.ui.setup.communication\
+    .communication_model_view import CommunicationModelView
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
@@ -23,25 +17,6 @@ from force_wfmanager.utils.variable_names_registry import (
 _ERROR = "error"
 _WARNING = "warning"
 _INFO = "information"
-
-# Item positioning shortcuts
-def horizontal_centre(item_or_group):
-    return HGroup(Spring(), item_or_group, Spring())
-
-
-class SystemState(HasTraits):
-
-    #: Filename for the current workflow (if any)
-    workflow_filename = Unicode()
-
-    #: A list of the loaded plugins
-    plugins = List(Plugin)
-
-    #: The factory currently selected in the SetupPane
-    selected_factory = Unicode()
-
-    #: The factory currently selected in the SetupPane
-    selected_entity_creator = Unicode()
 
 
 class WorkflowModelView(HasTraits):
@@ -63,121 +38,73 @@ class WorkflowModelView(HasTraits):
     #: The Variable Names Registry
     variable_names_registry = Instance(VariableNamesRegistry)
 
-
     # ------------------
     # Regular Attributes
     # ------------------
 
-    #: List of MCO to be displayed in the TreeEditor
-    mco_model_view = Instance(MCOModelView)
-
-    #: List of DataSources to be displayed in the TreeEditor.
-    #: Must be a list otherwise the tree editor will not consider it
-    #: as a child.
+    #: List of Processes to be displayed in the TreeEditor.
     process_model_view = Instance(ProcessModelView)
 
-    notification_listener_info = Instance(NotificationListenerInfo)
+    #: MCO to be displayed in the side pane
+    mco_model_view = Instance(MCOModelView)
 
-    # ------------------
-    # Regular Attributes
-    # ------------------
+    #: Notification listeners to be displayed in the side pane
+    communication_model_view = Instance(CommunicationModelView)
+
+    #: Defines if the Workflow is valid or not. Set by the
+    #: function map_verify_workflow
+    valid = Bool(True)
+
+    #: Event to request a verification check on the workflow
+    verify_workflow_event = Event()
 
     #: An error message for the entire workflow
     error_message = Unicode()
 
-    #: The force project logo! Stored at images/Force_Logo.png
-    image = ImageResource('Force_Logo.png')
-
-    #: A list of plugin names
-    plugin_names = List(Unicode)
-
-    #: Message indicating currently loaded file
-    workflow_filename_message = Unicode()
-
-    #: Defines if the Workflow is valid or not. Set by the
-    #: function verify_tree in process_tree.py
-    valid = Bool(True)
-
     #: A label for the Workflow
     label = Unicode("Workflow")
 
-    # ----
-    # View
-    # ----
-
-    traits_view = View(
-        VGroup(
-            horizontal_centre(
-                Group(
-                    UItem('image',
-                          editor=ImageEditor(scale=True,
-                                             allow_upscaling=False,
-                                             preserve_aspect_ratio=True)),
-                    visible_when="selected_factory == 'Workflow'"
-                )
-            ),
-            Group(
-                UReadonly('plugin_names',
-                          editor=ListStrEditor(editable=False)),
-                show_border=True,
-                label='Available Plugins',
-                visible_when="selected_factory not in ['KPI']"
-            ),
-            Group(
-                UReadonly('workflow_filename_message', editor=TextEditor()),
-                show_border=True,
-                label='Workflow Filename',
-            ),
-            Group(
-                UReadonly('error_message', editor=TextEditor()),
-                show_border=True,
-                label='Workflow Errors',
-                visible_when="selected_factory == 'Workflow'"
-            ),
-
-        )
-    )
-
     # Defaults
-    def _model_default(self):
-        return Workflow()
-
     def _variable_names_registry_default(self):
         return VariableNamesRegistry(workflow=self.model)
 
-    def _plugin_names_default(self):
-        return [plugin.name for plugin in self.plugins]
+    def _process_model_view_default(self):
+        return ProcessModelView(
+            model=self.model,
+            variable_names_registry=self.variable_names_registry)
 
-    def _workflow_filename_message_default(self):
-        if self.workflow_filename == '':
-            return 'No File Loaded'
-        return 'Current File: ' + self.workflow_filename
-
-    #: Listeners
-    @on_trait_change('model.mco')
-    def update_mco_model_view(self):
-        print('update_mco_model_view called')
+    def _mco_model_view_default(self):
         return MCOModelView(
             model=self.model.mco,
             variable_names_registry=self.variable_names_registry)
 
-    @on_trait_change('model.process')
-    def update_process_model_view(self):
-        print('update_process_model_view called')
-        return ProcessModelView(
-            model=self.model.process,
+    def _communication_model_view_default(self):
+        return CommunicationModelView(
+            model=self.model,
             variable_names_registry=self.variable_names_registry)
 
-    @on_trait_change('model.notification_listeners')
+    #: Listeners
+    @on_trait_change('model.execution_layers')
+    def update_process_model_view(self):
+        self.process_model_view = ProcessModelView(
+            model=self.model,
+            variable_names_registry=self.variable_names_registry)
+
+    @on_trait_change('model.mco')
+    def update_mco_model_view(self):
+        self.mco_model_view = MCOModelView(
+            model=self.model.mco,
+            variable_names_registry=self.variable_names_registry)
+
+    @on_trait_change('model.communication')
     def update_notification_listener_info(self):
-        print('update_notification_listener_info called')
-        return NotificationListenerInfo(
+        self.communication_model_view = CommunicationModelView(
             model=self.model,
             variable_names_registry=self.variable_names_registry)
 
     @on_trait_change('mco_model_view.verify_workflow_event,'
                      'process_model_view.verify_workflow_event,'
-                     'notification_listener_info.verify_workflow_event')
+                     'communication_model_view.verify_workflow_event')
     def received_verify_request(self):
         self.verify_workflow_event = True
 
@@ -185,7 +112,7 @@ class WorkflowModelView(HasTraits):
     def perform_verify_workflow_event(self):
         """Verify the workflow and update error_message traits of
         every ModelView in the workflow"""
-        print('perform_verify_workflow_event called')
+        print('workflow_model_view perform_verify_workflow_event called')
         errors = verify_workflow(self.model)
 
         # Communicate the verification errors to each level of the
@@ -205,11 +132,12 @@ class WorkflowModelView(HasTraits):
         """
         # A dictionary with the mappings between modelview lists
         mappings = {
-            'WorkflowModelView' : ['process_model_view', 'mco_model_view', 'notification_info'],
+            'WorkflowModelView' : ['process_model_view', 'mco_model_view',
+                                   'communication_model_view'],
             'ProcessModelView': ['execution_layer_model_views'],
             'ExecutionLayerModelView': ['data_source_model_views'],
-            'MCOModelView': ['parameters_model_views', 'kpi_model_views'],
-            'NotificationListenersInfo' : ['notification_listeners']
+            'MCOModelView': ['parameter_model_views', 'kpi_model_views'],
+            'CommunicationModelView' : ['communication']
         }
 
         # Begin from top-level WorkflowModelView if nothing specified already
@@ -223,23 +151,32 @@ class WorkflowModelView(HasTraits):
         message_list = []
 
         # If the current ModelView has any child modelviews
-        # retrieve their error messages by calling self.verify_tree
+        # retrieve their error messages by calling self.map_verify_workflow
         if current_modelview_type in mappings:
-
             for child_modelview_list_name in mappings[current_modelview_type]:
                 child_modelview_list = getattr(
                     start_modelview, child_modelview_list_name
                 )
+                try:
+                    for child_modelview in child_modelview_list:
+                        child_modelview_errors = self.map_verify_workflow(
+                            errors, start_modelview=child_modelview
+                        )
 
-                for child_modelview in child_modelview_list:
-                    child_modelview_errors = self.verify_tree(
-                        errors, start_modelview=child_modelview
+                        # Add any unique error messages to the list
+                        for message in child_modelview_errors:
+                            if message not in message_list:
+                                message_list.append(message)
+                except TypeError:
+                    child_modelview_errors = self.map_verify_workflow(
+                        errors, start_modelview=child_modelview_list
                     )
 
                     # Add any unique error messages to the list
                     for message in child_modelview_errors:
                         if message not in message_list:
                             message_list.append(message)
+
 
         # A list of messages to pass to the parent ModelView
         send_to_parent = message_list[:]
@@ -281,3 +218,38 @@ class WorkflowModelView(HasTraits):
 
         # Pass relevant error messages to parent
         return send_to_parent
+
+    def _error_message_default(self):
+        if self.process_model_view.error_message == '':
+            return ERROR_TEMPLATE.format(
+                "No errors for current workflow", "")
+        else:
+            error_list = self.process_model_view.error_message.split('\n')
+            body_strings = ''.join([SINGLE_ERROR.format(error)
+                                    for error in error_list])
+            return ERROR_TEMPLATE.format(
+                "Errors for current workflow:", body_strings)
+
+
+# HTML Formatting Templates
+ERROR_TEMPLATE = """
+    <html>
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            .container{{
+                width: 100%;
+                font-family: sans-serif;
+                display: block;
+            }}
+        </style>
+    </head>
+    <body>
+    <h4>{}</h4>
+        {}
+    </body>
+    </html>
+"""
+
+SINGLE_ERROR = r"""<p>{}<\p>"""
