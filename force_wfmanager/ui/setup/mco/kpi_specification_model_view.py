@@ -27,11 +27,11 @@ class KPISpecificationModelView(ModelView):
     # ------------------
 
     #: Defines if the KPI is valid or not. Set by the function
-    #: verify_tree in execution_layers_tree.py
+    #: verify_tree in process_tree.py
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Set by the function
-    #: verify_tree in execution_layers_tree.py
+    #: verify_tree in process_tree.py
     error_message = Unicode()
 
     # ------------------
@@ -73,7 +73,7 @@ class KPISpecificationModelView(ModelView):
 
         return traits_view
 
-    @on_trait_change('model.name,model.objective')
+    @on_trait_change('model.[name,objective]')
     def kpi_change(self):
         self.verify_workflow_event = True
 

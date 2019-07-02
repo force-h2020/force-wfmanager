@@ -4,9 +4,9 @@ from traits.api import (
 )
 from traitsui.api import (
     View, Item, VGroup, HGroup, ObjectColumn,
-    TableEditor, ListEditor, HSplit, UReadonly, ModelView
+    TableEditor, ListEditor, HSplit, UReadonly, ModelView, InstanceEditor
 )
-from force_bdss.api import BaseMCOModel, BaseMCOParameter
+from force_bdss.api import BaseMCOModel, BaseMCOParameter, KPISpecification
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import \
     KPISpecificationModelView
 from force_wfmanager.utils.variable_names_registry import \
@@ -14,6 +14,7 @@ from force_wfmanager.utils.variable_names_registry import \
 
 from .mco_parameter_model_view import MCOParameterModelView
 from force_wfmanager.ui.ui_utils import get_factory_name
+from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
 
 
 class TableRow(HasTraits):
@@ -57,13 +58,26 @@ class MCOModelView(ModelView):
     kpi_names = List(Unicode)
 
     #: A list of TableRow instances, each representing a variable
-    non_kpi_variables_rep = List(TableRow)
+    #: that could become a KPI
+    non_kpi_variables = List(TableRow)
+
+    #: The selected parameter
+    selected_parameter = Instance(MCOParameterModelView)
+
+    #: The selected KPI
+    selected_kpi = Instance(KPISpecificationModelView)
+
+    #: The selected non-KPI
+    selected_non_kpi = Instance(TableRow)
+
+    #: Creates new instances of MCO Parameters
+    entity_creator = Instance(NewEntityCreator)
 
     #: Label for the Model View
     label = Unicode()
 
     #: Event to request a verification check on the workflow
-    verify_workflow_event = Event()
+    verify_workflow_event = Event
 
     #: Defines if the MCO is valid or not. Updated by
     #: :func:`verify_tree
@@ -86,10 +100,17 @@ class MCOModelView(ModelView):
     add_kpi_button = Button('New KPI')
     remove_kpi_button = Button('Delete KPI')
 
-    mco_editor = ListEditor(
+    parameter_editor = ListEditor(
         page_name='.label',
         use_notebook=True,
-        dock_style='tab')
+        dock_style='tab',
+        selected='selected_parameter')
+
+    kpi_editor = ListEditor(
+        page_name='.label',
+        use_notebook=True,
+        dock_style='tab',
+        selected='selected_kpi')
 
     table_edit = TableEditor(
         columns=[
@@ -97,6 +118,7 @@ class MCOModelView(ModelView):
             ObjectColumn(name="type", label="type", resize_mode="stretch")
         ],
         auto_size=False,
+        selected='selected_non_kpi'
     )
 
     traits_view = View(
@@ -104,12 +126,20 @@ class MCOModelView(ModelView):
             VGroup(
                 VGroup(
                     Item('parameter_model_views',
-                         editor=mco_editor,
+                         editor=parameter_editor,
                          show_label=False,
                          style='custom',
                          ),
                     show_labels=False,
                     show_border=True
+                ),
+                HGroup(
+                    Item(
+                        "entity_creator", editor=InstanceEditor(),
+                        style="custom",
+                        show_label=False
+                    ),
+                    springy=True,
                 ),
                 HGroup(
                     Item('add_parameter_button',
@@ -121,7 +151,7 @@ class MCOModelView(ModelView):
             VGroup(
                 VGroup(
                     Item('kpi_model_views',
-                         editor=mco_editor,
+                         editor=kpi_editor,
                          show_label=False,
                          style='custom',
                          ),
@@ -129,7 +159,7 @@ class MCOModelView(ModelView):
                     show_border=True
                 ),
                 HGroup(
-                    UReadonly('non_kpi_variables_rep',
+                    UReadonly('non_kpi_variables',
                               editor=table_edit),
                     show_border=True,
                     label='Non-KPI Variables'
@@ -147,29 +177,46 @@ class MCOModelView(ModelView):
     )
 
     # Defaults
-    def _non_kpi_variables_rep_default(self):
+    def _label_default(self):
+        return get_factory_name(self.model.factory)
+
+    def _kpi_names_default(self):
+        return self.lookup_kpi_names()
+
+    def lookup_kpi_names(self):
+        kpi_names = []
+        if self.variable_names_registry is None:
+            return kpi_names
+        for kpi in self.kpi_model_views:
+            kpi_names.append(kpi.name)
+
+        return kpi_names
+
+    def _entity_creator_default(self):
+        visible_factories = [
+            f for f in self.parameter_factories() if f.ui_visible
+        ]
+
+        entity_creator = NewEntityCreator(
+            factories=visible_factories,
+            dclick_function=self.add_parameter
+        )
+        return entity_creator
+
+    @on_trait_change('kpi_names,kpi_model_views[]')
+    def update_non_kpi_variables(self):
+        print('mco_model_view update_non_kpi_variables called')
         non_kpi = []
         if self.variable_names_registry is None:
             return non_kpi
         var_stack = self.variable_names_registry.available_variables_stack
         for exec_layer in var_stack:
             for variable in exec_layer:
-                if variable[0] not in self.kpi_names:
+                if (variable[0] not in self.kpi_names and
+                        variable[0] in self.variable_names_registry.data_source_outputs):
                     variable_rep = TableRow(name=variable[0], type=variable[1])
                     non_kpi.append(variable_rep)
-        return non_kpi
-
-    def _kpi_names_default(self):
-        kpi_names = []
-        if self.variable_names_registry is None:
-            return kpi_names
-        for kpi in self.mco_kpis:
-            kpi_names.append(kpi.name)
-
-        return kpi_names
-
-    def _label_default(self):
-        return get_factory_name(self.model.factory)
+        self.non_kpi_variables = non_kpi
 
     # Workflow Verification
     @on_trait_change('parameter_model_views.verify_workflow_event,'
@@ -184,17 +231,17 @@ class MCOModelView(ModelView):
 
         self.parameter_model_views = [
             MCOParameterModelView(model=parameter)
-            for parameter in self.model.parameters]
+            for parameter in self.model.parameters
+        ]
 
     @on_trait_change('model.kpis[]')
     def update_kpi_model_views(self):
         """Updates the KPI modelview according to the new KPIs in the
         model"""
-
         self.kpi_model_views = [
             KPISpecificationModelView(
-                variable_names_registry=self.variable_names_registry,
-                model=kpi
+                model=kpi,
+                variable_names_registry=self.variable_names_registry
             )
             for kpi in self.model.kpis
         ]
@@ -246,3 +293,36 @@ class MCOModelView(ModelView):
         """
         self.model.kpis.remove(kpi)
         self.verify_workflow_event = True
+
+    def _add_parameter_button_fired(self):
+        """Call add_parameter to create a new empty parameter"""
+        self.add_parameter(self.entity_creator.model)
+        self.entity_creator.reset_model()
+
+    def _add_kpi_button_fired(self):
+        """Call add_kpi using selected non-kpi variable from table"""
+        if self.selected_non_kpi is not None:
+            self.add_kpi(
+                KPISpecification(
+                    name=self.selected_non_kpi.name
+                )
+            )
+            self.kpi_names = self.lookup_kpi_names()
+
+    def _remove_parameter_button_fired(self):
+        """Call remove_parameter to delete selected_parameter from list"""
+        self.remove_parameter(self.selected_parameter.model)
+
+    def _remove_kpi_button_fired(self):
+        """Call remove_kpi to delete selected kpi from list"""
+        self.remove_kpi(self.selected_kpi.model)
+        self.kpi_names = self.lookup_kpi_names()
+
+    def parameter_factories(self):
+        """Returns the list of parameter factories for the current MCO."""
+        if self.model is not None:
+            parameter_factories = (
+                self.model.factory.parameter_factories
+            )
+            return parameter_factories
+        return None

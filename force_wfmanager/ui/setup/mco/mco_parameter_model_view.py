@@ -1,5 +1,6 @@
 from traits.api import (
-    Instance, Unicode, Bool, on_trait_change, Event, Property
+    Instance, Unicode, Bool, on_trait_change, Event, Property,
+    cached_property
 )
 from traitsui.api import View, Item, ModelView, Group
 
@@ -32,7 +33,16 @@ class MCOParameterModelView(ModelView):
     error_message = Unicode()
 
     #: Event to request a verification check on the workflow
-    #: Listens to: :attr:`model.name <model>` and :attr:`model.type <model>`
+    #: :func:`MCOModelView.verify_workflow_event
+    #: <force_wfmanager.ui.setup.mco.mco_model_view\
+    #: .MCOModelView.verify_workflow_event>`,
+    #: :func:`ProcessModelView.verify_workflow_event
+    #: <force_wfmanager.ui.setup.process.process_model_view.\
+    #: ProcessModelView.verify_workflow_event>`,
+    #: :func:`NotificationListenerModelView.verify_workflow_event
+    #: <force_wfmanager.views.execution_layers.\
+    # notification_listener_model_view.\
+    #: NotificationListenerModelView.verify_workflow_event>`
     verify_workflow_event = Event
 
     # ----------
@@ -41,6 +51,10 @@ class MCOParameterModelView(ModelView):
 
     #: The human readable name of the MCO parameter class
     label = Property(Unicode(), depends_on="model.[name,type]")
+
+    # Defaults
+    def _label_default(self):
+        return get_factory_name(self.model.factory)
 
     # ----
     # View
@@ -73,15 +87,11 @@ class MCOParameterModelView(ModelView):
         self.verify_workflow_event = True
 
     # Properties
-
+    @cached_property
     def _get_label(self):
+        print('mco_parameter _get_label called')
         if self.model.name == '' and self.model.type == '':
             return self._label_default()
         return self._label_default()+': {type} {name}'.format(
             type=self.model.type, name=self.model.name
         )
-
-    # Defaults
-
-    def _label_default(self):
-        return get_factory_name(self.model.factory)
