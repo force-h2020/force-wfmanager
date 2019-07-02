@@ -402,7 +402,7 @@ class WfManagerReviewTask(Task):
     # Synchronization with Window
 
     @on_trait_change('window.tasks')
-    def get_setup_task(self):
+    def sync_setup_task(self):
         if self.window is not None:
             for task in self.window.tasks:
                 if task.name == "Workflow Setup":

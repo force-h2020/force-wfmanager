@@ -11,8 +11,8 @@ from force_bdss.tests.probe_classes.factory_registry import (
 )
 
 
-from force_wfmanager.ui.setup.workflow_tree import (
-    WorkflowTree, TreeNodeWithStatus
+from force_wfmanager.ui.setup.execution_layers.process_tree import (
+    ProcessTree, TreeNodeWithStatus
 )
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
 
@@ -56,7 +56,7 @@ def get_workflow_tree():
         ProbeExtensionPlugin(),
         input_slots_size=2, output_slots_size=3
     )
-    return WorkflowTree(
+    return ProcessTree(
         _factory_registry=factory_registry,
         model=Workflow(
             mco=mco,
@@ -94,7 +94,7 @@ class TestWorkflowTree(unittest.TestCase):
 
     def test_new_mco(self):
 
-        self.tree = WorkflowTree(model=Workflow(),
+        self.tree = ProcessTree(model=Workflow(),
                                  _factory_registry=self.factory_registry)
         self.assertIsNone(self.tree.workflow_mv.model.mco)
         self.assertEqual(len(self.tree.workflow_mv.mco_mv), 0)

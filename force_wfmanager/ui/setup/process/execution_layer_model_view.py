@@ -1,5 +1,5 @@
 from traits.api import (Instance, Unicode, Bool, on_trait_change, List, Int,
-                        Event)
+                        Event, HasTraits)
 from traitsui.api import ModelView
 
 from force_bdss.api import ExecutionLayer
@@ -10,7 +10,7 @@ from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
 
 
-class ExecutionLayerModelView(ModelView):
+class ExecutionLayerModelView(HasTraits):
 
     # -------------------
     # Required Attributes
@@ -33,7 +33,7 @@ class ExecutionLayerModelView(ModelView):
     # ------------------
 
     #: List of the data source's modelviews.
-    data_sources_mv = List(Instance(DataSourceModelView))
+    data_source_model_views = List(Instance(DataSourceModelView))
 
     # --------------------
     # Dependent Attributes
@@ -57,7 +57,7 @@ class ExecutionLayerModelView(ModelView):
 
     # Workflow Verification
 
-    @on_trait_change('data_sources_mv.verify_workflow_event')
+    @on_trait_change('data_source_model_views.verify_workflow_event')
     def received_verify_request(self):
         """Fires :attr:`verify_workflow_event` when a data source contained
         in this execution layer fires its `verify_workflow_event`
@@ -91,10 +91,10 @@ class ExecutionLayerModelView(ModelView):
     # Synchronizing UI and model
 
     @on_trait_change("model.data_sources[]")
-    def update_data_sources_mv(self):
+    def update_data_source_model_views(self):
         """Updates the data source modelviews on a change in the underlying
         data source model. """
-        self.data_sources_mv = [
+        self.data_source_model_views = [
             DataSourceModelView(
                 layer_index=self.layer_index,
                 model=data_source,

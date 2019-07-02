@@ -10,16 +10,19 @@ from pyface.api import (
 )
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
-from traits.api import Instance, on_trait_change, List, Bool, Unicode, File
-
+from traits.api import (
+    Instance, on_trait_change, List, Bool, Unicode, File, Either,
+    HasTraits
+)
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
-    MCOProgressEvent, MCOStartEvent, Workflow,
+    MCOProgressEvent, MCOStartEvent,
     InvalidFileException
 )
+from force_bdss.api import Workflow
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.setup.setup_pane import SetupPane
-from force_wfmanager.ui.setup.tree_pane import TreePane
+from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.wfmanager import (
@@ -28,6 +31,7 @@ from force_wfmanager.wfmanager import (
 from force_wfmanager.io.workflow_io import (
     write_workflow_file, load_workflow_file
 )
+
 log = logging.getLogger(__name__)
 
 
@@ -49,7 +53,7 @@ class WfManagerSetupTask(Task):
     current_file = File()
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
-    side_pane = Instance(TreePane)
+    side_pane = Instance(SidePane)
 
     #: The menu bar for this task.
     menu_bar = Instance(SMenuBar)
@@ -221,14 +225,16 @@ class WfManagerSetupTask(Task):
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
         return TaskLayout(
-            left=PaneItem('force_wfmanager.tree_pane')
+            left=PaneItem('force_wfmanager.side_pane')
         )
+
+    #: Overloaded Methods
 
     def create_central_pane(self):
         """ Creates the central pane which contains the layer info part
         (factory selection and new object configuration editors)
         """
-        return SetupPane(workflow_model=self.workflow_model)
+        return SetupPane()
 
     def create_dock_panes(self):
         """ Creates the dock panes """
@@ -236,14 +242,14 @@ class WfManagerSetupTask(Task):
 
     # Default initializers
 
-    def _side_pane_default(self):
-        return TreePane(
-            factory_registry=self.factory_registry,
-            workflow_model=self.workflow_model
-        )
-
     def _workflow_model_default(self):
         return Workflow()
+
+    def _side_pane_default(self):
+        return SidePane(
+            workflow_model=self.workflow_model,
+            factory_registry=self.factory_registry
+        )
 
     def _analysis_model_default(self):
         return AnalysisModel()
@@ -534,10 +540,8 @@ class WfManagerSetupTask(Task):
 
     # Plugin Status
 
-    def open_plugins(self):
-        """Opens a dialogue window displaying information about the currently
-        loaded plugins
-        """
+    def lookup_plugins(self):
+
         plugins = [plugin
                    for plugin in self.window.application.plugin_manager
                    if isinstance(plugin, BaseExtensionPlugin)]
@@ -545,6 +549,15 @@ class WfManagerSetupTask(Task):
         # Plugins guaranteed to have an id, so sort by that if name is not set
         plugins.sort(key=lambda s: s.name
                      if s.name not in ('', None) else s.id)
+
+        return plugins
+
+    def open_plugins(self):
+        """Opens a dialogue window displaying information about the currently
+        loaded plugins
+        """
+        plugins = self.lookup_plugins()
+
         dlg = PluginDialog(plugins)
         dlg.edit_traits()
 
@@ -596,17 +609,9 @@ class WfManagerSetupTask(Task):
     def set_toolbar_run_btn_state(self):
         """ Sets the run button to be enabled/disabled, matching the
         value of :attr:`side_pane.run_enabled
-        <.panes.tree_pane.TreePane.run_enabled>`
+        <.panes.side_pane.TreePane.run_enabled>`
         """
         self.run_enabled = self.side_pane.run_enabled
-
-    @on_trait_change('workflow_model')
-    def update_side_pane_model(self):
-        """ Updates the local :attr:`workflow_model`, to match
-        :attr:`side_pane.workflow_model
-        <.panes.tree_pane.TreePane.workflow_model>`, which will
-        change as the user modifies a workflow via the UI."""
-        self.side_pane.workflow_model = self.workflow_model
 
     @on_trait_change('computation_running')
     def update_pane_active_status(self):
@@ -616,16 +621,9 @@ class WfManagerSetupTask(Task):
         self.side_pane.ui_enabled = not self.computation_running
         self.save_load_enabled = not self.computation_running
 
-    # Method call from side pane interaction
-
-    @on_trait_change('side_pane.run_button')
-    def run_button_clicked(self):
-        """ Calls :func:`run_bdss` and runs the BDSS!"""
-        self.run_bdss()
-
     # Synchronization with Window
     @on_trait_change('window.tasks')
-    def get_review_task(self):
+    def sync_review_task(self):
         if self.window is not None:
             for task in self.window.tasks:
                 if task.name == "Review":

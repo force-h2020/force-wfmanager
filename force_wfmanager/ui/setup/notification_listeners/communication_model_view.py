@@ -8,7 +8,7 @@ from .notification_listener_model_view import NotificationListenerModelView
 
 class NotificationListenerInfo(HasTraits):
 
-    workflow_model = Instance(Workflow)
+    model = Instance(Workflow)
 
     notification_listeners = List(Instance(NotificationListenerModelView))
 
@@ -40,3 +40,11 @@ class NotificationListenerInfo(HasTraits):
     @on_trait_change('notification_listeners.verify_workflow_event')
     def received_verify_request(self):
         self.verify_workflow_event = True
+
+    def add_notification_listener(self, notification_listener):
+        """Adds a new notification listener"""
+        self.model.notification_listeners.append(notification_listener)
+
+    def remove_notification_listener(self, notification_listener):
+        """Removes the notification listener from the model."""
+        self.model.notification_listeners.remove(notification_listener)
