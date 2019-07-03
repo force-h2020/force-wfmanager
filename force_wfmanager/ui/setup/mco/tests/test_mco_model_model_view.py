@@ -11,6 +11,8 @@ from force_wfmanager.ui.setup.mco.mco_parameter_model_view import \
 
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
+from force_wfmanager.utils.tests.test_variable_names_registry import \
+    get_basic_variable_names_registry
 
 
 class TestMCOModelView(unittest.TestCase):
@@ -18,18 +20,19 @@ class TestMCOModelView(unittest.TestCase):
     def setUp(self):
         plugin = DummyExtensionPlugin()
         factory = plugin.mco_factories[0]
-        model = factory.create_model()
+        self.model = factory.create_model()
         parameter_factory = factory.parameter_factories[0]
-        model.parameters = [parameter_factory.create_model()]
-        var_names = VariableNamesRegistry(workflow=Workflow())
-        self.mco_mv = MCOModelView(model=model,
-                                   variable_names_registry=var_names)
+        self.model.parameters = [parameter_factory.create_model()]
+        self.variable_names_registry = VariableNamesRegistry(workflow=Workflow())
+        self.mco_mv = MCOModelView(
+            model=self.model,
+            variable_names_registry=self.variable_names_registry)
 
     def test_mco_parameter_representation(self):
         self.assertEqual(
-            len(self.mco_mv.mco_parameters), 1)
+            len(self.mco_mv.parameter_model_views), 1)
         self.assertIsInstance(
-            self.mco_mv.mco_parameters[0],
+            self.mco_mv.parameter_model_views[0],
             MCOParameterModelView
         )
 
@@ -39,7 +42,7 @@ class TestMCOModelView(unittest.TestCase):
     def test_add_kpi(self):
         kpi_spec = KPISpecification()
         self.mco_mv.add_kpi(kpi_spec)
-        self.assertEqual(len(self.mco_mv.mco_kpis), 1)
-        self.assertEqual(self.mco_mv.mco_kpis[0].model, kpi_spec)
+        self.assertEqual(len(self.mco_mv.kpi_model_views), 1)
+        self.assertEqual(self.mco_mv.kpi_model_views[0].model, kpi_spec)
         self.mco_mv.remove_kpi(kpi_spec)
-        self.assertEqual(len(self.mco_mv.mco_kpis), 0)
+        self.assertEqual(len(self.mco_mv.kpi_model_views), 0)

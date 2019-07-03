@@ -11,6 +11,7 @@ from force_wfmanager.ui.setup.mco.kpi_specification_model_view import \
 
 
 class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
+
     def setUp(self):
         self.registry = get_basic_variable_names_registry()
         self.workflow = self.registry.workflow

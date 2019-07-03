@@ -1,6 +1,8 @@
 import unittest
 
-from force_bdss.api import Workflow, ExecutionLayer
+from force_bdss.api import (Workflow, ExecutionLayer, OutputSlotInfo,
+    InputSlotInfo
+)
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 
@@ -20,6 +22,10 @@ class TestExecutionLayerModelView(unittest.TestCase):
         self.datasource_models = [ProbeDataSourceModel(
             factory=ProbeDataSourceFactory(plugin=self.plugin))
             for _ in range(2)]
+        self.datasource_models[0].output_slot_info \
+            = [OutputSlotInfo(name='outputA')]
+        self.datasource_models[1].output_slot_info \
+            = [OutputSlotInfo(name='outputB')]
 
         self.execution_layer = ExecutionLayer()
         self.workflow = Workflow(
@@ -31,6 +37,26 @@ class TestExecutionLayerModelView(unittest.TestCase):
             model=self.execution_layer,
             variable_names_registry=self.name_registry
         )
+
+    def test_init_with_data_sources(self):
+        execution_layer = ExecutionLayer(
+            data_sources=self.datasource_models
+        )
+        workflow = Workflow(
+            execution_layers=[execution_layer]
+        )
+        name_registry = VariableNamesRegistry(workflow)
+
+        execution_layer_model_view = ExecutionLayerModelView(
+            model=execution_layer,
+            variable_names_registry=name_registry
+        )
+
+        self.assertEqual(
+            len(execution_layer.data_sources), 2)
+        print(name_registry.available_variables)
+        self.assertEqual(
+            len(execution_layer_model_view.data_source_model_views), 2)
 
     def test_add_data_source(self):
         self.assertEqual(

@@ -30,6 +30,7 @@ class ProbeParameterFactory(BaseMCOParameterFactory):
 
 
 class TestMCOParameterModelViewTest(unittest.TestCase):
+
     def setUp(self):
         self.plugin = DummyExtensionPlugin()
         self.mco_factory = self.plugin.mco_factories[0]

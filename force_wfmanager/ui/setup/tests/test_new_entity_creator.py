@@ -14,7 +14,7 @@ from force_bdss.api import BaseDataSourceModel
 from force_wfmanager.ui.setup.new_entity_creator import (
      NewEntityCreator
 )
-from force_wfmanager.ui.setup.workflow_tree import WorkflowModelView
+from force_wfmanager.ui.setup.process_tree import WorkflowModelView
 from force_wfmanager.ui.ui_utils import model_info
 from force_wfmanager.tests.dummy_classes import DummyModalInfo
 

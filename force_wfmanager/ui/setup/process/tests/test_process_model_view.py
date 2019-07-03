@@ -38,7 +38,6 @@ class TestProcessModelView(unittest.TestCase):
             self.process_model_view.model.execution_layers[0]
         )
 
-
     def test_remove_execution_layer(self):
         self.process_model_view.add_execution_layer(ExecutionLayer())
         layer = self.process_model_view.model.execution_layers[0]
