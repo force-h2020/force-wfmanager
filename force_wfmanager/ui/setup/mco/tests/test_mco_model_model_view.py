@@ -1,20 +1,20 @@
 import unittest
 
-from force_bdss.api import KPISpecification
+from force_bdss.api import KPISpecification, Workflow
 from force_bdss.tests.dummy_classes.extension_plugin import \
     DummyExtensionPlugin
 
-from force_wfmanager.ui.setup.mco.mco_info import \
-    MCOInfo
+from force_wfmanager.ui.setup.mco.mco_model_view import \
+    MCOModelView
 from force_wfmanager.ui.setup.mco.mco_parameter_model_view import \
     MCOParameterModelView
 
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
-from force_wfmanager.ui.setup.execution_layers_tree import Workflow
 
 
-class TestMCOInfo(unittest.TestCase):
+class TestMCOModelView(unittest.TestCase):
+
     def setUp(self):
         plugin = DummyExtensionPlugin()
         factory = plugin.mco_factories[0]
@@ -22,7 +22,7 @@ class TestMCOInfo(unittest.TestCase):
         parameter_factory = factory.parameter_factories[0]
         model.parameters = [parameter_factory.create_model()]
         var_names = VariableNamesRegistry(workflow=Workflow())
-        self.mco_mv = MCOInfo(model=model,
+        self.mco_mv = MCOModelView(model=model,
                                    variable_names_registry=var_names)
 
     def test_mco_parameter_representation(self):

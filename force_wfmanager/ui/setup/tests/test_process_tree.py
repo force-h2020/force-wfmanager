@@ -11,7 +11,7 @@ from force_bdss.tests.probe_classes.factory_registry import (
 )
 
 
-from force_wfmanager.ui.setup.execution_layers.process_tree import (
+from force_wfmanager.ui.setup.process_tree import (
     ProcessTree, TreeNodeWithStatus
 )
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
