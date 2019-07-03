@@ -137,7 +137,7 @@ class WorkflowModelView(HasTraits):
             'ProcessModelView': ['execution_layer_model_views'],
             'ExecutionLayerModelView': ['data_source_model_views'],
             'MCOModelView': ['parameter_model_views', 'kpi_model_views'],
-            'CommunicationModelView' : ['communication']
+            'CommunicationModelView' : ['notification_listeners']
         }
 
         # Begin from top-level WorkflowModelView if nothing specified already

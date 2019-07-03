@@ -1,5 +1,5 @@
 from traits.api import (
-    HasTraits, Instance, List, on_trait_change, Bool, Event
+    HasTraits, Instance, List, on_trait_change, Bool, Event, Unicode
 )
 from traitsui.api import ModelView
 from force_wfmanager.utils.variable_names_registry import (
@@ -20,6 +20,9 @@ class ProcessModelView(HasTraits):
     #: The Variable Names Registry
     variable_names_registry = Instance(VariableNamesRegistry)
 
+    #: The label to display in the list
+    label = Unicode('Process')
+
     # ------------------
     # Regular Attributes
     # ------------------
@@ -39,8 +42,6 @@ class ProcessModelView(HasTraits):
     @on_trait_change('model.execution_layers[]')
     def update_execution_layers_mv(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
-        print('update_execution_layers_mv called')
-        print(self.variable_names_registry)
         self.execution_layer_model_views = [
             ExecutionLayerModelView(
                 model=execution_layer,
