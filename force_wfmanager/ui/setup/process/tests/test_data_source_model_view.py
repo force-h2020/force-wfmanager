@@ -10,7 +10,7 @@ from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeParameter
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 
-from force_wfmanager.ui.setup.execution_layers.data_source_model_view import \
+from force_wfmanager.ui.setup.process.data_source_model_view import \
     DataSourceModelView
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
@@ -23,6 +23,7 @@ def get_run_function(nb_outputs):
 
 
 class TestDataSourceModelView(unittest.TestCase):
+
     def setUp(self):
         self.plugin = ProbeExtensionPlugin()
         factory = ProbeDataSourceFactory(

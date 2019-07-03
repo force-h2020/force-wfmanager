@@ -232,8 +232,11 @@ class DataSourceModelView(HasTraits):
         ),
     )
 
-    # Defaults
+    def __init__(self, *args, **kwargs):
+        super(DataSourceModelView, self).__init__(*args, **kwargs)
+        self._create_slots_tables()
 
+    # Defaults
     def _label_default(self):
         return get_factory_name(self.model.factory)
 
@@ -241,7 +244,8 @@ class DataSourceModelView(HasTraits):
         return self.model.factory.create_data_source()
 
     # Initialization
-    def _create_slots_tables_default(self):
+    #@on_trait_change('model:[input_slot_info,output_slot_info]')
+    def _create_slots_tables(self):
         """ Initialize the tables for editing the input and output slots
 
         Raises
