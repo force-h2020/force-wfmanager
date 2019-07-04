@@ -19,5 +19,5 @@ class BaseDataView(HasStrictTraits):
     # Regular Attributes
     # ------------------
 
-    #: Short description for the UI selection
+    #: Short description for the UI selection (to be overwritten)
     description = "Base Data View"

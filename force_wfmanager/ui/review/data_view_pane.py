@@ -3,15 +3,13 @@ from traits.api import Instance, on_trait_change
 from traitsui.api import VGroup, View, UItem
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.review.plot import BasePlot, Plot
+from force_wfmanager.ui.review.plot import BasePlot
 from force_wfmanager.ui.review.data_view import BaseDataView
 
 
 class DataViewPane(TraitsTaskPane):
-    """ A TraitsTaskPane that contains arbitrary contributed DataView
-    objects in the UI.
+    """ A TraitsTaskPane that contains the selected BaseDataView."""
 
-    """
     #: The analysis model containing the results
     analysis_model = Instance(AnalysisModel)
 

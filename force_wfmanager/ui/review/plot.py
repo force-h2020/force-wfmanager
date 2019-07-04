@@ -28,6 +28,8 @@ from .data_view import BaseDataView
 
 
 class BasePlot(BaseDataView):
+    """Simple 2D scatter plot. (see module doc)"""
+
     # -------------------
     # Required Attributes
     # -------------------
@@ -413,6 +415,8 @@ class BasePlot(BaseDataView):
 
 
 class Plot(BasePlot):
+    """Simple 2D scatter plot with optional colormap. (see module doc)"""
+
     # ------------------
     # Regular Attributes
     # ------------------

@@ -73,10 +73,11 @@ class WfManagerSetupTask(Task):
     #: The thread pool executor to spawn the BDSS CLI process.
     executor = Instance(ThreadPoolExecutor)
 
+    #: Available data views contributed by the plugins
+    plugin_data_views = List
+
     #: Class of the selected data view
     selected_data_view = Type(BaseDataView)
-
-    plugin_data_views = List
 
     #: Path to spawn for the BDSS CLI executable.
     #: This will go to some global configuration option later.

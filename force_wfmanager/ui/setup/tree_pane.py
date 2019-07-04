@@ -69,7 +69,7 @@ class TreePane(TraitsDockPane):
     #: Available data views contributed by the plugins
     plugin_data_views = List
 
-    #: Human readable descriptions for the UI
+    #: Human readable descriptions of each data view, for the UI
     data_view_descriptions = Dict
 
     #: Selection
@@ -101,12 +101,14 @@ class TreePane(TraitsDockPane):
         return wf_tree
 
     def _plugin_data_views_changed(self, new):
-        """Update the data view description when data views are loaded/updated.
+        """Update the data_view descriptions upon load/change.
         """
+
         def shorten(string, maxlength):
             if string.startswith("<class '"):
-                # str(item) of the form <class 'foo.bar.baz'>:
-                # Remove wrapping and truncate from the middle.
+
+                # Usual str(type) of the form <class 'foo.bar.baz'>:
+                # Remove wrapping and truncate, giving precedence to extremes.
                 words = string[8:-2].split(".")
                 num_words = len(words)
                 word_priority = [
@@ -119,10 +121,12 @@ class TreePane(TraitsDockPane):
                         string += "."
                     if len(string) <= maxlength + 1:
                         return string[:-1]
-                # fallback
+                # fallback when every dot-based truncation is too long.
                 return shorten(words[0])
+
             else:
-                # item has a custom description: just truncate
+
+                # Custom description: just truncate.
                 return string if len(string) <= maxlength \
                     else string[:maxlength-3]+"..."
 
@@ -131,12 +135,14 @@ class TreePane(TraitsDockPane):
             length = 70
             if hasattr(item, "description") and item.description is not None:
                 item_description = shorten(item.description, length)
+                # if there's enough room left, add the class name in brackets.
                 length -= len(item_description) + 3
                 if length >= 10:
                     item_description += " (" + shorten(str(item), length) + ")"
-                    descriptions.append((item, item_description))
             else:
-                descriptions.append((item, shorten(str(item), length)))
+                item_description = shorten(str(item), length)
+            descriptions.append((item, item_description))
+
         self.data_view_descriptions = dict(descriptions)
 
     @on_trait_change('workflow_tree.workflow_mv.valid')
