@@ -17,7 +17,7 @@ class KPISpecificationView(HasTraits):
     # -------------------
 
     #: KPI model
-    model = Instance(KPISpecification, allow_none=False)
+    model = Instance(KPISpecification)
 
     #: Registry of the available variables
     variable_names_registry = Instance(VariableNamesRegistry)
@@ -57,17 +57,18 @@ class KPISpecificationView(HasTraits):
     #: The human readable name of the KPI
     label = Property(depends_on='model.[name,objective]')
 
-    # ----
-    # View
-    # ----
+    def __init__(self, model=None, *args, **kwargs):
+        super(KPISpecificationView, self).__init__(*args, **kwargs)
+        if model is not None:
+            self.model = model
 
     def default_traits_view(self):
         #: Base view for the MCO parameter
         traits_view = View(
-            Item('object.model.name', editor=EnumEditor(name='_combobox_values')),
-            Item("object.model.objective"),
-            Item('object.model.auto_scale'),
-            Item("object.model.scale_factor", visible_when='not model.auto_scale'),
+            Item('model.name', editor=EnumEditor(name='object._combobox_values')),
+            Item("model.objective"),
+            Item('model.auto_scale'),
+            Item("model.scale_factor", visible_when='not model.auto_scale'),
             kind="subpanel",
         )
 
@@ -79,7 +80,7 @@ class KPISpecificationView(HasTraits):
 
     @on_trait_change('variable_names_registry.data_source_outputs')
     def update_combobox_values(self):
-
+        print('update_combobox_values called')
         available = self.variable_names_registry.data_source_outputs
         self._combobox_values = [''] + available
 
@@ -93,6 +94,7 @@ class KPISpecificationView(HasTraits):
 
     @on_trait_change('model.name')
     def update_name(self):
+        print('update_name called')
         if self.model is None:
             self.name = ''
         else:
@@ -101,6 +103,7 @@ class KPISpecificationView(HasTraits):
     @cached_property
     def _get_label(self):
         """Gets the label from the model object"""
+        print('_get_label called')
         if self.model.name == '':
             return "KPI"
         elif self.model.objective == '':

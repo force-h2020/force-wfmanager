@@ -1,10 +1,10 @@
-from force_wfmanager.ui.setup.tests.template_test_case import TestProcess
+from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 from force_wfmanager.ui.setup.process.execution_layer_view import (
     ExecutionLayerView
 )
 
 
-class TestExecutionLayerView(TestProcess):
+class TestExecutionLayerView(BaseTest):
 
     def setUp(self):
         super(TestExecutionLayerView, self).setUp()

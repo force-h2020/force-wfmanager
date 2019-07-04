@@ -1,15 +1,17 @@
+from unittest import mock, TestCase
+
 from force_bdss.api import ExecutionLayer
-from force_wfmanager.ui.setup.tests.template_test_case import TestProcess
+from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 from force_wfmanager.ui.setup.process.process_view import (
     ProcessView
 )
 from force_wfmanager.ui.setup.process_tree import (
-    ProcessTree
+    ProcessTree, TreeNodeWithStatus
 )
 from force_wfmanager.ui.setup.system_state import SystemState
 
 
-class TestProcessTreeModelView(TestProcess):
+class TestProcessTreeModelView(BaseTest):
 
     def setUp(self):
         super(TestProcessTreeModelView, self).setUp()
@@ -150,3 +152,15 @@ class TestProcessTreeModelView(TestProcess):
 
         self.assertIsNone(self.process_tree.selected_view)
         self.assertIn("No Item Selected", self.process_tree.selected_error)
+
+
+class TestProcessElementNode(TestCase):
+    def test_wfelement_node(self):
+        wfelement_node = TreeNodeWithStatus()
+        obj = mock.Mock()
+        obj.valid = True
+        self.assertEqual(wfelement_node.get_icon(obj, False),
+                         'icons/valid.png')
+        obj.valid = False
+        self.assertEqual(wfelement_node.get_icon(obj, False),
+                         'icons/invalid.png')

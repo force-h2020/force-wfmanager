@@ -1,10 +1,10 @@
-from force_wfmanager.ui.setup.tests.template_test_case import TestProcess
+from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 from force_wfmanager.ui.setup.process.process_view import (
     ProcessView
 )
 
 
-class TestProcessView(TestProcess):
+class TestProcessView(BaseTest):
 
     def setUp(self):
         super(TestProcessView, self).setUp()

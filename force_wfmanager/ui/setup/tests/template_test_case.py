@@ -4,7 +4,7 @@ from force_bdss.api import (DataValue, ExecutionLayer,
                             Workflow,)
 from force_bdss.tests.probe_classes.data_source import \
     ProbeDataSourceFactory
-from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeParameter
+from force_bdss.tests.probe_classes.mco import ProbeParameter
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 from force_wfmanager.utils.variable_names_registry import \
@@ -19,7 +19,7 @@ def get_run_function(nb_outputs):
     return run
 
 
-class TestProcess(unittest.TestCase):
+class BaseTest(unittest.TestCase):
 
     def setUp(self):
         #: Create 2 data source factories and models
@@ -27,7 +27,6 @@ class TestProcess(unittest.TestCase):
         self.factory_registry = ProbeFactoryRegistry(
             plugin=self.plugin
         )
-
         factory = ProbeDataSourceFactory(
             self.plugin,
             input_slots_size=1,

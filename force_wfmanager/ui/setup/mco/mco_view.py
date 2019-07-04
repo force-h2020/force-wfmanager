@@ -195,9 +195,9 @@ class MCOView(HasTraits):
         return entity_creator
 
     #: Listeners
-    @on_trait_change('kpi_names,kpi_views[]')
+    @on_trait_change('variable_names_registry,kpi_names,kpi_views[]')
     def update_non_kpi_variables(self):
-
+        print('update_non_kpi_variables called')
         non_kpi = []
         if self.variable_names_registry is None:
             return non_kpi
@@ -205,8 +205,10 @@ class MCOView(HasTraits):
         var_stack = self.variable_names_registry.available_variables_stack
         for exec_layer in var_stack:
             for variable in exec_layer:
-                if (variable[0] not in self.kpi_names and
-                        variable[0] in self.variable_names_registry.data_source_outputs):
+                kpi_check = variable[0] not in self.kpi_names
+                variable_check = variable[0] in self.variable_names_registry\
+                    .data_source_outputs
+                if kpi_check and variable_check:
                     variable_rep = TableRow(name=variable[0], type=variable[1])
                     non_kpi.append(variable_rep)
         self.non_kpi_variables = non_kpi

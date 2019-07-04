@@ -27,10 +27,6 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         )
 
     def test_kpi_view_init(self):
-        with self.assertRaises(TypeError):
-            KPISpecificationView(
-                variable_names_registry=self.registry
-            )
         self.assertEqual(self.kpi_view.label, "KPI")
 
     def test_update_combobox_values(self):
@@ -68,15 +64,19 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
                          "KPI: T1 (MAXIMISE)")
 
     def test_name_change(self):
+
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+
         with self.assertTraitChanges(self.kpi_view, 'label',
                                      count=0):
             self.assertEqual(self.kpi_view.label, 'KPI')
+
         with self.assertTraitChanges(self.kpi_view, 'label',
                                      count=1):
             self.kpi_view.model.name = 'T1'
             self.assertEqual(self.kpi_view.label,
                              'KPI: T1 (MINIMISE)')
+
         self.kpi_view_nomodel = KPISpecificationView(
             model=None, variable_names_registry=self.registry)
         self.assertEqual(self.kpi_view_nomodel.name, '')
