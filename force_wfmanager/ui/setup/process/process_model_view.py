@@ -39,7 +39,11 @@ class ProcessModelView(HasTraits):
     #: Listens to: :func:`~workflow_mv.verify_workflow_event`
     verify_workflow_event = Event
 
-    @on_trait_change('model.execution_layers[]')
+    def __init__(self, model, *args, **kwargs):
+        super(ProcessModelView, self).__init__(*args, **kwargs)
+        self.model = model
+
+    @on_trait_change('model.execution_layers[]', post_init=True)
     def update_execution_layers_mv(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
         self.execution_layer_model_views = [

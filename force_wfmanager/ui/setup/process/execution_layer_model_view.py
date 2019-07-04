@@ -55,6 +55,11 @@ class ExecutionLayerModelView(HasTraits):
     #: DataSourceModelView.verify_workflow_event>`
     verify_workflow_event = Event()
 
+    def __init__(self, model, *args, **kwargs):
+        super(ExecutionLayerModelView, self).__init__(*args, **kwargs)
+        self.model = model
+        #self.update_data_source_model_views()
+
     # Synchronizing UI and model
     @on_trait_change("model.data_sources[]")
     def update_data_source_model_views(self):
@@ -66,7 +71,6 @@ class ExecutionLayerModelView(HasTraits):
                 model=data_source,
                 variable_names_registry=self.variable_names_registry
             ) for data_source in self.model.data_sources]
-
 
     # Workflow Verification
     @on_trait_change('data_source_model_views.verify_workflow_event')

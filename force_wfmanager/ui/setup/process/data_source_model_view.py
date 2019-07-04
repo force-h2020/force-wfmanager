@@ -39,10 +39,6 @@ class TableRow(HasStrictTraits):
     #: A human readable description of the slot
     description = Unicode()
 
-    def __init__(self, model, *args, **kwargs):
-        self.model = model
-        super(TableRow, self).__init__(*args, **kwargs)
-
 
 class InputSlotRow(TableRow):
     """Row in the UI representing DataSource inputs. """
