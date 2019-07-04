@@ -1,6 +1,6 @@
-from .template_test_case import TestProcess
-from force_wfmanager.ui.setup.process.process_model_view import (
-    ProcessModelView
+from force_wfmanager.ui.setup.tests.template_test_case import TestProcess
+from force_wfmanager.ui.setup.process.process_view import (
+    ProcessView
 )
 
 
@@ -8,7 +8,7 @@ class TestProcessModelView(TestProcess):
 
     def setUp(self):
         super(TestProcessModelView, self).setUp()
-        self.process_model_view = ProcessModelView(
+        self.process_model_view = ProcessView(
             model=self.workflow,
             variable_names_registry=self.variable_names_registry,
         )

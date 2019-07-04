@@ -8,11 +8,23 @@ from .notification_listener_model_view import NotificationListenerModelView
 
 class CommunicationModelView(HasTraits):
 
+    # -------------------
+    # Required Attributes
+    # -------------------
+
     model = Instance(Workflow)
 
-    notification_listeners = List(Instance(NotificationListenerModelView))
+    notification_listener_model_views = List(Instance(NotificationListenerModelView))
+
+    # -------------------
+    # Derived Attributes
+    # -------------------
 
     verify_workflow_event = Event
+
+    # -------------------
+    #       View
+    # -------------------
 
     traits_view = Instance(View)
 
@@ -25,11 +37,11 @@ class CommunicationModelView(HasTraits):
 
         return traits_view
 
-    @on_trait_change("model.communication[]")
+    @on_trait_change("model.notification_listeners[]")
     def update_notification_listeners_mv(self):
         """Updates the modelviews for the notification listeners, but ignoring
         any which are non UI visible"""
-        self.notification_listeners_mv = [
+        self.notification_listener_model_views = [
             NotificationListenerModelView(
                 model=notification_listener,
             )
@@ -37,7 +49,7 @@ class CommunicationModelView(HasTraits):
             if notification_listener.factory.ui_visible is True
         ]
 
-    @on_trait_change('communication.verify_workflow_event')
+    @on_trait_change('notification_listeners.verify_workflow_event')
     def received_verify_request(self):
         self.verify_workflow_event = True
 

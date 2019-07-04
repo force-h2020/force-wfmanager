@@ -82,15 +82,17 @@ def get_workflow_tree():
 
 
 class TestWorkflowTree(unittest.TestCase):
+
     def setUp(self):
         self.tree = get_workflow_tree()
         self.factory_registry = ProbeFactoryRegistry()
 
     def test_ui_initialization(self):
-        self.assertIsNotNone(self.tree.model.mco)
-        self.assertEqual(len(self.tree.model.execution_layers), 2)
-        self.assertEqual(len(self.tree.workflow_mv.mco_mv), 1)
-        self.assertEqual(len(self.tree.workflow_mv.execution_layers_mv), 2)
+        self.assertEqual(
+            len(self.tree.process_model_view.model.execution_layers), 2)
+        self.assertEqual(
+            len(self.tree.process_model_view.execution_layer_model_views), 2)
+
 
     def test_new_mco(self):
 

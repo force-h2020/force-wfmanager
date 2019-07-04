@@ -5,8 +5,8 @@ from force_bdss.tests.probe_classes.notification_listener import \
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 from force_wfmanager.ui.setup.communication.\
-    notification_listener_model_view \
-    import NotificationListenerModelView
+    notification_listener_view \
+    import NotificationListenerView
 
 
 class TestNotificationListenerModelView(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestNotificationListenerModelView(unittest.TestCase):
         factory = ProbeNotificationListenerFactory(self.plugin)
 
         self.notification_listener_model = factory.create_model()
-        self.notification_listener_mv = NotificationListenerModelView(
+        self.notification_listener_mv = NotificationListenerView(
             model=self.notification_listener_model
         )
 

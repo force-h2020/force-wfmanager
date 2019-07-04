@@ -79,6 +79,7 @@ class KPISpecificationModelView(ModelView):
 
     @on_trait_change('variable_names_registry.data_source_outputs')
     def update_combobox_values(self):
+
         available = self.variable_names_registry.data_source_outputs
         self._combobox_values = [''] + available
 

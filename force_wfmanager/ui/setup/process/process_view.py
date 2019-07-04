@@ -43,7 +43,7 @@ class ProcessModelView(HasTraits):
         super(ProcessModelView, self).__init__(*args, **kwargs)
         self.model = model
 
-    @on_trait_change('model.execution_layers[]', post_init=True)
+    @on_trait_change('model.execution_layers[]')
     def update_execution_layers_mv(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
         self.execution_layer_model_views = [

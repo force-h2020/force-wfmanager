@@ -1,9 +1,9 @@
 from traits.api import TraitError
 
 from force_bdss.api import (OutputSlotInfo, InputSlotInfo, BaseDataSourceModel)
-from force_wfmanager.ui.setup.process.data_source_model_view import \
-    DataSourceModelView
-from .template_test_case import TestProcess
+from force_wfmanager.ui.setup.process.data_source_view import \
+    DataSourceView
+from force_wfmanager.ui.setup.tests.template_test_case import TestProcess
 
 
 class TestDataSourceModelView(TestProcess):
@@ -11,7 +11,7 @@ class TestDataSourceModelView(TestProcess):
     def setUp(self):
         super(TestDataSourceModelView, self).setUp()
         self.data_source = self.factory_1.create_data_source()
-        self.data_source_model_view = DataSourceModelView(
+        self.data_source_model_view = DataSourceView(
             model=self.model_1,
             variable_names_registry=self.variable_names_registry
         )
@@ -63,7 +63,7 @@ class TestDataSourceModelView(TestProcess):
         ]
 
         with self.assertRaisesRegex(RuntimeError, "input slots"):
-            DataSourceModelView(
+            DataSourceView(
                 model=self.model_1,
                 variable_names_registry=self.variable_names_registry)
 
@@ -75,7 +75,7 @@ class TestDataSourceModelView(TestProcess):
             for slot in range(len(output_slots) + 1)]
 
         with self.assertRaisesRegex(RuntimeError, "output slots"):
-            DataSourceModelView(
+            DataSourceView(
                 model=self.model_1,
                 variable_names_registry=self.variable_names_registry)
 

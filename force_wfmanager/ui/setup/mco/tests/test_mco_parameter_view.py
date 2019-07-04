@@ -6,8 +6,8 @@ from force_bdss.tests.dummy_classes.extension_plugin import \
     DummyExtensionPlugin
 from force_bdss.tests.probe_classes.mco import ProbeParameterFactory
 from force_bdss.api import BaseMCOParameterFactory, BaseMCOParameter
-from force_wfmanager.ui.setup.mco.mco_parameter_model_view import \
-    MCOParameterModelView
+from force_wfmanager.ui.setup.mco.mco_parameter_view import \
+    MCOParameterView
 
 
 class ProbeParameter(BaseMCOParameter):
@@ -34,7 +34,7 @@ class TestMCOParameterModelViewTest(unittest.TestCase):
     def setUp(self):
         self.plugin = DummyExtensionPlugin()
         self.mco_factory = self.plugin.mco_factories[0]
-        self.mco_param_mv = MCOParameterModelView(
+        self.mco_param_mv = MCOParameterView(
             model=ProbeParameterFactory(self.mco_factory).create_model())
 
     def test_mco_parameter_mv_init(self):

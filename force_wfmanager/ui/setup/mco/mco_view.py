@@ -183,15 +183,6 @@ class MCOModelView(ModelView):
     def _kpi_names_default(self):
         return self.lookup_kpi_names()
 
-    def lookup_kpi_names(self):
-        kpi_names = []
-        if self.variable_names_registry is None:
-            return kpi_names
-        for kpi in self.kpi_model_views:
-            kpi_names.append(kpi.name)
-
-        return kpi_names
-
     def _entity_creator_default(self):
         visible_factories = [
             f for f in self.parameter_factories() if f.ui_visible
@@ -203,12 +194,14 @@ class MCOModelView(ModelView):
         )
         return entity_creator
 
+    #: Listeners
     @on_trait_change('kpi_names,kpi_model_views[]')
     def update_non_kpi_variables(self):
-        print('mco_model_view update_non_kpi_variables called')
+
         non_kpi = []
         if self.variable_names_registry is None:
             return non_kpi
+
         var_stack = self.variable_names_registry.available_variables_stack
         for exec_layer in var_stack:
             for variable in exec_layer:
@@ -246,6 +239,25 @@ class MCOModelView(ModelView):
             for kpi in self.model.kpis
         ]
 
+    #: Class Methods
+    def lookup_kpi_names(self):
+        kpi_names = []
+        if self.variable_names_registry is None:
+            return kpi_names
+        for kpi in self.kpi_model_views:
+            kpi_names.append(kpi.name)
+
+        return kpi_names
+
+    def parameter_factories(self):
+        """Returns the list of parameter factories for the current MCO."""
+        if self.model is not None:
+            parameter_factories = (
+                self.model.factory.parameter_factories
+            )
+            return parameter_factories
+        return None
+
     # Add objects to model
     def add_parameter(self, parameter):
         """Adds a parameter to the MCO model associated with this modelview.
@@ -269,7 +281,6 @@ class MCOModelView(ModelView):
         self.model.kpis.append(kpi)
 
     # Remove objects from model
-
     def remove_parameter(self, parameter):
         """Removes a parameter from the MCO model associated with this
         modelview.
@@ -294,6 +305,7 @@ class MCOModelView(ModelView):
         self.model.kpis.remove(kpi)
         self.verify_workflow_event = True
 
+    #: Button actaions
     def _add_parameter_button_fired(self):
         """Call add_parameter to create a new empty parameter"""
         self.add_parameter(self.entity_creator.model)
@@ -317,12 +329,3 @@ class MCOModelView(ModelView):
         """Call remove_kpi to delete selected kpi from list"""
         self.remove_kpi(self.selected_kpi.model)
         self.kpi_names = self.lookup_kpi_names()
-
-    def parameter_factories(self):
-        """Returns the list of parameter factories for the current MCO."""
-        if self.model is not None:
-            parameter_factories = (
-                self.model.factory.parameter_factories
-            )
-            return parameter_factories
-        return None

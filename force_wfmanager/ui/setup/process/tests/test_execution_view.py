@@ -1,6 +1,6 @@
-from .template_test_case import TestProcess
-from force_wfmanager.ui.setup.process.execution_layer_model_view import (
-    ExecutionLayerModelView
+from force_wfmanager.ui.setup.tests.template_test_case import TestProcess
+from force_wfmanager.ui.setup.process.execution_layer_view import (
+    ExecutionLayerView
 )
 
 
@@ -8,7 +8,7 @@ class TestExecutionLayerModelView(TestProcess):
 
     def setUp(self):
         super(TestExecutionLayerModelView, self).setUp()
-        self.execution_layer_model_view = ExecutionLayerModelView(
+        self.execution_layer_model_view = ExecutionLayerView(
             model=self.execution_layer,
             variable_names_registry=self.variable_names_registry,
         )
@@ -21,11 +21,11 @@ class TestExecutionLayerModelView(TestProcess):
         self.assertEqual(
             len(self.workflow.execution_layers[0].data_sources), 2)
         self.assertEqual(
-            len(self.execution_layer_model_view.data_source_model_views), 2)
+            len(self.execution_layer_model_view.data_source_views), 2)
 
     def test_init_slot_rows(self):
         self.assertEqual(
-            self.execution_layer_model_view.data_source_model_views[0]\
+            self.execution_layer_model_view.data_source_views[0]\
                 .input_slots_representation[0].available_variables,
             ['P1', 'P2'])
 
@@ -36,14 +36,14 @@ class TestExecutionLayerModelView(TestProcess):
             len(self.execution_layer.data_sources),
             2)
         self.assertEqual(
-            len(self.execution_layer_model_view.data_source_model_views),
+            len(self.execution_layer_model_view.data_source_views),
             2)
         self.execution_layer_model_view.add_data_source(model)
         self.assertEqual(
             len(self.execution_layer.data_sources),
             3)
         self.assertEqual(
-            len(self.execution_layer_model_view.data_source_model_views),
+            len(self.execution_layer_model_view.data_source_views),
             3)
 
     def test_remove_data_source(self):
@@ -57,5 +57,5 @@ class TestExecutionLayerModelView(TestProcess):
             len(self.execution_layer.data_sources),
             2)
         self.assertEqual(
-            len(self.execution_layer_model_view.data_source_model_views),
+            len(self.execution_layer_model_view.data_source_views),
             2)
