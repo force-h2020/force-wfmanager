@@ -6,8 +6,8 @@ from force_wfmanager.utils.tests.test_variable_names_registry import \
     get_basic_variable_names_registry
 
 from force_bdss.api import KPISpecification
-from force_wfmanager.ui.setup.mco.kpi_specification_model_view import \
-    KPISpecificationModelView
+from force_wfmanager.ui.setup.mco.kpi_specification_view import \
+    KPISpecificationView
 
 
 class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
@@ -21,7 +21,7 @@ class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
         self.data_source1 = self.workflow.execution_layers[0].data_sources[0]
         self.data_source2 = self.workflow.execution_layers[0].data_sources[1]
 
-        self.kpi_specification_mv = KPISpecificationModelView(
+        self.kpi_specification_mv = KPISpecificationView(
             model=KPISpecification(),
             variable_names_registry=self.registry
         )
@@ -48,7 +48,7 @@ class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
 
         self.assertEqual(self.kpi_specification_mv.label, "KPI")
-        self.kpi_specification_mv_named = KPISpecificationModelView(
+        self.kpi_specification_mv_named = KPISpecificationView(
             model=KPISpecification(name='T1'),
             variable_names_registry=self.registry
         )
@@ -57,7 +57,7 @@ class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
 
         self.kpi_specification_objective = KPISpecification(
             name='T1', objective='MAXIMISE')
-        self.kpi_specification_mv_objective = KPISpecificationModelView(
+        self.kpi_specification_mv_objective = KPISpecificationView(
             model=self.kpi_specification_objective,
             variable_names_registry=self.registry)
         self.assertEqual(self.kpi_specification_mv_objective.label,
@@ -73,6 +73,6 @@ class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
             self.kpi_specification_mv.model.name = 'T1'
             self.assertEqual(self.kpi_specification_mv.label,
                              'KPI: T1 (MINIMISE)')
-        self.kpi_specification_mv_nomodel = KPISpecificationModelView(
+        self.kpi_specification_mv_nomodel = KPISpecificationView(
             model=None, variable_names_registry=self.registry)
         self.assertEqual(self.kpi_specification_mv_nomodel.name, '')

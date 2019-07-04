@@ -1,12 +1,13 @@
-from traits.api import Instance, List, on_trait_change, Event, HasTraits
-
+from traits.api import (
+    Instance, List, on_trait_change, Event, HasTraits
+)
 from traitsui.api import View, Item
 
 from force_bdss.api import Workflow
-from .notification_listener_model_view import NotificationListenerModelView
+from .notification_listener_view import NotificationListenerView
 
 
-class CommunicationModelView(HasTraits):
+class CommunicationView(HasTraits):
 
     # -------------------
     # Required Attributes
@@ -14,7 +15,7 @@ class CommunicationModelView(HasTraits):
 
     model = Instance(Workflow)
 
-    notification_listener_model_views = List(Instance(NotificationListenerModelView))
+    notification_listener_views = List(Instance(NotificationListenerView))
 
     # -------------------
     # Derived Attributes
@@ -41,8 +42,8 @@ class CommunicationModelView(HasTraits):
     def update_notification_listeners_mv(self):
         """Updates the modelviews for the notification listeners, but ignoring
         any which are non UI visible"""
-        self.notification_listener_model_views = [
-            NotificationListenerModelView(
+        self.notification_listener_views = [
+            NotificationListenerView(
                 model=notification_listener,
             )
             for notification_listener in self.model.notification_listeners

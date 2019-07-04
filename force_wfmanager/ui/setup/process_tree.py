@@ -12,17 +12,18 @@ from traitsui.api import (
 from force_bdss.api import (
     ExecutionLayer, IFactoryRegistry
 )
-from force_wfmanager.ui.setup.process.data_source_model_view \
-    import DataSourceModelView
-from force_wfmanager.ui.setup.process.execution_layer_model_view \
-    import ExecutionLayerModelView
+from force_wfmanager.ui.setup.process.data_source_view \
+    import DataSourceView
+from force_wfmanager.ui.setup.process.execution_layer_view \
+    import ExecutionLayerView
 
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
-from force_wfmanager.ui.setup.process.process_model_view import ProcessModelView
+from force_wfmanager.ui.setup.process.process_view import ProcessView
 from force_wfmanager.ui.ui_utils import model_info
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
+from force_wfmanager.ui.setup.system_state import SystemState
 from force_wfmanager.ui.setup.workflow_model_view import WorkflowModelView
 
 # VerifierError severity constants
@@ -45,21 +46,6 @@ delete_layer_action = Action(name='Delete', action='delete_layer')
 
 # DataSource Actions
 delete_data_source_action = Action(name='Delete', action='delete_data_source')
-
-def selection(func):
-    """ Decorator for functions called on selecting something in the tree
-    editor. Clears the `selected_factory_name`, `entity_creator`,
-    `add_new_entity` and `remove_entity` attributes before they are set
-    based on the selection choice
-    """
-    @wraps(func)
-    def wrap(self, *args, **kwargs):
-        self.selected_factory_name = 'None'
-        self.entity_creator = None
-        self.add_new_entity = None
-        self.remove_entity = None
-        func(self, *args, **kwargs)
-    return wrap
 
 
 class TreeNodeWithStatus(TreeNode):
@@ -117,43 +103,21 @@ class ProcessTree(HasTraits):
     # Required Attributes
     # -------------------
 
-    process_model_view = Instance(ProcessModelView, allow_none=False)
+    process_view = Instance(ProcessView, allow_none=False)
 
     #: A registry of the available factories
     _factory_registry = Instance(IFactoryRegistry)
+
+    #: A class that holds the temporary state of the UI
+    system_state = Instance(SystemState)
 
     # ------------------
     # Regular Attributes
     # ------------------
 
-    #: A View containing the UI elements for this class
-    traits_view = View()
-
     #: The ModelView currently selected in the ProcessTree. Updated
     #: automatically when a new ModelView is selected by the user
-    selected_mv = Either(Instance(HasTraits), Instance(ModelView))
-
-    # ------------------
-    # Derived Attributes
-    # ------------------
-
-    #: The factory currently selected in the TreePane
-    selected_factory_name = Unicode()
-
-    #: Creates new instances of DataSource, MCO, Notification Listener or
-    #: MCO Parameters - depending on the plugins currently installed.
-    #: Listens to: :func:`~selected_mv`
-    entity_creator = Instance(NewEntityCreator)
-
-    #: A method which adds the new instance from entity_creator to the
-    #: appropriate place in the Workflow.
-    #: Listens to: :func:`~selected_mv`
-    add_new_entity = Callable()
-
-    #: A method which removes the currently selected instance from the
-    #: Workflow.
-    #: Listens to: :func:`~selected_mv`
-    remove_entity = Callable()
+    selected_view = Either(Instance(HasTraits), Instance(ModelView))
 
     # ----------
     # Properties
@@ -162,7 +126,7 @@ class ProcessTree(HasTraits):
     #: The error message currently displayed in the UI.
     selected_error = Property(
         Unicode(),
-        depends_on="selected_mv.[error_message,label]"
+        depends_on="selected_view.[error_message,label]"
     )
 
     def default_traits_view(self):
@@ -172,42 +136,42 @@ class ProcessTree(HasTraits):
             nodes=[
                 # Root node "Workflow"
                 TreeNodeWithStatus(
-                    node_for=[ProcessModelView],
+                    node_for=[ProcessView],
                     auto_open=True,
                     children='',
                     name='Process',
                     label='=Process',
                     view=no_view,
                     menu=no_menu,
-                    on_select=self.workflow_selected
+                    on_select=self.system_state.workflow_selected
                 ),
 
                 #: Node representing the Execution layers
                 TreeNode(
-                    node_for=[ProcessModelView],
+                    node_for=[ProcessView],
                     auto_open=True,
-                    children='execution_layer_model_views',
+                    children='execution_layer_views',
                     label='=Execution Layers',
                     name='Execution Layers',
                     view=no_view,
                     menu=Menu(new_layer_action),
                     on_select=partial(
-                        self.factory,
+                        self.system_state.factory,
                         None,
                         self.new_layer,
                         'Execution Layer'
                     )
                 ),
                 TreeNodeWithStatus(
-                    node_for=[ExecutionLayerModelView],
+                    node_for=[ExecutionLayerView],
                     auto_open=True,
-                    children='data_source_model_views',
+                    children='data_source_views',
                     label='label',
                     name='DataSources',
                     view=no_view,
                     menu=Menu(delete_layer_action),
                     on_select=partial(
-                        self.factory_instance,
+                        self.system_state.factory_instance,
                         self._factory_registry.data_source_factories,
                         self.new_data_source,
                         'Data Source',
@@ -215,24 +179,25 @@ class ProcessTree(HasTraits):
                     )
                 ),
                 TreeNodeWithStatus(
-                    node_for=[DataSourceModelView],
+                    node_for=[DataSourceView],
                     auto_open=True,
                     children='',
                     label='label',
                     name='DataSources',
                     menu=Menu(delete_data_source_action),
-                    on_select=partial(self.instance, self.delete_data_source)
+                    on_select=partial(self.system_state.instance,
+                                      self.delete_data_source)
                 )
             ],
             orientation="horizontal",
             editable=False,
-            selected="selected_mv",
+            selected="selected_view",
         )
 
         view = View(
             Group(
                 VGroup(
-                    UItem(name='process_model_view',
+                    UItem(name='process_view',
                           editor=tree_editor,
                           show_label=False
                           )
@@ -244,113 +209,24 @@ class ProcessTree(HasTraits):
 
         return view
 
-    # Item Selection Actions - create an appropriate NewEntityModal,
-    # set add_new_entity to be for the right object type and provide a way to
-    # add things by double clicking
-    @selection
-    def factory_instance(self, from_registry, create_fn, factory_group_name,
-                         delete_fn, modelview):
-        """Called on selecting a node in the TreeEditor which represents an
-        instance in the workflow, but also represents a factory for creating
-        new instances.
-        For example an ExecutionLayerModelView represents an ExecutionLayer
-        object, but is also a factory for new DataSources.
-
-        Parameters
-        ----------
-        from_registry: List(BaseFactory) or Callable
-            A list of factories available for this node
-        create_fn: function
-            A function which adds a newly created instance to the Workflow
-        factory_group_name: String
-            A name showing which group (MCO, Datasource etc.) the factory
-            belongs to
-        delete_fn: function
-            A function which removes the object from the workflow
-        modelview: ModelView
-            The modelview of the currently selected node
-        """
-
-        self.factory.__wrapped__(self, from_registry, create_fn,
-                                 factory_group_name, modelview)
-        self.instance.__wrapped__(self, delete_fn, modelview)
-
-    @selection
-    def factory(self, from_registry, create_fn, factory_group_name, modelview):
-        """Called on selecting a node in the TreeEditor which represents a
-        factory.
-
-        Parameters
-        ----------
-        from_registry: List(BaseFactory) or Callable
-            A list of factories available for this node
-        create_fn: function
-            A function which adds a newly created instance to the Workflow
-        factory_group_name: String
-            A name showing which group (MCO, Datasource etc.) the factory
-            belongs to
-        modelview: ModelView
-            The modelview of the currently selected node
-        """
-        self.add_new_entity = partial(create_fn, None, modelview)
-        if from_registry is not None:
-            try:
-                # For a non-constant factory list (parameter factories)
-                visible_factories = [
-                    f for f in from_registry() if f.ui_visible
-                ]
-            except TypeError:
-                visible_factories = [f for f in from_registry if f.ui_visible]
-            entity_creator = NewEntityCreator(
-                factories=visible_factories,
-                dclick_function=self.add_new_entity
-            )
-            self.entity_creator = entity_creator
-        else:
-            self.entity_creator = None
-        self.selected_factory_name = factory_group_name
-
-    @selection
-    def instance(self, delete_fn, modelview):
-        """Called on selecting a a node in the TreeEditor which represents an
-        object in the workflow
-
-        Parameters
-        ----------
-        delete_fn: function
-            A function which removes the object from the workflow
-        modelview: ModelView
-            The modelview of the currently selected node
-        """
-
-        self.remove_entity = partial(delete_fn, None, modelview)
-
-    @selection
-    def workflow_selected(self, workflow_mv):
-        """Called on selecting the top node in the ProcessTree
-
-        Parameters
-        ----------
-        workflow_mv: WorkflowModelView
-            Unused, automatically passed by TreeEditor on selection
-        """
-        self.selected_factory_name = 'Workflow'
+    @on_trait_change('selected_view')
+    def sync_selected_mv(self):
+        self.system_state.selected_mv = self.selected_view
 
     # Methods for new entity creation - The args ui_info and object
     # (the selected modelview) are passed by the ProcessTree on selection.
     # Additional (unused) args are passed when calling dclick_function by
     # double-clicking a specific factory in the NewEntityCreator
-
     def new_data_source(self, ui_info, object, *args):
         """Adds a new datasource to the workflow."""
-        object.add_data_source(self.entity_creator.model)
-        self.entity_creator.reset_model()
-        self.process_model_view.verify_workflow_event = True
+        object.add_data_source(self.system_state.entity_creator.model)
+        self.system_state.entity_creator.reset_model()
+        self.process_view.verify_workflow_event = True
 
     def new_layer(self, ui_info, object):
         """Adds a new execution layer to the workflow"""
-        self.process_model_view.add_execution_layer(ExecutionLayer())
-        self.process_model_view.verify_workflow_event = True
+        self.process_view.add_execution_layer(ExecutionLayer())
+        self.process_view.verify_workflow_event = True
 
     # Methods for deleting entities from the workflow - object is the
     # modelview being deleted.
@@ -358,13 +234,13 @@ class ProcessTree(HasTraits):
 
     def delete_data_source(self, ui_info, object):
         """Delete a data source from the workflow"""
-        self.process_model_view.remove_data_source(object.model)
-        self.process_model_view.verify_workflow_event = True
+        self.process_view.remove_data_source(object.model)
+        self.process_view.verify_workflow_event = True
 
     def delete_layer(self, ui_info, object):
         """Delete a execution layer from the workflow"""
-        self.process_model_view.remove_execution_layer(object.model)
-        self.process_model_view.verify_workflow_event = True
+        self.process_view.remove_execution_layer(object.model)
+        self.process_view.verify_workflow_event = True
 
     # Workflow Verification
     def modelview_editable(self, modelview):
@@ -382,16 +258,16 @@ class ProcessTree(HasTraits):
     def _get_selected_error(self):
         """Returns the error messages for the currently selected modelview"""
         print('process_tree _get_selected_error called')
-        if self.selected_mv is None:
+        if self.selected_view is None:
             return ERROR_TEMPLATE.format("No Item Selected", "")
 
-        if self.selected_mv.error_message == '':
-            mv_label = self.selected_mv.label
+        if self.selected_view.error_message == '':
+            mv_label = self.selected_view.label
             return ERROR_TEMPLATE.format(
                 "No errors for {}".format(mv_label), "")
         else:
-            mv_label = self.selected_mv.label
-            error_list = self.selected_mv.error_message.split('\n')
+            mv_label = self.selected_view.label
+            error_list = self.selected_view.error_message.split('\n')
             body_strings = ''.join([SINGLE_ERROR.format(error)
                                     for error in error_list])
             return ERROR_TEMPLATE.format(

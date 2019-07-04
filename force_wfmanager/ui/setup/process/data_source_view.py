@@ -139,7 +139,7 @@ output_slots_editor = TableEditor(
 )
 
 
-class DataSourceModelView(HasTraits):
+class DataSourceView(HasTraits):
 
     # -------------------
     # Required Attributes
@@ -233,7 +233,7 @@ class DataSourceModelView(HasTraits):
     )
 
     def __init__(self, *args, **kwargs):
-        super(DataSourceModelView, self).__init__(*args, **kwargs)
+        super(DataSourceView, self).__init__(*args, **kwargs)
         self._create_slots_tables()
 
     # Defaults

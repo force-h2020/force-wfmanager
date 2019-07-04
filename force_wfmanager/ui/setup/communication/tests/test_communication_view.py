@@ -10,24 +10,24 @@ from force_wfmanager.ui.setup.communication.\
     CommunicationView
 
 
-class TestCommunicationModelView(unittest.TestCase):
+class TestCommunicationView(unittest.TestCase):
 
     def setUp(self):
-        self.communication_model_view = CommunicationView(
+        self.communication_view = CommunicationView(
             model=Workflow()
         )
         self.plugin = ProbeExtensionPlugin()
         self.factory = ProbeNotificationListenerFactory(self.plugin)
 
     def test_add_notification_listener(self):
-        self.assertEqual(len(self.communication_model_view.notification_listener_views), 0)
-        self.communication_model_view.add_notification_listener(
+        self.assertEqual(len(self.communication_view.notification_listener_views), 0)
+        self.communication_view.add_notification_listener(
             self.factory.create_model())
-        self.assertEqual(len(self.communication_model_view.notification_listener_views), 1)
+        self.assertEqual(len(self.communication_view.notification_listener_views), 1)
 
     def test_remove_notification_listener(self):
         model = self.factory.create_model()
-        self.communication_model_view.add_notification_listener(model)
-        self.assertEqual(len(self.communication_model_view.notification_listener_views), 1)
-        self.communication_model_view.remove_notification_listener(model)
-        self.assertEqual(len(self.communication_model_view.notification_listener_views), 0)
+        self.communication_view.add_notification_listener(model)
+        self.assertEqual(len(self.communication_view.notification_listener_views), 1)
+        self.communication_view.remove_notification_listener(model)
+        self.assertEqual(len(self.communication_view.notification_listener_views), 0)

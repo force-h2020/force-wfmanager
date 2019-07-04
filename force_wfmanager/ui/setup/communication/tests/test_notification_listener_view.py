@@ -10,16 +10,17 @@ from force_wfmanager.ui.setup.communication.\
 
 
 class TestNotificationListenerModelView(unittest.TestCase):
+
     def setUp(self):
         self.plugin = ProbeExtensionPlugin()
         factory = ProbeNotificationListenerFactory(self.plugin)
 
         self.notification_listener_model = factory.create_model()
-        self.notification_listener_mv = NotificationListenerView(
+        self.notification_listener_view = NotificationListenerView(
             model=self.notification_listener_model
         )
 
     def test_label(self):
         self.assertEqual(
-            self.notification_listener_mv.label,
+            self.notification_listener_view.label,
             "test_notification_listener")

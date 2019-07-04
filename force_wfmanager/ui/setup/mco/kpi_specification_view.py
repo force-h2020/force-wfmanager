@@ -1,8 +1,8 @@
 from traits.api import (
     Bool, Enum, Event, Instance, List, Property, Unicode, cached_property,
-    on_trait_change
+    on_trait_change, HasTraits
 )
-from traitsui.api import EnumEditor, Item, ModelView, View
+from traitsui.api import EnumEditor, Item, View
 
 from force_bdss.api import KPISpecification, Identifier
 from force_wfmanager.utils.variable_names_registry import (
@@ -10,7 +10,7 @@ from force_wfmanager.utils.variable_names_registry import (
 )
 
 
-class KPISpecificationModelView(ModelView):
+class KPISpecificationView(HasTraits):
 
     # -------------------
     # Required Attributes
@@ -64,10 +64,10 @@ class KPISpecificationModelView(ModelView):
     def default_traits_view(self):
         #: Base view for the MCO parameter
         traits_view = View(
-            Item('model.name', editor=EnumEditor(name='object._combobox_values')),
-            Item("model.objective"),
-            Item('model.auto_scale'),
-            Item("model.scale_factor", visible_when='not model.auto_scale'),
+            Item('object.model.name', editor=EnumEditor(name='_combobox_values')),
+            Item("object.model.objective"),
+            Item('object.model.auto_scale'),
+            Item("object.model.scale_factor", visible_when='not model.auto_scale'),
             kind="subpanel",
         )
 

@@ -4,15 +4,15 @@ from traits.api import (
 )
 from traitsui.api import (
     View, Item, VGroup, HGroup, ObjectColumn,
-    TableEditor, ListEditor, HSplit, UReadonly, ModelView, InstanceEditor
+    TableEditor, ListEditor, HSplit, UReadonly, InstanceEditor
 )
 from force_bdss.api import BaseMCOModel, BaseMCOParameter, KPISpecification
-from force_wfmanager.ui.setup.mco.kpi_specification_model_view import \
-    KPISpecificationModelView
+from force_wfmanager.ui.setup.mco.kpi_specification_view import \
+    KPISpecificationView
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
 
-from .mco_parameter_model_view import MCOParameterModelView
+from .mco_parameter_view import MCOParameterView
 from force_wfmanager.ui.ui_utils import get_factory_name
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
 
@@ -28,7 +28,7 @@ class TableRow(HasTraits):
     name = Unicode()
 
 
-class MCOModelView(ModelView):
+class MCOView(HasTraits):
 
     # -------------------
     # Required Attributes
@@ -45,10 +45,10 @@ class MCOModelView(ModelView):
     # ------------------
 
     #: List of MCO parameters to be displayed in the TreeEditor
-    parameter_model_views = List(Instance(MCOParameterModelView))
+    parameter_views = List(Instance(MCOParameterView))
 
     #: List of the KPISpecificationModelView to be displayed in the TreeEditor
-    kpi_model_views = List(Instance(KPISpecificationModelView))
+    kpi_views = List(Instance(KPISpecificationView))
 
     # ------------------
     # Dependent Attributes
@@ -62,10 +62,10 @@ class MCOModelView(ModelView):
     non_kpi_variables = List(TableRow)
 
     #: The selected parameter
-    selected_parameter = Instance(MCOParameterModelView)
+    selected_parameter = Instance(MCOParameterView)
 
     #: The selected KPI
-    selected_kpi = Instance(KPISpecificationModelView)
+    selected_kpi = Instance(KPISpecificationView)
 
     #: The selected non-KPI
     selected_non_kpi = Instance(TableRow)
@@ -125,7 +125,7 @@ class MCOModelView(ModelView):
         HSplit(
             VGroup(
                 VGroup(
-                    Item('parameter_model_views',
+                    Item('parameter_views',
                          editor=parameter_editor,
                          show_label=False,
                          style='custom',
@@ -150,7 +150,7 @@ class MCOModelView(ModelView):
             ),
             VGroup(
                 VGroup(
-                    Item('kpi_model_views',
+                    Item('kpi_views',
                          editor=kpi_editor,
                          show_label=False,
                          style='custom',
@@ -195,7 +195,7 @@ class MCOModelView(ModelView):
         return entity_creator
 
     #: Listeners
-    @on_trait_change('kpi_names,kpi_model_views[]')
+    @on_trait_change('kpi_names,kpi_views[]')
     def update_non_kpi_variables(self):
 
         non_kpi = []
@@ -212,8 +212,8 @@ class MCOModelView(ModelView):
         self.non_kpi_variables = non_kpi
 
     # Workflow Verification
-    @on_trait_change('parameter_model_views.verify_workflow_event,'
-                     'kpi_model_views.verify_workflow_event')
+    @on_trait_change('parameter_views.verify_workflow_event,'
+                     'kpi_views.verify_workflow_event')
     def received_verify_request(self):
         self.verify_workflow_event = True
 
@@ -222,8 +222,8 @@ class MCOModelView(ModelView):
     def update_parameter_model_views(self):
         """ Update the MCOParameterModelView(s) """
 
-        self.parameter_model_views = [
-            MCOParameterModelView(model=parameter)
+        self.parameter_views = [
+            MCOParameterView(model=parameter)
             for parameter in self.model.parameters
         ]
 
@@ -231,8 +231,8 @@ class MCOModelView(ModelView):
     def update_kpi_model_views(self):
         """Updates the KPI modelview according to the new KPIs in the
         model"""
-        self.kpi_model_views = [
-            KPISpecificationModelView(
+        self.kpi_views = [
+            KPISpecificationView(
                 model=kpi,
                 variable_names_registry=self.variable_names_registry
             )
@@ -244,7 +244,7 @@ class MCOModelView(ModelView):
         kpi_names = []
         if self.variable_names_registry is None:
             return kpi_names
-        for kpi in self.kpi_model_views:
+        for kpi in self.kpi_views:
             kpi_names.append(kpi.name)
 
         return kpi_names
@@ -305,7 +305,7 @@ class MCOModelView(ModelView):
         self.model.kpis.remove(kpi)
         self.verify_workflow_event = True
 
-    #: Button actaions
+    #: Button actions
     def _add_parameter_button_fired(self):
         """Call add_parameter to create a new empty parameter"""
         self.add_parameter(self.entity_creator.model)

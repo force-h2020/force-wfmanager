@@ -1,15 +1,15 @@
 from traits.api import (
     Instance, Unicode, Bool, on_trait_change, Event, Property,
-    cached_property
+    cached_property, HasTraits
 )
-from traitsui.api import View, Item, ModelView, Group
+from traitsui.api import View, Item, Group
 
 from force_bdss.api import BaseMCOParameter
 
 from force_wfmanager.ui.ui_utils import get_factory_name
 
 
-class MCOParameterModelView(ModelView):
+class MCOParameterView(HasTraits):
 
     # -------------------
     # Required Attributes
@@ -34,10 +34,10 @@ class MCOParameterModelView(ModelView):
 
     #: Event to request a verification check on the workflow
     #: :func:`MCOModelView.verify_workflow_event
-    #: <force_wfmanager.ui.setup.mco.mco_model_view\
+    #: <force_wfmanager.ui.setup.mco.mco_view\
     #: .MCOModelView.verify_workflow_event>`,
     #: :func:`ProcessModelView.verify_workflow_event
-    #: <force_wfmanager.ui.setup.process.process_model_view.\
+    #: <force_wfmanager.ui.setup.process.process_view.\
     #: ProcessModelView.verify_workflow_event>`,
     #: :func:`NotificationListenerModelView.verify_workflow_event
     #: <force_wfmanager.views.execution_layers.\
@@ -89,7 +89,6 @@ class MCOParameterModelView(ModelView):
     # Properties
     @cached_property
     def _get_label(self):
-        print('mco_parameter _get_label called')
         if self.model.name == '' and self.model.type == '':
             return self._label_default()
         return self._label_default()+': {type} {name}'.format(

@@ -5,11 +5,11 @@ from traitsui.api import ModelView
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
-from .execution_layer_model_view import ExecutionLayerModelView
+from .execution_layer_view import ExecutionLayerView
 from force_bdss.api import Workflow
 
 
-class ProcessModelView(HasTraits):
+class ProcessView(HasTraits):
     # -------------------
     # Required Attributes
     # -------------------
@@ -30,7 +30,7 @@ class ProcessModelView(HasTraits):
     #: List of the data source's modelviews.
     #: Must be a list otherwise the tree editor will not consider it
     #: as a child.
-    execution_layer_model_views = List(Instance(ExecutionLayerModelView))
+    execution_layer_views = List(Instance(ExecutionLayerView))
 
     valid = Bool(True)
 
@@ -40,14 +40,14 @@ class ProcessModelView(HasTraits):
     verify_workflow_event = Event
 
     def __init__(self, model, *args, **kwargs):
-        super(ProcessModelView, self).__init__(*args, **kwargs)
+        super(ProcessView, self).__init__(*args, **kwargs)
         self.model = model
 
     @on_trait_change('model.execution_layers[]')
-    def update_execution_layers_mv(self):
+    def update_execution_layers_views(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
-        self.execution_layer_model_views = [
-            ExecutionLayerModelView(
+        self.execution_layer_views = [
+            ExecutionLayerView(
                 model=execution_layer,
                 layer_index=idx,
                 variable_names_registry=self.variable_names_registry,
@@ -57,7 +57,7 @@ class ProcessModelView(HasTraits):
                 self.model.execution_layers)
         ]
 
-    @on_trait_change('execution_layer_model_views.verify_workflow_event')
+    @on_trait_change('execution_layer_views.verify_workflow_event')
     def received_verify_request(self):
         """Fires :attr:`verify_workflow_event` when a data source contained
         in this execution layer fires its `verify_workflow_event`
@@ -76,7 +76,7 @@ class ProcessModelView(HasTraits):
 
     def remove_data_source(self, data_source):
         """Removes the data source from the model"""
-        for execution_layer_mv in self.execution_layer_model_views:
-            if data_source in execution_layer_mv.model.data_sources:
-                execution_layer_mv.remove_data_source(data_source)
+        for execution_layer_view in self.execution_layer_views:
+            if data_source in execution_layer_view.model.data_sources:
+                execution_layer_view.remove_data_source(data_source)
 
