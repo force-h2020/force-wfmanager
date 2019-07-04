@@ -10,7 +10,8 @@ from pyface.api import (
 )
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
-from traits.api import Instance, on_trait_change, List, Bool, Unicode, File
+from traits.api import (
+    Bool, File, Instance, List, on_trait_change, Type, Unicode)
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
@@ -18,7 +19,8 @@ from force_bdss.api import (
     InvalidFileException
 )
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.review.data_view_pane import DataViewPane
+from force_wfmanager.ui.review.data_view import BaseDataView
+from force_wfmanager.ui.review.plot import BasePlot, Plot
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.tree_pane import TreePane
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
@@ -72,7 +74,7 @@ class WfManagerSetupTask(Task):
     executor = Instance(ThreadPoolExecutor)
 
     #: Class of the selected data view
-    selected_data_view = Instance(type)
+    selected_data_view = Type(BaseDataView)
 
     plugin_data_views = List
 
@@ -646,7 +648,7 @@ class WfManagerSetupTask(Task):
         to extract their custom data views.
 
         """
-        plugin_data_views = [DataViewPane]
+        plugin_data_views = [BasePlot, Plot]
         # some dodgy exception handling so that tests pass when
         # self.window is None
         try:

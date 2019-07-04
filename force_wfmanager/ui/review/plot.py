@@ -1,4 +1,4 @@
-""" This submodule implements the following classes:
+""" This submodule implements the following :class:`BaseDataView` subclasses:
 
 * :class:`BasePlot` provides a simple 2D scatter plot over
   the columns from the analysis model, with x and y
@@ -45,7 +45,7 @@ class BasePlot(BaseDataView):
     #: Optional third parameter used to set colour of points
     color_by = Enum(values='_value_names')
 
-    #: Optional title to give to figure
+    #: Optional title to display above the figure
     title = Unicode('Plot')
 
     #: Listens to: :attr:`analysis_model.selected_step_indices
@@ -89,7 +89,12 @@ class BasePlot(BaseDataView):
     #: Listens to: :attr:`x`, :attr:`y`
     _plot_data = Instance(ArrayPlotData)
 
-    #: Datasource of the plot (used for selection handling)
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
+    #: Short description for the UI selection
+    description = "Simple plot"
 
     # ----
     # View
@@ -419,6 +424,9 @@ class Plot(BasePlot):
                     depends_on='_available_colormaps_names')
 
     color_plot = Bool(False)
+
+    #: Short description for the UI selection
+    description = "Plot with colormap"
 
     # --------------------
     # Dependent Attributes

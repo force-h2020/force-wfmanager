@@ -27,9 +27,6 @@ class WfManagerReviewTask(Task):
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(ResultsPane)
 
-    #: Central Pane containing the Data View
-    central_pane = Instance(DataViewPane)
-
     #: The menu bar for this task.
     menu_bar = Instance(SMenuBar)
 
@@ -48,9 +45,6 @@ class WfManagerReviewTask(Task):
     #: Analysis model. Contains the results that are displayed in the plot
     #: and table
     analysis_model = Instance(AnalysisModel, allow_none=False)
-
-    #: Class of the selected data view
-    selected_data_view = Instance(type)
 
     #: Is the 'run' toolbar button active
     run_enabled = Bool(True)
@@ -183,18 +177,11 @@ class WfManagerReviewTask(Task):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)
         """
-        central_pane = self.setup_task.selected_data_view(
-            analysis_model=self.analysis_model)
-        return central_pane
+        return DataViewPane(analysis_model=self.analysis_model)
 
     def create_dock_panes(self):
         """ Creates the dock panes """
         return [self.side_pane]
-
-    # Central pane style selection
-    @on_trait_change('setup_task.selected_data_view')
-    def selected_style(self):
-        self.selected_data_view = self.setup_task.selected_data_view
 
     # Default initialisers
 

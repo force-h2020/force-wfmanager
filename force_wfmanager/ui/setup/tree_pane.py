@@ -105,7 +105,7 @@ class TreePane(TraitsDockPane):
         """
         def shorten(string, maxlength):
             if string.startswith("<class '"):
-                # <class 'foo.bar.baz'>: item has probably a default __str__.
+                # str(item) of the form <class 'foo.bar.baz'>:
                 # Remove wrapping and truncate from the middle.
                 words = string[8:-2].split(".")
                 num_words = len(words)
@@ -129,7 +129,7 @@ class TreePane(TraitsDockPane):
         descriptions = []
         for item in self.plugin_data_views:
             length = 70
-            if hasattr(item, "description"):
+            if hasattr(item, "description") and item.description is not None:
                 item_description = shorten(item.description, length)
                 length -= len(item_description) + 3
                 if length >= 10:
