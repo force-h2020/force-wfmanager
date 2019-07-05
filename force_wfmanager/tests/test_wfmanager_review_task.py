@@ -4,6 +4,8 @@ from pyface.constant import OK
 from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
+from force_wfmanager.ui.review.plot import BasePlot, Plot
+
 from .mock_methods import (
     mock_file_writer, mock_dialog, mock_return_args
 )
@@ -21,7 +23,7 @@ RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_review_task.error'
 class TestWFManagerTasks(GuiTestAssistant, TestCase):
     def setUp(self):
         super(TestWFManagerTasks, self).setUp()
-        _, self.review_task = get_probe_wfmanager_tasks()
+        self.setup_task, self.review_task = get_probe_wfmanager_tasks()
 
     def test_save_project(self):
         mock_open = mock.mock_open()
@@ -57,3 +59,16 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 'Cannot save in the requested file:\n\nOUPS',
                 'Error when saving the project'
             )
+
+    def test_select_data_view(self):
+        self.assertEqual(
+            self.setup_task.side_pane.selected_data_view, BasePlot)
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, BasePlot)
+
+        # then change data view
+        self.setup_task.side_pane.selected_data_view = Plot
+        self.assertEqual(
+            self.setup_task.selected_data_view, Plot)
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, Plot)

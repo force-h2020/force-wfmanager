@@ -22,6 +22,7 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         self.wfmanager = ProbeWfManager()
         self.wfmanager.run()
         self.setup_pane = self.wfmanager.windows[0].central_pane
+        self.side_pane = self.wfmanager.windows[0].tasks[0].side_pane
         self.workflow_tree = (
             self.wfmanager.windows[0].tasks[0].side_pane.workflow_tree
         )
@@ -33,6 +34,16 @@ class TestSetupPane(GuiTestAssistant, TestCase):
             self.wfmanager.remove_plugin(plugin)
         self.wfmanager.exit()
         super(TestSetupPane, self).tearDown()
+
+    def test_data_view_descriptions(self):
+        self.assertIn(
+            "Plot with colormap (force_wfmanager.ui.review.plot.Plot)",
+            self.side_pane.data_view_descriptions.values()
+        )
+        self.assertIn(
+            "Simple plot (force_wfmanager.ui.review.plot.BasePlot)",
+            self.side_pane.data_view_descriptions.values()
+        )
 
     def test_add_entity_button(self):
         self.assertEqual(0, len(self.workflow_tree.workflow_mv.mco_mv))

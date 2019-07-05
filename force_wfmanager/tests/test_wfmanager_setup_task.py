@@ -15,6 +15,7 @@ from force_bdss.io.workflow_writer import WorkflowWriter
 
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.tests.utils import wait_condition
+from force_wfmanager.ui.review.plot import Plot, BasePlot
 
 
 from .mock_methods import (
@@ -424,3 +425,11 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertEqual(
                 mock_error.call_args[0][1],
                 'Unable to run BDSS: write failed')
+
+    def test_load_and_select_data_views(self):
+        self.assertIn(Plot, self.setup_task.side_pane.plugin_data_views)
+        self.assertIn(BasePlot, self.setup_task.side_pane.plugin_data_views)
+        self.assertEqual(
+            BasePlot,
+            self.setup_task.side_pane.selected_data_view
+        )

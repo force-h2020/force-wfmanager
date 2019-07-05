@@ -69,6 +69,13 @@ def get_probe_wfmanager_tasks():
     for task in tasks:
         task.window = mock_window
         task.create_central_pane()
+
+        # A Task's central pane is generally aware of its task in normal
+        # operations, but it doesn't seem to be so in this mock situation;
+        # so we "make" it aware.
+        if hasattr(task, "central_pane") and task.central_pane is not None:
+            task.central_pane.task = task
+
         task.create_dock_panes()
 
     return tasks[0], tasks[1]
