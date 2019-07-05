@@ -15,12 +15,12 @@ class TestProcessView(BaseTest):
 
     def test_add_execution_layer(self):
         self.assertEqual(
-            len(self.process_view.execution_layer_views), 1)
+            1, len(self.process_view.execution_layer_views))
         self.process_view.add_execution_layer(self.execution_layer)
         self.assertEqual(
-            len(self.process_view.model.execution_layers), 2)
+            2, len(self.process_view.model.execution_layers))
         self.assertEqual(
-            len(self.process_view.execution_layer_views), 2)
+            2, len(self.process_view.execution_layer_views))
         self.assertEqual(
             self.process_view.execution_layer_views[1].model,
             self.process_view.model.execution_layers[1]

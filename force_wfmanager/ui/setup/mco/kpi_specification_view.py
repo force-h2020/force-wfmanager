@@ -19,7 +19,8 @@ class KPISpecificationView(HasTraits):
     #: KPI model
     model = Instance(KPISpecification)
 
-    #: Registry of the available variables
+    #: Registry of the available variables, defines the
+    #: output variables able to be optimised as KPIs
     variable_names_registry = Instance(VariableNamesRegistry)
 
     # ------------------
@@ -27,7 +28,7 @@ class KPISpecificationView(HasTraits):
     # ------------------
 
     #: Defines if the KPI is valid or not. Set by the function
-    #: verify_tree in process_tree.py
+    #: map_verify_workflow in process_tree.py
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Set by the function
@@ -43,12 +44,15 @@ class KPISpecificationView(HasTraits):
     verify_workflow_event = Event
 
     #: The name of the selected KPI
-    #: Listens to: `variable_names_registry.data_source_outputs`
+    #: Depends on list of strings in `_combobox_values`
     name = Enum(values='_combobox_values')
 
     #: Values for the combobox
-    #: #: Listens to: `variable_names_registry.data_source_outputs`
-    _combobox_values = List(Identifier)
+    #: Listens to: `variable_names_registry.data_source_outputs`
+    _combobox_values = Property(
+        List(Identifier),
+        depends_on='variable_names_registry.data_source_outputs'
+    )
 
     # ----------
     # Properties
@@ -74,36 +78,43 @@ class KPISpecificationView(HasTraits):
 
         return traits_view
 
+    @on_trait_change('_combobox_values')
+    def check_kpi_name(self):
+        #: Clear the existing name if it is not allowed upon update of
+        #: the combobox
+        if self.model is not None:
+            if self.model.name not in self._combobox_values:
+                # Propagate the name change to the model - note: this does
+                # not happen automatically when model.name is set to a
+                # value not in _combobox_values
+                self.model.name = ''
+
     @on_trait_change('model.[name,objective]')
     def kpi_change(self):
         self.verify_workflow_event = True
 
-    @on_trait_change('variable_names_registry.data_source_outputs')
-    def update_combobox_values(self):
-        print('update_combobox_values called')
-        available = self.variable_names_registry.data_source_outputs
-        self._combobox_values = [''] + available
-
-        self.name = ('' if self.name not in available else self.name)
-
-        # If the KPI choice is no longer valid, change the model as well as
-        # the view. This does not happen automatically when model.name is
-        # set to a value not in _combobox_values
-        if self.model is not None and self.name == '':
-            self.model.name = ''
-
     @on_trait_change('model.name')
     def update_name(self):
-        print('update_name called')
+        #: Check if model has been removed
+        print('kpi_view update_name called')
         if self.model is None:
             self.name = ''
         else:
             self.name = self.model.name
 
     @cached_property
+    def _get__combobox_values(self):
+        print('kpi_view _get__combobox_values called')
+        if self.variable_names_registry is not None:
+            available = self.variable_names_registry.data_source_outputs
+            return [''] + available
+        else:
+            return ['']
+
+    @cached_property
     def _get_label(self):
         """Gets the label from the model object"""
-        print('_get_label called')
+        print('kpi_view _get_label called')
         if self.model.name == '':
             return "KPI"
         elif self.model.objective == '':

@@ -47,11 +47,16 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
     def test_label(self):
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
 
+        self.assertEqual(['T1'], self.registry.data_source_outputs)
+
         self.assertEqual(self.kpi_view.label, "KPI")
+
+        print('\n\ntesting inititiation of named KPI')
         self.kpi_view_named = KPISpecificationView(
             model=KPISpecification(name='T1'),
             variable_names_registry=self.registry
         )
+
         self.assertEqual(self.kpi_view_named.label,
                          "KPI: T1 (MINIMISE)")
 

@@ -1,6 +1,6 @@
 from traits.api import (
     Instance, List, Unicode, on_trait_change, Bool, Event,
-    HasTraits, Button
+    HasTraits, Button, Property, cached_property
 )
 from traitsui.api import (
     View, Item, VGroup, HGroup, ObjectColumn,
@@ -55,11 +55,14 @@ class MCOView(HasTraits):
     # ------------------
 
     #: The names of the KPIs in the Workflow
-    kpi_names = List(Unicode)
+    kpi_names = Property(List(Unicode), depends_on='kpi_views.name')
 
     #: A list of TableRow instances, each representing a variable
     #: that could become a KPI
-    non_kpi_variables = List(TableRow)
+    non_kpi_variables = Property(
+        List(TableRow),
+        depends_on='variable_names_registry,kpi_names'
+    )
 
     #: The selected parameter
     selected_parameter = Instance(MCOParameterView)
@@ -176,12 +179,14 @@ class MCOView(HasTraits):
         kind="livemodal"
     )
 
+    def __init__(self, model=None, *args, **kwargs):
+        super(MCOView, self).__init__(*args, **kwargs)
+        if model is not None:
+            self.model = model
+
     # Defaults
     def _label_default(self):
         return get_factory_name(self.model.factory)
-
-    def _kpi_names_default(self):
-        return self.lookup_kpi_names()
 
     def _entity_creator_default(self):
         visible_factories = [
@@ -194,25 +199,36 @@ class MCOView(HasTraits):
         )
         return entity_creator
 
-    #: Listeners
-    @on_trait_change('variable_names_registry,kpi_names,kpi_views[]')
-    def update_non_kpi_variables(self):
-        print('update_non_kpi_variables called')
+    #: Property getters
+    @cached_property
+    def _get_kpi_names(self):
+        print('mco_view _get_kpi_names')
+        kpi_names = []
+
+        for kpi in self.kpi_views:
+            kpi_names.append(kpi.name)
+
+        return kpi_names
+
+    @cached_property
+    def _get_non_kpi_variables(self):
+        print('mco_view update_non_kpi_variables called')
         non_kpi = []
-        if self.variable_names_registry is None:
-            return non_kpi
 
-        var_stack = self.variable_names_registry.available_variables_stack
-        for exec_layer in var_stack:
-            for variable in exec_layer:
-                kpi_check = variable[0] not in self.kpi_names
-                variable_check = variable[0] in self.variable_names_registry\
-                    .data_source_outputs
-                if kpi_check and variable_check:
-                    variable_rep = TableRow(name=variable[0], type=variable[1])
-                    non_kpi.append(variable_rep)
-        self.non_kpi_variables = non_kpi
+        if self.variable_names_registry is not None:
+            var_stack = self.variable_names_registry.available_variables_stack
+            for exec_layer in var_stack:
+                for variable in exec_layer:
+                    kpi_check = variable[0] not in self.kpi_names
+                    variable_check = variable[0] in self.variable_names_registry\
+                        .data_source_outputs
+                    if kpi_check and variable_check:
+                        variable_rep = TableRow(name=variable[0], type=variable[1])
+                        non_kpi.append(variable_rep)
 
+        return non_kpi
+
+    #: Listeners
     # Workflow Verification
     @on_trait_change('parameter_views.verify_workflow_event,'
                      'kpi_views.verify_workflow_event')
@@ -233,6 +249,8 @@ class MCOView(HasTraits):
     def update_kpi_model_views(self):
         """Updates the KPI modelview according to the new KPIs in the
         model"""
+        print('mco_view update_kpi_model_views')
+        print(self.model.kpis, self.variable_names_registry)
         self.kpi_views = [
             KPISpecificationView(
                 model=kpi,
@@ -242,15 +260,6 @@ class MCOView(HasTraits):
         ]
 
     #: Class Methods
-    def lookup_kpi_names(self):
-        kpi_names = []
-        if self.variable_names_registry is None:
-            return kpi_names
-        for kpi in self.kpi_views:
-            kpi_names.append(kpi.name)
-
-        return kpi_names
-
     def parameter_factories(self):
         """Returns the list of parameter factories for the current MCO."""
         if self.model is not None:
