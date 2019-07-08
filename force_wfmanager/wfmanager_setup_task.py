@@ -650,17 +650,13 @@ class WfManagerSetupTask(Task):
 
         """
         plugin_data_views = [BasePlot, Plot]
-        # some dodgy exception handling so that tests pass when
-        # self.window is None
-        try:
+
+        if self.window is not None:
             for plugin in self.window.application.plugin_manager:
                 try:
-                    if plugin.data_views:
-                        plugin_data_views.extend(plugin.data_views)
-                except Exception:
+                    plugin_data_views.extend(plugin.get_data_views())
+                except AttributeError:
                     pass
-        except AttributeError:
-            pass
         return plugin_data_views
 
     @on_trait_change('side_pane.selected_data_view')
