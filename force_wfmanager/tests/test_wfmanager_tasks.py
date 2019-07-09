@@ -12,6 +12,7 @@ from force_bdss.api import Workflow
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.tree_pane import TreePane
+from force_wfmanager.ui.review.plot import BasePlot, Plot
 from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
@@ -303,3 +304,24 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertEqual(old_analysis, self.setup_task.analysis_model)
             self.assertEqual(old_workflow, self.review_task.workflow_model)
             self.assertEqual(old_analysis, self.review_task.analysis_model)
+
+    def test_load_and_set_default_data_views(self):
+        self.assertIn(Plot, self.setup_task.side_pane.plugin_data_views)
+        self.assertIn(BasePlot, self.setup_task.side_pane.plugin_data_views)
+        self.assertEqual(
+            self.setup_task.side_pane.selected_data_view, BasePlot)
+        # XXX doesn't test for contributed data views
+
+    def test_change_data_view(self):
+        # check the initial state
+        self.assertEqual(
+            self.setup_task.side_pane.selected_data_view, BasePlot)
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, BasePlot)
+
+        # then change data view
+        self.setup_task.side_pane.selected_data_view = Plot
+        self.assertEqual(
+            self.setup_task.selected_data_view, Plot)
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, Plot)
