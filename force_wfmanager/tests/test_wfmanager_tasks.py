@@ -12,7 +12,6 @@ from force_bdss.api import Workflow
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.tree_pane import TreePane
-from force_wfmanager.ui.review.plot import BasePlot, Plot
 from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
