@@ -1,14 +1,15 @@
 from pyface.tasks.api import TraitsTaskPane
-from traits.api import Instance, on_trait_change
-from traitsui.api import VGroup, View, UItem
+from traits.api import (
+    Button, Dict, Enum, Instance, List, on_trait_change, Type, Unicode)
+from traitsui.api import EnumEditor, HGroup, UItem, VGroup, View
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.review.plot import BasePlot
+from force_wfmanager.ui.review.plot import BasePlot, Plot
 from force_wfmanager.ui.review.data_view import BaseDataView
 
 
 class DataViewPane(TraitsTaskPane):
-    """ A TraitsTaskPane that contains the selected BaseDataView."""
+    """ A pane that contains a BaseDataView and the option to change it."""
 
     #: The analysis model containing the results
     analysis_model = Instance(AnalysisModel)
@@ -20,18 +21,120 @@ class DataViewPane(TraitsTaskPane):
     #: An internal identifier for this pane
     id = 'force_wfmanager.data_view_pane'
 
-    #: Make the pane visible by default
+    #: The data view being displayed
     data_view = Instance(BaseDataView)
 
-    def default_traits_view(self):
-        view = View(VGroup(
+    #: Saved instances of data views from this session (this is used to store
+    #: the settings from each data_view while the user tries other options)
+    data_view_instances = Dict(Type(BaseDataView), Instance(BaseDataView))
+
+    #: Button to change the data_view
+    change_view = Button("Change graph type")
+
+    #: Available data views contributed by the plugins
+    available_data_views = List(Type(BaseDataView))
+
+    #: Selected data view class (from the list above)
+    selection = Enum(values="available_data_views")
+
+    #: Human readable descriptions of each data view, for the UI
+    descriptions = Dict(Type(BaseDataView), Unicode())
+
+    selection_changer = View(
+        HGroup(
+            UItem(
+                "selection",
+                editor=EnumEditor(name='descriptions'),
+                style="custom",
+            ),
+            label="Graph type",
+            show_border=True
+        )
+    )
+
+    #: View
+    traits_view = View(VGroup(
+            VGroup(
+                UItem('change_view'),
+            ),
             UItem('data_view', style='custom')
         ))
-        return view
 
     def _data_view_default(self):
         return BasePlot(analysis_model=self.analysis_model)
 
-    @on_trait_change('task.setup_task.selected_data_view')
-    def sync_selected_data_view(self, data_view):
-        self.data_view = data_view(analysis_model=self.analysis_model)
+    def _available_data_views_default(self):
+        """ Look through all the loaded plugins and try
+        to extract their custom data views.
+
+        """
+        available_data_views = [BasePlot, Plot]
+
+        if self.task.window is not None:
+            for plugin in self.task.window.application.plugin_manager:
+                try:
+                    available_data_views.extend(plugin.get_data_views())
+                except AttributeError:
+                    pass
+        return available_data_views
+
+    def update_descriptions(self, maxlength=80):
+
+        def shorten(string, maxlength):
+            if string.startswith("<class '"):
+
+                # Usual str(type) of the form <class 'foo.bar.baz'>:
+                # Remove wrapping and truncate, giving precedence to extremes.
+                words = string[8:-2].split(".")
+                num_words = len(words)
+                word_priority = [
+                    # from the out inwards, precedence to the left: 0 2 ... 3 1
+                    min(2*i, 2*num_words - 2*i - 1) for i in range(num_words)]
+                for threshold in range(num_words, -1, -1):
+                    string = ""
+                    for i, word in enumerate(words):
+                        string += word if word_priority[i] < threshold else ""
+                        string += "."
+                    if len(string) <= maxlength + 1:
+                        return string[:-1]
+                # fallback when every dot-based truncation is too long.
+                return shorten(words[0])
+
+            else:
+
+                # Custom description: just truncate.
+                return string if len(string) <= maxlength \
+                    else string[:maxlength-3]+"..."
+
+        descriptions = []
+        for item in self.available_data_views:
+            length = maxlength
+            if hasattr(item, "description") and item.description is not None:
+                item_description = shorten(item.description, length)
+                # if there's enough room left, add the class name in brackets.
+                length -= len(item_description) + 3
+                if length >= 10:
+                    item_description += " (" + shorten(str(item), length) + ")"
+            else:
+                item_description = shorten(str(item), length)
+            descriptions.append((item, item_description))
+
+        self.descriptions = dict(descriptions)
+
+    @on_trait_change('change_view')
+    def update_selection(self):
+        self.update_descriptions()
+        self.edit_traits(view="selection_changer")
+
+    @on_trait_change('selection')
+    def switch_data_view(self, data_view_type):
+        # Store current instance
+        current_type = type(self.data_view)
+        if current_type not in self.data_view_instances:
+            self.data_view_instances[current_type] = self.data_view
+
+        # Retrieve or instantiate the requested type
+        try:
+            self.data_view = self.data_view_instances[data_view_type]
+        except KeyError:
+            self.data_view = data_view_type(analysis_model=self.analysis_model)

@@ -11,7 +11,7 @@ from pyface.api import (
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
 from traits.api import (
-    Bool, File, Instance, List, on_trait_change, Type, Unicode)
+    Bool, File, Instance, List, on_trait_change, Unicode)
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
@@ -19,8 +19,6 @@ from force_bdss.api import (
     InvalidFileException
 )
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.review.data_view import BaseDataView
-from force_wfmanager.ui.review.plot import BasePlot, Plot
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.tree_pane import TreePane
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
@@ -72,12 +70,6 @@ class WfManagerSetupTask(Task):
 
     #: The thread pool executor to spawn the BDSS CLI process.
     executor = Instance(ThreadPoolExecutor)
-
-    #: Available data views contributed by the plugins
-    plugin_data_views = List
-
-    #: Class of the selected data view
-    selected_data_view = Type(BaseDataView)
 
     #: Path to spawn for the BDSS CLI executable.
     #: This will go to some global configuration option later.
@@ -250,7 +242,6 @@ class WfManagerSetupTask(Task):
         return TreePane(
             factory_registry=self.factory_registry,
             workflow_model=self.workflow_model,
-            plugin_data_views=self.plugin_data_views
         )
 
     def _workflow_model_default(self):
@@ -643,29 +634,6 @@ class WfManagerSetupTask(Task):
                 if task.name == "Review":
                     self.review_task = task
                     self.review_task.run_enabled = self.run_enabled
-
-    def _plugin_data_views_default(self):
-        """ Look through all the loaded plugins and try
-        to extract their custom data views.
-
-        """
-        plugin_data_views = [BasePlot, Plot]
-
-        if self.window is not None:
-            for plugin in self.window.application.plugin_manager:
-                try:
-                    plugin_data_views.extend(plugin.get_data_views())
-                except AttributeError:
-                    pass
-        return plugin_data_views
-
-    @on_trait_change('side_pane.selected_data_view')
-    def _set_selected_data_view(self):
-        self.selected_data_view = self.side_pane.selected_data_view
-
-    def _selected_data_view_default(self):
-        # This should always fallback to the default DataViewPane.
-        return self._plugin_data_views_default()[0]
 
     # Menu/Toolbar Methods
 

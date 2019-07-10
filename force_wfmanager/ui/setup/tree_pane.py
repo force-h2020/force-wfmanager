@@ -1,7 +1,6 @@
 from pyface.tasks.api import TraitsDockPane
-from traits.api import (
-    Bool, Button, Dict, Enum, Instance, List, on_trait_change)
-from traitsui.api import EnumEditor, UItem, VGroup, View
+from traits.api import Bool, Button, Instance, on_trait_change
+from traitsui.api import UItem, VGroup, View
 
 from force_bdss.api import IFactoryRegistry, Workflow
 
@@ -66,15 +65,6 @@ class TreePane(TraitsDockPane):
     #: Enable or disable the run button.
     run_enabled = Bool(True)
 
-    #: Available data views contributed by the plugins
-    plugin_data_views = List
-
-    #: Human readable descriptions of each data view, for the UI
-    data_view_descriptions = Dict
-
-    #: Selection
-    selected_data_view = Enum(values='plugin_data_views')
-
     # ----
     # View
     # ----
@@ -82,14 +72,6 @@ class TreePane(TraitsDockPane):
     traits_view = View(VGroup(
         UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
         UItem('run_button', enabled_when="run_enabled"),
-        VGroup(
-            UItem(
-                'selected_data_view',
-                enabled_when='ui_enabled',
-                editor=EnumEditor(name='data_view_descriptions')),
-            label="Arrange results using layout:",
-            show_border=True,
-        ),
     ))
 
     def _workflow_tree_default(self):
@@ -99,51 +81,6 @@ class TreePane(TraitsDockPane):
         )
         self.run_enabled = wf_tree.workflow_mv.valid
         return wf_tree
-
-    def _plugin_data_views_changed(self, new):
-        """Update the data_view descriptions upon load/change.
-        """
-
-        def shorten(string, maxlength):
-            if string.startswith("<class '"):
-
-                # Usual str(type) of the form <class 'foo.bar.baz'>:
-                # Remove wrapping and truncate, giving precedence to extremes.
-                words = string[8:-2].split(".")
-                num_words = len(words)
-                word_priority = [
-                    # from the out inwards, precedence to the left: 0 2 ... 3 1
-                    min(2*i, 2*num_words - 2*i - 1) for i in range(num_words)]
-                for threshold in range(num_words, -1, -1):
-                    string = ""
-                    for i, word in enumerate(words):
-                        string += word if word_priority[i] < threshold else ""
-                        string += "."
-                    if len(string) <= maxlength + 1:
-                        return string[:-1]
-                # fallback when every dot-based truncation is too long.
-                return shorten(words[0])
-
-            else:
-
-                # Custom description: just truncate.
-                return string if len(string) <= maxlength \
-                    else string[:maxlength-3]+"..."
-
-        descriptions = []
-        for item in self.plugin_data_views:
-            length = 70
-            if hasattr(item, "description") and item.description is not None:
-                item_description = shorten(item.description, length)
-                # if there's enough room left, add the class name in brackets.
-                length -= len(item_description) + 3
-                if length >= 10:
-                    item_description += " (" + shorten(str(item), length) + ")"
-            else:
-                item_description = shorten(str(item), length)
-            descriptions.append((item, item_description))
-
-        self.data_view_descriptions = dict(descriptions)
 
     @on_trait_change('workflow_tree.workflow_mv.valid')
     def update_run_btn_status(self):
