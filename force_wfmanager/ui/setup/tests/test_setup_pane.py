@@ -35,16 +35,6 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         self.wfmanager.exit()
         super(TestSetupPane, self).tearDown()
 
-    def test_data_view_descriptions(self):
-        self.assertIn(
-            "Plot with colormap (force_wfmanager.ui.review.plot.Plot)",
-            self.side_pane.data_view_descriptions.values()
-        )
-        self.assertIn(
-            "Simple plot (force_wfmanager.ui.review.plot.BasePlot)",
-            self.side_pane.data_view_descriptions.values()
-        )
-
     def test_add_entity_button(self):
         self.assertEqual(0, len(self.workflow_tree.workflow_mv.mco_mv))
         self.workflow_tree.factory(

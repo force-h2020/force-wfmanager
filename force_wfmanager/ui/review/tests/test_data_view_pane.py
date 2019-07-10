@@ -2,6 +2,7 @@ import unittest
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
+from force_wfmanager.ui.review.plot import BasePlot, Plot
 
 
 class TestDataViewPane(unittest.TestCase):
@@ -32,3 +33,33 @@ class TestDataViewPane(unittest.TestCase):
         self.assertEqual(
             len(self.pane.data_view.analysis_model.evaluation_steps),
             2)
+
+    def test_load_and_set_default_data_views(self):
+        self.assertIn(Plot, self.pane.available_data_views)
+        self.assertIn(BasePlot, self.pane.available_data_views)
+        self.assertEqual(len(self.pane.available_data_views), 2)
+        # XXX there must be a test for contributed data views
+
+    def test_change_data_view(self):
+        # check the initial state
+        self.assertEqual(
+            self.pane.data_view_selection, BasePlot)
+        self.assertIsInstance(
+            self.pane.data_view, BasePlot)
+
+        # then change data view
+        self.pane.data_view_selection = Plot
+        self.assertIsInstance(
+            self.pane.data_view, Plot)
+
+    def test_data_view_descriptions(self):
+        # the "change" button needs to be fired to populate the descriptions
+        self.pane.change_view = True
+        self.assertIn(
+            "Plot with colormap (force_wfmanager.ui.review.plot.Plot)",
+            self.pane.data_view_descriptions.values()
+        )
+        self.assertIn(
+            "Simple plot (force_wfmanager.ui.review.plot.BasePlot)",
+            self.pane.data_view_descriptions.values()
+        )

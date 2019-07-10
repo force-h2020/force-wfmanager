@@ -35,16 +35,16 @@ class DataViewPane(TraitsTaskPane):
     available_data_views = List(Type(BaseDataView))
 
     #: Selected data view class (from the list above)
-    selection = Enum(values="available_data_views")
+    data_view_selection = Enum(values="available_data_views")
 
     #: Human readable descriptions of each data view, for the UI
-    descriptions = Dict(Type(BaseDataView), Unicode())
+    data_view_descriptions = Dict(Type(BaseDataView), Unicode())
 
     selection_changer = View(
         HGroup(
             UItem(
-                "selection",
-                editor=EnumEditor(name='descriptions'),
+                "data_view_selection",
+                editor=EnumEditor(name='data_view_descriptions'),
                 style="custom",
             ),
             label="Graph type",
@@ -70,7 +70,7 @@ class DataViewPane(TraitsTaskPane):
         """
         available_data_views = [BasePlot, Plot]
 
-        if self.task.window is not None:
+        if self.task is not None and self.task.window is not None:
             for plugin in self.task.window.application.plugin_manager:
                 try:
                     available_data_views.extend(plugin.get_data_views())
@@ -119,14 +119,13 @@ class DataViewPane(TraitsTaskPane):
                 item_description = shorten(str(item), length)
             descriptions.append((item, item_description))
 
-        self.descriptions = dict(descriptions)
+        self.data_view_descriptions = dict(descriptions)
 
-    @on_trait_change('change_view')
-    def update_selection(self):
+    def _change_view_fired(self):
         self.update_descriptions()
         self.edit_traits(view="selection_changer")
 
-    @on_trait_change('selection')
+    @on_trait_change('data_view_selection')
     def switch_data_view(self, data_view_type):
         # Store current instance
         current_type = type(self.data_view)
