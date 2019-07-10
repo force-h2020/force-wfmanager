@@ -52,6 +52,18 @@ class TestDataViewPane(unittest.TestCase):
         self.assertIsInstance(
             self.pane.data_view, Plot)
 
+    def test_data_views_not_reinstantiated(self):
+        # two data views are visited once
+        initial = self.pane.data_view
+        self.assertIsInstance(initial, BasePlot)
+        self.pane.data_view_selection = Plot
+        other = self.pane.data_view
+        # they should be the same instance when visited again
+        self.pane.data_view_selection = BasePlot
+        self.assertTrue(self.pane.data_view is initial)
+        self.pane.data_view_selection = Plot
+        self.assertTrue(self.pane.data_view is other)
+
     def test_data_view_descriptions(self):
         # the "change" button needs to be fired to populate the descriptions
         self.pane.change_view = True
