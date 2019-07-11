@@ -139,6 +139,7 @@ class TestWorkflowView(BaseTest, UnittestTools):
         data_source = (self.factory_registry.data_source_factories[0]
                        .create_model())
         data_source.output_slot_info = [OutputSlotInfo(name='outputD')]
+
         with self.assertTraitChanges(
                 kpi_view, 'non_kpi_variables', count=1):
             execution_layer_view.add_data_source(data_source)

@@ -40,7 +40,7 @@ class CommunicatorView(HasTraits):
 
     #: Listeners
     @on_trait_change("model.notification_listeners[]")
-    def update_notification_listeners_mv(self):
+    def update_notification_listener_views(self):
         """Updates the modelviews for the notification listeners, but ignoring
         any which are non UI visible"""
         self.notification_listener_views = [

@@ -309,8 +309,8 @@ class WorkflowTree(ModelView):
                     node_for=[WorkflowView],
                     auto_open=True,
                     children='communicator_view',
-                    name='Communication',
-                    label='=Communication',
+                    name='Communicator',
+                    label='=Communicator',
                     view=no_view,
                     menu=no_menu,
                     on_select=self.workflow_selected
@@ -443,8 +443,8 @@ class WorkflowTree(ModelView):
         self.system_state.selected_factory_name = 'Execution Layer'
         self.system_state.add_new_entity = partial(
             self.new_layer,
-            None,
-            process_view
+            ui_info=None,
+            object=process_view
         )
 
     @selection
@@ -458,7 +458,11 @@ class WorkflowTree(ModelView):
             Selected ExecutionLayerView node in the TreeEditor
         """
 
-        self.system_state.selected_factory_name = 'Data Source'
+        add_new_entity = partial(
+            self.new_data_source,
+            ui_info=None,
+            object=execution_layer_view,
+        )
 
         factories = self._factory_registry.data_source_factories
 
@@ -468,20 +472,21 @@ class WorkflowTree(ModelView):
 
             self.system_state.entity_creator = NewEntityCreator(
                 factories=visible_factories,
-                dclick_function=self.system_state.add_new_entity
+                dclick_function=add_new_entity
             )
 
         self.system_state.add_new_entity = partial(
-            self.new_data_source,
-            None,
-            execution_layer_view,
+            add_new_entity,
+            ui_info=None,
         )
 
         self.system_state.remove_entity = partial(
             self.delete_layer,
-            None,
-            execution_layer_view
+            ui_info=None,
+            object=execution_layer_view
         )
+
+        self.system_state.selected_factory_name = 'Data Source'
 
     @selection
     def data_source_selected(self, data_source_view):
@@ -495,8 +500,8 @@ class WorkflowTree(ModelView):
         """
         self.system_state.remove_entity = partial(
             self.delete_data_source,
-            None,
-            data_source_view)
+            ui_info=None,
+            object=data_source_view)
 
     @selection
     def mco_selected(self, workflow_view):
@@ -508,10 +513,9 @@ class WorkflowTree(ModelView):
             Selected WorkflowView in the TreeEditor containing the MCO
         """
 
-        self.system_state.selected_factory_name = 'MCO'
-
-        self.system_state.add_new_entity = partial(
-            self.new_mco, None, workflow_view
+        add_new_entity = partial(
+            self.new_mco,
+            object=workflow_view
         )
 
         factories = self._factory_registry.mco_factories
@@ -521,8 +525,15 @@ class WorkflowTree(ModelView):
 
             self.system_state.entity_creator = NewEntityCreator(
                 factories=visible_factories,
-                dclick_function=self.system_state.add_new_entity
+                dclick_function=add_new_entity
             )
+
+        self.system_state.add_new_entity = partial(
+            add_new_entity,
+            ui_info=None
+        )
+
+        self.system_state.selected_factory_name = 'MCO'
 
     @selection
     def mco_optimizer_selected(self, mco_view):
@@ -536,8 +547,8 @@ class WorkflowTree(ModelView):
 
         self.system_state.remove_entity = partial(
             self.delete_mco,
-            None,
-            mco_view
+            ui_info=None,
+            object=mco_view
         )
 
     @selection
@@ -572,13 +583,9 @@ class WorkflowTree(ModelView):
         communicator_view: CommunicatorView
             Selected CommunicationView in the TreeEditor
         """
-
-        self.system_state.selected_factory_name = 'Notification Listener'
-
-        self.system_state.add_new_entity = partial(
+        add_new_entity = partial(
             self.new_notification_listener,
-            None,
-            communicator_view
+            object=communicator_view
         )
 
         factories = self._factory_registry.notification_listener_factories
@@ -588,8 +595,15 @@ class WorkflowTree(ModelView):
 
             self.system_state.entity_creator = NewEntityCreator(
                 factories=visible_factories,
-                dclick_function=self.system_state.add_new_entity
+                dclick_function=add_new_entity
             )
+
+        self.system_state.add_new_entity = partial(
+            add_new_entity,
+            ui_info=None
+        )
+
+        self.system_state.selected_factory_name = 'Notification Listener'
 
     @selection
     def notification_listener_selected(self, notification_listener_view):
@@ -604,8 +618,8 @@ class WorkflowTree(ModelView):
 
         self.system_state.remove_entity = partial(
             self.delete_notification_listener,
-            None,
-            notification_listener_view
+            ui_info=None,
+            object=notification_listener_view
         )
 
     # Methods for new entity creation - The args ui_info and object
@@ -614,7 +628,7 @@ class WorkflowTree(ModelView):
     # double-clicking a specific factory in the NewEntityCreator
 
     @triggers_verify
-    def new_data_source(self, ui_info, object):
+    def new_data_source(self, object, ui_info=None):
         """Adds a new datasource to the workflow."""
         object.add_data_source(self.system_state.entity_creator.model)
         self.system_state.entity_creator.reset_model()
@@ -631,8 +645,9 @@ class WorkflowTree(ModelView):
         self.system_state.entity_creator.reset_model()
 
     @triggers_verify
-    def new_notification_listener(self, ui_info, object, *args):
+    def new_notification_listener(self, ui_info, object):
         """"Adds a new notification listener to the workflow"""
+        print(ui_info, object, self.system_state.entity_creator)
         object.add_notification_listener(self.system_state.entity_creator
                                          .model)
         self.system_state.entity_creator.reset_model()

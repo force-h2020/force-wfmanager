@@ -195,6 +195,26 @@ class TestSetupPane(GuiTestAssistant, TestCase):
             2, len(self.workflow_view.process_view[0].execution_layer_views)
         )
 
+        self.assertEqual(
+            0, len(self.workflow_view.communicator_view[0]
+                   .notification_listener_views)
+        )
+
+        self.workflow_tree.communicator_selected(
+            self.workflow_view.communicator_view[0]
+        )
+        self.system_state.entity_creator.model = (
+            self.factory_registry.notification_listener_factories[0]
+            .create_model()
+        )
+        self.setup_pane.add_new_entity_btn = True
+
+        self.assertIsNotNone(self.system_state.entity_creator)
+        self.assertEqual(
+            1, len(self.workflow_view.communicator_view[0]
+                   .notification_listener_views)
+        )
+
     def test_remove_entity_button(self):
 
         execution_layer_view = (

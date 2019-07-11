@@ -288,11 +288,13 @@ class TestWorkflowTree(BaseTest):
         )
 
         self.workflow_tree.communicator_selected(communicator_view)
-
-        factory = self.factory_registry.notification_listener_factories[0]
-        self.system_state.entity_creator.model = factory.create_model()
+        self.system_state.entity_creator.model = (
+            self.factory_registry.notification_listener_factories[0]
+            .create_model()
+        )
         self.system_state.add_new_entity()
 
+        self.assertIsNotNone(self.system_state.entity_creator)
         self.assertEqual(
             2, len(communicator_view.notification_listener_views)
         )
