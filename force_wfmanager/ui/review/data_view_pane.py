@@ -69,8 +69,9 @@ class DataViewPane(TraitsTaskPane):
 
         """
         available_data_views = [BasePlot, Plot]
-
         if self.task is not None and self.task.window is not None:
+            # This is skipped if the current class is instantiated outside
+            # of an application (e.g. specific tests)
             for plugin in self.task.window.application.plugin_manager:
                 try:
                     available_data_views.extend(plugin.get_data_views())

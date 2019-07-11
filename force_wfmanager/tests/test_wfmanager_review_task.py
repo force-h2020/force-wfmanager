@@ -4,6 +4,8 @@ from pyface.constant import OK
 from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
+from force_wfmanager.ui.review.plot import BasePlot
+
 from .mock_methods import (
     mock_file_writer, mock_dialog, mock_return_args
 )
@@ -57,3 +59,26 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 'Cannot save in the requested file:\n\nOUPS',
                 'Error when saving the project'
             )
+
+    def test_default_data_views(self):
+        """ Test of the data view selection feature within the task."""
+        # Two default plot types
+        self.assertEqual(
+            len(self.review_task.central_pane.available_data_views), 2)
+
+        # Initial state
+        self.assertEqual(
+            self.review_task.central_pane.data_view_selection, BasePlot)
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, BasePlot)
+
+        # The "change" button needs to be fired to populate the descriptions
+        self.review_task.central_pane.change_view = True
+        self.assertIn(
+            "Plot with colormap (force_wfmanager.ui.review.plot.Plot)",
+            self.review_task.central_pane.data_view_descriptions.values()
+        )
+        self.assertIn(
+            "Simple plot (force_wfmanager.ui.review.plot.BasePlot)",
+            self.review_task.central_pane.data_view_descriptions.values()
+        )

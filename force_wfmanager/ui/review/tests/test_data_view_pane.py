@@ -35,10 +35,12 @@ class TestDataViewPane(unittest.TestCase):
             2)
 
     def test_load_and_set_default_data_views(self):
+        # This test class doesn't test the application, so there is no
+        # plugin discovery. Two default plots will be found as they are
+        # automatically populated.
         self.assertIn(Plot, self.pane.available_data_views)
         self.assertIn(BasePlot, self.pane.available_data_views)
         self.assertEqual(len(self.pane.available_data_views), 2)
-        # XXX there must be a test for contributed data views
 
     def test_change_data_view(self):
         # check the initial state
