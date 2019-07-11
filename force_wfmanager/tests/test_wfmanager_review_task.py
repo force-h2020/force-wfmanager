@@ -10,7 +10,7 @@ from .mock_methods import (
     mock_file_writer, mock_dialog, mock_return_args
 )
 from .test_wfmanager_tasks import get_probe_wfmanager_tasks
-
+from .dummy_classes import DummyWfManagerWithPlugins
 
 RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_review_task.FileDialog'
 RESULTS_FILE_OPEN_PATH = 'force_wfmanager.io.project_io.open'
@@ -80,5 +80,25 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         )
         self.assertIn(
             "Simple plot (force_wfmanager.ui.review.plot.BasePlot)",
+            self.review_task.central_pane.data_view_descriptions.values()
+        )
+
+
+class TestWFManagerTasksWithPlugins(GuiTestAssistant, TestCase):
+    def setUp(self):
+        super(TestWFManagerTasksWithPlugins, self).setUp()
+        _, self.review_task = get_probe_wfmanager_tasks(
+            wf_manager=DummyWfManagerWithPlugins())
+
+    def test_discover_data_views(self):
+        # Two default plot types plus one contributed
+        self.assertEqual(
+            len(self.review_task.central_pane.available_data_views), 3)
+
+        # fire the button to populate descriptions
+        self.review_task.central_pane.change_view = True
+        self.assertIn(
+            "Empty data view with a long description "
+            "(force_wfmanager.tests..DummyDataView)",
             self.review_task.central_pane.data_view_descriptions.values()
         )

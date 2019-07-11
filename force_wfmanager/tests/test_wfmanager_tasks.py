@@ -39,11 +39,12 @@ ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.' \
 ANALYSIS_FILE_OPEN_PATH = 'force_wfmanager.io.analysis_model_io.open'
 
 
-def get_probe_wfmanager_tasks():
+def get_probe_wfmanager_tasks(wf_manager=None):
     # Returns the Setup and Review Tasks, with a mock TaskWindow and dummy
     # Application which does not have an event loop.
 
-    wf_manager = DummyWfManager()
+    if wf_manager is None:
+        wf_manager = DummyWfManager()
 
     analysis_model = AnalysisModel()
     workflow_model = Workflow()
