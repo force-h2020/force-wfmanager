@@ -11,8 +11,7 @@ from pyface.api import (
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
 from traits.api import (
-    Instance, on_trait_change, List, Bool, Unicode, File, Either,
-    HasTraits
+    Instance, on_trait_change, List, Bool, Unicode, File
 )
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
@@ -39,6 +38,7 @@ log = logging.getLogger(__name__)
 class WfManagerSetupTask(Task):
 
     id = 'force_wfmanager.wfmanager_setup_task'
+
     name = 'Workflow Setup'
 
     #: Workflow model.

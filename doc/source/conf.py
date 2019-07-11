@@ -47,7 +47,7 @@ def mock_modules():
             return Mock()
 
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-    print 'mocking {}'.format(MOCK_MODULES)
+    print('mocking {}'.format(MOCK_MODULES))
 
 # mock_modules()
 

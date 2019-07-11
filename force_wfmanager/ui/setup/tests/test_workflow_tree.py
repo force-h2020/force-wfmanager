@@ -8,12 +8,6 @@ from force_wfmanager.ui.setup.workflow_tree import (
     WorkflowTree, TreeNodeWithStatus
 )
 from force_wfmanager.ui.setup.system_state import SystemState
-from force_wfmanager.ui.setup.mco.mco_parameter_view import (
-    MCOParameterView
-)
-from force_wfmanager.ui.setup.mco.kpi_specification_view import (
-    KPISpecificationView
-)
 
 
 class TestWorkflowTree(BaseTest):
@@ -142,11 +136,6 @@ class TestWorkflowTree(BaseTest):
             'MCO Parameters', self.system_state.selected_factory_name
         )
 
-        self.assertIsInstance(
-            self.system_state.selected_view,
-            MCOParameterView
-        )
-
         self.assertIsNone(self.system_state.add_new_entity)
         self.assertIsNone(self.system_state.remove_entity)
         self.assertIsNone(self.system_state.entity_creator)
@@ -158,11 +147,6 @@ class TestWorkflowTree(BaseTest):
         self.workflow_tree.mco_kpis_selected(mco_view)
         self.assertEqual(
             'MCO KPIs', self.system_state.selected_factory_name
-        )
-
-        self.assertIsInstance(
-            self.system_state.selected_view,
-            KPISpecificationView
         )
 
         self.assertIsNone(self.system_state.add_new_entity)
@@ -345,7 +329,7 @@ class TestWorkflowTree(BaseTest):
             "An input slot is not named", self.workflow_tree.selected_error
         )
 
-        parameter_view = self.workflow_tree.workflow_view.mco_view[0].parameter_view[0]
+        parameter_view = self.workflow_tree.workflow_view.mco_view[0].parameter_view
         self.system_state.selected_view = parameter_view
 
         self.assertIn("No errors", self.workflow_tree.selected_error)

@@ -1,12 +1,13 @@
 from traits.api import (
     HasTraits, List, Instance, Unicode, on_trait_change, Bool, Event
 )
-from traitsui.api import ModelView
 
-from force_bdss.api import Workflow, verify_workflow, InputSlotInfo, OutputSlotInfo
+from force_bdss.api import Workflow
 
 from force_wfmanager.ui.setup.mco.mco_view import MCOView
-from force_wfmanager.ui.setup.process.process_view import ProcessView
+from force_wfmanager.ui.setup.process.process_view import (
+    ProcessView
+)
 from force_wfmanager.ui.setup.communication\
     .communication_view import CommunicationView
 from force_wfmanager.utils.variable_names_registry import (
@@ -111,7 +112,7 @@ class WorkflowView(HasTraits):
     def received_verify_request(self):
         self.verify_workflow_event = True
 
-    #: Class methods
+    #: Public methods
     def set_mco(self, mco_model):
         """Set the MCO"""
         self.model.mco = mco_model

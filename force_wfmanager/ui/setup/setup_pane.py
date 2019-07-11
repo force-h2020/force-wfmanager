@@ -38,7 +38,7 @@ class SetupPane(TraitsTaskPane):
 
     #: The model from selected_view.
     #: Listens to: :attr:`models.workflow_tree.selected_view
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.selected_view>`
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.selected_view>`
     selected_model = Instance(BaseModel)
 
     #: An error message for the entire workflow
@@ -110,8 +110,8 @@ class SetupPane(TraitsTaskPane):
     #: The view when editing an existing instance within the workflow tree
     def default_traits_view(self):
         """ Sets up a TraitsUI view which displays the details
-        (parameters etc.) of the currently selected modelview. This varies
-        depending on what type of modelview is selected."""
+        (parameters etc.) of the currently selected view. This varies
+        depending on what type of view is selected."""
         view = View(
             VGroup(
                 # Main View with FORCE Logo
@@ -121,8 +121,9 @@ class SetupPane(TraitsTaskPane):
                         editor=InstanceEditor(),
                         style="custom",
                         ),
-                    visible_when = (
-                        "object.system_state.selected_factory_name == 'Workflow'"
+                    visible_when=(
+                        "object.system_state.selected_factory_name"
+                        " == 'Workflow'"
                     )
                 ),
                 # MCO Parameter and KPI views
@@ -165,7 +166,8 @@ class SetupPane(TraitsTaskPane):
                                 "object.system_state.entity_creator",
                                 editor=InstanceEditor(),
                                 style="custom",
-                                visible_when="object.system_state.entity_creator "
+                                visible_when="object.system_state"
+                                             ".entity_creator "
                                              "is not None",
                                 width=825
                             ),
@@ -178,7 +180,8 @@ class SetupPane(TraitsTaskPane):
                                     label_value='add_new_entity_label'
                                 ),
                                 enabled_when='enable_add_button',
-                                visible_when="object.system_state.selected_factory_name "
+                                visible_when="object.system_state"
+                                             ".selected_factory_name "
                                              "!= 'None'",
                                 springy=True
                             ),
@@ -187,7 +190,8 @@ class SetupPane(TraitsTaskPane):
                                 'remove_entity_btn',
                                 label='Delete Layer',
                                 visible_when=(
-                                    "object.system_state.selected_factory_name "
+                                    "object.system_state"
+                                    ".selected_factory_name "
                                     "== 'Data Source'"
                                 ),
                             ),
@@ -299,7 +303,6 @@ class SetupPane(TraitsTaskPane):
                 self.selected_model = self.system_state.selected_view.model
             else:
                 self.selected_model = None
-
 
     @on_trait_change('task:side_pane:workflow_tree:error_message')
     def sync_error_message(self):

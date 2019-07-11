@@ -1,7 +1,7 @@
 from functools import partial, wraps
 
 from traits.api import (
-    Callable, Event, Instance, Property, Unicode, on_trait_change
+    Event, Instance, Property, Unicode, on_trait_change
 )
 from traitsui.api import (
     Action, Group, Menu, ModelView, TextEditor,
@@ -9,7 +9,7 @@ from traitsui.api import (
 )
 
 from force_bdss.api import (
-    ExecutionLayer, IFactoryRegistry, InputSlotInfo, KPISpecification,
+    ExecutionLayer, IFactoryRegistry, InputSlotInfo,
     OutputSlotInfo, Workflow, verify_workflow
 )
 from force_wfmanager.ui.setup.process.data_source_view \
@@ -69,14 +69,6 @@ delete_notification_listener_action = Action(
     name='Delete',
     action='delete_notification_listener'
 )
-
-# Parameter Actions
-new_parameter_action = Action(name='New Parameter...', action='new_parameter')
-delete_parameter_action = Action(name='Delete', action='delete_parameter')
-
-# KPI Actions
-new_kpi_action = Action(name='New KPI...', action='new_kpi')
-delete_kpi_action = Action(name="Delete", action='delete_kpi')
 
 # Execution Layer Actions
 new_layer_action = Action(name="New Layer...", action='new_layer')
@@ -387,7 +379,8 @@ class WorkflowTree(ModelView):
                 "No errors for {}".format(mv_label), "")
         else:
             mv_label = self.system_state.selected_view.label
-            error_list = self.system_state.selected_view.error_message.split('\n')
+            error_list = (self.system_state.selected_view
+                          .error_message.split('\n'))
             body_strings = ''.join([SINGLE_ERROR.format(error)
                                     for error in error_list])
             return ERROR_TEMPLATE.format(
@@ -637,7 +630,8 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def new_notification_listener(self, ui_info, object, *args):
         """"Adds a new notification listener to the workflow"""
-        object.add_notification_listener(self.system_state.entity_creator.model)
+        object.add_notification_listener(self.system_state.entity_creator
+                                         .model)
         self.system_state.entity_creator.reset_model()
 
     # Methods for deleting entities from the workflow - object is the
