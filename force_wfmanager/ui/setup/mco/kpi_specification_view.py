@@ -115,36 +115,38 @@ class KPISpecificationView(HasTraits):
     #: List of kpi ModelViews to display in ListEditor notebook
     kpi_model_views = List(Instance(KPISpecificationModelView))
 
+    #: The human readable name of the KPI View
+    label = Unicode('MCO KPIs')
+
+    # ------------------
+    # Dependent Attributes
+    # ------------------
+
+    #: The selected KPI in kpi_model_views
+    selected_kpi = Instance(KPISpecificationModelView)
+
+    #: The selected non-KPI in non_kpi_variables
+    selected_non_kpi = Instance(TableRow)
+
     #: Defines if the KPI is valid or not. Set by the function
-    #: map_verify_workflow in workflow_view.py
+    #: :func:`verify_tree
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Set by the function
-    #: verify_tree in workflow_tree.py
+    #: :func:`verify_tree
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
-
-    # ------------------
-    # Derived Attributes
-    # ------------------
 
     #: Event to request a verification check on the workflow
     #: Listens to: `model.name`,`model.objective`
     verify_workflow_event = Event
 
-    #: The selected KPI
-    selected_kpi = Instance(KPISpecificationModelView)
-
-    #: The selected non-KPI
-    selected_non_kpi = Instance(TableRow)
-
-    #: The human readable name of the KPI View
-    label = Unicode('MCO KPIs')
-
     # ------------------
     #     Properties
     # ------------------
 
-    #: The names of the KPIs in the Workflow
+    #: The names of the KPIs in the Workflow.
     kpi_names = Property(List(Unicode),
                          depends_on='model.kpis[]')
 
@@ -159,18 +161,19 @@ class KPISpecificationView(HasTraits):
     #      Buttons
     # ------------------
 
+    #: Adds selected_non_kpi variable as a new MCO KPI
     add_kpi_button = Button('New KPI')
 
+    #: Removes selected_kpi from the MCO
     remove_kpi_button = Button('Delete KPI')
 
     # ------------------
     #       View
     # ------------------
 
-    traits_view = View()
-
     def default_traits_view(self):
 
+        # TableEditor to display non_kpi_variables
         table_editor = TableEditor(
             columns=[
                 ObjectColumn(name="name",
@@ -184,6 +187,7 @@ class KPISpecificationView(HasTraits):
             selected='selected_non_kpi'
         )
 
+        # ListEditor to display kpi_model_views
         list_editor = ListEditor(
             page_name='.label',
             use_notebook=True,
@@ -263,6 +267,12 @@ class KPISpecificationView(HasTraits):
             for kpi in self.model.kpis
         ]
 
+    # Workflow Validation
+    @on_trait_change('kpi_model_views.verify_workflow_event')
+    def received_verify_request(self):
+        self.verify_workflow_event = True
+
+    #: Button actions
     def _add_kpi_button_fired(self):
         """Call add_kpi using selected non-kpi variable from table"""
         if self.selected_non_kpi is not None:
@@ -277,6 +287,7 @@ class KPISpecificationView(HasTraits):
         if self.selected_kpi is not None:
             self.remove_kpi(self.selected_kpi.model)
 
+    #: Class methods
     def add_kpi(self, kpi):
         """Adds a KPISpecification to the MCO model associated with this
          modelview.
@@ -298,3 +309,4 @@ class KPISpecificationView(HasTraits):
             The KPISpecification to be added to the current MCO.
         """
         self.model.kpis.remove(kpi)
+        self.verify_workflow_event = True

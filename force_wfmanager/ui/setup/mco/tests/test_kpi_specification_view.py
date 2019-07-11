@@ -31,6 +31,11 @@ class TestKPISpecificationModelView(unittest.TestCase, UnittestTools):
             self.kpi_model_view.label
         )
 
+    def test_verify_workflow_event(self):
+        with self.assertTraitChanges(
+                self.kpi_model_view, 'verify_workflow_event', count=1):
+            self.kpi_model_view.model.name = 'another'
+
 
 class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
@@ -113,4 +118,9 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         self.assertEqual(0, len(self.workflow.mco.kpis))
         self.assertEqual(0, len(self.kpi_view.kpi_model_views))
 
+    def test_verify_workflow_event(self):
+        kpi_model_view = self.kpi_view.kpi_model_views[0]
 
+        with self.assertTraitChanges(
+                self.kpi_view, 'verify_workflow_event', count=1):
+            kpi_model_view.model.name = 'another'

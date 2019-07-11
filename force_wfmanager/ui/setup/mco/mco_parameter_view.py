@@ -99,9 +99,9 @@ class MCOParameterView(HasTraits):
     #: List of MCO parameter model views
     parameter_model_views = List(Instance(MCOParameterModelView))
 
-    # ------------------
+    # --------------------
     # Dependent Attributes
-    # ------------------
+    # --------------------
 
     #: The selected parameter model view
     selected_parameter = Instance(MCOParameterModelView)
@@ -120,7 +120,8 @@ class MCOParameterView(HasTraits):
     error_message = Unicode()
 
     #: Event to request a verification check on the workflow
-    #:
+    #: Listens to: :attr:`parameter_model_views.verify_workflow_event
+    #: <MCOParameterModelView>`
     verify_workflow_event = Event
 
     # ----------
@@ -212,27 +213,9 @@ class MCOParameterView(HasTraits):
             for parameter in self.model.parameters
         ]
 
-    #: Class Methods
-    def add_parameter(self, parameter):
-        """Adds a parameter to the MCO model associated with this modelview.
-
-        Parameters
-        ----------
-        parameter: BaseMCOParameter
-            The parameter to be added to the current MCO.
-        """
-        self.model.parameters.append(parameter)
-
-    def remove_parameter(self, parameter):
-        """Removes a parameter from the MCO model associated with this
-        modelview.
-
-        Parameters
-        ----------
-        parameter: BaseMCOParameter
-            The parameter to be removed from the current MCO.
-        """
-        self.model.parameters.remove(parameter)
+    # Workflow Validation
+    @on_trait_change('parameter_model_views.verify_workflow_event')
+    def received_verify_request(self):
         self.verify_workflow_event = True
 
     #: Button actions
@@ -245,3 +228,26 @@ class MCOParameterView(HasTraits):
     def _remove_parameter_button_fired(self):
         """Call remove_parameter to delete selected_parameter"""
         self.remove_parameter(self.selected_parameter.model)
+
+    #: Class Methods
+    def add_parameter(self, parameter):
+        """Adds a parameter to the MCO model associated with this view.
+
+        Parameters
+        ----------
+        parameter: BaseMCOParameter
+            The parameter to be added to the current MCO.
+        """
+        self.model.parameters.append(parameter)
+
+    def remove_parameter(self, parameter):
+        """Removes a parameter from the MCO model associated with this
+        view.
+
+        Parameters
+        ----------
+        parameter: BaseMCOParameter
+            The parameter to be removed from the current MCO.
+        """
+        self.model.parameters.remove(parameter)
+        self.verify_workflow_event = True

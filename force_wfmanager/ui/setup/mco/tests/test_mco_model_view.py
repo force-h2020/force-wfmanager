@@ -1,4 +1,4 @@
-import unittest
+from traits.testing.unittest_tools import UnittestTools
 
 from force_bdss.api import (
     KPISpecification, OutputSlotInfo, BaseMCOParameter
@@ -6,13 +6,11 @@ from force_bdss.api import (
 
 from force_wfmanager.ui.setup.mco.mco_view import \
     MCOView
-from force_wfmanager.ui.setup.mco.mco_parameter_view import \
-    MCOParameterView
 from force_wfmanager.ui.setup.tests.template_test_case import \
     BaseTest
 
 
-class TestMCOView(BaseTest):
+class TestMCOView(BaseTest, UnittestTools):
 
     def setUp(self):
         super(TestMCOView, self).setUp()
@@ -29,12 +27,21 @@ class TestMCOView(BaseTest):
             model=self.workflow.mco,
             variable_names_registry=self.variable_names_registry
         )
-        self.kpi_view = self.mco_view.kpi_view[0]
-        self.parameter_view = self.mco_view.parameter_view[0]
+
+        self.kpi_view = self.mco_view.kpi_view
+        self.parameter_view = self.mco_view.parameter_view
 
     def test_init_mco_view(self):
-        self.assertEqual(1, len(self.mco_view.kpi_view))
-        self.assertEqual(1, len(self.kpi_view.kpi_names))
+        self.assertEqual(2, len(self.mco_view.mco_options))
+        self.assertEqual(
+            self.mco_view.mco_options[0],
+            self.parameter_view
+        )
+        self.assertEqual(
+            self.mco_view.mco_options[1],
+            self.kpi_view
+        )
+
         self.assertEqual(1, len(self.kpi_view.kpi_model_views))
         self.assertEqual(2, len(self.kpi_view.non_kpi_variables))
         self.assertEqual(
@@ -44,7 +51,6 @@ class TestMCOView(BaseTest):
             'outputA',
             self.kpi_view.kpi_names[0])
 
-        self.assertEqual(1, len(self.mco_view.parameter_view))
         self.assertEqual(2, len(self.parameter_view.parameter_model_views))
         self.assertEqual(
             'P1',
@@ -95,3 +101,16 @@ class TestMCOView(BaseTest):
         self.assertEqual(1, len(self.parameter_view.parameter_model_views))
         self.assertEqual(2, len(self.kpi_view.non_kpi_variables))
         self.assertEqual(1, len(self.kpi_view.kpi_names))
+
+    def test_verify_workflow_event(self):
+        parameter_model_view = self.parameter_view.parameter_model_views[0]
+
+        with self.assertTraitChanges(
+                self.mco_view, 'verify_workflow_event', count=1):
+            parameter_model_view.model.name = 'another'
+
+        kpi_model_view = self.kpi_view.kpi_model_views[0]
+
+        with self.assertTraitChanges(
+                self.mco_view, 'verify_workflow_event', count=1):
+            kpi_model_view.model.name = 'another'

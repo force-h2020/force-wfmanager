@@ -30,68 +30,57 @@ class MCOView(HasTraits):
     # Regular Attributes
     # ------------------
 
-    #: List of MCO parameters and KPIs to be displayed in the TreeEditor
+    #: List of MCO parameter and KPI views to be displayed in the TreeEditor
     #: NOTE: (Has to be a list to be selectable in TreeEditor)
     mco_options = List(Either(Instance(MCOParameterView),
                               Instance(KPISpecificationView)))
 
-    #: List of MCO parameters to be displayed in the TreeEditor
-    #: NOTE: (Has to be a list to be selectable in TreeEditor)
-    parameter_view = List(Instance(MCOParameterView))
+    #: A view containing all MCO parameters
+    parameter_view = Instance(MCOParameterView)
 
-    #: List of the MCO KPIs to be displayed in the TreeEditor
-    #: NOTE: (Has to be a list to be selectable in TreeEditor)
-    kpi_view = List(Instance(KPISpecificationView))
+    #: A view containing all MCO KPIs
+    kpi_view = Instance(KPISpecificationView)
 
     #: The label to display in the TreeEditor
     label = Unicode()
 
-    # ------------------
+    # ---------------------
     # Dependent Attributes
-    # ------------------
+    # ---------------------
 
     #: Event to request a verification check on the workflow
+    #: Listens to: :attr:`parameter_view.verify_workflow_event
+    #: <MCOParameterView>` and :attr:`kpi_view.verify_workflow_event
+    #: <KPISpecificationView>`
     verify_workflow_event = Event
 
     #: Defines if the MCO is valid or not. Updated by
     #: :func:`verify_tree
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Updated by
     #: :func:`verify_tree
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
-
-    # ------------------
-    #       View
-    # ------------------
-
-    traits_view = View()
 
     # Defaults
     def _label_default(self):
         return get_factory_name(self.model.factory)
 
     def _parameter_view_default(self):
-        return [MCOParameterView(
+        return MCOParameterView(
             model=self.model
-        )]
+        )
 
     def _kpi_view_default(self):
-        return [KPISpecificationView(
+        return KPISpecificationView(
             model=self.model,
             variable_names_registry=self.variable_names_registry
-        )]
+        )
 
     def _mco_options_default(self):
-        return [MCOParameterView(
-            model=self.model
-            ),
-            KPISpecificationView(
-            model=self.model,
-            variable_names_registry=self.variable_names_registry
-        )]
+        return [self.parameter_view, self.kpi_view]
 
     #: Listeners
     # Workflow Verification
