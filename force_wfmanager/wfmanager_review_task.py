@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 class WfManagerReviewTask(Task):
     """Task responsible for running the Workflow and displaying the results."""
 
-    #: Secondary pane containing the analysis in table form
+    #: Top pane containing the analysis in table form
     side_pane = Instance(ResultsPane)
 
     #: Main pane containing the graphs
