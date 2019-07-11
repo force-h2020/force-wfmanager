@@ -293,7 +293,7 @@ class SetupPane(TraitsTaskPane):
 
     #: Listeners
     # Synchronisation with WorkflowTree
-    @on_trait_change('system_state:selected_view')
+    @on_trait_change('system_state:selected_view.error_message')
     def sync_selected_view(self):
         """ Synchronise selected_view with the selected modelview in the tree
         editor. Checks if the model held by the modelview needs to be displayed
@@ -304,10 +304,7 @@ class SetupPane(TraitsTaskPane):
             else:
                 self.selected_model = None
 
-    @on_trait_change('task:side_pane:workflow_tree:error_message')
-    def sync_error_message(self):
-        """Synchronises entity_creator with WorkflowTree"""
-        self.error_message = self.task.side_pane.workflow_tree.error_message
+            self.error_message = self.system_state.selected_view.error_message
 
     #: Button actions
     # Button event handlers for creating and deleting workflow items

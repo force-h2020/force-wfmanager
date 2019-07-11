@@ -94,21 +94,6 @@ class NewEntityCreator(HasStrictTraits):
     #: Listens to :attr:`selected_factory`
     _cached_models = Dict()
 
-    #: A function which adds a new entity to the workflow tree, using the
-    #: currently selected factory. For example, if the 'DataSources' factory
-    #: is selected, this function would be ``new_data_source()``.
-    #: Listens to: :attr:`models.workflow_tree.add_new_entity
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
-    #: add_new_entity>`
-    add_new_entity = Callable()
-
-    #: A function to remove the currently selected modelview from the
-    #: workflow tree.
-    #: Listens to: :attr:`models.workflow_tree.remove_entity
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
-    #: remove_entity>`
-    remove_entity = Callable()
-
     # ----------
     # Properties
     # ----------

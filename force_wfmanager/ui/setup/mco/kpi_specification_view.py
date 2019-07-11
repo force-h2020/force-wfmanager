@@ -78,9 +78,6 @@ class KPISpecificationModelView(ModelView):
         """Gets the label from the model object"""
         if self.model.name == '':
             return "KPI"
-        elif self.model.objective == '':
-            return "KPI: {}".format(self.model.name)
-
         return "KPI: {} ({})".format(self.model.name, self.model.objective)
 
     #: Listeners

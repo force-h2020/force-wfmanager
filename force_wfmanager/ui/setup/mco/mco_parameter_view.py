@@ -209,10 +209,12 @@ class MCOParameterView(HasTraits):
     @on_trait_change('model.parameters[]')
     def update_parameter_model_views(self):
         """ Update the MCOParameterModelView(s) """
-        self.parameter_model_views = [
-            MCOParameterModelView(model=parameter)
-            for parameter in self.model.parameters
-        ]
+        self.parameter_model_views = []
+        if self.model is not None:
+            self.parameter_model_views += [
+                MCOParameterModelView(model=parameter)
+                for parameter in self.model.parameters
+            ]
 
     # Workflow Validation
     @on_trait_change('parameter_model_views.verify_workflow_event')

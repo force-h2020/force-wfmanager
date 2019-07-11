@@ -229,3 +229,23 @@ class TestSetupPane(GuiTestAssistant, TestCase):
             0,
             len(self.workflow_view.process_view[0].execution_layer_views)
         )
+
+    def test_sync_error_message(self):
+
+        execution_layer_view = (
+            self.workflow_view.process_view[0].execution_layer_views[0]
+        )
+
+        self.system_state.selected_view = execution_layer_view
+
+        self.assertEqual(
+            execution_layer_view.error_message,
+            self.setup_pane.error_message
+        )
+
+        self.system_state.selected_view.error_message = 'New error'
+
+        self.assertEqual(
+            'New error',
+            self.setup_pane.error_message
+        )

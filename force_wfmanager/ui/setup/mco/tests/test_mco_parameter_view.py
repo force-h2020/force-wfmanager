@@ -37,6 +37,32 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
                 self.parameter_model_view, 'verify_workflow_event', count=1):
             self.parameter_model_view.model.name = 'another'
 
+    def test_traits_view(self):
+        trait_view = self.parameter_model_view.trait_view()
+        trait_view_repr = trait_view.content.__repr__()
+
+        self.assertIn(
+            'name',
+            trait_view_repr,
+        )
+        self.assertIn(
+            'type',
+            trait_view_repr,
+        )
+        self.assertNotIn(
+            'new_trait',
+            trait_view_repr,
+        )
+
+        self.parameter_model_view.model.add_trait('new_trait', 1)
+        trait_view = self.parameter_model_view.trait_view()
+        trait_view_repr = trait_view.content.__repr__()
+
+        self.assertIn(
+            'new_trait',
+            trait_view_repr,
+        )
+
 
 class TestMCOParameterView(unittest.TestCase, UnittestTools):
 
@@ -59,6 +85,13 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
             "Probe parameter",
             self.parameter_view.parameter_model_views[0].label,
         )
+        self.assertIsNotNone(self.parameter_view.parameter_entity_creator)
+
+    def test_parameter_entity_creator(self):
+
+        self.parameter_view.model = None
+        self.assertIsNone(self.parameter_view.parameter_entity_creator)
+        self.assertEqual(0, len(self.parameter_view.parameter_model_views))
 
     def test_add_parameter(self):
 
