@@ -419,6 +419,32 @@ class WorkflowTree(ModelView):
     # set add_new_entity to be for the right object type and provide a way to
     # add things by double clicking
 
+    def factory(self, from_registry, create_fn, view):
+        """Called on selecting a node in the TreeEditor which represents a
+        factory.
+        Parameters
+        ----------
+        from_registry: List(BaseFactory)
+            A list of factories available for this node
+        create_fn: function
+            A function which adds a newly created instance to the Workflow
+        view: HasTraits
+            The view of the currently selected node
+        """
+        add_new_entity = partial(create_fn, object=view)
+
+        if from_registry is not None:
+            visible_factories = [f for f in from_registry if f.ui_visible]
+            self.system_state.entity_creator = NewEntityCreator(
+                factories=visible_factories,
+                dclick_function=add_new_entity
+            )
+
+        self.system_state.add_new_entity = partial(
+            add_new_entity,
+            ui_info=None,
+        )
+
     @selection
     def workflow_selected(self, workflow_view):
         """Called on selecting the top node in the WorkflowTree
@@ -440,12 +466,12 @@ class WorkflowTree(ModelView):
             Selected ProcessView node in the TreeEditor
         """
 
-        self.system_state.selected_factory_name = 'Execution Layer'
-        self.system_state.add_new_entity = partial(
+        self.factory(
+            None,
             self.new_layer,
-            ui_info=None,
-            object=process_view
-        )
+            process_view)
+
+        self.system_state.selected_factory_name = 'Execution Layer'
 
     @selection
     def execution_layer_selected(self, execution_layer_view):
@@ -458,27 +484,10 @@ class WorkflowTree(ModelView):
             Selected ExecutionLayerView node in the TreeEditor
         """
 
-        add_new_entity = partial(
+        self.factory(
+            self._factory_registry.data_source_factories,
             self.new_data_source,
-            ui_info=None,
-            object=execution_layer_view,
-        )
-
-        factories = self._factory_registry.data_source_factories
-
-        if factories is not None:
-
-            visible_factories = [f for f in factories if f.ui_visible]
-
-            self.system_state.entity_creator = NewEntityCreator(
-                factories=visible_factories,
-                dclick_function=add_new_entity
-            )
-
-        self.system_state.add_new_entity = partial(
-            add_new_entity,
-            ui_info=None,
-        )
+            execution_layer_view)
 
         self.system_state.remove_entity = partial(
             self.delete_layer,
@@ -513,25 +522,10 @@ class WorkflowTree(ModelView):
             Selected WorkflowView in the TreeEditor containing the MCO
         """
 
-        add_new_entity = partial(
+        self.factory(
+            self._factory_registry.mco_factories,
             self.new_mco,
-            object=workflow_view
-        )
-
-        factories = self._factory_registry.mco_factories
-
-        if factories is not None:
-            visible_factories = [f for f in factories if f.ui_visible]
-
-            self.system_state.entity_creator = NewEntityCreator(
-                factories=visible_factories,
-                dclick_function=add_new_entity
-            )
-
-        self.system_state.add_new_entity = partial(
-            add_new_entity,
-            ui_info=None
-        )
+            workflow_view)
 
         self.system_state.selected_factory_name = 'MCO'
 
@@ -583,25 +577,11 @@ class WorkflowTree(ModelView):
         communicator_view: CommunicatorView
             Selected CommunicationView in the TreeEditor
         """
-        add_new_entity = partial(
+
+        self.factory(
+            self._factory_registry.notification_listener_factories,
             self.new_notification_listener,
-            object=communicator_view
-        )
-
-        factories = self._factory_registry.notification_listener_factories
-
-        if factories is not None:
-            visible_factories = [f for f in factories if f.ui_visible]
-
-            self.system_state.entity_creator = NewEntityCreator(
-                factories=visible_factories,
-                dclick_function=add_new_entity
-            )
-
-        self.system_state.add_new_entity = partial(
-            add_new_entity,
-            ui_info=None
-        )
+            communicator_view)
 
         self.system_state.selected_factory_name = 'Notification Listener'
 
