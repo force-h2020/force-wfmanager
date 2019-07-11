@@ -245,6 +245,7 @@ class Plot(HasStrictTraits):
         return [[] for _ in range(len(self.analysis_model.value_names))]
 
     # Properties
+    #: NOTE: appears to be updated very often (could do with caching?)
     def _get_reset_enabled(self):
         x_data = self._plot_data.get_data('x')
         if len(x_data) > 0:

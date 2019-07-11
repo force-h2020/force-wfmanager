@@ -1,10 +1,10 @@
 from traits.api import (
     Bool, Callable, Dict, Either, HasStrictTraits, Instance, List, ReadOnly,
-    Property, Unicode, on_trait_change
+    Property, Unicode, on_trait_change, Button, cached_property
 )
 from traitsui.api import (
     HSplit, HTMLEditor, InstanceEditor, Menu, TreeEditor, TreeNode, UItem,
-    VGroup, View
+    VGroup, View, HGroup, ButtonEditor, VSplit
 )
 from envisage.plugin import Plugin
 
@@ -70,6 +70,10 @@ class NewEntityCreator(HasStrictTraits):
     #: A message to be displayed if there are no config options
     _no_config_options_msg = ReadOnly(Unicode)
 
+    #: Option for the user to manually control the visibility of the
+    #: configuration option display
+    config_visible = Bool(True)
+
     # --------------------
     # Dependent Attributes
     # --------------------
@@ -89,6 +93,21 @@ class NewEntityCreator(HasStrictTraits):
     #: models are saved
     #: Listens to :attr:`selected_factory`
     _cached_models = Dict()
+
+    #: A function which adds a new entity to the workflow tree, using the
+    #: currently selected factory. For example, if the 'DataSources' factory
+    #: is selected, this function would be ``new_data_source()``.
+    #: Listens to: :attr:`models.workflow_tree.add_new_entity
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
+    #: add_new_entity>`
+    add_new_entity = Callable()
+
+    #: A function to remove the currently selected modelview from the
+    #: workflow tree.
+    #: Listens to: :attr:`models.workflow_tree.remove_entity
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
+    #: remove_entity>`
+    remove_entity = Callable()
 
     # ----------
     # Properties
@@ -132,36 +151,37 @@ class NewEntityCreator(HasStrictTraits):
         )
 
         view = View(
-            HSplit(
-                VGroup(
-                    UItem("plugins_root", editor=editor),
-                ),
-                VGroup(
+                HSplit(
                     VGroup(
-                        UItem(
-                            "model", style="custom", editor=InstanceEditor(),
-                            visible_when="_current_model_editable is True"
-                              ),
-                        UItem(
-                            "_no_config_options_msg", style="readonly",
-                            editor=HTMLEditor(),
-                            visible_when="_current_model_editable is False"
+                        UItem("plugins_root", editor=editor),
+                    ),
+                    VGroup(
+                        VGroup(
+                            UItem(
+                                "model", style="custom", editor=InstanceEditor(),
+                                visible_when="_current_model_editable is True"
+                                  ),
+                            UItem(
+                                "_no_config_options_msg", style="readonly",
+                                editor=HTMLEditor(),
+                                visible_when="_current_model_editable is False"
+                            ),
+                            visible_when="model is not None and config_visible",
+                            style="custom",
+                            label="Configuration Options",
+                            show_border=True,
+                            springy=True,
                         ),
-                        visible_when="model is not None",
-                        style="custom",
-                        label="Configuration Options",
-                        show_border=True,
-                        springy=True,
+                        VGroup(
+                            UItem("model_description_HTML", editor=HTMLEditor()),
+                            style="readonly",
+                            label="Description",
+                            show_border=True,
+                            springy=True,
+                        ),
                     ),
-                    VGroup(
-                        UItem("model_description_HTML", editor=HTMLEditor()),
-                        style="readonly",
-                        label="Description",
-                        show_border=True,
-                        springy=True,
-                    ),
-                )
-            ),
+                    springy=True,
+                ),
             title="Add New Element",
             width=500,
             resizable=True,

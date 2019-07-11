@@ -58,7 +58,6 @@ class ExecutionLayerView(HasTraits):
     def __init__(self, model, *args, **kwargs):
         super(ExecutionLayerView, self).__init__(*args, **kwargs)
         self.model = model
-        #self.update_data_source_model_views()
 
     # Synchronizing UI and model
     @on_trait_change("model.data_sources[]")

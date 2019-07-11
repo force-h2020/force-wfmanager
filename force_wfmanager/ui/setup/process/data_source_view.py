@@ -40,6 +40,8 @@ class TableRow(HasStrictTraits):
     description = Unicode()
 
     def __init__(self, model, *args, **kwargs):
+        #: FIXME: Child model should not be instantiated before super
+        #: FIXME: class is
         self.model = model
         super(TableRow, self).__init__(*args, **kwargs)
 

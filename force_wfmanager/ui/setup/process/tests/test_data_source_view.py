@@ -19,7 +19,8 @@ class TestDataSourceView(BaseTest):
 
     def test_init_data_source_view(self):
         self.assertEqual(
-            len(self.data_source_view.output_slots_representation), 2)
+            2,
+            len(self.data_source_view.output_slots_representation))
         self.assertEqual(
             len(self.data_source_view.output_slots_representation),
             len(self.model_1.output_slot_info))

@@ -20,9 +20,6 @@ class ProcessView(HasTraits):
     #: The Variable Names Registry
     variable_names_registry = Instance(VariableNamesRegistry)
 
-    #: The label to display in the list
-    label = Unicode('Process')
-
     # ------------------
     # Regular Attributes
     # ------------------
@@ -32,11 +29,22 @@ class ProcessView(HasTraits):
     #: as a child.
     execution_layer_views = List(Instance(ExecutionLayerView))
 
+    #: The label to display in the list
+    label = Unicode('Process')
+
+    #: Defines if the MCO is valid or not. Updated by
+    #: :func:`verify_tree
+    #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
+
+    #: An error message for issues in this modelview. Updated by
+    #: :func:`workflow_tree.WorkflowTree.verify_tree
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
+    error_message = Unicode()
 
     #: An event which runs a verification check on the current workflow when
     #: triggered.
-    #: Listens to: :func:`~workflow_mv.verify_workflow_event`
+    #: Listens to: :func:`~workflow_view.verify_workflow_event`
     verify_workflow_event = Event
 
     def __init__(self, model, *args, **kwargs):

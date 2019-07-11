@@ -1,16 +1,29 @@
 from traits.api import (
     Bool, Enum, Event, Instance, List, Property, Unicode, cached_property,
-    on_trait_change, HasTraits
+    on_trait_change, HasTraits, Button
 )
-from traitsui.api import EnumEditor, Item, View
-
-from force_bdss.api import KPISpecification, Identifier
+from traitsui.api import (
+    EnumEditor, Item, View, ListEditor, TableEditor, ObjectColumn,
+    VGroup, HGroup, UReadonly, Handler, ModelView
+)
+from force_bdss.api import KPISpecification, BaseMCOModel
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
 
 
-class KPISpecificationView(HasTraits):
+class TableRow(HasTraits):
+    """A representation of a variable in the workflow. Instances of TableRow
+    are displayed in a table using the TableEditor."""
+
+    #: The variable's type
+    type = Unicode()
+
+    #: The variable's name
+    name = Unicode()
+
+
+class KPISpecificationModelView(ModelView):
 
     # -------------------
     # Required Attributes
@@ -19,20 +32,95 @@ class KPISpecificationView(HasTraits):
     #: KPI model
     model = Instance(KPISpecification)
 
-    #: Registry of the available variables, defines the
-    #: output variables able to be optimised as KPIs
+    # ------------------
+    # Regular Attributes
+    # ------------------
+
+    #: Defines if the KPI is valid or not. Set by the function
+    #: map_verify_workflow in workflow_view.py
+    valid = Bool(True)
+
+    #: An error message for issues in this modelview. Updated by
+    #: :func:`verify_tree
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
+    error_message = Unicode()
+
+    #: Event to request a verification check on the workflow
+    #: :func:`MCOModelView.verify_workflow_event
+    #: <force_wfmanager.ui.setup.mco.mco_view\
+    #: .MCOModelView.verify_workflow_event>`,
+    #: :func:`ProcessModelView.verify_workflow_event
+    #: <force_wfmanager.ui.setup.process.process_view.\
+    #: ProcessModelView.verify_workflow_event>`,
+    #: :func:`NotificationListenerModelView.verify_workflow_event
+    #: <force_wfmanager.views.execution_layers.\
+    # notification_listener_model_view.\
+    #: NotificationListenerModelView.verify_workflow_event>`
+    verify_workflow_event = Event
+
+    # ------------------
+    #     Properties
+    # ------------------
+
+    #: Human readable label for ModelView
+    label = Property(Instance(Unicode),
+                     depends_on='model:[name,objective]')
+
+    # ------------------
+    #     View
+    # ------------------
+
+    # The traits_view only displays possible options for
+    # model.name listed in kpi_names. However, it is possible
+    # to directly change model.name without updating kpi_names
+    traits_view = View(
+        UReadonly('model.name'),
+        Item("model.objective"),
+        Item('model.auto_scale'),
+        Item("model.scale_factor",
+             visible_when='not model.auto_scale'),
+        kind="subpanel",
+    )
+
+    @on_trait_change('model.[name,type]')
+    def kpi_change(self):
+        self.verify_workflow_event = True
+
+    def _get_label(self):
+        """Gets the label from the model object"""
+        if self.model.name == '':
+            return "KPI"
+        elif self.model.objective == '':
+            return "KPI: {}".format(self.model.name)
+
+        return "KPI: {} ({})".format(self.model.name, self.model.objective)
+
+
+class KPISpecificationView(HasTraits):
+
+    # -------------------
+    # Required Attributes
+    # -------------------
+
+    #: MCO model (More restrictive than the ModelView model attribute)
+    model = Instance(BaseMCOModel)
+
+    #: Registry of the available variables
     variable_names_registry = Instance(VariableNamesRegistry)
 
     # ------------------
     # Regular Attributes
     # ------------------
 
+    #: List of kpi ModelViews to display in ListEditor notebook
+    kpi_model_views = List(Instance(KPISpecificationModelView))
+
     #: Defines if the KPI is valid or not. Set by the function
-    #: map_verify_workflow in process_tree.py
+    #: map_verify_workflow in workflow_view.py
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Set by the function
-    #: verify_tree in process_tree.py
+    #: verify_tree in workflow_tree.py
     error_message = Unicode()
 
     # ------------------
@@ -43,81 +131,170 @@ class KPISpecificationView(HasTraits):
     #: Listens to: `model.name`,`model.objective`
     verify_workflow_event = Event
 
-    #: The name of the selected KPI
-    #: Depends on list of strings in `_combobox_values`
-    name = Enum(values='_combobox_values')
+    #: The selected KPI
+    selected_kpi = Instance(KPISpecificationModelView)
 
-    #: Values for the combobox
-    #: Listens to: `variable_names_registry.data_source_outputs`
-    _combobox_values = Property(
-        List(Identifier),
-        depends_on='variable_names_registry.data_source_outputs'
+    #: The selected non-KPI
+    selected_non_kpi = Instance(TableRow)
+
+    #: The human readable name of the KPI View
+    label = Unicode('MCO KPIs')
+
+    # ------------------
+    #     Properties
+    # ------------------
+
+    #: The names of the KPIs in the Workflow
+    kpi_names = Property(List(Unicode),
+                         depends_on='model.kpis[]')
+
+    #: A list of TableRow instances, each representing a variable
+    #: that could become a KPI
+    non_kpi_variables = Property(
+        List(TableRow),
+        depends_on='variable_names_registry,kpi_names'
     )
 
-    # ----------
-    # Properties
-    # ----------
+    # ------------------
+    #      Buttons
+    # ------------------
 
-    #: The human readable name of the KPI
-    label = Property(depends_on='model.[name,objective]')
+    add_kpi_button = Button('New KPI')
 
-    def __init__(self, model=None, *args, **kwargs):
-        super(KPISpecificationView, self).__init__(*args, **kwargs)
-        if model is not None:
-            self.model = model
+    remove_kpi_button = Button('Delete KPI')
+
+    # ------------------
+    #       View
+    # ------------------
+
+    traits_view = View()
 
     def default_traits_view(self):
-        #: Base view for the MCO parameter
+
+        table_editor = TableEditor(
+            columns=[
+                ObjectColumn(name="name",
+                             label="name",
+                             resize_mode="stretch"),
+                ObjectColumn(name="type",
+                             label="type",
+                             resize_mode="stretch")
+            ],
+            auto_size=False,
+            selected='selected_non_kpi'
+        )
+
+        list_editor = ListEditor(
+            page_name='.label',
+            use_notebook=True,
+            dock_style='tab',
+            selected='selected_kpi',
+            style='custom'
+        )
+
         traits_view = View(
-            Item('model.name', editor=EnumEditor(name='object._combobox_values')),
-            Item("model.objective"),
-            Item('model.auto_scale'),
-            Item("model.scale_factor", visible_when='not model.auto_scale'),
-            kind="subpanel",
+            VGroup(
+                VGroup(
+                    Item('kpi_model_views',
+                         editor=list_editor,
+                         show_label=False,
+                         style='custom',
+                         ),
+                    show_labels=False,
+                    show_border=True
+                ),
+                HGroup(
+                    UReadonly(
+                        'non_kpi_variables',
+                        editor=table_editor
+                    ),
+                    show_border=True,
+                    label='Non-KPI Variables'
+                ),
+                HGroup(
+                    Item('add_kpi_button',
+                         springy=True),
+                    Item('remove_kpi_button'),
+                    show_labels=False,
+                ),
+            ),
+            dock='fixed',
+            kind="livemodal"
         )
 
         return traits_view
 
-    @on_trait_change('_combobox_values')
-    def check_kpi_name(self):
-        #: Clear the existing name if it is not allowed upon update of
-        #: the combobox
-        if self.model is not None:
-            if self.model.name not in self._combobox_values:
-                # Propagate the name change to the model - note: this does
-                # not happen automatically when model.name is set to a
-                # value not in _combobox_values
-                self.model.name = ''
+    #: Property getters
+    @cached_property
+    def _get_kpi_names(self):
+        """Listens to model.kpis to extract model names for display"""
+        kpi_names = []
 
-    @on_trait_change('model.[name,objective]')
-    def kpi_change(self):
-        self.verify_workflow_event = True
+        for kpi in self.model.kpis:
+            kpi_names.append(kpi.name)
 
-    @on_trait_change('model.name')
-    def update_name(self):
-        #: Check if model has been removed
-        print('kpi_view update_name called')
-        if self.model is None:
-            self.name = ''
-        else:
-            self.name = self.model.name
+        return kpi_names
 
     @cached_property
-    def _get__combobox_values(self):
-        print('kpi_view _get__combobox_values called')
+    def _get_non_kpi_variables(self):
+        """Listens to variable_names_registry to extract names
+         able to be assigned to kpis"""
+        non_kpi = []
+
         if self.variable_names_registry is not None:
-            available = self.variable_names_registry.data_source_outputs
-            return [''] + available
-        else:
-            return ['']
+            var_stack = self.variable_names_registry.available_variables_stack
+            for exec_layer in var_stack:
+                for variable in exec_layer:
+                    kpi_check = variable[0] not in self.kpi_names
+                    variable_check = variable[0] in self.variable_names_registry \
+                        .data_source_outputs
+                    if kpi_check and variable_check:
+                        variable_rep = TableRow(name=variable[0], type=variable[1])
+                        non_kpi.append(variable_rep)
 
-    @cached_property
-    def _get_label(self):
-        """Gets the label from the model object"""
-        print('kpi_view _get_label called')
-        if self.model.name == '':
-            return "KPI"
-        elif self.model.objective == '':
-            return "KPI: {}".format(self.model.name)
+        return non_kpi
 
-        return "KPI: {} ({})".format(self.model.name, self.model.objective)
+    #: Listeners
+    @on_trait_change('model.kpis[]')
+    def update_kpi_model_views(self):
+        self.kpi_model_views = [
+            KPISpecificationModelView(
+                model=kpi)
+            for kpi in self.model.kpis
+        ]
+
+    def _add_kpi_button_fired(self):
+        """Call add_kpi using selected non-kpi variable from table"""
+        if self.selected_non_kpi is not None:
+            self.add_kpi(
+                KPISpecification(
+                    name=self.selected_non_kpi.name
+                )
+            )
+
+    def _remove_kpi_button_fired(self):
+        """Call remove_kpi to delete selected kpi from list"""
+        if self.selected_kpi is not None:
+            self.remove_kpi(self.selected_kpi.model)
+
+    def add_kpi(self, kpi):
+        """Adds a KPISpecification to the MCO model associated with this
+         modelview.
+
+        Parameters
+        ----------
+        kpi: KPISpecification
+            The KPISpecification to be added to the current MCO.
+        """
+        self.model.kpis.append(kpi)
+
+    def remove_kpi(self, kpi):
+        """Removes a KPISpecification from the MCO model associated with this
+        modelview.
+
+        Parameters
+        ----------
+        kpi: KPISpecification
+            The KPISpecification to be added to the current MCO.
+        """
+        self.model.kpis.remove(kpi)

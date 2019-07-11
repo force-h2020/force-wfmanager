@@ -1,14 +1,16 @@
 from pyface.tasks.api import TraitsDockPane
 
 from traits.api import (
-    Instance, Button, on_trait_change, Bool, Unicode
+    Instance, on_trait_change, Bool, Button
 )
-from traitsui.api import View, UItem, VGroup, UReadonly, TextEditor, Group
+from traitsui.api import (
+    View, UItem, VGroup
+)
 
 from force_bdss.api import IFactoryRegistry
-from force_wfmanager.ui.setup.process_tree import ProcessTree
+from force_wfmanager.ui.setup.workflow_tree import WorkflowTree
 from force_bdss.api import Workflow
-from force_wfmanager.ui.setup.workflow_model_view import WorkflowModelView
+from force_wfmanager.ui.setup.system_state import SystemState
 
 
 class SidePane(TraitsDockPane):
@@ -26,6 +28,9 @@ class SidePane(TraitsDockPane):
     #: Listens to: :attr:`WfManagerSetupTask.workflow_model <force_wfmanager.\
     #: wfmanager_setup_task.WfManagerSetupTask.workflow_model>`
     workflow_model = Instance(Workflow, allow_none=False)
+
+    #: Holds information about current selected objects
+    system_state = Instance(SystemState, allow_none=False)
 
     # -------------------
     # Required Attributes
@@ -56,68 +61,45 @@ class SidePane(TraitsDockPane):
     #: Make the pane visible by default
     visible = True
 
-    #: Collated information about the total workflow
-    workflow_model_view = Instance(WorkflowModelView)
-
     #: Tree editor for the Process Model Workflow
-    process_tree = Instance(ProcessTree)
+    workflow_tree = Instance(WorkflowTree)
+
+    #: Run button for running the computation
+    run_button = Button('Run')
 
     #: Enables or disables the workflow tree.
     ui_enabled = Bool(True)
 
-    #: MCO button for bringing up the MCO options
-    mco_button = Button('MCO')
-
-    #: MCO button for bringing up the Notification options
-    notification_button = Button('Notifications')
-
-    #: The error message currently displayed in the UI.
-    setup_error = Unicode('')
+    #: Enable or disable the run button.
+    run_enabled = Bool(True)
 
     # ----
     # View
     # ----
 
-    traits_view = View(
-        Group(
-            VGroup(
-                UItem('process_tree',
-                      style='custom',
-                      enabled_when="ui_enabled"),
-                UItem('mco_button'),
-                UItem('notification_button')
-            ),
-            VGroup(
-                UReadonly(
-                    name='setup_error',
-                    editor=TextEditor()
-                ),
-                label='Workflow Errors',
-                show_border=True,
-            )
-        )
-    )
+    traits_view = View(VGroup(
+        UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
+        UItem('run_button', enabled_when="run_enabled")
+    ))
 
-    def _workflow_model_view_default(self):
-        return WorkflowModelView(
-            model=self.workflow_model
-        )
-
-    def _process_tree_default(self):
-        return ProcessTree(
-            process_model_view=self.workflow_model_view.process_model_view,
+    def _workflow_tree_default(self):
+        wf_tree = WorkflowTree(
+            model=self.workflow_model,
             _factory_registry=self.factory_registry,
+            system_state=self.system_state
+        )
+        self.run_enabled = wf_tree.workflow_view.valid
+        return wf_tree
+
+    @on_trait_change('workflow_tree.workflow_view.valid')
+    def update_run_btn_status(self):
+        """Enables/Disables the run button if the workflow is valid/invalid"""
+        self.run_enabled = (
+                self.workflow_tree.workflow_view.valid and self.ui_enabled
         )
 
-    @on_trait_change("process_tree:selected_error")
-    def _sync_setup_error(self):
-        print('side_pane _sync_setup_error called')
-        self.setup_error = self.process_tree.selected_error
-
-    def _mco_button_fired(self):
-        self.process_tree.selected_mv = self.workflow_model_view.mco_model_view
-        self.process_tree.selected_factory_name = 'MCO'
-
-    def _notification_button_fired(self):
-        self.process_tree.selected_mv = self.workflow_model_view.notification_listener_info
-        self.process_tree.selected_factory_name = 'Notification Listeners'
+    @on_trait_change('workflow_model', post_init=True)
+    def update_workflow_tree(self, *args, **kwargs):
+        """Synchronises :attr:`workflow_tree.model <workflow_tree>`
+        with :attr:`workflow_model`"""
+        self.workflow_tree.model = self.workflow_model

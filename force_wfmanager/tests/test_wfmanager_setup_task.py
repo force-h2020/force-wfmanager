@@ -194,7 +194,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 self.setup_task.workflow_model)
             #self.assertEqual(
             #    old_workflow,
-            #    self.setup_task.side_pane.process_tree.model)
+            #    self.setup_task.side_pane.workflow_tree.model)
 
             self.setup_task.open_workflow()
 
@@ -207,7 +207,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 self.setup_task.workflow_model)
             #self.assertNotEqual(
             #    old_workflow,
-            #    self.setup_task.side_pane.process_tree.model
+            #    self.setup_task.side_pane.workflow_tree.model
             #)
 
     def test_read_failure(self):

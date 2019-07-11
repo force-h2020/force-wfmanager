@@ -32,7 +32,7 @@ class CommunicationView(HasTraits):
     def default_traits_view(self):
 
         traits_view = View(
-            Item('communication',
+            Item('notification_listener_views',
                  )
         )
 

@@ -35,3 +35,25 @@ class TestProcessView(BaseTest):
             len(self.process_view.model.execution_layers), 1)
         self.assertEqual(
             len(self.process_view.execution_layer_views), 1)
+
+    def test_remove_data_source(self):
+        self.process_view.execution_layer_views[0].add_data_source(
+            self.data_sources[0]
+        )
+
+        self.assertEqual(
+            len(self.process_view.model.execution_layers[0]
+                .data_sources), 3)
+        self.assertEqual(
+            len(self.process_view.execution_layer_views[0]
+                .data_source_views), 3)
+
+        self.process_view.remove_data_source(self.data_sources[0])
+
+        self.assertEqual(
+            len(self.process_view.model.execution_layers[0]
+                .data_sources), 2)
+        self.assertEqual(
+            len(self.process_view.execution_layer_views[0]
+                .data_source_views), 2)
+

@@ -14,6 +14,7 @@ _ERROR = "error"
 _WARNING = "warning"
 _INFO = "information"
 
+
 # Item positioning shortcuts
 def horizontal_centre(item_or_group):
     return HGroup(Spring(), item_or_group, Spring())

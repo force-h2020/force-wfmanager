@@ -1,7 +1,7 @@
 import unittest
 
 from force_bdss.api import (DataValue, ExecutionLayer,
-                            Workflow,)
+                            Workflow, KPISpecification)
 from force_bdss.tests.probe_classes.data_source import \
     ProbeDataSourceFactory
 from force_bdss.tests.probe_classes.mco import ProbeParameter
@@ -58,17 +58,22 @@ class BaseTest(unittest.TestCase):
 
         #: Create MCO model to store some variables
         mco_factory = self.factory_registry.mco_factories[0]
-        mco_model = mco_factory.create_model()
-        mco_model.parameters.append(ProbeParameter(None, name='P1',
+        self.mco_model = mco_factory.create_model()
+        self.mco_model.parameters.append(ProbeParameter(None, name='P1',
                                                    type='PRESSURE'))
-        mco_model.parameters.append(ProbeParameter(None, name='P2',
+        self.mco_model.parameters.append(ProbeParameter(None, name='P2',
                                                    type='PRESSURE'))
 
+        #: Create a notification listener
+        nl_factory = self.factory_registry.notification_listener_factories[0]
+        self.notification_listener = nl_factory.create_model()
+
         #: Set up workflow containing 1 execution layer with 2
-        #: data sources and 2 MCO parameters
+        #: data sources, 2 MCO parameters and 1 listener
         self.workflow = Workflow(
-            mco=mco_model,
-            execution_layers=[self.execution_layer]
+            mco=self.mco_model,
+            execution_layers=[self.execution_layer],
+            notification_listeners=[self.notification_listener]
         )
         self.variable_names_registry = VariableNamesRegistry(
             workflow=self.workflow)

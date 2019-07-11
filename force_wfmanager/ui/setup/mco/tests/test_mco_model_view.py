@@ -29,21 +29,29 @@ class TestMCOView(BaseTest):
             model=self.workflow.mco,
             variable_names_registry=self.variable_names_registry
         )
+        self.kpi_view = self.mco_view.kpi_view[0]
+        self.parameter_view = self.mco_view.parameter_view[0]
 
     def test_init_mco_view(self):
-        self.assertEqual(1, len(self.mco_view.kpi_names))
-        self.assertEqual(1, len(self.mco_view.kpi_views))
-        self.assertEqual(2, len(self.mco_view.non_kpi_variables))
-        self.assertEqual('outputA', self.mco_view.kpi_views[0].name)
-        self.assertEqual('outputA', self.mco_view.kpi_names[0])
-
-    def test_mco_parameter_representation(self):
+        self.assertEqual(1, len(self.mco_view.kpi_view))
+        self.assertEqual(1, len(self.kpi_view.kpi_names))
+        self.assertEqual(1, len(self.kpi_view.kpi_model_views))
+        self.assertEqual(2, len(self.kpi_view.non_kpi_variables))
         self.assertEqual(
-            2, len(self.mco_view.parameter_views))
-        self.assertIsInstance(
-            self.mco_view.parameter_views[0],
-            MCOParameterView,
-        )
+            'outputA',
+            self.kpi_view.kpi_model_views[0].model.name)
+        self.assertEqual(
+            'outputA',
+            self.kpi_view.kpi_names[0])
+
+        self.assertEqual(1, len(self.mco_view.parameter_view))
+        self.assertEqual(2, len(self.parameter_view.parameter_model_views))
+        self.assertEqual(
+            'P1',
+            self.parameter_view.parameter_model_views[0].model.name)
+        self.assertEqual(
+            'P2',
+            self.parameter_view.parameter_model_views[1].model.name)
 
     def test_label(self):
         self.assertEqual("testmco", self.mco_view.label)
@@ -51,34 +59,39 @@ class TestMCOView(BaseTest):
     def test_add_kpi(self):
         kpi_spec = KPISpecification(name='outputB')
 
-        self.mco_view.add_kpi(kpi_spec)
-        self.assertEqual(2, len(self.mco_view.kpi_views))
-        self.assertEqual(1, len(self.mco_view.non_kpi_variables))
-        self.assertEqual(2, len(self.mco_view.kpi_names))
-        self.assertEqual(self.mco_view.kpi_views[1].model, kpi_spec)
-        self.assertEqual('outputB', self.mco_view.kpi_views[1].name)
-        self.assertEqual('outputB', self.mco_view.kpi_names[1])
+        self.kpi_view.add_kpi(kpi_spec)
+        self.assertEqual(2, len(self.kpi_view.kpi_model_views))
+        self.assertEqual(1, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(2, len(self.kpi_view.kpi_names))
+        self.assertEqual(self.kpi_view.kpi_model_views[1].model, kpi_spec)
+        self.assertEqual(
+            'outputB',
+            self.kpi_view.kpi_model_views[1].model.name)
+        self.assertEqual(
+            'KPI: outputB (MINIMISE)',
+            self.kpi_view.kpi_model_views[1].label)
+        self.assertEqual('outputB', self.kpi_view.kpi_names[1])
 
     def test_remove_kpi(self):
-        kpi_spec = self.mco_view.kpi_views[0].model
-        self.mco_view.remove_kpi(kpi_spec)
-        self.assertEqual(0, len(self.mco_view.kpi_views))
-        self.assertEqual(3, len(self.mco_view.non_kpi_variables))
-        self.assertEqual(0, len(self.mco_view.kpi_names))
+        kpi_spec = self.kpi_view.kpi_model_views[0].model
+        self.kpi_view.remove_kpi(kpi_spec)
+        self.assertEqual(0, len(self.kpi_view.kpi_model_views))
+        self.assertEqual(3, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(0, len(self.kpi_view.kpi_names))
 
     def test_add_parameter(self):
         parameter = BaseMCOParameter(None, name='P3', type='PRESSURE')
 
-        self.mco_view.add_parameter(parameter)
-        self.assertEqual(3, len(self.mco_view.parameter_views))
-        self.assertEqual(2, len(self.mco_view.non_kpi_variables))
-        self.assertEqual(1, len(self.mco_view.kpi_names))
+        self.parameter_view.add_parameter(parameter)
+        self.assertEqual(3, len(self.parameter_view.parameter_model_views))
+        self.assertEqual(2, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(1, len(self.kpi_view.kpi_names))
         self.assertEqual(
-            parameter, self.mco_view.parameter_views[2].model)
+            parameter, self.parameter_view.parameter_model_views[2].model)
 
     def test_remove_parameter(self):
-        parameter = self.mco_view.parameter_views[1].model
-        self.mco_view.remove_parameter(parameter)
-        self.assertEqual(1, len(self.mco_view.parameter_views))
-        self.assertEqual(2, len(self.mco_view.non_kpi_variables))
-        self.assertEqual(1, len(self.mco_view.kpi_names))
+        parameter = self.parameter_view.parameter_model_views[1].model
+        self.parameter_view.remove_parameter(parameter)
+        self.assertEqual(1, len(self.parameter_view.parameter_model_views))
+        self.assertEqual(2, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(1, len(self.kpi_view.kpi_names))
