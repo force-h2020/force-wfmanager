@@ -91,14 +91,23 @@ class TestWFManagerTasksWithPlugins(GuiTestAssistant, TestCase):
             wf_manager=DummyWfManagerWithPlugins())
 
     def test_discover_data_views(self):
-        # Two default plot types plus one contributed
+        # Two default plot types plus three contributed
         self.assertEqual(
-            len(self.review_task.central_pane.available_data_views), 3)
+            len(self.review_task.central_pane.available_data_views), 5)
 
         # fire the button to populate descriptions
         self.review_task.central_pane.change_view = True
         self.assertIn(
             "Empty data view with a long description "
-            "(force_wfmanager.tests..DummyDataView)",
+            "(force_wfmanager.tests..DummyDataView1)",
+            self.review_task.central_pane.data_view_descriptions.values()
+        )
+        self.assertIn(
+            "force_wfmanager.tests.dummy_classes.DummyDataView2",
+            self.review_task.central_pane.data_view_descriptions.values()
+        )
+        self.assertIn(
+            "Empty dummy data view that actually has a even longer "
+            "description (force_wfm...)",
             self.review_task.central_pane.data_view_descriptions.values()
         )

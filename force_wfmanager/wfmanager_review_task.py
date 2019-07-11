@@ -174,8 +174,6 @@ class WfManagerReviewTask(Task):
             )
         ]
 
-        return
-
     def create_central_pane(self):
         """ Creates the central pane which contains the analysis part
         (pareto front and output KPI values)

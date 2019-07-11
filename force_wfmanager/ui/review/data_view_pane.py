@@ -91,7 +91,7 @@ class DataViewPane(TraitsTaskPane):
                 word_priority = [
                     # from the out inwards, precedence to the left: 0 2 ... 3 1
                     min(2*i, 2*num_words - 2*i - 1) for i in range(num_words)]
-                for threshold in range(num_words, -1, -1):
+                for threshold in range(num_words, 0, -1):
                     string = ""
                     for i, word in enumerate(words):
                         string += word if word_priority[i] < threshold else ""
@@ -99,7 +99,7 @@ class DataViewPane(TraitsTaskPane):
                     if len(string) <= maxlength + 1:
                         return string[:-1]
                 # fallback when every dot-based truncation is too long.
-                return shorten(words[0])
+                return shorten(words[0], maxlength)
 
             else:
 

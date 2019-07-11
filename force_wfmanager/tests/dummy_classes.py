@@ -45,14 +45,25 @@ class DummyWfManager(WfManager):
         pass
 
 
-class DummyDataView(BaseDataView):
+class DummyDataView1(BaseDataView):
     description = "Empty data view with a long description"
+    view = View(VGroup())
+
+
+class DummyDataView2(BaseDataView):
+    description = None
+    view = View(VGroup())
+
+
+class DummyDataView3(BaseDataView):
+    description = (
+        "Empty dummy data view that actually has a even longer description")
     view = View(VGroup())
 
 
 class DummyExtensionPluginWithDataView(DummyExtensionPlugin):
     def get_data_views(self):
-        return [DummyDataView]
+        return [DummyDataView1, DummyDataView2, DummyDataView3]
 
 
 class DummyWfManagerWithPlugins(WfManager):
