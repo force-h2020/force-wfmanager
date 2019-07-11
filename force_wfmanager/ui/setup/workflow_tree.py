@@ -419,7 +419,7 @@ class WorkflowTree(ModelView):
     # set add_new_entity to be for the right object type and provide a way to
     # add things by double clicking
 
-    def factory(self, from_registry, create_fn, view):
+    def factory_selected(self, from_registry, create_fn, factory_name, view):
         """Called on selecting a node in the TreeEditor which represents a
         factory.
         Parameters
@@ -428,6 +428,9 @@ class WorkflowTree(ModelView):
             A list of factories available for this node
         create_fn: function
             A function which adds a newly created instance to the Workflow
+        factory_name: String
+            A name showing which group (MCO, Datasource etc.) the factory
+            belongs to
         view: HasTraits
             The view of the currently selected node
         """
@@ -444,6 +447,8 @@ class WorkflowTree(ModelView):
             add_new_entity,
             ui_info=None,
         )
+
+        self.system_state.selected_factory_name = factory_name
 
     @selection
     def workflow_selected(self, workflow_view):
@@ -466,12 +471,11 @@ class WorkflowTree(ModelView):
             Selected ProcessView node in the TreeEditor
         """
 
-        self.factory(
+        self.factory_selected(
             None,
             self.new_layer,
+            'Execution Layer',
             process_view)
-
-        self.system_state.selected_factory_name = 'Execution Layer'
 
     @selection
     def execution_layer_selected(self, execution_layer_view):
@@ -484,9 +488,10 @@ class WorkflowTree(ModelView):
             Selected ExecutionLayerView node in the TreeEditor
         """
 
-        self.factory(
+        self.factory_selected(
             self._factory_registry.data_source_factories,
             self.new_data_source,
+            'Data Source',
             execution_layer_view)
 
         self.system_state.remove_entity = partial(
@@ -494,8 +499,6 @@ class WorkflowTree(ModelView):
             ui_info=None,
             object=execution_layer_view
         )
-
-        self.system_state.selected_factory_name = 'Data Source'
 
     @selection
     def data_source_selected(self, data_source_view):
@@ -522,12 +525,11 @@ class WorkflowTree(ModelView):
             Selected WorkflowView in the TreeEditor containing the MCO
         """
 
-        self.factory(
+        self.factory_selected(
             self._factory_registry.mco_factories,
             self.new_mco,
+            'MCO',
             workflow_view)
-
-        self.system_state.selected_factory_name = 'MCO'
 
     @selection
     def mco_optimizer_selected(self, mco_view):
@@ -578,12 +580,11 @@ class WorkflowTree(ModelView):
             Selected CommunicationView in the TreeEditor
         """
 
-        self.factory(
+        self.factory_selected(
             self._factory_registry.notification_listener_factories,
             self.new_notification_listener,
+            'Notification Listener',
             communicator_view)
-
-        self.system_state.selected_factory_name = 'Notification Listener'
 
     @selection
     def notification_listener_selected(self, notification_listener_view):
