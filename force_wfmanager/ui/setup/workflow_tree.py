@@ -647,7 +647,6 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def new_notification_listener(self, ui_info, object):
         """"Adds a new notification listener to the workflow"""
-        print(ui_info, object, self.system_state.entity_creator)
         object.add_notification_listener(self.system_state.entity_creator
                                          .model)
         self.system_state.entity_creator.reset_model()
