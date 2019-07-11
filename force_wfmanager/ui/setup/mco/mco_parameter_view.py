@@ -64,16 +64,11 @@ class MCOParameterModelView(ModelView):
 
         return View(base_traits + user_traits)
 
-    # Defaults
+    #: Defaults
     def _label_default(self):
         return get_factory_name(self.model.factory)
 
-    # Workflow Validation
-    @on_trait_change('model.[name,type]')
-    def parameter_change(self):
-        self.verify_workflow_event = True
-
-    # Properties
+    #: Property getters
     @cached_property
     def _get_label(self):
         if self.model.name == '' and self.model.type == '':
@@ -81,6 +76,12 @@ class MCOParameterModelView(ModelView):
         return self._label_default()+': {type} {name}'.format(
             type=self.model.type, name=self.model.name
         )
+
+    #: Listeners
+    # Workflow Validation
+    @on_trait_change('model.[name,type]')
+    def parameter_change(self):
+        self.verify_workflow_event = True
 
 
 class MCOParameterView(HasTraits):
@@ -122,7 +123,7 @@ class MCOParameterView(HasTraits):
     #: Event to request a verification check on the workflow
     #: Listens to: :attr:`parameter_model_views.verify_workflow_event
     #: <MCOParameterModelView>`
-    verify_workflow_event = Event
+    verify_workflow_event = Event()
 
     # ----------
     # Properties
@@ -229,7 +230,7 @@ class MCOParameterView(HasTraits):
         """Call remove_parameter to delete selected_parameter"""
         self.remove_parameter(self.selected_parameter.model)
 
-    #: Class Methods
+    #: Public Methods
     def add_parameter(self, parameter):
         """Adds a parameter to the MCO model associated with this view.
 

@@ -13,8 +13,10 @@ class CommunicationView(HasTraits):
     # Required Attributes
     # -------------------
 
+    #: Workflow model object containing notification listeners
     model = Instance(Workflow)
 
+    #: List of views for model.notification_listeners
     notification_listener_views = List(Instance(NotificationListenerView))
 
     # -------------------
@@ -27,8 +29,6 @@ class CommunicationView(HasTraits):
     #       View
     # -------------------
 
-    traits_view = Instance(View)
-
     def default_traits_view(self):
 
         traits_view = View(
@@ -38,6 +38,7 @@ class CommunicationView(HasTraits):
 
         return traits_view
 
+    #: Listeners
     @on_trait_change("model.notification_listeners[]")
     def update_notification_listeners_mv(self):
         """Updates the modelviews for the notification listeners, but ignoring
@@ -54,6 +55,7 @@ class CommunicationView(HasTraits):
     def received_verify_request(self):
         self.verify_workflow_event = True
 
+    #: Public methods
     def add_notification_listener(self, notification_listener):
         """Adds a new notification listener"""
         self.model.notification_listeners.append(notification_listener)

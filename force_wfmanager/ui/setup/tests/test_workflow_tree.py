@@ -198,7 +198,7 @@ class TestWorkflowTree(BaseTest):
 
         mco_view = self.workflow_tree.workflow_view.mco_view[0]
 
-        self.workflow_tree.optimizer_selected(mco_view)
+        self.workflow_tree.mco_optimizer_selected(mco_view)
         self.system_state.remove_entity()
 
         self.assertIsNone(self.workflow_tree.model.mco)

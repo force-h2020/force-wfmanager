@@ -32,9 +32,13 @@ class ProcessView(HasTraits):
     #: The label to display in the list
     label = Unicode('Process')
 
+    # ---------------------
+    #  Dependent Attributes
+    # ---------------------
+
     #: Defines if the MCO is valid or not. Updated by
     #: :func:`verify_tree
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Updated by
@@ -44,13 +48,16 @@ class ProcessView(HasTraits):
 
     #: An event which runs a verification check on the current workflow when
     #: triggered.
-    #: Listens to: :func:`~workflow_view.verify_workflow_event`
-    verify_workflow_event = Event
+    #: Listens to: :func:`execution_layer_views.verify_workflow_event`
+    verify_workflow_event = Event()
 
     def __init__(self, model, *args, **kwargs):
         super(ProcessView, self).__init__(*args, **kwargs)
+        # Assigns model after super instantiation in order to ensure
+        # variable_names_registry has been assigned first
         self.model = model
 
+    #: Listeners
     @on_trait_change('model.execution_layers[]')
     def update_execution_layers_views(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
@@ -72,16 +79,17 @@ class ProcessView(HasTraits):
         """
         self.verify_workflow_event = True
 
+    #: Public methods
     def add_execution_layer(self, execution_layer):
         """Adds a new empty execution layer"""
         self.model.execution_layers.append(execution_layer)
-
-    # Remove Models
 
     def remove_execution_layer(self, layer):
         """Removes the execution layer from the model."""
         self.model.execution_layers.remove(layer)
 
+    # NOTE: Needed by TreeEditor to avoid inheritance between
+    # ExecutionLayerView and DataSourceView
     def remove_data_source(self, data_source):
         """Removes the data source from the model"""
         for execution_layer_view in self.execution_layer_views:

@@ -38,5 +38,6 @@ class NotificationListenerView(HasTraits):
     #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
+    #: Defaults
     def _label_default(self):
         return get_factory_name(self.model.factory)

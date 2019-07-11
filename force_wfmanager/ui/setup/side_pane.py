@@ -19,7 +19,7 @@ class SidePane(TraitsDockPane):
     """
 
     # -----------------------------
-    # Required/Dependent Attributes
+    #    Required Attributes
     # -----------------------------
 
     #: The Workflow model. Updated when
@@ -31,10 +31,6 @@ class SidePane(TraitsDockPane):
 
     #: Holds information about current selected objects
     system_state = Instance(SystemState, allow_none=False)
-
-    # -------------------
-    # Required Attributes
-    # -------------------
 
     #: The factory registry containing all the factories
     factory_registry = Instance(IFactoryRegistry)
@@ -61,9 +57,6 @@ class SidePane(TraitsDockPane):
     #: Make the pane visible by default
     visible = True
 
-    #: Tree editor for the Process Model Workflow
-    workflow_tree = Instance(WorkflowTree)
-
     #: Run button for running the computation
     run_button = Button('Run')
 
@@ -73,24 +66,31 @@ class SidePane(TraitsDockPane):
     #: Enable or disable the run button.
     run_enabled = Bool(True)
 
+    #: Tree editor for the Process Model Workflow
+    workflow_tree = Instance(WorkflowTree)
+
     # ----
     # View
     # ----
 
-    traits_view = View(VGroup(
-        UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
-        UItem('run_button', enabled_when="run_enabled")
-    ))
+    traits_view = View(
+        VGroup(
+            UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
+            UItem('run_button', enabled_when="run_enabled")
+        )
+    )
 
+    #: Defaults
     def _workflow_tree_default(self):
-        wf_tree = WorkflowTree(
+        workflow_tree = WorkflowTree(
             model=self.workflow_model,
             _factory_registry=self.factory_registry,
             system_state=self.system_state
         )
-        self.run_enabled = wf_tree.workflow_view.valid
-        return wf_tree
+        self.run_enabled = workflow_tree.workflow_view.valid
+        return workflow_tree
 
+    #: Listeners
     @on_trait_change('workflow_tree.workflow_view.valid')
     def update_run_btn_status(self):
         """Enables/Disables the run button if the workflow is valid/invalid"""

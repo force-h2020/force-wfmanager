@@ -1,13 +1,13 @@
 from pyface.tasks.api import TraitsTaskPane
 from traits.api import (
-    Bool, Button, Callable, Instance, Property, Unicode,
-    on_trait_change, HasTraits, Either, cached_property
+    Bool, Button, Instance, Property, Unicode,
+    on_trait_change, cached_property
 )
 from traitsui.api import (
-    ButtonEditor, InstanceEditor, HGroup, ModelView, UItem, View, VGroup
+    ButtonEditor, InstanceEditor, HGroup, UItem, View, VGroup
 )
 
-from force_bdss.api import BaseExtensionPlugin, BaseModel, Workflow
+from force_bdss.api import BaseModel
 from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
 from force_wfmanager.ui.setup.system_state import SystemState
 
@@ -203,17 +203,6 @@ class SetupPane(TraitsTaskPane):
 
         return view
 
-    def _console_ns_default(self):
-        namespace = {
-            "task": self.task
-        }
-        try:
-            namespace["app"] = self.task.window.application
-        except AttributeError:
-            namespace["app"] = None
-
-        return namespace
-
     # Property getters
     @cached_property
     def _get_selected_view_editable(self):
@@ -298,13 +287,13 @@ class SetupPane(TraitsTaskPane):
             error_message=self.error_message
         )
 
+    #: Listeners
     # Synchronisation with WorkflowTree
     @on_trait_change('system_state:selected_view')
     def sync_selected_view(self):
         """ Synchronise selected_view with the selected modelview in the tree
         editor. Checks if the model held by the modelview needs to be displayed
         in the UI."""
-        print('sync_selected_view', self.system_state.selected_view)
         if self.system_state.selected_view is not None:
             if isinstance(self.system_state.selected_view.model, BaseModel):
                 self.selected_model = self.system_state.selected_view.model
@@ -317,6 +306,7 @@ class SetupPane(TraitsTaskPane):
         """Synchronises entity_creator with WorkflowTree"""
         self.error_message = self.task.side_pane.workflow_tree.error_message
 
+    #: Button actions
     # Button event handlers for creating and deleting workflow items
     def _add_new_entity_btn_fired(self):
         """Calls add_new_entity when add_new_entity_btn is clicked"""
@@ -325,3 +315,15 @@ class SetupPane(TraitsTaskPane):
     def _remove_entity_btn_fired(self):
         """Calls remove_entity when remove_entity_btn is clicked"""
         self.system_state.remove_entity()
+
+    #: Protected methods
+    def _console_ns_default(self):
+        namespace = {
+            "task": self.task
+        }
+        try:
+            namespace["app"] = self.task.window.application
+        except AttributeError:
+            namespace["app"] = None
+
+        return namespace

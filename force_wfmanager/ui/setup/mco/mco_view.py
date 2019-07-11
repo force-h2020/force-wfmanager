@@ -52,7 +52,7 @@ class MCOView(HasTraits):
     #: Listens to: :attr:`parameter_view.verify_workflow_event
     #: <MCOParameterView>` and :attr:`kpi_view.verify_workflow_event
     #: <KPISpecificationView>`
-    verify_workflow_event = Event
+    verify_workflow_event = Event()
 
     #: Defines if the MCO is valid or not. Updated by
     #: :func:`verify_tree
@@ -64,7 +64,9 @@ class MCOView(HasTraits):
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
-    # Defaults
+    traits_view = View()
+
+    #: Defaults
     def _label_default(self):
         return get_factory_name(self.model.factory)
 

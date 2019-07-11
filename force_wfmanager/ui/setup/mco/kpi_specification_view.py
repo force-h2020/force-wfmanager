@@ -82,10 +82,7 @@ class KPISpecificationModelView(ModelView):
         kind="subpanel",
     )
 
-    @on_trait_change('model.[name,type]')
-    def kpi_change(self):
-        self.verify_workflow_event = True
-
+    #: Property getters
     def _get_label(self):
         """Gets the label from the model object"""
         if self.model.name == '':
@@ -94,6 +91,11 @@ class KPISpecificationModelView(ModelView):
             return "KPI: {}".format(self.model.name)
 
         return "KPI: {} ({})".format(self.model.name, self.model.objective)
+
+    #: Listeners
+    @on_trait_change('model.[name,type]')
+    def kpi_change(self):
+        self.verify_workflow_event = True
 
 
 class KPISpecificationView(HasTraits):
@@ -140,7 +142,7 @@ class KPISpecificationView(HasTraits):
 
     #: Event to request a verification check on the workflow
     #: Listens to: `model.name`,`model.objective`
-    verify_workflow_event = Event
+    verify_workflow_event = Event()
 
     # ------------------
     #     Properties
@@ -287,7 +289,7 @@ class KPISpecificationView(HasTraits):
         if self.selected_kpi is not None:
             self.remove_kpi(self.selected_kpi.model)
 
-    #: Class methods
+    #: Public methods
     def add_kpi(self, kpi):
         """Adds a KPISpecification to the MCO model associated with this
          modelview.

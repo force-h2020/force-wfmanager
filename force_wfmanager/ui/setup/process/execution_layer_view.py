@@ -32,7 +32,7 @@ class ExecutionLayerView(HasTraits):
     # Regular Attributes
     # ------------------
 
-    #: List of the data source's modelviews.
+    #: List of the data source's views.
     data_source_views = List(Instance(DataSourceView))
 
     # --------------------
@@ -57,8 +57,11 @@ class ExecutionLayerView(HasTraits):
 
     def __init__(self, model, *args, **kwargs):
         super(ExecutionLayerView, self).__init__(*args, **kwargs)
+        # Assigns model after super instantiation in order to ensure
+        # variable_names_registry has been assigned first
         self.model = model
 
+    #: Listeners
     # Synchronizing UI and model
     @on_trait_change("model.data_sources[]")
     def update_data_source_views(self):
@@ -79,8 +82,8 @@ class ExecutionLayerView(HasTraits):
         """
         self.verify_workflow_event = True
 
+    #: Public methods
     # Data Source Actions
-
     def add_data_source(self, data_source):
         """Adds the passed data source model to this execution layer model's
         data sources list.

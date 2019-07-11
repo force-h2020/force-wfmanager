@@ -41,13 +41,14 @@ class TableRow(HasStrictTraits):
 
     def __init__(self, model, *args, **kwargs):
         #: FIXME: Child model should not be instantiated before super
-        #: FIXME: class is
+        #: class is
         self.model = model
         super(TableRow, self).__init__(*args, **kwargs)
 
 
 class InputSlotRow(TableRow):
     """Row in the UI representing DataSource inputs. """
+
     # -------------------
     # Required Attributes
     # -------------------
@@ -179,7 +180,8 @@ class DataSourceView(HasTraits):
 
     #: Currently selected slot in the table
     #: Listens to: :attr:`input_slots_editor`, :attr:`output_slots_editor`
-    selected_slot_row = Either(Instance(InputSlotRow), Instance(OutputSlotRow))
+    selected_slot_row = Either(Instance(InputSlotRow),
+                               Instance(OutputSlotRow))
 
     #: Event to request a verification check on the workflow
     #: Listens to: :attr:`input_slots_representation.name
@@ -236,17 +238,97 @@ class DataSourceView(HasTraits):
 
     def __init__(self, *args, **kwargs):
         super(DataSourceView, self).__init__(*args, **kwargs)
+        # Performs protected method to set up slots tables on instantiation
         self._create_slots_tables()
 
-    # Defaults
+    #: Defaults
     def _label_default(self):
         return get_factory_name(self.model.factory)
 
     def __data_source_default(self):
         return self.model.factory.create_data_source()
 
+    #: Property getters
+    # Description update on UI selection change
+    @cached_property
+    def _get_selected_slot_description(self):
+        if self.selected_slot_row is None:
+            return DEFAULT_MESSAGE
+
+        idx = self.selected_slot_row.index
+        row_type = self.selected_slot_row.type
+        description = self.selected_slot_row.description
+
+        type_text = (
+            "Input" if isinstance(self.selected_slot_row, InputSlotRow)
+            else "Output")
+        return SLOT_DESCRIPTION.format(row_type, type_text, idx, description)
+
+    #: Listeners
+    @on_trait_change(
+        'input_slots_representation.name,output_slots_representation.name'
+    )
+    def data_source_change(self):
+        """Fires :func:`verify_workflow_event` when an input slot or output
+        slot is changed"""
+        self.verify_workflow_event = True
+
+    # Changed Slots Functions
+    @on_trait_change('model:changes_slots')
+    def _update_slots_tables(self):
+        """ Update the tables of slots when a change on the model triggers a
+        change on the shape of the input/output slots"""
+        #: This synchronization maybe is something that should be moved to the
+        #: model.
+        self.input_slots_representation[:] = []
+        self.output_slots_representation[:] = []
+
+        input_slots, output_slots = self._data_source.slots(self.model)
+
+        #: Initialize the input slots
+        self.model.input_slot_info = [
+            InputSlotInfo(name='')
+            for _ in input_slots
+        ]
+
+        #: Initialize the output slots
+        self.model.output_slot_info = [
+            OutputSlotInfo(name='')
+            for _ in output_slots
+        ]
+
+        self._fill_slot_rows(input_slots, output_slots)
+
+    # Available Variables Functions
+    @on_trait_change(
+        'variable_names_registry.available_variables[],'
+        'output_slots_representation.[name,type],'
+        'input_slots_representation.[name,type]'
+    )
+    def update_data_source_input_rows(self):
+        """Updates the available variables attribute for any InputSlotRow
+        of this data source"""
+        for input_slot_row in self.input_slots_representation:
+            available_variables = self._available_variables_by_type(
+                input_slot_row.type)
+            input_slot_row.available_variables = available_variables
+
+    # Model change functions
+    @on_trait_change('model.input_slot_info.name,model.output_slot_info.name')
+    def update_slot_info_names(self):
+        """Updates the name displayed in a Input/OutputSlotRow if the name
+        changes in the model.
+        """
+        for info, row in zip(self.model.input_slot_info,
+                             self.input_slots_representation):
+            row.name = info.name
+
+        for info, row in zip(self.model.output_slot_info,
+                             self.output_slots_representation):
+            row.name = info.name
+
+    #: Protected methods
     # Initialization
-    #@on_trait_change('model:[input_slot_info,output_slot_info]')
     def _create_slots_tables(self):
         """ Initialize the tables for editing the input and output slots
 
@@ -324,56 +406,6 @@ class DataSourceView(HasTraits):
 
         self.output_slots_representation[:] = output_representation
 
-    @on_trait_change(
-        'input_slots_representation.name,output_slots_representation.name'
-    )
-    def data_source_change(self):
-        """Fires :func:`verify_workflow_event` when an input slot or output
-        slot is changed"""
-        self.verify_workflow_event = True
-
-    # Changed Slots Functions
-
-    @on_trait_change('model:changes_slots')
-    def _update_slots_tables(self):
-        """ Update the tables of slots when a change on the model triggers a
-        change on the shape of the input/output slots"""
-        #: This synchronization maybe is something that should be moved to the
-        #: model.
-        self.input_slots_representation[:] = []
-        self.output_slots_representation[:] = []
-
-        input_slots, output_slots = self._data_source.slots(self.model)
-
-        #: Initialize the input slots
-        self.model.input_slot_info = [
-            InputSlotInfo(name='')
-            for _ in input_slots
-        ]
-
-        #: Initialize the output slots
-        self.model.output_slot_info = [
-            OutputSlotInfo(name='')
-            for _ in output_slots
-        ]
-
-        self._fill_slot_rows(input_slots, output_slots)
-
-    # Avaliable Variables Functions
-
-    @on_trait_change(
-        'variable_names_registry.available_variables[],'
-        'output_slots_representation.name,output_slots_representation.type,'
-        'input_slots_representation.name,input_slots_representation.type'
-    )
-    def update_data_source_input_rows(self):
-        """Updates the available variables attribute for any InputSlotRow
-        of this data source"""
-        for input_slot_row in self.input_slots_representation:
-            available_variables = self._available_variables_by_type(
-                input_slot_row.type)
-            input_slot_row.available_variables = available_variables
-
     def _available_variables(self):
         """Returns the available variables for the containing execution layer
         of this data source
@@ -397,36 +429,6 @@ class DataSourceView(HasTraits):
         if variable_type in registry.available_variables_by_type[idx]:
             return registry.available_variables_by_type[idx][variable_type]
         return []
-
-    # Model change functions
-
-    @on_trait_change('model.input_slot_info.name,model.output_slot_info.name')
-    def update_slot_info_names(self):
-        """Updates the name displayed in a Input/OutputSlotRow if the name
-        changes in the model.
-        """
-        for info, row in zip(self.model.input_slot_info,
-                             self.input_slots_representation):
-            row.name = info.name
-
-        for info, row in zip(self.model.output_slot_info,
-                             self.output_slots_representation):
-            row.name = info.name
-
-    # Description update on UI selection change
-    @cached_property
-    def _get_selected_slot_description(self):
-        if self.selected_slot_row is None:
-            return DEFAULT_MESSAGE
-
-        idx = self.selected_slot_row.index
-        row_type = self.selected_slot_row.type
-        description = self.selected_slot_row.description
-
-        type_text = (
-            "Input" if isinstance(self.selected_slot_row, InputSlotRow)
-            else "Output")
-        return SLOT_DESCRIPTION.format(row_type, type_text, idx, description)
 
 
 BACKGROUND_COLOR = get_default_background_color()

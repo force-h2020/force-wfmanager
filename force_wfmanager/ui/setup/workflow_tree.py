@@ -286,7 +286,7 @@ class WorkflowTree(ModelView):
                     name='MCO',
                     view=no_view,
                     menu=Menu(delete_mco_action),
-                    on_select=self.optimizer_selected
+                    on_select=self.mco_optimizer_selected
                 ),
                 # Node representing the MCO Parameters
                 TreeNodeWithStatus(
@@ -370,10 +370,30 @@ class WorkflowTree(ModelView):
 
         return view
 
+    #: Defaults
     def _workflow_view_default(self):
         """A default WorkflowModelView"""
         return WorkflowView(model=self.model)
 
+    #: Property getters
+    def _get_selected_error(self):
+        """Returns the error messages for the currently selected modelview"""
+        if self.system_state.selected_view is None:
+            return ERROR_TEMPLATE.format("No Item Selected", "")
+
+        if self.system_state.selected_view.error_message == '':
+            mv_label = self.system_state.selected_view.label
+            return ERROR_TEMPLATE.format(
+                "No errors for {}".format(mv_label), "")
+        else:
+            mv_label = self.system_state.selected_view.label
+            error_list = self.system_state.selected_view.error_message.split('\n')
+            body_strings = ''.join([SINGLE_ERROR.format(error)
+                                    for error in error_list])
+            return ERROR_TEMPLATE.format(
+                "Errors for {}:".format(mv_label), body_strings)
+
+    #: Listeners
     @on_trait_change('model')
     def update_model_view(self):
         """Update the workflow modelview's model and verify, on either loading
@@ -382,6 +402,23 @@ class WorkflowTree(ModelView):
         self.workflow_view = WorkflowView(model=self.model)
         self.verify_workflow_event = True
 
+    # Workflow Verification
+    @on_trait_change("workflow_view.verify_workflow_event")
+    def received_verify_request(self):
+        """Checks if the root node of workflow tree is requesting a
+        verification of the workflow"""
+        self.verify_workflow_event = True
+
+    @on_trait_change("verify_workflow_event")
+    def perform_verify_workflow_event(self):
+        """Verify the workflow and update error_message traits of
+        every ModelView in the workflow"""
+        errors = verify_workflow(self.model)
+
+        # Communicate the verification errors to each level of the
+        # workflow tree
+        self.verify_tree(errors)
+
     # Item Selection Actions - create an appropriate NewEntityModal,
     # set add_new_entity to be for the right object type and provide a way to
     # add things by double clicking
@@ -389,6 +426,7 @@ class WorkflowTree(ModelView):
     @selection
     def workflow_selected(self, workflow_view):
         """Called on selecting the top node in the WorkflowTree
+
         Parameters
         ----------
         workflow_view: WorkflowView
@@ -398,7 +436,8 @@ class WorkflowTree(ModelView):
 
     @selection
     def process_selected(self, process_view):
-        """Called on selecting a ProcessView node
+        """Called on selecting a ProcessView node in the WorkflowTree
+
         Parameters
         ----------
         process_view: ProcessView
@@ -414,7 +453,9 @@ class WorkflowTree(ModelView):
 
     @selection
     def execution_layer_selected(self, execution_layer_view):
-        """Called on selecting an ExecutionLayerView node
+        """Called on selecting an ExecutionLayerView node in
+        the WorkflowTree
+
         Parameters
         ----------
         execution_layer_view: ExecutionLayerView
@@ -448,11 +489,13 @@ class WorkflowTree(ModelView):
 
     @selection
     def data_source_selected(self, data_source_view):
-        """Called on selecting the top node in the WorkflowTree
+        """Called on selecting a DataSourceView node in the
+        WorkflowTree
+
         Parameters
         ----------
-        workflow_mv: WorkflowModelView
-            Unused, automatically passed by TreeEditor on selection
+        data_source_view: DataSourceView
+            Selected DataSourceView node in the TreeEditor
         """
         self.system_state.remove_entity = partial(
             self.delete_data_source,
@@ -460,18 +503,19 @@ class WorkflowTree(ModelView):
             data_source_view)
 
     @selection
-    def mco_selected(self, mco_view):
-        """Called on selecting the top node in the WorkflowTree
+    def mco_selected(self, workflow_view):
+        """Called on selecting the MCO node in the WorkflowTree
+
         Parameters
         ----------
-        workflow_mv: WorkflowModelView
-            Unused, automatically passed by TreeEditor on selection
+        workflow_view: WorkflowView
+            Selected WorkflowView in the TreeEditor containing the MCO
         """
 
         self.system_state.selected_factory_name = 'MCO'
 
         self.system_state.add_new_entity = partial(
-            self.new_mco, None, mco_view
+            self.new_mco, None, workflow_view
         )
 
         factories = self._factory_registry.mco_factories
@@ -485,12 +529,13 @@ class WorkflowTree(ModelView):
             )
 
     @selection
-    def optimizer_selected(self, mco_view):
-        """Called on selecting the top node in the WorkflowTree
+    def mco_optimizer_selected(self, mco_view):
+        """Called on selecting a MCOView node in the WorkflowTree
+
         Parameters
         ----------
-        workflow_mv: WorkflowModelView
-            Unused, automatically passed by TreeEditor on selection
+        mco_view: MCOView
+            Selected MCOView in the TreeEditor
         """
 
         self.system_state.remove_entity = partial(
@@ -501,7 +546,8 @@ class WorkflowTree(ModelView):
 
     @selection
     def mco_parameters_selected(self, parameter_view):
-        """Called on selecting the top node in the WorkflowTree
+        """Called on selecting the ParameterView node in the WorkflowTree
+
         Parameters
         ----------
         parameter_view: MCOParameterView
@@ -509,30 +555,34 @@ class WorkflowTree(ModelView):
         """
         self.system_state.selected_factory_name = 'MCO Parameters'
 
-
     @selection
     def mco_kpis_selected(self, kpi_view):
-        """Called on selecting the top node in the WorkflowTree
+        """Called on selecting the KPISpecificationView node in the
+        WorkflowTree
+
         Parameters
         ----------
-        workflow_mv: WorkflowModelView
+        kpi_view: KPISpecificationView
             Unused, automatically passed by TreeEditor on selection
         """
         self.system_state.selected_factory_name = 'MCO KPIs'
 
     @selection
     def communication_selected(self, communication_view):
-        """Called on selecting the top node in the WorkflowTree
+        """Called on selecting the Communication node in the WorkflowTree
+
         Parameters
         ----------
-        workflow_mv: WorkflowModelView
-            Unused, automatically passed by TreeEditor on selection
+        communication_view: CommunicationView
+            Selected CommunicationView in the TreeEditor
         """
 
         self.system_state.selected_factory_name = 'Notification Listener'
 
         self.system_state.add_new_entity = partial(
-            self.new_notification_listener, None, communication_view
+            self.new_notification_listener,
+            None,
+            communication_view
         )
 
         factories = self._factory_registry.notification_listener_factories
@@ -547,11 +597,13 @@ class WorkflowTree(ModelView):
 
     @selection
     def notification_listener_selected(self, notification_listener_view):
-        """Called on selecting the top node in the WorkflowTree
+        """Called on selecting a NotificationListenerView node in the
+        WorkflowTree
+
         Parameters
         ----------
-        workflow_mv: WorkflowModelView
-            Unused, automatically passed by TreeEditor on selection
+        notification_listener_view: NotificationListenerView
+            Selected NotificationListenerView in the TreeEditor
         """
 
         self.system_state.remove_entity = partial(
@@ -612,24 +664,6 @@ class WorkflowTree(ModelView):
         """Delete a notification listener from the workflow"""
         self.workflow_view.remove_notification_listener(object.model)
 
-    # Workflow Verification
-
-    @on_trait_change("workflow_view.verify_workflow_event")
-    def received_verify_request(self):
-        """Checks if the root node of workflow tree is requesting a
-        verification of the workflow"""
-        self.verify_workflow_event = True
-
-    @on_trait_change("verify_workflow_event")
-    def perform_verify_workflow_event(self):
-        """Verify the workflow and update error_message traits of
-        every ModelView in the workflow"""
-        errors = verify_workflow(self.model)
-
-        # Communicate the verification errors to each level of the
-        # workflow tree
-        self.verify_tree(errors)
-
     def verify_tree(self, errors, start_view=None):
         """ Assign the errors generated by verifier.py to the appropriate
         ModelView. This is done recursively, so parent ModelViews also have
@@ -644,7 +678,7 @@ class WorkflowTree(ModelView):
         mappings = {
             'WorkflowView': ['mco_view', 'process_view',
                              'communication_view'],
-            'MCOModelView': ['parameter_view', 'kpi_view'],
+            'MCOModelView': ['mco_options'],
             'MCOParameterView': ['parameter_model_views'],
             'KPISpecificationView': ['kpi_model_views'],
             'ProcessView': ['execution_layer_views'],
@@ -721,23 +755,6 @@ class WorkflowTree(ModelView):
 
         # Pass relevant error messages to parent
         return send_to_parent
-
-    def _get_selected_error(self):
-        """Returns the error messages for the currently selected modelview"""
-        if self.system_state.selected_view is None:
-            return ERROR_TEMPLATE.format("No Item Selected", "")
-
-        if self.system_state.selected_view.error_message == '':
-            mv_label = self.system_state.selected_view.label
-            return ERROR_TEMPLATE.format(
-                "No errors for {}".format(mv_label), "")
-        else:
-            mv_label = self.system_state.selected_view.label
-            error_list = self.system_state.selected_view.error_message.split('\n')
-            body_strings = ''.join([SINGLE_ERROR.format(error)
-                                    for error in error_list])
-            return ERROR_TEMPLATE.format(
-                "Errors for {}:".format(mv_label), body_strings)
 
 
 # HTML Formatting Templates

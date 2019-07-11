@@ -92,7 +92,7 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         mco_view = (
             self.workflow_view.mco_view[0]
         )
-        self.workflow_tree.optimizer_selected(mco_view)
+        self.workflow_tree.mco_optimizer_selected(mco_view)
 
         self.assertEqual(
             'None',
