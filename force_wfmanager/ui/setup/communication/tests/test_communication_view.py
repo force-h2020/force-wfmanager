@@ -20,14 +20,22 @@ class TestCommunicationView(unittest.TestCase):
         self.factory = ProbeNotificationListenerFactory(self.plugin)
 
     def test_add_notification_listener(self):
-        self.assertEqual(len(self.communication_view.notification_listener_views), 0)
+        self.assertEqual(
+            0, len(self.communication_view.notification_listener_views)
+        )
         self.communication_view.add_notification_listener(
             self.factory.create_model())
-        self.assertEqual(len(self.communication_view.notification_listener_views), 1)
+        self.assertEqual(
+            1, len(self.communication_view.notification_listener_views)
+        )
 
     def test_remove_notification_listener(self):
         model = self.factory.create_model()
         self.communication_view.add_notification_listener(model)
-        self.assertEqual(len(self.communication_view.notification_listener_views), 1)
+        self.assertEqual(
+            1, len(self.communication_view.notification_listener_views)
+        )
         self.communication_view.remove_notification_listener(model)
-        self.assertEqual(len(self.communication_view.notification_listener_views), 0)
+        self.assertEqual(
+            0, len(self.communication_view.notification_listener_views)
+        )

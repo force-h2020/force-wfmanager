@@ -1,7 +1,6 @@
 from traits.api import (
     HasTraits, Instance, List, on_trait_change, Bool, Event, Unicode
 )
-from traitsui.api import ModelView
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
@@ -10,6 +9,10 @@ from force_bdss.api import Workflow
 
 
 class ProcessView(HasTraits):
+    """A view object containing the process to optimise. This is a
+    hierarchical construct consisting of execution layers containing
+    data sources"""
+
     # -------------------
     # Required Attributes
     # -------------------
@@ -95,4 +98,3 @@ class ProcessView(HasTraits):
         for execution_layer_view in self.execution_layer_views:
             if data_source in execution_layer_view.model.data_sources:
                 execution_layer_view.remove_data_source(data_source)
-

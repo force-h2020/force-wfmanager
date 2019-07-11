@@ -27,35 +27,36 @@ class TestDataSourceView(BaseTest):
 
     def test_init_slot_rows(self):
         self.assertEqual(
-            self.data_source_view.input_slots_representation[0]\
-              .available_variables, ['P1', 'P2'])
+            ['P1', 'P2'],
+            self.data_source_view.input_slots_representation[0]
+            .available_variables)
 
     def test_evaluator_view_init(self):
-        self.assertEqual(self.data_source_view.label, "test_data_source")
+        self.assertEqual("test_data_source", self.data_source_view.label)
         self.assertIsInstance(self.data_source_view.model, BaseDataSourceModel)
         self.assertEqual(
-            len(self.data_source_view.input_slots_representation), 1)
+            1, len(self.data_source_view.input_slots_representation))
         self.assertEqual(
-            len(self.data_source_view.output_slots_representation), 2)
-        self.assertEqual(self.model_1.input_slot_info[0].name, '')
-        self.assertEqual(self.model_1.output_slot_info[0].name, '')
+            2, len(self.data_source_view.output_slots_representation))
+        self.assertEqual('', self.model_1.input_slot_info[0].name)
+        self.assertEqual('', self.model_1.output_slot_info[0].name)
 
     def test_input_slot_update(self):
         self.data_source_view.input_slots_representation[0].name = 'P1'
-        self.assertEqual(self.model_1.input_slot_info[0].name, 'P1')
+        self.assertEqual('P1', self.model_1.input_slot_info[0].name)
 
         self.workflow.mco.parameters[0].name = 'P2'
-        self.assertEqual(self.model_1.input_slot_info[0].name, '')
+        self.assertEqual('', self.model_1.input_slot_info[0].name)
 
         self.data_source_view.input_slots_representation[0].name = 'P2'
-        self.assertEqual(self.model_1.input_slot_info[0].name, 'P2')
+        self.assertEqual('P2', self.model_1.input_slot_info[0].name)
 
         with self.assertRaises(TraitError):
             self.data_source_view.input_slots_representation[0].name = 'P1'
 
     def test_output_slot_update(self):
         self.data_source_view.output_slots_representation[0].name = 'output'
-        self.assertEqual(self.model_1.output_slot_info[0].name, 'output')
+        self.assertEqual('output', self.model_1.output_slot_info[0].name)
 
     def test_bad_input_slots(self):
         input_slots, _ = self.data_source.slots(self.model_1)
@@ -86,18 +87,18 @@ class TestDataSourceView(BaseTest):
         self.model_1.output_slot_info[1].name = 't1'
 
         self.assertEqual(
-            self.data_source_view.output_slots_representation[0].name,
-            'p1'
+            'p1',
+            self.data_source_view.output_slots_representation[0].name
         )
         self.assertEqual(
-            self.data_source_view.output_slots_representation[1].name,
-            't1'
+            't1',
+            self.data_source_view.output_slots_representation[1].name
         )
 
         self.model_1.input_slot_info[0].name = 'P2'
         self.assertEqual(
-            self.data_source_view.input_slots_representation[0].name,
-            'P2'
+            'P2',
+            self.data_source_view.input_slots_representation[0].name
         )
 
     def test_HTML_description(self):

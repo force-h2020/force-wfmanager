@@ -51,7 +51,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.kpi_view = KPISpecificationView(
             model=self.workflow.mco,
-            variable_names_registry = self.registry
+            variable_names_registry=self.registry
         )
 
     def test_kpi_view_init(self):

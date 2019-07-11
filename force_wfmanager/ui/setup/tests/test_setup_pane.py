@@ -20,9 +20,11 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         self.setup_pane = self.wfmanager.windows[0].central_pane
         self.side_pane = self.wfmanager.windows[0].tasks[0].side_pane
         self.system_state = self.wfmanager.windows[0].tasks[0].system_state
-        self.factory_registry = self.wfmanager.windows[0].tasks[0].factory_registry
+        self.factory_registry = (self.wfmanager.windows[0]
+                                 .tasks[0].factory_registry)
 
-        self.model = self.factory_registry.data_source_factories[0].create_model()
+        self.model = (self.factory_registry
+                      .data_source_factories[0].create_model())
 
         #: Store these data source models in an exectution layer
         self.data_sources = [self.model]

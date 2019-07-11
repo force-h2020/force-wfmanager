@@ -1,10 +1,10 @@
 from traits.api import (
     Bool, Callable, Dict, Either, HasStrictTraits, Instance, List, ReadOnly,
-    Property, Unicode, on_trait_change, Button, cached_property
+    Property, Unicode, on_trait_change
 )
 from traitsui.api import (
     HSplit, HTMLEditor, InstanceEditor, Menu, TreeEditor, TreeNode, UItem,
-    VGroup, View, HGroup, ButtonEditor, VSplit
+    VGroup, View
 )
 from envisage.plugin import Plugin
 
@@ -158,22 +158,26 @@ class NewEntityCreator(HasStrictTraits):
                     VGroup(
                         VGroup(
                             UItem(
-                                "model", style="custom", editor=InstanceEditor(),
-                                visible_when="_current_model_editable is True"
+                                "model",
+                                style="custom",
+                                editor=InstanceEditor(),
+                                visible_when="_current_model_editable"
                                   ),
                             UItem(
                                 "_no_config_options_msg", style="readonly",
                                 editor=HTMLEditor(),
-                                visible_when="_current_model_editable is False"
+                                visible_when="not _current_model_editable"
                             ),
-                            visible_when="model is not None and config_visible",
+                            visible_when="model is not None "
+                                         "and config_visible",
                             style="custom",
                             label="Configuration Options",
                             show_border=True,
                             springy=True,
                         ),
                         VGroup(
-                            UItem("model_description_HTML", editor=HTMLEditor()),
+                            UItem("model_description_HTML",
+                                  editor=HTMLEditor()),
                             style="readonly",
                             label="Description",
                             show_border=True,
@@ -182,10 +186,10 @@ class NewEntityCreator(HasStrictTraits):
                     ),
                     springy=True,
                 ),
-            title="Add New Element",
-            width=500,
-            resizable=True,
-            kind="livemodal"
+                title="Add New Element",
+                width=500,
+                resizable=True,
+                kind="livemodal"
         )
 
         return view

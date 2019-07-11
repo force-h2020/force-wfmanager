@@ -1,5 +1,5 @@
 from force_bdss.api import (
-    KPISpecification, OutputSlotInfo, ExecutionLayer, InputSlotInfo
+    KPISpecification, OutputSlotInfo, ExecutionLayer
 )
 from force_wfmanager.ui.setup.workflow_view import \
     WorkflowView

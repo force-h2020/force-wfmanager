@@ -173,7 +173,8 @@ class TestWorkflowTree(BaseTest):
 
         self.assertIsNotNone(workflow_tree.workflow_view.model.mco)
         self.assertEqual(len(workflow_tree.workflow_view.mco_view), 1)
-        self.assertIsInstance(workflow_tree.workflow_view.model.mco, BaseMCOModel)
+        self.assertIsInstance(workflow_tree.workflow_view.model.mco,
+                              BaseMCOModel)
 
     def test_delete_mco(self):
 
@@ -257,7 +258,7 @@ class TestWorkflowTree(BaseTest):
         )
         data_source = (
             process_view.execution_layer_views[0]
-                .data_source_views[0]
+            .data_source_views[0]
         )
 
         self.workflow_tree.data_source_selected(data_source)
@@ -276,8 +277,8 @@ class TestWorkflowTree(BaseTest):
             )
 
     def test_new_notification_listener(self):
-
-        communication_view = self.workflow_tree.workflow_view.communication_view[0]
+        communication_view = (self.workflow_tree.workflow_view
+                              .communication_view[0])
 
         self.assertEqual(
             1, len(communication_view.notification_listener_views)
@@ -300,7 +301,8 @@ class TestWorkflowTree(BaseTest):
         )
 
     def test_delete_notification_listener(self):
-        communication_view = self.workflow_tree.workflow_view.communication_view[0]
+        communication_view = (self.workflow_tree.workflow_view
+                              .communication_view[0])
         self.assertEqual(
             1, len(communication_view.notification_listener_views)
         )
@@ -308,8 +310,11 @@ class TestWorkflowTree(BaseTest):
             1, len(self.workflow.notification_listeners)
         )
 
-        notification_listener_view = communication_view.notification_listener_views[0]
-        self.workflow_tree.notification_listener_selected(notification_listener_view)
+        notification_listener_view = (communication_view
+                                      .notification_listener_views[0])
+        self.workflow_tree.notification_listener_selected(
+            notification_listener_view
+        )
         self.system_state.remove_entity()
 
         self.assertEqual(
@@ -329,14 +334,15 @@ class TestWorkflowTree(BaseTest):
             "An input slot is not named", self.workflow_tree.selected_error
         )
 
-        parameter_view = self.workflow_tree.workflow_view.mco_view[0].parameter_view
+        parameter_view = (self.workflow_tree.workflow_view
+                          .mco_view[0].parameter_view)
         self.system_state.selected_view = parameter_view
 
         self.assertIn("No errors", self.workflow_tree.selected_error)
 
         data_source_view = (
-            self.workflow_tree.workflow_view.process_view[0].execution_layer_views[0]
-                .data_source_views[0]
+            self.workflow_tree.workflow_view.process_view[0]
+            .execution_layer_views[0].data_source_views[0]
         )
         data_source_view.model.output_slot_info[0].name = 'something'
         self.system_state.selected_view = data_source_view

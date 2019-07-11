@@ -1,10 +1,10 @@
 from traits.api import (
-    Bool, Enum, Event, Instance, List, Property, Unicode, cached_property,
+    Bool, Event, Instance, List, Property, Unicode, cached_property,
     on_trait_change, HasTraits, Button
 )
 from traitsui.api import (
-    EnumEditor, Item, View, ListEditor, TableEditor, ObjectColumn,
-    VGroup, HGroup, UReadonly, Handler, ModelView
+    Item, View, ListEditor, TableEditor, ObjectColumn,
+    VGroup, HGroup, UReadonly, ModelView
 )
 from force_bdss.api import KPISpecification, BaseMCOModel
 from force_wfmanager.utils.variable_names_registry import (
@@ -46,16 +46,7 @@ class KPISpecificationModelView(ModelView):
     error_message = Unicode()
 
     #: Event to request a verification check on the workflow
-    #: :func:`MCOModelView.verify_workflow_event
-    #: <force_wfmanager.ui.setup.mco.mco_view\
-    #: .MCOModelView.verify_workflow_event>`,
-    #: :func:`ProcessModelView.verify_workflow_event
-    #: <force_wfmanager.ui.setup.process.process_view.\
-    #: ProcessModelView.verify_workflow_event>`,
-    #: :func:`NotificationListenerModelView.verify_workflow_event
-    #: <force_wfmanager.views.execution_layers.\
-    # notification_listener_model_view.\
-    #: NotificationListenerModelView.verify_workflow_event>`
+    #: Listens to: :attr:`model.name <model>` and :attr:`model.type <model>`
     verify_workflow_event = Event
 
     # ------------------
@@ -248,14 +239,18 @@ class KPISpecificationView(HasTraits):
         non_kpi = []
 
         if self.variable_names_registry is not None:
-            var_stack = self.variable_names_registry.available_variables_stack
-            for exec_layer in var_stack:
-                for variable in exec_layer:
+            variables_stack = (self.variable_names_registry
+                               .available_variables_stack)
+            for execution_layer in variables_stack:
+                for variable in execution_layer:
                     kpi_check = variable[0] not in self.kpi_names
-                    variable_check = variable[0] in self.variable_names_registry \
-                        .data_source_outputs
+                    variable_check = (
+                            variable[0] in self.variable_names_registry
+                            .data_source_output
+                    )
                     if kpi_check and variable_check:
-                        variable_rep = TableRow(name=variable[0], type=variable[1])
+                        variable_rep = TableRow(name=variable[0],
+                                                type=variable[1])
                         non_kpi.append(variable_rep)
 
         return non_kpi

@@ -1,7 +1,8 @@
 import unittest
 
-from force_bdss.api import (DataValue, ExecutionLayer,
-                            Workflow, KPISpecification)
+from force_bdss.api import (
+    DataValue, ExecutionLayer, Workflow
+)
 from force_bdss.tests.probe_classes.data_source import \
     ProbeDataSourceFactory
 from force_bdss.tests.probe_classes.mco import ProbeParameter
@@ -12,6 +13,7 @@ from force_wfmanager.utils.variable_names_registry import \
 from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
+
 
 def get_run_function(nb_outputs):
     def run(*args, **kwargs):
@@ -59,10 +61,12 @@ class BaseTest(unittest.TestCase):
         #: Create MCO model to store some variables
         mco_factory = self.factory_registry.mco_factories[0]
         self.mco_model = mco_factory.create_model()
-        self.mco_model.parameters.append(ProbeParameter(None, name='P1',
-                                                   type='PRESSURE'))
-        self.mco_model.parameters.append(ProbeParameter(None, name='P2',
-                                                   type='PRESSURE'))
+        self.mco_model.parameters.append(ProbeParameter(
+            None, name='P1', type='PRESSURE')
+        )
+        self.mco_model.parameters.append(ProbeParameter(
+            None, name='P2', type='PRESSURE')
+        )
 
         #: Create a notification listener
         nl_factory = self.factory_registry.notification_listener_factories[0]

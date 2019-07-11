@@ -33,7 +33,7 @@ class SidePane(TraitsDockPane):
     system_state = Instance(SystemState, allow_none=False)
 
     #: The factory registry containing all the factories
-    factory_registry = Instance(IFactoryRegistry)
+    factory_registry = Instance(IFactoryRegistry, allow_none=False)
 
     # ------------------
     # Regular Attributes

@@ -1,6 +1,5 @@
 import unittest
 
-from traits.api import Unicode
 from force_bdss.api import OutputSlotInfo, ExecutionLayer
 from force_bdss.tests.probe_classes.mco import (
     ProbeParameterFactory, ProbeMCOFactory

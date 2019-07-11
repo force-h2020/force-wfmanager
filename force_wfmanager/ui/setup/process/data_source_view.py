@@ -3,8 +3,9 @@ from traits.api import (
     Bool, HTML, Property, Either, Event, Unicode, HasTraits,
     cached_property
 )
-from traitsui.api import (View, Item, ModelView, TableEditor, VGroup,
-                          TextEditor, UReadonly)
+from traitsui.api import (
+    View, Item, TableEditor, VGroup, TextEditor, UReadonly
+)
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (BaseDataSourceModel, BaseDataSource, Identifier,
@@ -143,6 +144,9 @@ output_slots_editor = TableEditor(
 
 
 class DataSourceView(HasTraits):
+    """A view for a single data source in a execution layer. Displays
+    traits of BaseDataSourceModel and a tabular representation of the
+    input / output variable slots"""
 
     # -------------------
     # Required Attributes

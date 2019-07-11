@@ -56,4 +56,3 @@ class TestProcessView(BaseTest):
         self.assertEqual(
             len(self.process_view.execution_layer_views[0]
                 .data_source_views), 2)
-

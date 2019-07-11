@@ -234,8 +234,8 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                                 self.review_task.workflow_model)
 
             self.assertNotEqual(old_workflow, self.setup_task.workflow_model)
-            #self.assertNotEqual(old_workflow,
-            #                    self.setup_task.side_pane.workflow_tree.model)
+            self.assertNotEqual(old_workflow,
+                                self.setup_task.side_pane.workflow_tree.model)
             self.assertNotEqual(old_analysis.value_names,
                                 self.review_task.analysis_model.value_names)
             self.assertNotEqual(old_analysis.value_names,

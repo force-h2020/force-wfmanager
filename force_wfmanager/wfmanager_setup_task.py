@@ -36,6 +36,7 @@ log = logging.getLogger(__name__)
 
 
 class WfManagerSetupTask(Task):
+    """Task responsible for building / editing the Workflow"""
 
     id = 'force_wfmanager.wfmanager_setup_task'
 
@@ -49,7 +50,7 @@ class WfManagerSetupTask(Task):
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
     #: Registry of the available factories
-    factory_registry = Instance(IFactoryRegistry)
+    factory_registry = Instance(IFactoryRegistry, allow_none=False)
 
     #: Conduit for passing state information of the GUI
     system_state = SystemState()
@@ -96,22 +97,7 @@ class WfManagerSetupTask(Task):
     #: Review Task
     review_task = Instance(Task)
 
-    # ZMQ Setup
-
-    def initialized(self):
-        """Overrides method from Task. Starts the ZMQ Server when this Task is
-        initialized
-        """
-        self.zmq_server.start()
-
-    def prepare_destroy(self):
-        """Overrides method from Task. Stops the ZMQ Server when this Task is
-        about to be destroyed
-        """
-        self.zmq_server.stop()
-
     # Task Defaults and Initialisers
-
     def _menu_bar_default(self):
         """A menu bar with functions relevant to the Setup task.
         """
@@ -233,8 +219,7 @@ class WfManagerSetupTask(Task):
             left=PaneItem('force_wfmanager.side_pane')
         )
 
-    #: Overloaded Methods
-
+    # Overloaded Methods
     def create_central_pane(self):
         """ Creates the central pane which contains the layer info part
         (factory selection and new object configuration editors)
@@ -247,16 +232,15 @@ class WfManagerSetupTask(Task):
         """ Creates the dock panes """
         return [self.side_pane]
 
-    # Default initializers
-    def _workflow_model_default(self):
-        return Workflow()
-
     def _side_pane_default(self):
         return SidePane(
             workflow_model=self.workflow_model,
             factory_registry=self.factory_registry,
             system_state=self.system_state
         )
+
+    def _workflow_model_default(self):
+        return Workflow()
 
     def _analysis_model_default(self):
         return AnalysisModel()
@@ -286,8 +270,21 @@ class WfManagerSetupTask(Task):
             on_error_callback=self._server_error_callback
         )
 
-    # Workflow Methods
+    #: Public Methods
+    # ZMQ Setup
+    def initialized(self):
+        """Overrides method from Task. Starts the ZMQ Server when this Task is
+        initialized
+        """
+        self.zmq_server.start()
 
+    def prepare_destroy(self):
+        """Overrides method from Task. Stops the ZMQ Server when this Task is
+        about to be destroyed
+        """
+        self.zmq_server.stop()
+
+    # Workflow Methods
     def open_workflow(self):
         """ Shows a dialog to open a workflow file """
 
@@ -415,7 +412,6 @@ class WfManagerSetupTask(Task):
         )
 
     # BDSS Interaction
-
     def run_bdss(self):
         """ Run the BDSS computation """
 
@@ -546,7 +542,6 @@ class WfManagerSetupTask(Task):
             )
 
     # Plugin Status
-
     def lookup_plugins(self):
 
         plugins = [plugin
@@ -569,7 +564,6 @@ class WfManagerSetupTask(Task):
         dlg.edit_traits()
 
     # Handling of BDSS events via ZMQ server
-
     def _server_event_callback(self, event):
         """Callback that is called by the server thread
         when a new event is received. This method is
@@ -605,13 +599,12 @@ class WfManagerSetupTask(Task):
             self.analysis_model.add_evaluation_step(data)
 
     # Error Display
-
     def _show_error_dialog(self, message):
         """Shows an error dialog to the user with a given message"""
         error(None, message, "Server error")
 
+    #: Listeners
     # Synchronization with side pane (Tree Pane)
-
     @on_trait_change('side_pane.run_enabled')
     def set_toolbar_run_btn_state(self):
         """ Sets the run button to be enabled/disabled, matching the
@@ -620,6 +613,14 @@ class WfManagerSetupTask(Task):
         """
         self.run_enabled = self.side_pane.run_enabled
 
+    @on_trait_change('workflow_model')
+    def update_side_pane_model(self):
+        """ Updates the local :attr:`workflow_model`, to match
+        :attr:`side_pane.workflow_model
+        <.panes.tree_pane.TreePane.workflow_model>`, which will
+        change as the user modifies a workflow via the UI."""
+        self.side_pane.workflow_model = self.workflow_model
+
     @on_trait_change('computation_running')
     def update_pane_active_status(self):
         """Disables the saving/loading toolbar buttons and the TreePane UI
@@ -627,6 +628,13 @@ class WfManagerSetupTask(Task):
 
         self.side_pane.ui_enabled = not self.computation_running
         self.save_load_enabled = not self.computation_running
+        self.run_enabled = not self.computation_running
+
+    # Method call from side pane interaction
+    @on_trait_change('side_pane.run_button')
+    def run_button_clicked(self):
+        """ Calls :func:`run_bdss` and runs the BDSS!"""
+        self.run_bdss()
 
     # Synchronization with Window
     @on_trait_change('window.tasks')
@@ -638,7 +646,6 @@ class WfManagerSetupTask(Task):
                     self.review_task.run_enabled = self.run_enabled
 
     # Menu/Toolbar Methods
-
     def switch_task(self):
         """Switches to the review task and verifies startup setting are
         correct for toolbars/menus etc."""
