@@ -246,7 +246,7 @@ class KPISpecificationView(HasTraits):
                     kpi_check = variable[0] not in self.kpi_names
                     variable_check = (
                             variable[0] in self.variable_names_registry
-                            .data_source_output
+                            .data_source_outputs
                     )
                     if kpi_check and variable_check:
                         variable_rep = TableRow(name=variable[0],

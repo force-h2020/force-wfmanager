@@ -7,8 +7,8 @@ Subpackages
 .. toctree::
 
     force_wfmanager.ui.setup.mco
-    force_wfmanager.ui.setup.execution_layers
-    force_wfmanager.ui.setup.notification_listeners
+    force_wfmanager.ui.setup.process
+    force_wfmanager.ui.setup.communicator
     force_wfmanager.ui.setup.tests
 
 Submodules
@@ -31,10 +31,10 @@ force\_wfmanager\.ui\.setup\.setup\_pane module
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.ui\.setup\.tree\_pane module
+force\_wfmanager\.ui\.setup\.side\_pane module
 --------------------------------------------------------
 
-.. automodule:: force_wfmanager.ui.setup.tree_pane
+.. automodule:: force_wfmanager.ui.setup.side_pane
     :members:
     :undoc-members:
     :show-inheritance:
@@ -56,10 +56,10 @@ force\_wfmanager\.ui\.setup\.workflow\_tree
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.ui\.setup\.workflow\_model\_view module
+force\_wfmanager\.ui\.setup\.workflow\_view module
 -----------------------------------------------------------
 
-.. automodule:: force_wfmanager.ui.setup.workflow_model_view
+.. automodule:: force_wfmanager.ui.setup.workflow_view
     :members:
     :undoc-members:
     :show-inheritance:

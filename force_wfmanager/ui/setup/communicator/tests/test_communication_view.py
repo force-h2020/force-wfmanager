@@ -5,15 +5,15 @@ from force_bdss.tests.probe_classes.notification_listener import \
     ProbeNotificationListenerFactory
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
-from force_wfmanager.ui.setup.communication.\
-    communication_view import \
-    CommunicationView
+from force_wfmanager.ui.setup.communicator.\
+    communicator_view import \
+    CommunicatorView
 
 
 class TestCommunicationView(unittest.TestCase):
 
     def setUp(self):
-        self.communication_view = CommunicationView(
+        self.communication_view = CommunicatorView(
             model=Workflow()
         )
         self.plugin = ProbeExtensionPlugin()

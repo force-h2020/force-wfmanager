@@ -50,7 +50,7 @@ class WfManagerSetupTask(Task):
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
     #: Registry of the available factories
-    factory_registry = Instance(IFactoryRegistry, allow_none=False)
+    factory_registry = Instance(IFactoryRegistry)
 
     #: Conduit for passing state information of the GUI
     system_state = SystemState()
@@ -220,6 +220,7 @@ class WfManagerSetupTask(Task):
         )
 
     # Overloaded Methods
+
     def create_central_pane(self):
         """ Creates the central pane which contains the layer info part
         (factory selection and new object configuration editors)
@@ -231,6 +232,8 @@ class WfManagerSetupTask(Task):
     def create_dock_panes(self):
         """ Creates the dock panes """
         return [self.side_pane]
+
+    # Default initializers
 
     def _side_pane_default(self):
         return SidePane(
@@ -613,7 +616,7 @@ class WfManagerSetupTask(Task):
         """
         self.run_enabled = self.side_pane.run_enabled
 
-    @on_trait_change('workflow_model')
+    @on_trait_change('workflow_model', post_init=True)
     def update_side_pane_model(self):
         """ Updates the local :attr:`workflow_model`, to match
         :attr:`side_pane.workflow_model

@@ -8,8 +8,8 @@ from force_wfmanager.ui.setup.mco.mco_view import MCOView
 from force_wfmanager.ui.setup.process.process_view import (
     ProcessView
 )
-from force_wfmanager.ui.setup.communication\
-    .communication_view import CommunicationView
+from force_wfmanager.ui.setup.communicator\
+    .communicator_view import CommunicatorView
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
@@ -53,7 +53,7 @@ class WorkflowView(HasTraits):
 
     #: Notification listeners to be displayed in the side pane
     #: NOTE: (Has to be a list to be selectable in TreeEditor)
-    communication_view = List(Instance(CommunicationView))
+    communicator_view = List(Instance(CommunicatorView))
 
     #: Defines if the Workflow is valid or not. Set by the
     #: function map_verify_workflow
@@ -88,8 +88,8 @@ class WorkflowView(HasTraits):
         else:
             return []
 
-    def _communication_view_default(self):
-        return [CommunicationView(
+    def _communicator_view_default(self):
+        return [CommunicatorView(
             model=self.model,
             variable_names_registry=self.variable_names_registry)]
 
@@ -104,11 +104,11 @@ class WorkflowView(HasTraits):
 
     @on_trait_change('model.notification_listeners')
     def update_communication_view(self):
-        self.communication_view = self._communication_view_default()
+        self.communicator_view = self._communicator_view_default()
 
     @on_trait_change('mco_view.verify_workflow_event,'
                      'process_view.verify_workflow_event,'
-                     'communication_view.verify_workflow_event')
+                     'communicator_view.verify_workflow_event')
     def received_verify_request(self):
         self.verify_workflow_event = True
 
@@ -127,6 +127,6 @@ class WorkflowView(HasTraits):
 
     def remove_notification_listener(self, notification_listener):
         """Removes the execution layer from the model."""
-        self.communication_view[0].remove_notification_listener(
+        self.communicator_view[0].remove_notification_listener(
             notification_listener
         )

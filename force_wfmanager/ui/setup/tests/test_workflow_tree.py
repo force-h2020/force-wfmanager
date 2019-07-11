@@ -39,7 +39,7 @@ class TestWorkflowTree(BaseTest):
             1, len(self.workflow_tree.workflow_view.process_view)
         )
         self.assertEqual(
-            1, len(self.workflow_tree.workflow_view.communication_view)
+            1, len(self.workflow_tree.workflow_view.communicator_view)
         )
 
         process_view = self.workflow_tree.workflow_view.process_view[0]
@@ -277,40 +277,40 @@ class TestWorkflowTree(BaseTest):
             )
 
     def test_new_notification_listener(self):
-        communication_view = (self.workflow_tree.workflow_view
-                              .communication_view[0])
+        communicator_view = (self.workflow_tree.workflow_view
+                             .communicator_view[0])
 
         self.assertEqual(
-            1, len(communication_view.notification_listener_views)
+            1, len(communicator_view.notification_listener_views)
         )
         self.assertEqual(
             1, len(self.workflow.notification_listeners)
         )
 
-        self.workflow_tree.communication_selected(communication_view)
+        self.workflow_tree.communicator_selected(communicator_view)
 
         factory = self.factory_registry.notification_listener_factories[0]
         self.system_state.entity_creator.model = factory.create_model()
         self.system_state.add_new_entity()
 
         self.assertEqual(
-            2, len(communication_view.notification_listener_views)
+            2, len(communicator_view.notification_listener_views)
         )
         self.assertEqual(
             2, len(self.workflow.notification_listeners)
         )
 
     def test_delete_notification_listener(self):
-        communication_view = (self.workflow_tree.workflow_view
-                              .communication_view[0])
+        communicator_view = (self.workflow_tree.workflow_view
+                             .communicator_view[0])
         self.assertEqual(
-            1, len(communication_view.notification_listener_views)
+            1, len(communicator_view.notification_listener_views)
         )
         self.assertEqual(
             1, len(self.workflow.notification_listeners)
         )
 
-        notification_listener_view = (communication_view
+        notification_listener_view = (communicator_view
                                       .notification_listener_views[0])
         self.workflow_tree.notification_listener_selected(
             notification_listener_view
@@ -318,7 +318,7 @@ class TestWorkflowTree(BaseTest):
         self.system_state.remove_entity()
 
         self.assertEqual(
-            0, len(communication_view.notification_listener_views)
+            0, len(communicator_view.notification_listener_views)
         )
         self.assertEqual(
             0, len(self.workflow.notification_listeners)

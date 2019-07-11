@@ -28,13 +28,13 @@ from force_wfmanager.ui.setup.mco.mco_parameter_view import (
     MCOParameterView
 )
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
-from force_wfmanager.ui.setup.communication. \
+from force_wfmanager.ui.setup.communicator. \
     notification_listener_view import NotificationListenerView
 from force_wfmanager.ui.setup.workflow_view import (
     WorkflowView
 )
-from force_wfmanager.ui.setup.communication.communication_view import (
-    CommunicationView
+from force_wfmanager.ui.setup.communicator.communicator_view import (
+    CommunicatorView
 )
 from force_wfmanager.ui.setup.system_state import SystemState
 
@@ -305,7 +305,7 @@ class WorkflowTree(ModelView):
                 TreeNode(
                     node_for=[WorkflowView],
                     auto_open=True,
-                    children='communication_view',
+                    children='communicator_view',
                     name='Communication',
                     label='=Communication',
                     view=no_view,
@@ -313,14 +313,14 @@ class WorkflowTree(ModelView):
                     on_select=self.workflow_selected
                 ),
                 TreeNodeWithStatus(
-                    node_for=[CommunicationView],
+                    node_for=[CommunicatorView],
                     auto_open=True,
                     children='notification_listener_views',
                     label='=Notification Listeners',
                     name='Notification Listeners',
                     view=no_view,
                     menu=no_menu,
-                    on_select=self.communication_selected
+                    on_select=self.communicator_selected
                 ),
                 # Node representing the Notification Listener
                 TreeNodeWithStatus(
@@ -561,12 +561,12 @@ class WorkflowTree(ModelView):
         self.system_state.selected_factory_name = 'MCO KPIs'
 
     @selection
-    def communication_selected(self, communication_view):
+    def communicator_selected(self, communicator_view):
         """Called on selecting the Communication node in the WorkflowTree
 
         Parameters
         ----------
-        communication_view: CommunicationView
+        communicator_view: CommunicatorView
             Selected CommunicationView in the TreeEditor
         """
 
@@ -575,7 +575,7 @@ class WorkflowTree(ModelView):
         self.system_state.add_new_entity = partial(
             self.new_notification_listener,
             None,
-            communication_view
+            communicator_view
         )
 
         factories = self._factory_registry.notification_listener_factories
@@ -671,13 +671,13 @@ class WorkflowTree(ModelView):
         # A dictionary with the mappings between modelview lists
         mappings = {
             'WorkflowView': ['mco_view', 'process_view',
-                             'communication_view'],
+                             'communicator_view'],
             'MCOModelView': ['mco_options'],
             'MCOParameterView': ['parameter_model_views'],
             'KPISpecificationView': ['kpi_model_views'],
             'ProcessView': ['execution_layer_views'],
             'ExecutionLayerView': ['data_source_views'],
-            'CommunicationView': ['notification_listener_views']
+            'CommunicatorView': ['notification_listener_views']
         }
 
         # Begin from top-level WorkflowModelView if nothing specified already

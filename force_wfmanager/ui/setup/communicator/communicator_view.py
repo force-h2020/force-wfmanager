@@ -7,7 +7,7 @@ from force_bdss.api import Workflow
 from .notification_listener_view import NotificationListenerView
 
 
-class CommunicationView(HasTraits):
+class CommunicatorView(HasTraits):
 
     # -------------------
     # Required Attributes
