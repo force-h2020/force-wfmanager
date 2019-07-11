@@ -1,24 +1,31 @@
-force\_wfmanager\.ui\.setup\.notification\_listeners\.tests package
+force\_wfmanager\.ui\.setup\.communicator\.tests package
 =========================================================================
 
 Submodules
 ----------
 
 
-force\_wfmanager\.ui\.setup\.notification\_listeners\.tests\.test\_notification\_listener\_model\_view module
--------------------------------------------------------------------------------------------------------------------
+force\_wfmanager\.ui\.setup\.communicator\.tests\.test\_notification\_listener\_model\_view module
+-------------------------------------------------------------------------------------------------------
 
-.. automodule:: force_wfmanager.ui.setup.notification_listeners.tests.test_notification_listener_model_view
+.. automodule:: force_wfmanager.ui.setup.communicator.tests.test_notification_listener_view
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force\_wfmanager\.ui\.setup\.communicator\.tests\.test\_notification\_listener\_model\_view module
+------------------------------------------------------------------------------------------------------
+
+.. automodule:: force_wfmanager.ui.setup.communicator.tests.test_communicator_view
     :members:
     :undoc-members:
     :show-inheritance:
 
 
-
 Module contents
 ---------------
 
-.. automodule:: force_wfmanager.ui.setup.notification_listeners.tests
+.. automodule:: force_wfmanager.ui.setup.communicator.tests
     :members:
     :undoc-members:
     :show-inheritance:

@@ -39,6 +39,14 @@ force\_wfmanager\.ui\.setup\.side\_pane module
     :undoc-members:
     :show-inheritance:
 
+force\_wfmanager\.ui\.setup\.system\_state module
+--------------------------------------------------------
+
+.. automodule:: force_wfmanager.ui.setup.system_state
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 force\_wfmanager\.ui\.setup\.workflow\_info
 -------------------------------------------------------
 

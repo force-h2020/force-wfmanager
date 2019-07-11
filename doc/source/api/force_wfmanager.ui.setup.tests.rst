@@ -20,6 +20,23 @@ force\_wfmanager\.ui\.setup\.tests\.test\_setup\_pane module
     :undoc-members:
     :show-inheritance:
 
+force\_wfmanager\.ui\.setup\.tests\.test\_side\_pane module
+-------------------------------------------------------------
+
+.. automodule:: force_wfmanager.ui.setup.tests.test_side_pane
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force\_wfmanager\.ui\.setup\.tests\.test\_system\_state module
+----------------------------------------------------------------
+
+.. automodule:: force_wfmanager.ui.setup.tests.test_system_state
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 force\_wfmanager\.ui\.setup\.tests\.test\_workflow\_info module
 -----------------------------------------------------------------
 
@@ -37,14 +54,13 @@ force\_wfmanager\.ui\.setup\.tests\.test\_workflow\_tree module
     :show-inheritance:
 
 
-force\_wfmanager\.ui\.setup\.tests\.test\_workflow\_model\_view module
--------------------------------------------------------------------------
+force\_wfmanager\.ui\.setup\.tests\.test\_workflow\_view module
+------------------------------------------------------------------
 
-.. automodule:: force_wfmanager.ui.setup.tests.test_workflow_model_view
+.. automodule:: force_wfmanager.ui.setup.tests.test_workflow_view
     :members:
     :undoc-members:
     :show-inheritance:
-
 
 
 Module contents

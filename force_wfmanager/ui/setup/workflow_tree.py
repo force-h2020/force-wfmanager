@@ -120,10 +120,11 @@ class TreeNodeWithStatus(TreeNode):
 
     def get_icon(self, object, is_expanded):
         """ Overrides get_icon method of TreeNode.
+
         Parameters
         ----------
-        object: ModelView
-            The ModelView assigned to this TreeNode
+        object: HasTraits
+            The view assigned to this TreeNode
         is_expanded: bool
             True if the TreeNode is expanded, i.e. child nodes of this
             TreeNode are also visible in the UI.
@@ -135,14 +136,16 @@ class TreeNodeWithStatus(TreeNode):
         This method sets up the listener as normal, where it responds to
         changes in the TreeNode label. Additionally, it sets the listener
         to respond to changes in the 'valid' attribute of a ModelView.
+
         Parameters
         ----------
-        object: ModelView
-            The ModelView assigned to this TreeNode
+        object: HasTraits
+            The view assigned to this TreeNode
         listener: method
             The _label_updated method from TreeEditor
         remove: bool
             Whether to remove the listener from object
+
         Notes
         -----
         This is done as the method label_updated in tree_editor.py is one of
