@@ -94,15 +94,15 @@ class WorkflowView(HasTraits):
             variable_names_registry=self.variable_names_registry)]
 
     #: Listeners
-    @on_trait_change('model.execution_layers')
+    @on_trait_change('model:execution_layers')
     def update_process_view(self):
         self.process_view = self._process_view_default()
 
-    @on_trait_change('model.mco')
+    @on_trait_change('model:mco')
     def update_mco_view(self):
         self.mco_view = self._mco_view_default()
 
-    @on_trait_change('model.notification_listeners')
+    @on_trait_change('model:notification_listeners')
     def update_communication_view(self):
         self.communicator_view = self._communicator_view_default()
 

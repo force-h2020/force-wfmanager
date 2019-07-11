@@ -315,7 +315,7 @@ class WorkflowTree(ModelView):
                     menu=no_menu,
                     on_select=self.workflow_selected
                 ),
-                TreeNodeWithStatus(
+                TreeNode(
                     node_for=[CommunicatorView],
                     auto_open=True,
                     children='notification_listener_views',

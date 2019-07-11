@@ -147,7 +147,8 @@ class KPISpecificationView(HasTraits):
     #: that could become a KPI
     non_kpi_variables = Property(
         List(TableRow),
-        depends_on='variable_names_registry,kpi_names'
+        depends_on='variable_names_registry.data_source_outputs,'
+                   'kpi_names'
     )
 
     # ------------------

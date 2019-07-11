@@ -41,6 +41,10 @@ class TestMCOView(BaseTest, UnittestTools):
             self.mco_view.mco_options[1],
             self.kpi_view
         )
+        self.assertEqual(
+            self.variable_names_registry,
+            self.kpi_view.variable_names_registry
+        )
 
         self.assertEqual(1, len(self.kpi_view.kpi_model_views))
         self.assertEqual(2, len(self.kpi_view.non_kpi_variables))
