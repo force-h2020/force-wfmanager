@@ -122,7 +122,11 @@ def edm_run_output(env_name, cmd, cwd=None):
 
 @contextlib.contextmanager
 def _hide_user_saved_state(env_name):
-    """ Context manager that backs up the user's application_memento file."""
+    """ Context manager that backs up the user's application_memento file, if
+    it exists and if it's possible.
+    Note: this is lenient: if backing up is not possible, it's just skipped
+    (and the failure is reported to the user).
+    """
     issues = False
     backed_up = False
     tempdir = tempfile.gettempdir()
@@ -139,12 +143,16 @@ def _hide_user_saved_state(env_name):
 
     # try to make a backup if needed
     if expected_loc and os.path.isfile(expected_loc) and not issues:
+        backup_loc = os.path.join(
+            tempdir,
+            os.path.basename(expected_loc)+".backup")
         try:
-            os.rename(
-                expected_loc,
-                os.path.join(tempdir, expected_loc+".backup")
-            )
+            os.rename(expected_loc, backup_loc)
             backed_up = True
+            click.echo(
+                "The local application_memento file was backed up "
+                "to a temporary location: {!r}".format(backup_loc)
+            )
         except EnvironmentError:
             issues = True
 
@@ -156,9 +164,9 @@ def _hide_user_saved_state(env_name):
             click.echo(
                 "It wasn't possible to back-up the user state file (if any).")
         if backed_up:
-            os.rename(
-                os.path.join(tempdir, expected_loc+".backup"),
-                expected_loc
+            os.rename(backup_loc, expected_loc)
+            click.echo(
+                "The local application_memento file was restored."
             )
 
 
