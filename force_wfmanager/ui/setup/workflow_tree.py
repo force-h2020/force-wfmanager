@@ -422,6 +422,7 @@ class WorkflowTree(ModelView):
     def factory_selected(self, from_registry, create_fn, factory_name, view):
         """Called on selecting a node in the TreeEditor which represents a
         factory.
+
         Parameters
         ----------
         from_registry: List(BaseFactory)
@@ -447,7 +448,7 @@ class WorkflowTree(ModelView):
         self.system_state.add_new_entity = partial(
             add_new_entity,
             ui_info=None,
-        )
+            )
 
         self.system_state.selected_factory_name = factory_name
 
