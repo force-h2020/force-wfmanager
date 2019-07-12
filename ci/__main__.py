@@ -1,5 +1,8 @@
 import click
-from subprocess import check_call
+import contextlib
+import os
+import subprocess
+import tempfile
 
 DEFAULT_PYTHON_VERSION = "3.6"
 PYTHON_VERSIONS = ["3.6"]
@@ -35,11 +38,14 @@ python_version_option = click.option(
 @python_version_option
 def install(python_version):
     env_name = get_env_name(python_version)
-    check_call([
+    returncode = subprocess.call([
         "edm", "install", "-e", env_name,
         "--yes"] + ADDITIONAL_CORE_DEPS)
 
-    edm_run(env_name, ["pip", "install", "-e", "."])
+    if returncode:
+        raise click.ClickException("Error while installing EDM dependencies.")
+
+    returncode = edm_run(env_name, ["pip", "install", "-e", "."])
 
 
 @cli.command(help="Run the tests")
@@ -47,7 +53,12 @@ def install(python_version):
 def test(python_version):
     env_name = get_env_name(python_version)
 
-    edm_run(env_name, ["python", "-m", "unittest", "discover", "-v"])
+    with _hide_user_saved_state(env_name):
+        returncode = edm_run(
+            env_name, ["python", "-m", "unittest", "discover", "-v"])
+
+    if returncode:
+        raise click.ClickException("There were test failures.")
 
 
 @cli.command(help="Run flake")
@@ -55,7 +66,10 @@ def test(python_version):
 def flake8(python_version):
     env_name = get_env_name(python_version)
 
-    edm_run(env_name, ["flake8", "."])
+    returncode = edm_run(env_name, ["flake8", "."])
+    if returncode:
+        raise click.ClickException(
+            "Flake8 exited with exit status {}".format(returncode))
 
 
 @cli.command(help="Runs the coverage")
@@ -63,9 +77,19 @@ def flake8(python_version):
 def coverage(python_version):
     env_name = get_env_name(python_version)
 
-    edm_run(env_name, ["coverage", "run", "-m", "unittest", "discover"])
-    edm_run(env_name, ["pip", "install", "codecov"])
-    edm_run(env_name, ["codecov"])
+    with _hide_user_saved_state(env_name):
+        returncode = edm_run(
+            env_name, ["coverage", "run", "-m", "unittest", "discover"])
+    if returncode:
+        raise click.ClickException("There were test failures.")
+
+    returncode = edm_run(env_name, ["pip", "install", "codecov"])
+    if not returncode:
+        returncode = edm_run(env_name, ["codecov"])
+
+    if returncode:
+        raise click.ClickException(
+            "There were errors while installing and running codecov.")
 
 
 @cli.command(help="Builds the documentation")
@@ -73,7 +97,10 @@ def coverage(python_version):
 def docs(python_version):
     env_name = get_env_name(python_version)
 
-    edm_run(env_name, ["make", "html"], cwd="doc")
+    returncode = edm_run(env_name, ["make", "html"], cwd="doc")
+    if returncode:
+        raise click.ClickException(
+            "There were errors while building the documentation.")
 
 
 def get_env_name(python_version):
@@ -85,7 +112,54 @@ def remove_dot(python_version):
 
 
 def edm_run(env_name, cmd, cwd=None):
-    check_call(["edm", "run", "-e", env_name, "--"]+cmd, cwd=cwd)
+    return subprocess.call(["edm", "run", "-e", env_name, "--"]+cmd, cwd=cwd)
+
+
+def edm_run_output(env_name, cmd, cwd=None):
+    return subprocess.check_output(
+        ["edm", "run", "-e", env_name, "--"]+cmd, cwd=cwd)
+
+
+@contextlib.contextmanager
+def _hide_user_saved_state(env_name):
+    """ Context manager that backs up the user's application_memento file."""
+    issues = False
+    backed_up = False
+    tempdir = tempfile.gettempdir()
+
+    # try to get the state location
+    script = os.path.join("ci", "scripts", "state_location.py")
+    try:
+        expected_loc = edm_run_output(
+            env_name, ["python", script])
+    except subprocess.CalledProcessError:
+        expected_loc = ""
+        issues = True
+    expected_loc = expected_loc.strip()
+
+    # try to make a backup if needed
+    if expected_loc and os.path.isfile(expected_loc) and not issues:
+        try:
+            os.rename(
+                expected_loc,
+                os.path.join(tempdir, expected_loc+".backup")
+            )
+            backed_up = True
+        except EnvironmentError:
+            issues = True
+
+    # yield the context, then clean up or report failure
+    try:
+        yield
+    finally:
+        if issues:
+            click.echo(
+                "It wasn't possible to back-up the user state file (if any).")
+        if backed_up:
+            os.rename(
+                os.path.join(tempdir, expected_loc+".backup"),
+                expected_loc
+            )
 
 
 if __name__ == "__main__":
