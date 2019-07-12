@@ -8,6 +8,7 @@ from force_bdss.tests.probe_classes.mco import ProbeParameter
 from force_wfmanager.tests.probe_classes import (
     ProbeWfManager
 )
+from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
 
 class TestSetupPane(GuiTestAssistant, TestCase):
@@ -76,6 +77,7 @@ class TestSetupPane(GuiTestAssistant, TestCase):
                          self.side_pane.system_state)
         self.assertEqual(self.setup_pane.system_state,
                          self.system_state)
+        self.assertTrue(self.setup_pane.main_view_visible)
 
     def test_mco_view(self):
 
@@ -248,4 +250,16 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         self.assertEqual(
             'New error',
             self.setup_pane.error_message
+        )
+
+    def test_console_ns(self):
+        namespace = self.setup_pane._console_ns_default()
+
+        self.assertIsInstance(
+            namespace['task'],
+            WfManagerSetupTask
+        )
+        self.assertIsInstance(
+            namespace['app'],
+            ProbeWfManager
         )

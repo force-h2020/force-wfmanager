@@ -72,6 +72,12 @@ class SetupPane(TraitsTaskPane):
         Bool, depends_on='system_state:selected_view'
     )
 
+    #: A Boolean indicating whether the currently selected view is the main
+    #: view containing the FORCE logo
+    main_view_visible = Property(
+        Bool, depends_on='system_state:selected_factory_name'
+    )
+
     #: A Boolean indicating whether the currently selected view represents
     #: either a KPI or Parameter.
     mco_view_visible = Property(
@@ -121,10 +127,7 @@ class SetupPane(TraitsTaskPane):
                         editor=InstanceEditor(),
                         style="custom",
                         ),
-                    visible_when=(
-                        "object.system_state.selected_factory_name"
-                        " == 'Workflow'"
-                    )
+                    visible_when="main_view_visible"
                 ),
                 # MCO Parameter and KPI views
                 VGroup(
@@ -232,6 +235,10 @@ class SetupPane(TraitsTaskPane):
         elif len(self.system_state.selected_view.trait_views()) == 0:
             return False
         return True
+
+    @cached_property
+    def _get_main_view_visible(self):
+        return self.system_state.selected_factory_name == 'Workflow'
 
     @cached_property
     def _get_mco_view_visible(self):

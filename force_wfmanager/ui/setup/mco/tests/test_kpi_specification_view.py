@@ -124,3 +124,21 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         with self.assertTraitChanges(
                 self.kpi_view, 'verify_workflow_event', count=1):
             kpi_model_view.model.name = 'another'
+
+    def test_no_variable_names_registry(self):
+
+        self.kpi_view.variable_names_registry = None
+        self.assertEqual(0, len(self.kpi_view.non_kpi_variables))
+        self.assertIsNone(self.kpi_view.selected_non_kpi)
+
+        self.kpi_view.add_kpi_button = True
+        self.assertEqual(1, len(self.kpi_view.kpi_names))
+        self.assertEqual(1, len(self.kpi_view.kpi_model_views))
+
+    def test_no_kpi_selected(self):
+
+        self.kpi_view.selected_kpi = None
+
+        self.kpi_view.remove_kpi_button = True
+        self.assertEqual(1, len(self.kpi_view.kpi_names))
+        self.assertEqual(1, len(self.kpi_view.kpi_model_views))

@@ -146,10 +146,11 @@ class NewEntityCreator(HasStrictTraits):
                     VGroup(
                         UItem("view_header",
                               editor=InstanceEditor(),
-                              style='custom'),
+                              style='custom'
+                              ),
                         UItem("plugins_root",
-                              editor=editor,
-                            ),
+                              editor=editor
+                              ),
                         springy=True
                     ),
                     VGroup(
@@ -224,9 +225,9 @@ class NewEntityCreator(HasStrictTraits):
                           "available for this selection</p>")
 
     def _get_view_header(self):
-        if self.factory_name is '':
+        if self.factory_name == '':
             return "<h1>Available Factories</h1>"
-        return f"<h1>Available {self.factory_name} Factories<h1>"
+        return f"<h1>Available {self.factory_name} Factories</h1>"
 
     @on_trait_change("selected_factory")
     def update_current_model(self):
