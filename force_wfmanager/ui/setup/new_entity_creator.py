@@ -74,6 +74,9 @@ class NewEntityCreator(HasStrictTraits):
     #: configuration option display
     config_visible = Bool(True)
 
+    # Factory name to be displayed in view_header
+    factory_name = Unicode()
+
     # --------------------
     # Dependent Attributes
     # --------------------
@@ -97,6 +100,9 @@ class NewEntityCreator(HasStrictTraits):
     # ----------
     # Properties
     # ----------
+
+    #: HTML header containing the factory name
+    view_header = Property(Instance(Unicode), depends_on='factory_name')
 
     #: HTML containing a model description, obtained from the model's
     #: get_name and get_description methods.
@@ -138,7 +144,13 @@ class NewEntityCreator(HasStrictTraits):
         view = View(
                 HSplit(
                     VGroup(
-                        UItem("plugins_root", editor=editor),
+                        UItem("view_header",
+                              editor=InstanceEditor(),
+                              style='custom'),
+                        UItem("plugins_root",
+                              editor=editor,
+                            ),
+                        springy=True
                     ),
                     VGroup(
                         VGroup(
@@ -210,6 +222,11 @@ class NewEntityCreator(HasStrictTraits):
         """
         return htmlformat(body="<p>No configuration options "
                           "available for this selection</p>")
+
+    def _get_view_header(self):
+        if self.factory_name is '':
+            return "<h1>Available Factories</h1>"
+        return f"<h1>Available {self.factory_name} Factories<h1>"
 
     @on_trait_change("selected_factory")
     def update_current_model(self):

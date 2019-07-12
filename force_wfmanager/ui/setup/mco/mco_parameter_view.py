@@ -200,6 +200,7 @@ class MCOParameterView(HasTraits):
             parameter_entity_creator = NewEntityCreator(
                 factories=visible_factories,
                 dclick_function=self.add_parameter,
+                factory_name='MCO Parameter',
                 config_visible=False
             )
             return parameter_entity_creator

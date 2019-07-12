@@ -16,7 +16,7 @@ from force_wfmanager.ui.setup.new_entity_creator import (
 )
 from force_wfmanager.ui.setup.workflow_tree import WorkflowView
 from force_wfmanager.ui.ui_utils import model_info
-from force_wfmanager.tests.dummy_classes import DummyModalInfo
+from force_wfmanager.tests.dummy_classes import DummyModelInfo
 
 
 class DataSourceModelDescription(BaseDataSourceModel):
@@ -24,7 +24,7 @@ class DataSourceModelDescription(BaseDataSourceModel):
     test_trait = Int(13, desc='Test trait')
 
 
-class TestNewEntityModal(unittest.TestCase):
+class TestNewEntitymodel(unittest.TestCase):
     def setUp(self):
         self.plugin = ProbeExtensionPlugin()
         self.mcos = [ProbeMCOFactory(self.plugin)]
@@ -33,93 +33,109 @@ class TestNewEntityModal(unittest.TestCase):
         self.workflow_mv = WorkflowView()
 
     def _get_mco_selector(self):
-        modal = NewEntityCreator(
+        model = NewEntityCreator(
             factories=self.mcos
         )
-        return modal, DummyModalInfo(object=modal)
+        return model, DummyModelInfo(object=model)
 
     def _get_data_selector(self):
-        modal = NewEntityCreator(
+        model = NewEntityCreator(
             factories=self.data_sources
         )
-        return modal, DummyModalInfo(object=modal)
+        return model, DummyModelInfo(object=model)
 
     def test_select_factory(self):
         # Simulate selecting an mco factory in the panel
-        modal, modal_info = self._get_mco_selector()
-        modal.selected_factory = modal.factories[0]
-        self.assertIsInstance(modal.model, ProbeMCOModel)
+        model, _ = self._get_mco_selector()
+        model.selected_factory = model.factories[0]
+        self.assertIsInstance(model.model, ProbeMCOModel)
 
         # Simulate selecting a datasource factory in the panel
-        modal, modal_info = self._get_data_selector()
-        modal.selected_factory = modal.factories[0]
-        self.assertIsInstance(modal.model, ProbeDataSourceModel)
+        model, _ = self._get_data_selector()
+        model.selected_factory = model.factories[0]
+        self.assertIsInstance(model.model, ProbeDataSourceModel)
 
     def test_caching(self):
-        modal, _ = self._get_mco_selector()
+        model, _ = self._get_mco_selector()
         # Select a factory and
-        modal.selected_factory = modal.factories[0]
+        model.selected_factory = model.factories[0]
 
-        self.assertIsNotNone(modal.model)
-        first_model = modal.model
+        self.assertIsNotNone(model.model)
+        first_model = model.model
 
         # Unselect the factory
-        modal.selected_factory = None
+        model.selected_factory = None
 
-        self.assertIsNone(modal.model)
+        self.assertIsNone(model.model)
 
         # Select the same factory again and check if the model is the same
-        modal.selected_factory = modal.factories[0]
+        model.selected_factory = model.factories[0]
 
-        self.assertEqual(id(first_model), id(modal.model))
+        self.assertEqual(id(first_model), id(model.model))
 
-    def test_description_mco_modal(self):
+    def test_description_mco_model(self):
 
-        modal, modal_info = self._get_mco_selector()
+        model, _ = self._get_mco_selector()
 
-        self.assertFalse(modal._current_model_editable)
+        self.assertFalse(model._current_model_editable)
 
-        self.assertIn("No Model", modal.model_description_HTML)
+        self.assertIn("No Model", model.model_description_HTML)
 
         # Select factory
-        modal.selected_factory = modal.factories[0]
+        model.selected_factory = model.factories[0]
 
-        self.assertIn("testmco", modal.model_description_HTML)
-        self.assertIn("Edit traits", modal.model_description_HTML)
+        self.assertIn("testmco", model.model_description_HTML)
+        self.assertIn("Edit traits", model.model_description_HTML)
 
     def test_view_structure(self):
 
-        modal, modal_info = self._get_mco_selector()
+        model, _ = self._get_mco_selector()
 
-        modal.selected_factory = modal.factories[0]
+        model.selected_factory = model.factories[0]
 
-        self.assertIn("edit_traits_call_count", model_info(
-            modal.model))
+        self.assertIn("edit_traits_call_count",
+                      model_info(model.model))
 
     def test_plugins_root_default(self):
 
-        modal, modal_info = self._get_mco_selector()
-        root = modal._plugins_root_default()
+        model, _ = self._get_mco_selector()
+        root = model._plugins_root_default()
 
         self.assertEqual(len(root.plugins), 1)
         self.assertEqual(root.plugins[0].plugin, self.plugin)
 
     def test_description_editable_data_source(self):
-        modal, modal_info = self._get_data_selector()
-        modal.selected_factory = modal.factories[0]
-        modal.model = DataSourceModelDescription(
-            modal.selected_factory)
+        model, _ = self._get_data_selector()
+        model.selected_factory = model.factories[0]
+        model.model = DataSourceModelDescription(
+            model.selected_factory)
 
         self.assertIn("Test trait",
-                      modal.model_description_HTML)
+                      model.model_description_HTML)
 
     def test_description_non_editable_datasource(self):
 
-        modal, modal_info = self._get_data_selector()
-        modal.selected_factory = self.data_sources[0]
+        model, _ = self._get_data_selector()
+        model.selected_factory = self.data_sources[0]
         # An empty DataSourceModel with no editable traits
-        modal.model = DummyDataSourceModel(self.data_sources[0])
-        self.assertFalse(modal._current_model_editable)
-        self.assertIn("No description available", modal.model_description_HTML)
+        model.model = DummyDataSourceModel(self.data_sources[0])
+        self.assertFalse(model._current_model_editable)
+        self.assertIn("No description available",
+                      model.model_description_HTML)
         self.assertIn("No configuration options available",
-                      modal._no_config_options_msg)
+                      model._no_config_options_msg)
+
+    def test_view_header(self):
+        model, _ = self._get_mco_selector()
+
+        self.assertEqual(
+            "<h1>Available Factories</h1>",
+            model.view_header
+        )
+
+        model.factory_name = 'MCO'
+
+        self.assertEqual(
+            "<h1>Available MCO Factories</h1>",
+            model.view_header
+        )

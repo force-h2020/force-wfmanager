@@ -6,6 +6,7 @@ from traitsui.api import (
     Item, View, ListEditor, TableEditor, ObjectColumn,
     VGroup, HGroup, UReadonly, ModelView
 )
+
 from force_bdss.api import KPISpecification, BaseMCOModel
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry

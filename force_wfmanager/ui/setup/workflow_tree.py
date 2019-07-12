@@ -440,7 +440,8 @@ class WorkflowTree(ModelView):
             visible_factories = [f for f in from_registry if f.ui_visible]
             self.system_state.entity_creator = NewEntityCreator(
                 factories=visible_factories,
-                dclick_function=add_new_entity
+                dclick_function=add_new_entity,
+                factory_name=factory_name
             )
 
         self.system_state.add_new_entity = partial(
