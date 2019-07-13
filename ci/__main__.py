@@ -1,8 +1,5 @@
 import click
-import contextlib
-import os
 import subprocess
-import tempfile
 
 DEFAULT_PYTHON_VERSION = "3.6"
 PYTHON_VERSIONS = ["3.6"]
@@ -53,9 +50,8 @@ def install(python_version):
 def test(python_version):
     env_name = get_env_name(python_version)
 
-    with _hide_user_saved_state(env_name):
-        returncode = edm_run(
-            env_name, ["python", "-m", "unittest", "discover", "-v"])
+    returncode = edm_run(
+        env_name, ["python", "-m", "unittest", "discover", "-v"])
 
     if returncode:
         raise click.ClickException("There were test failures.")
@@ -77,9 +73,8 @@ def flake8(python_version):
 def coverage(python_version):
     env_name = get_env_name(python_version)
 
-    with _hide_user_saved_state(env_name):
-        returncode = edm_run(
-            env_name, ["coverage", "run", "-m", "unittest", "discover"])
+    returncode = edm_run(
+        env_name, ["coverage", "run", "-m", "unittest", "discover"])
     if returncode:
         raise click.ClickException("There were test failures.")
 
@@ -118,56 +113,6 @@ def edm_run(env_name, cmd, cwd=None):
 def edm_run_output(env_name, cmd, cwd=None):
     return subprocess.check_output(
         ["edm", "run", "-e", env_name, "--"]+cmd, cwd=cwd)
-
-
-@contextlib.contextmanager
-def _hide_user_saved_state(env_name):
-    """ Context manager that backs up the user's application_memento file, if
-    it exists and if it's possible.
-    Note: this is lenient: if backing up is not possible, it's just skipped
-    (and the failure is reported to the user).
-    """
-    issues = False
-    backed_up = False
-    tempdir = tempfile.gettempdir()
-
-    # try to get the state location
-    script = os.path.join("ci", "scripts", "state_location.py")
-    try:
-        expected_loc = edm_run_output(
-            env_name, ["python", script])
-    except subprocess.CalledProcessError:
-        expected_loc = ""
-        issues = True
-    expected_loc = expected_loc.strip()
-
-    # try to make a backup if needed
-    if expected_loc and os.path.isfile(expected_loc) and not issues:
-        backup_loc = os.path.join(
-            tempdir,
-            os.path.basename(expected_loc)+".backup")
-        try:
-            os.rename(expected_loc, backup_loc)
-            backed_up = True
-            click.echo(
-                "The local application_memento file was backed up "
-                "to a temporary location: {!r}".format(backup_loc)
-            )
-        except EnvironmentError:
-            issues = True
-
-    # yield the context, then clean up or report failure
-    try:
-        yield
-    finally:
-        if issues:
-            click.echo(
-                "It wasn't possible to back-up the user state file (if any).")
-        if backed_up:
-            os.rename(backup_loc, expected_loc)
-            click.echo(
-                "The local application_memento file was restored."
-            )
 
 
 if __name__ == "__main__":
