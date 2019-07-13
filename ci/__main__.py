@@ -44,6 +44,9 @@ def install(python_version):
 
     returncode = edm_run(env_name, ["pip", "install", "-e", "."])
 
+    if returncode:
+        raise click.ClickException("Error while installing the local package.")
+
 
 @cli.command(help="Run the tests")
 @python_version_option
@@ -108,11 +111,6 @@ def remove_dot(python_version):
 
 def edm_run(env_name, cmd, cwd=None):
     return subprocess.call(["edm", "run", "-e", env_name, "--"]+cmd, cwd=cwd)
-
-
-def edm_run_output(env_name, cmd, cwd=None):
-    return subprocess.check_output(
-        ["edm", "run", "-e", env_name, "--"]+cmd, cwd=cwd)
 
 
 if __name__ == "__main__":
