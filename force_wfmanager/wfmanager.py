@@ -1,5 +1,4 @@
 import logging
-import os
 
 from envisage.ui.tasks.api import TasksApplication, TaskWindow
 
@@ -21,26 +20,22 @@ class WfManager(TasksApplication):
     window_size = Either(Tuple(Int, Int), None)
 
     def __init__(self, *args, **kwargs):
+        self.always_use_default_layout = True  # FIXME not enough apparently
         super().__init__(*args, **kwargs)
-        if self.window_size is not None:
-            self.always_use_default_layout = True
 
     # Overridden defaults from TasksApplication/Application
 
     def _default_layout_default(self):
         tasks = [factory.id for factory in self.task_factories]
-        if self.window_size is not None:
-            return [TaskWindowLayout(
-                *tasks,
-                active_task='force_wfmanager.wfmanager_setup_task',
-                size=self.window_size
-            )]
-        else:
-            return [TaskWindowLayout(
-                *tasks,
-                active_task='force_wfmanager.wfmanager_setup_task',
-                size=(1680, 1050)
-            )]
+        window_size = (
+            self.window_size if self.window_size is not None
+            else (1680, 1050)
+        )
+        return [TaskWindowLayout(
+            *tasks,
+            active_task='force_wfmanager.wfmanager_setup_task',
+            size=window_size
+        )]
 
     def _window_factory_default(self):
         """Sets a TaskWindowClosePrompt to be the default window
@@ -77,24 +72,6 @@ class WfManager(TasksApplication):
             layout, not restore, **traits
         )
         return window
-
-    def _load_state(self):
-        super(WfManager, self)._load_state()
-        if (
-            self._state.window_layouts
-            and self._state.window_layouts[0].get_active_task() is None
-        ):
-            # This is a possible way a corrupted state file would manifest
-            # itself: see issues force-h2020/force-wfmanager#289,
-            # force-h2020/force-wfmanager#290.
-            # Remove it and try again with a default state.
-            state_file = os.path.join(
-                self.state_location, 'application_memento')
-            if os.path.exists(state_file):
-                os.unlink(state_file)
-                log.warning("The state file at {!r} was corrupted and has "
-                            "been removed.".format(state_file))
-            super(WfManager, self)._load_state()
 
 
 class TaskWindowClosePrompt(TaskWindow):
