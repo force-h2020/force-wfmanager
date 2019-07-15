@@ -4,7 +4,7 @@ from traits.api import (
 from traitsui.api import EnumEditor, HGroup, UItem, VGroup, View
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.review.plot import BasePlot, Plot
+from force_wfmanager.ui.review.plot import Plot
 from force_wfmanager.ui.review.data_view import BaseDataView
 
 
@@ -49,7 +49,7 @@ class DataViewPane(TraitsTaskPane):
             ),
             label="Graph type",
             show_border=True
-        )
+        ),
     )
 
     #: View
@@ -61,14 +61,15 @@ class DataViewPane(TraitsTaskPane):
         ))
 
     def _data_view_default(self):
-        return BasePlot(analysis_model=self.analysis_model)
+        return Plot(analysis_model=self.analysis_model)
 
     def _available_data_views_default(self):
         """ Look through all the loaded plugins and try
         to extract their custom data views.
 
         """
-        available_data_views = [BasePlot, Plot]
+        # "Plot" is added first as it serves as the default selection.
+        available_data_views = [Plot]
         if self.task is not None and self.task.window is not None:
             # This is skipped if the current class is instantiated outside
             # of an application (e.g. specific tests)

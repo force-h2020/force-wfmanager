@@ -2,7 +2,8 @@
 
 * :class:`BasePlot` provides a simple 2D scatter plot over
   the columns from the analysis model, with x and y
-  selectable with a dropdown.
+  selectable with a dropdown. It is not selected and is meant
+  as a template for subclassing.
 * :class:`Plot` extends :class:`BasePlot` to allow for an
   optional colourmap to be applied to a third variable.
 
@@ -28,7 +29,7 @@ from .data_view import BaseDataView
 
 
 class BasePlot(BaseDataView):
-    """Simple 2D scatter plot. (see module doc)"""
+    """Simple 2D scatter plot (see module-level doc)."""
 
     # -------------------
     # Required Attributes

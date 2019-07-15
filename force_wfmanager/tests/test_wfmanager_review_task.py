@@ -4,13 +4,13 @@ from pyface.constant import OK
 from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
-from force_wfmanager.ui.review.plot import BasePlot
+from force_wfmanager.ui.review.plot import Plot
 
 from .mock_methods import (
     mock_file_writer, mock_dialog, mock_return_args
 )
 from .test_wfmanager_tasks import get_probe_wfmanager_tasks
-from .dummy_classes import DummyWfManagerWithPlugins
+from .dummy_classes import DummyDataView1, DummyWfManagerWithPlugins
 
 RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_review_task.FileDialog'
 RESULTS_FILE_OPEN_PATH = 'force_wfmanager.io.project_io.open'
@@ -64,22 +64,18 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         """ Test of the data view selection feature within the task."""
         # Two default plot types
         self.assertEqual(
-            len(self.review_task.central_pane.available_data_views), 2)
+            len(self.review_task.central_pane.available_data_views), 1)
 
         # Initial state
         self.assertEqual(
-            self.review_task.central_pane.data_view_selection, BasePlot)
+            self.review_task.central_pane.data_view_selection, Plot)
         self.assertIsInstance(
-            self.review_task.central_pane.data_view, BasePlot)
+            self.review_task.central_pane.data_view, Plot)
 
         # The "change" button needs to be fired to populate the descriptions
         self.review_task.central_pane.change_view = True
         self.assertIn(
             "Plot with colormap (force_wfmanager.ui.review.plot.Plot)",
-            self.review_task.central_pane.data_view_descriptions.values()
-        )
-        self.assertIn(
-            "Simple plot (force_wfmanager.ui.review.plot.BasePlot)",
             self.review_task.central_pane.data_view_descriptions.values()
         )
 
@@ -93,7 +89,7 @@ class TestWFManagerTasksWithPlugins(GuiTestAssistant, TestCase):
     def test_discover_data_views(self):
         # Two default plot types plus three contributed
         self.assertEqual(
-            len(self.review_task.central_pane.available_data_views), 5)
+            len(self.review_task.central_pane.available_data_views), 4)
 
         # fire the button to populate descriptions
         self.review_task.central_pane.change_view = True
@@ -111,3 +107,27 @@ class TestWFManagerTasksWithPlugins(GuiTestAssistant, TestCase):
             "description (force_wfm...)",
             self.review_task.central_pane.data_view_descriptions.values()
         )
+
+    def test_change_data_view(self):
+        # check the initial state
+        self.assertEqual(
+            self.review_task.central_pane.data_view_selection, Plot)
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, Plot)
+
+        # then change data view
+        self.review_task.central_pane.data_view_selection = DummyDataView1
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, DummyDataView1)
+
+    def test_data_views_not_reinstantiated(self):
+        # two data views are visited once
+        initial = self.review_task.central_pane.data_view
+        self.assertIsInstance(initial, Plot)
+        self.review_task.central_pane.data_view_selection = DummyDataView1
+        other = self.review_task.central_pane.data_view
+        # they should be the same instance when visited again
+        self.review_task.central_pane.data_view_selection = Plot
+        self.assertTrue(self.review_task.central_pane.data_view is initial)
+        self.review_task.central_pane.data_view_selection = DummyDataView1
+        self.assertTrue(self.review_task.central_pane.data_view is other)
