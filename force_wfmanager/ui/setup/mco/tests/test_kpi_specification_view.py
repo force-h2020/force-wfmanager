@@ -132,7 +132,18 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
                 self.kpi_view, 'verify_workflow_event', count=1):
             kpi_model_view.model.name = 'another'
 
-    def test_no_variable_names_registry(self):
+    def test_check_kpi_names(self):
+        self.kpi_view.kpi_model_views[0].model.name = 'wrong'
+
+        self.assertEqual(['wrong'],
+                         self.kpi_view.kpi_names)
+        self.assertIsNotNone(self.registry)
+        self.assertEqual(
+            'KPI name does not correspond to an existing variable',
+            self.kpi_view.error_message
+        )
+
+    def test_non_variable_names_registry(self):
 
         self.kpi_view.variable_names_registry = None
         self.assertEqual(0, len(self.kpi_view.non_kpi_variables))

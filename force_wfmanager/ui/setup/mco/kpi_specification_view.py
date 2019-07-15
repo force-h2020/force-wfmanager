@@ -66,10 +66,10 @@ class KPISpecificationModelView(ModelView):
     # model.name listed in kpi_names. However, it is possible
     # to directly change model.name without updating kpi_names
     traits_view = View(
-        UReadonly('model.name'),
-        Item("model.objective"),
-        Item('model.auto_scale'),
-        Item("model.scale_factor",
+        Item('name', object='model'),
+        Item("objective", object='model'),
+        Item('auto_scale', object='model'),
+        Item("scale_factor", object='model',
              visible_when='not model.auto_scale'),
         kind="subpanel",
     )
@@ -138,8 +138,9 @@ class KPISpecificationView(HasTraits):
     # ------------------
 
     #: The names of the KPIs in the Workflow.
-    kpi_names = Property(List(Unicode),
-                         depends_on='model.kpis[]')
+    kpi_names = Property(
+        List(Unicode), depends_on='model.kpis.name'
+    )
 
     #: A list of TableRow instances, each representing a variable
     #: that could become a KPI
@@ -257,9 +258,9 @@ class KPISpecificationView(HasTraits):
         return non_kpi
 
     #: Listeners
-    @on_trait_change('model.kpis[]')
+    @on_trait_change('model.kpis')
     def update_kpi_model_views(self):
-        """Update the list of existing KPI names"""
+        """Update the list of KPI model views"""
         self.kpi_model_views = []
 
         if self.model is not None:
@@ -274,6 +275,20 @@ class KPISpecificationView(HasTraits):
             self.selected_kpi = None
         elif self.selected_kpi not in self.kpi_model_views:
             self.selected_kpi = self.kpi_model_views[0]
+
+    @on_trait_change('kpi_names,variable_names_registry')
+    def check_kpi_names(self):
+        """Perform KPI name check"""
+        valid = True
+        self.error_message = ''
+        if self.variable_names_registry is not None:
+            for name in self.kpi_names:
+                if (name not in
+                        self.variable_names_registry.data_source_outputs):
+                    self.error_message = ('KPI name does not correspond to an'
+                                          ' existing variable')
+                    valid = False
+        self.valid = valid
 
     # Workflow Validation
     @on_trait_change('kpi_model_views.verify_workflow_event')
