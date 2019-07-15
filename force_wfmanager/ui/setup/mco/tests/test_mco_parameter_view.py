@@ -79,12 +79,24 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
             self.parameter_view.parameter_model_views[0].label,
         )
         self.assertIsNotNone(self.parameter_view.parameter_entity_creator)
+        self.assertEqual(
+            self.parameter_view.selected_parameter,
+            self.parameter_view.parameter_model_views[0]
+        )
 
     def test_parameter_entity_creator(self):
 
+        mco_model = self.parameter_view.model
         self.parameter_view.model = None
         self.assertIsNone(self.parameter_view.parameter_entity_creator)
         self.assertEqual(0, len(self.parameter_view.parameter_model_views))
+        self.assertEqual(None, self.parameter_view.selected_parameter)
+
+        self.parameter_view.model = mco_model
+        self.parameter_view.selected_parameter = None
+        with self.assertTraitChanges(
+                self.parameter_view.model, 'parameters', count=0):
+            self.parameter_view._add_parameter_button_fired()
 
     def test_add_parameter(self):
 
@@ -102,6 +114,10 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
             "Probe parameter",
             parameter_model_view.label,
         )
+        self.assertEqual(
+            self.parameter_view.selected_parameter,
+            self.parameter_view.parameter_model_views[3]
+        )
 
     def test_remove_parameter(self):
 
@@ -111,6 +127,18 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
 
         self.assertEqual(2, len(self.workflow.mco.parameters))
         self.assertEqual(2, len(self.parameter_view.parameter_model_views))
+        self.assertEqual(
+            self.parameter_view.selected_parameter,
+            self.parameter_view.parameter_model_views[0]
+        )
+
+        self.parameter_view._remove_parameter_button_fired()
+        self.parameter_view._remove_parameter_button_fired()
+
+        self.assertEqual(
+            None,
+            self.parameter_view.selected_parameter
+        )
 
     def test_verify_workflow_event(self):
         parameter_model_view = self.parameter_view.parameter_model_views[0]

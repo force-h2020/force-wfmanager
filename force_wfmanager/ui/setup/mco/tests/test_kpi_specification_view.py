@@ -59,6 +59,10 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         self.assertEqual(1, len(self.kpi_view.kpi_model_views))
         self.assertEqual('KPI', self.kpi_view.kpi_model_views[0].label)
         self.assertEqual("MCO KPIs", self.kpi_view.label)
+        self.assertEqual(
+            self.kpi_view.selected_kpi,
+            self.kpi_view.kpi_model_views[0]
+        )
 
     def test_label(self):
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
@@ -108,6 +112,8 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         kpi_model_view = self.kpi_view.kpi_model_views[1]
         self.assertEqual('KPI: T1 (MINIMISE)', kpi_model_view.label)
+        self.assertEqual(self.kpi_view.selected_kpi,
+                         kpi_model_view)
 
     def test_remove_kpi(self):
 
@@ -117,6 +123,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.assertEqual(0, len(self.workflow.mco.kpis))
         self.assertEqual(0, len(self.kpi_view.kpi_model_views))
+        self.assertEqual(self.kpi_view.selected_kpi, None)
 
     def test_verify_workflow_event(self):
         kpi_model_view = self.kpi_view.kpi_model_views[0]

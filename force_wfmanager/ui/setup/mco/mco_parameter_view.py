@@ -212,16 +212,30 @@ class MCOParameterView(HasTraits):
             return parameter_entity_creator
 
     #: Listeners
+    @on_trait_change('model')
+    def update_parameter_entity_creator(self):
+        self.parameter_entity_creator = (
+                self._parameter_entity_creator_default()
+        )
+
     # Update parameter_model_views when model changes
     @on_trait_change('model.parameters[]')
     def update_parameter_model_views(self):
         """ Update the MCOParameterModelView(s) """
         self.parameter_model_views = []
+
         if self.model is not None:
+            # Add all MCO parameters as ModelViews
             self.parameter_model_views += [
                 MCOParameterModelView(model=parameter)
                 for parameter in self.model.parameters
             ]
+
+        # Update the selected_parameter view
+        if len(self.parameter_model_views) == 0:
+            self.selected_parameter = None
+        elif self.selected_parameter not in self.parameter_model_views:
+            self.selected_parameter = self.parameter_model_views[0]
 
     # Workflow Validation
     @on_trait_change('parameter_model_views.verify_workflow_event')
@@ -233,8 +247,10 @@ class MCOParameterView(HasTraits):
     def _add_parameter_button_fired(self):
         """Call add_parameter to create a new empty parameter using
         the parameter_entity_creator"""
-        self.add_parameter(self.parameter_entity_creator.model)
-        self.parameter_entity_creator.reset_model()
+        if self.parameter_entity_creator.model is not None:
+            self.add_parameter(self.parameter_entity_creator.model)
+            self.parameter_entity_creator.reset_model()
+            self.selected_parameter = self.parameter_model_views[-1]
 
     def _remove_parameter_button_fired(self):
         """Call remove_parameter to delete selected_parameter"""

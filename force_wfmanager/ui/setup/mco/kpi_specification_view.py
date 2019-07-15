@@ -260,11 +260,20 @@ class KPISpecificationView(HasTraits):
     @on_trait_change('model.kpis[]')
     def update_kpi_model_views(self):
         """Update the list of existing KPI names"""
-        self.kpi_model_views = [
-            KPISpecificationModelView(
-                model=kpi)
-            for kpi in self.model.kpis
-        ]
+        self.kpi_model_views = []
+
+        if self.model is not None:
+            # Update model view list
+            self.kpi_model_views += [
+                KPISpecificationModelView(
+                    model=kpi)
+                for kpi in self.model.kpis
+            ]
+        # Update selected view
+        if len(self.kpi_model_views) == 0:
+            self.selected_kpi = None
+        elif self.selected_kpi not in self.kpi_model_views:
+            self.selected_kpi = self.kpi_model_views[0]
 
     # Workflow Validation
     @on_trait_change('kpi_model_views.verify_workflow_event')
@@ -281,6 +290,7 @@ class KPISpecificationView(HasTraits):
                     name=self.selected_non_kpi.name
                 )
             )
+            self.selected_kpi = self.kpi_model_views[-1]
 
     def _remove_kpi_button_fired(self):
         """Call remove_kpi to delete selected kpi from list"""
