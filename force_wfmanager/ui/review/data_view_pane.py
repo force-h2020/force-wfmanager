@@ -40,6 +40,7 @@ class DataViewPane(TraitsTaskPane):
     #: Human readable descriptions of each data view, for the UI
     data_view_descriptions = Dict(Type(BaseDataView), Unicode())
 
+    #: Modal view for changing the selected plot
     selection_changer = View(
         HGroup(
             UItem(
@@ -51,6 +52,7 @@ class DataViewPane(TraitsTaskPane):
             show_border=True
         ),
         resizable=True,
+        kind="livemodal"
     )
 
     #: View
