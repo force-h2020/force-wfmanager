@@ -154,3 +154,7 @@ class TestWorkflowView(BaseTest, UnittestTools):
         self.assertEqual(
             3, len(kpi_view.non_kpi_variables)
         )
+
+    def test_output_names_mapping(self):
+
+        self.workflow_view._mappings()

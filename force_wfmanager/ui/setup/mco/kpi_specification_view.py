@@ -229,6 +229,7 @@ class KPISpecificationView(HasTraits):
         for kpi in self.model.kpis:
             kpi_names.append(kpi.name)
 
+
         return kpi_names
 
     @cached_property
