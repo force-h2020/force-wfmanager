@@ -12,9 +12,7 @@
 from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
 from chaco.api import BaseXYPlot, ColormappedScatterPlot
-from chaco.default_colormaps import (
-    color_map_functions
-)
+from chaco.default_colormaps import color_map_name_dict
 from pyface.timer.api import Timer
 from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
@@ -316,21 +314,9 @@ class BasePlot(BaseDataView):
             if not self.plot_updater.IsRunning():
                 self.plot_updater.Start()
 
-    @on_trait_change('reset_plot')
-    def reset_pressed(self):
+    def _reset_plot_fired(self):
         """ Event handler for :attr:`reset_plot`"""
         self.resize_plot()
-
-    @on_trait_change('color_options')
-    def color_options_pressed(self):
-        """ Event handler for :attr:`color_options` button. """
-        view = View(
-            Item('color_plot'),
-            Item('color_by', enabled_when='color_plot'),
-            Item('colormap', enabled_when='color_plot'),
-            kind='livemodal'
-        )
-        self.edit_traits(view=view)
 
     def resize_plot(self):
         """ Sets the size of the current plot to have some spacing between the
@@ -416,7 +402,7 @@ class BasePlot(BaseDataView):
 
 
 class Plot(BasePlot):
-    """Simple 2D scatter plot with optional colormap. (see module doc)"""
+    """Simple 2D scatter plot with optional colormap (see module doc)."""
 
     # ------------------
     # Regular Attributes
@@ -438,17 +424,14 @@ class Plot(BasePlot):
     # --------------------
 
     #: List of continuous chaco colormaps.
-    #: The default is set by the first entry of this list.
-    __continuous_colormaps = Dict(
-        {cmap.__str__().split()[1]: cmap
-         for cmap in color_map_functions}
-    )
+    __continuous_colormaps = Dict(color_map_name_dict)
     #: List of the names of continuous chaco colormaps.
+    #: The default is set by the first entry of this list.
     __continuous_colormaps_names = (
         ['viridis'] +
-        [cmap.__str__().split()[1]
-         for cmap in color_map_functions
-         if cmap.__str__().split()[1] != 'viridis']
+        [cmap_name
+         for cmap_name in color_map_name_dict.keys()
+         if cmap_name != 'viridis']
     )
 
     _available_colormaps = __continuous_colormaps
@@ -483,6 +466,16 @@ class Plot(BasePlot):
         if isinstance(self._axis, ColormappedScatterPlot):
             _range = self._axis.color_mapper.range
             self._axis.color_mapper = cmap(_range)
+
+    def _color_options_fired(self):
+        """ Event handler for :attr:`color_options` button. """
+        view = View(
+            Item('color_plot'),
+            Item('color_by', enabled_when='color_plot'),
+            Item('colormap', enabled_when='color_plot'),
+            kind='livemodal'
+        )
+        self.edit_traits(view=view)
 
     def plot_cmap_scatter(self):
         plot = ChacoPlot(self._plot_data)
