@@ -50,6 +50,7 @@ class DataViewPane(TraitsTaskPane):
             label="Graph type",
             show_border=True
         ),
+        resizable=True,
     )
 
     #: View
