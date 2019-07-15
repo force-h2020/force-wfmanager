@@ -130,9 +130,3 @@ class WorkflowView(HasTraits):
         self.communicator_view[0].remove_notification_listener(
             notification_listener
         )
-
-    def _mappings(self):
-
-        print(self.process_view[0].execution_layer_views)
-        print(self.variable_names_registry.available_input_variables_stack)
-        print(self.variable_names_registry.available_output_variables_stack)

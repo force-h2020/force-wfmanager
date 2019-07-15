@@ -56,3 +56,7 @@ class TestProcessView(BaseTest):
         self.assertEqual(
             len(self.process_view.execution_layer_views[0]
                 .data_source_views), 2)
+
+    def test_map_connections(self):
+
+        self.process_view.map_connections()

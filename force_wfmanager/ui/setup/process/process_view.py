@@ -97,3 +97,10 @@ class ProcessView(HasTraits):
         for execution_layer_view in self.execution_layer_views:
             if data_source in execution_layer_view.model.data_sources:
                 execution_layer_view.remove_data_source(data_source)
+
+    def map_connections(self):
+
+        for execution_layer_view in self.execution_layer_views:
+            for data_source_view in execution_layer_view.data_source_views:
+                print(data_source_view.input_slots_representation.name)
+

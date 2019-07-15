@@ -1,6 +1,6 @@
 import unittest
 
-from force_bdss.api import OutputSlotInfo, ExecutionLayer
+from force_bdss.api import OutputSlotInfo, InputSlotInfo, ExecutionLayer
 from force_bdss.tests.probe_classes.mco import (
     ProbeParameterFactory, ProbeMCOFactory
 )
@@ -72,8 +72,8 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.data_source4 = self.workflow.execution_layers[2].data_sources[0]
 
     def test_registry_init(self):
-        self.assertEqual(len(self.registry.available_input_variables_stack), 4)
-        self.assertEqual(len(self.registry.available_output_variables_stack), 4)
+
+        self.assertEqual(len(self.registry.available_output_variables_stack),4)
 
     def test_available_names_update(self):
         self.param1.name = 'V1'

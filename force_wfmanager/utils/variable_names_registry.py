@@ -27,6 +27,14 @@ class VariableNamesRegistry(HasStrictTraits):
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the input variables produced by that execution layer
+    data_source_input = List(Tuple(Identifier, CUBAType))
+
+    #: For each execution layer, there will be a list of (name, type) pairs
+    #: representing the output variables produced by that execution layer
+    data_source_output = List(Tuple(Identifier, CUBAType))
+
+    #: For each execution layer, there will be a list of (name, type) pairs
+    #: representing the input variables produced by that execution layer
     exec_layer_input = List(Tuple(Identifier, CUBAType))
 
     #: For each execution layer, there will be a list of (name, type) pairs
@@ -111,14 +119,12 @@ class VariableNamesRegistry(HasStrictTraits):
         output_stack = []
         # At the first layer, the available variables are the MCO parameters
         if self.workflow.mco is None:
-            input_stack.append([])
             output_stack.append([])
         else:
-            input_stack.append([
+            output_stack.append([
                 (p.name, p.type) for p in self.workflow.mco.parameters
                 if len(p.name) != 0
             ])
-            output_stack.append([])
 
         for layer in self.workflow.execution_layers:
             input_stack_entry_for_layer = []
