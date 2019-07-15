@@ -54,18 +54,12 @@ class MCOParameterModelView(ModelView):
         """Default view containing both traits from the base class and
         any additional user-defined traits"""
 
-        # Obtains traits of BaseMCOParameter that will always be present
-        base_traits = [Item('model.name'),
-                       Item('model.type')]
-
-        # Obtains user-created traits that have been tagged as visible
-        user_traits = [
-            Item(f'model.{key}')
-            for key in self.model.trait_names()
-            if key in self.model.visible_traits()
-        ]
-
-        return View(base_traits + user_traits)
+        return View(Item('name', object='model'),
+                    Item('type', object='model'),
+                    Item('model',
+                         editor=InstanceEditor(),
+                         style='custom')
+                    )
 
     #: Defaults
     def _label_default(self):

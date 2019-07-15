@@ -611,7 +611,7 @@ class WorkflowTree(ModelView):
     # double-clicking a specific factory in the NewEntityCreator
 
     @triggers_verify
-    def new_data_source(self, object, ui_info=None):
+    def new_data_source(self, ui_info, object):
         """Adds a new datasource to the workflow."""
         object.add_data_source(self.system_state.entity_creator.model)
         self.system_state.entity_creator.reset_model()

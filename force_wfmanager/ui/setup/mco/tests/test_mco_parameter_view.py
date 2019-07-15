@@ -1,9 +1,10 @@
 import unittest
 from traits.testing.unittest_tools import UnittestTools
 
-from force_bdss.tests.dummy_classes.extension_plugin import \
-    DummyExtensionPlugin
+from force_bdss.tests.probe_classes.probe_extension_plugin import \
+    ProbeExtensionPlugin
 from force_bdss.tests.probe_classes.mco import ProbeParameterFactory
+
 from force_wfmanager.ui.setup.mco.mco_parameter_view import \
     MCOParameterModelView, MCOParameterView
 from force_wfmanager.utils.tests.test_variable_names_registry import \
@@ -13,10 +14,11 @@ from force_wfmanager.utils.tests.test_variable_names_registry import \
 class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
 
     def setUp(self):
-        self.plugin = DummyExtensionPlugin()
+        self.plugin = ProbeExtensionPlugin()
         self.mco_factory = self.plugin.mco_factories[0]
+        self.parameter_factory = ProbeParameterFactory(self.mco_factory)
         self.parameter_model_view = MCOParameterModelView(
-            model=ProbeParameterFactory(self.mco_factory).create_model()
+            model=self.parameter_factory.create_model()
         )
 
     def test_mco_parameter_view_init(self):
@@ -49,17 +51,8 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
             'type',
             trait_view_repr,
         )
-        self.assertNotIn(
-            'new_trait',
-            trait_view_repr,
-        )
-
-        self.parameter_model_view.model.add_trait('new_trait', 1)
-        trait_view = self.parameter_model_view.trait_view()
-        trait_view_repr = trait_view.content.__repr__()
-
         self.assertIn(
-            'new_trait',
+            'model',
             trait_view_repr,
         )
 

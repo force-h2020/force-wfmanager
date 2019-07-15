@@ -151,7 +151,10 @@ class NewEntityCreator(HasStrictTraits):
                         UItem("plugins_root",
                               editor=editor
                               ),
-                        springy=True
+                        style="custom",
+                        label=self.view_header,
+                        show_border=True,
+                        springy=True,
                     ),
                     VGroup(
                         VGroup(
