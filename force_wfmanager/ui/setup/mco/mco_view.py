@@ -5,12 +5,14 @@ from traits.api import (
 from traitsui.api import View
 
 from force_bdss.api import BaseMCOModel
-from force_wfmanager.ui.setup.mco.kpi_specification_view import \
-    KPISpecificationView
+
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
-
-from .mco_parameter_view import MCOParameterView
+from force_wfmanager.ui.setup.mco.kpi_specification_view import \
+    KPISpecificationView
+from force_wfmanager.ui.setup.mco.mco_parameter_view import (
+    MCOParameterView
+)
 from force_wfmanager.ui.ui_utils import get_factory_name
 
 
@@ -44,6 +46,10 @@ class MCOView(HasTraits):
     #: The label to display in the TreeEditor
     label = Unicode()
 
+    # This is an empty View, which if not explicitly defined can cause the
+    # traits notification handler to raise exceptions during testing.
+    traits_view = View()
+
     # ---------------------
     # Dependent Attributes
     # ---------------------
@@ -64,10 +70,9 @@ class MCOView(HasTraits):
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
-    traits_view = View()
-
     #: Defaults
     def _label_default(self):
+        """Return a default label corresponding to the MCO factory"""
         return get_factory_name(self.model.factory)
 
     def _parameter_view_default(self):
@@ -82,6 +87,7 @@ class MCOView(HasTraits):
         )
 
     def _mco_options_default(self):
+        """Return a mco_options containing already constructed objects"""
         return [self.parameter_view, self.kpi_view]
 
     #: Listeners
@@ -90,3 +96,11 @@ class MCOView(HasTraits):
                      'kpi_view.verify_workflow_event')
     def received_verify_request(self):
         self.verify_workflow_event = True
+
+    @on_trait_change('parameter_view')
+    def sync_mco_options_parameter_view(self):
+        self.mco_options[0] = self.parameter_view
+
+    @on_trait_change('kpi_view')
+    def sync_mco_options_kpi_view(self):
+        self.mco_options[1] = self.kpi_view

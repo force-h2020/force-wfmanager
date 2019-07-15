@@ -242,7 +242,9 @@ class KPISpecificationView(HasTraits):
                                .available_variables_stack)
             for execution_layer in variables_stack:
                 for variable in execution_layer:
+                    # Each KPI must refer to a unique variable
                     kpi_check = variable[0] not in self.kpi_names
+                    # Each KPI must refer to an output variable
                     variable_check = (
                             variable[0] in self.variable_names_registry
                             .data_source_outputs
@@ -257,6 +259,7 @@ class KPISpecificationView(HasTraits):
     #: Listeners
     @on_trait_change('model.kpis[]')
     def update_kpi_model_views(self):
+        """Update the list of existing KPI names"""
         self.kpi_model_views = [
             KPISpecificationModelView(
                 model=kpi)
@@ -266,6 +269,7 @@ class KPISpecificationView(HasTraits):
     # Workflow Validation
     @on_trait_change('kpi_model_views.verify_workflow_event')
     def received_verify_request(self):
+        """Pass on call for verify_workflow_event"""
         self.verify_workflow_event = True
 
     #: Button actions

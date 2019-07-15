@@ -225,6 +225,7 @@ class NewEntityCreator(HasStrictTraits):
                           "available for this selection</p>")
 
     def _get_view_header(self):
+        """Return a header to the view clearly showing the factory name"""
         if self.factory_name == '':
             return "<h1>Available Factories</h1>"
         return f"<h1>Available {self.factory_name} Factories</h1>"

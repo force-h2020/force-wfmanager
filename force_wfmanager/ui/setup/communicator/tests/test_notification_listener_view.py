@@ -9,7 +9,7 @@ from force_wfmanager.ui.setup.communicator.\
     import NotificationListenerView
 
 
-class TestNotificationListenerModelView(unittest.TestCase):
+class TestNotificationListenerView(unittest.TestCase):
 
     def setUp(self):
         self.plugin = ProbeExtensionPlugin()

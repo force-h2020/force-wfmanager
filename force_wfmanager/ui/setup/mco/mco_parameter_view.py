@@ -51,6 +51,9 @@ class MCOParameterModelView(ModelView):
     # ----------
 
     def default_traits_view(self):
+        """Default view containing both traits from the base class and
+        any additional user-defined traits"""
+
         # Obtains traits of BaseMCOParameter that will always be present
         base_traits = [Item('model.name'),
                        Item('model.type')]
@@ -66,11 +69,14 @@ class MCOParameterModelView(ModelView):
 
     #: Defaults
     def _label_default(self):
+        """Return a default label corresponding to the MCO parameter factory"""
         return get_factory_name(self.model.factory)
 
     #: Property getters
     @cached_property
     def _get_label(self):
+        """Return a label appending both the parameter name and type to the
+        default"""
         if self.model.name == '' and self.model.type == '':
             return self._label_default()
         return self._label_default()+': {type} {name}'.format(
@@ -81,6 +87,7 @@ class MCOParameterModelView(ModelView):
     # Workflow Validation
     @on_trait_change('model.[name,type]')
     def parameter_change(self):
+        """Alert to a change in the model"""
         self.verify_workflow_event = True
 
 
@@ -148,6 +155,9 @@ class MCOParameterView(HasTraits):
     # ------------------
 
     def default_traits_view(self):
+        """Creates a traits view containing a notebook list of existing MCO
+        parameters above an entity creator from which the user can select new
+        parameter types"""
 
         # Defines a list editor to display parameter_model_views
         parameter_editor = ListEditor(
@@ -191,6 +201,8 @@ class MCOParameterView(HasTraits):
 
     #: Defaults
     def _parameter_entity_creator_default(self):
+        """Returns an entity creator containing parameter types
+        from all installed plugins"""
         if self.model is not None:
             visible_factories = [
                 f for f in self.model.factory.parameter_factories
@@ -220,6 +232,7 @@ class MCOParameterView(HasTraits):
     # Workflow Validation
     @on_trait_change('parameter_model_views.verify_workflow_event')
     def received_verify_request(self):
+        """Pass on request for verify_workflow_event"""
         self.verify_workflow_event = True
 
     #: Button actions

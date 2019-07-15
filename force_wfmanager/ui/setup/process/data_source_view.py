@@ -242,7 +242,7 @@ class DataSourceView(HasTraits):
 
     def __init__(self, *args, **kwargs):
         super(DataSourceView, self).__init__(*args, **kwargs)
-        # Performs protected method to set up slots tables on instantiation
+        # Performs private method to set up slots tables on instantiation
         self._create_slots_tables()
 
     #: Defaults

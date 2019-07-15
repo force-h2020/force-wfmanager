@@ -6,6 +6,12 @@ from force_bdss.api import (
 
 from force_wfmanager.ui.setup.mco.mco_view import \
     MCOView
+from force_wfmanager.ui.setup.mco.mco_parameter_view import (
+    MCOParameterView
+)
+from force_wfmanager.ui.setup.mco.kpi_specification_view import (
+    KPISpecificationView
+)
 from force_wfmanager.ui.setup.tests.template_test_case import \
     BaseTest
 
@@ -118,3 +124,37 @@ class TestMCOView(BaseTest, UnittestTools):
         with self.assertTraitChanges(
                 self.mco_view, 'verify_workflow_event', count=1):
             kpi_model_view.model.name = 'another'
+
+    def test_sync_mco_options(self):
+
+        old_parameter_view = self.mco_view.parameter_view
+        new_parameter_view = MCOParameterView(
+            model=self.workflow.mco
+        )
+
+        self.mco_view.parameter_view = new_parameter_view
+
+        self.assertEqual(
+            new_parameter_view,
+            self.mco_view.mco_options[0]
+        )
+        self.assertNotEqual(
+            old_parameter_view,
+            self.mco_view.mco_options[0]
+        )
+
+        old_kpi_view = self.mco_view.kpi_view
+        new_kpi_view = KPISpecificationView(
+            model=self.workflow.mco
+        )
+
+        self.mco_view.kpi_view = new_kpi_view
+
+        self.assertEqual(
+            new_kpi_view,
+            self.mco_view.mco_options[1]
+        )
+        self.assertNotEqual(
+            old_kpi_view,
+            self.mco_view.mco_options[1]
+        )
