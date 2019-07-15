@@ -331,7 +331,7 @@ class DataSourceView(HasTraits):
                              self.output_slots_representation):
             row.name = info.name
 
-    #: Protected methods
+    #: Private methods
     # Initialization
     def _create_slots_tables(self):
         """ Initialize the tables for editing the input and output slots

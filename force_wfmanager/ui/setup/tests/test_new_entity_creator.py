@@ -24,7 +24,7 @@ class DataSourceModelDescription(BaseDataSourceModel):
     test_trait = Int(13, desc='Test trait')
 
 
-class TestNewEntitymodel(unittest.TestCase):
+class TestNewEntityModel(unittest.TestCase):
     def setUp(self):
         self.plugin = ProbeExtensionPlugin()
         self.mcos = [ProbeMCOFactory(self.plugin)]

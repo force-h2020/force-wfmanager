@@ -91,8 +91,7 @@ class ProcessView(HasTraits):
         """Removes the execution layer from the model."""
         self.model.execution_layers.remove(layer)
 
-    # NOTE: Needed by TreeEditor to avoid inheritance between
-    # ExecutionLayerView and DataSourceView
+    # NOTE: Currently needed by TreeEditor as a reference point
     def remove_data_source(self, data_source):
         """Removes the data source from the model"""
         for execution_layer_view in self.execution_layer_views:
