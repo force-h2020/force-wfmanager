@@ -4,7 +4,7 @@ from traits.api import (
 )
 from traitsui.api import (
     Item, View, ListEditor, TableEditor, ObjectColumn,
-    VGroup, HGroup, UReadonly, ModelView
+    VGroup, HGroup, UReadonly, ModelView, EnumEditor
 )
 
 from force_bdss.api import KPISpecification, BaseMCOModel
@@ -32,6 +32,10 @@ class KPISpecificationModelView(ModelView):
 
     #: KPI model
     model = Instance(KPISpecification)
+
+    # Only display name options for existing KPIs (this isn't perfect and
+    # does allow
+    kpi_names = List(Unicode)
 
     # ------------------
     # Regular Attributes
@@ -66,7 +70,8 @@ class KPISpecificationModelView(ModelView):
     # model.name listed in kpi_names. However, it is possible
     # to directly change model.name without updating kpi_names
     traits_view = View(
-        Item('name', object='model'),
+        Item('name', object='model',
+             editor=EnumEditor(name='object.kpi_names')),
         Item("objective", object='model'),
         Item('auto_scale', object='model'),
         Item("scale_factor", object='model',
@@ -177,6 +182,7 @@ class KPISpecificationView(HasTraits):
                              resize_mode="stretch")
             ],
             auto_size=False,
+            sort_model=True,
             selected='selected_non_kpi'
         )
 
@@ -210,8 +216,10 @@ class KPISpecificationView(HasTraits):
                 ),
                 HGroup(
                     Item('add_kpi_button',
-                         springy=True),
-                    Item('remove_kpi_button'),
+                         springy=True,
+                         enabled_when='selected_non_kpi is not None'),
+                    Item('remove_kpi_button',
+                         enabled_when='selected_kpi is not None'),
                     show_labels=False,
                 ),
             ),
@@ -221,10 +229,39 @@ class KPISpecificationView(HasTraits):
 
         return traits_view
 
+    # Defaults
+    def _kpi_model_views_default(self):
+        """Creates a list of KPISpecificationModelViews for each
+        model.kpi"""
+        kpi_model_views = []
+
+        if self.model is not None:
+            # Update model view list
+            kpi_model_views += [
+                KPISpecificationModelView(
+                    model=kpi,
+                    kpi_names=self.kpi_names
+                )
+                for kpi in self.model.kpis
+            ]
+
+        return kpi_model_views
+
+    def _selected_kpi_default(self):
+        """Default value for selected_kpi"""
+        if len(self.kpi_model_views) > 0:
+            return self.kpi_model_views[0]
+
+    def _selected_non_kpi_default(self):
+        """Default value for selected_non_kpi_default"""
+        if len(self.non_kpi_variables) > 0:
+            return self.non_kpi_variables[0]
+
     #: Property getters
     @cached_property
     def _get_kpi_names(self):
         """Listens to model.kpis to extract model names for display"""
+
         kpi_names = []
 
         for kpi in self.model.kpis:
@@ -234,8 +271,9 @@ class KPISpecificationView(HasTraits):
 
     @cached_property
     def _get_non_kpi_variables(self):
-        """Listens to variable_names_registry to extract names
-         able to be assigned to kpis"""
+        """Listens to kpi_names and variable_names_registry to extract
+         possible names for new KPIs"""
+
         non_kpi = []
 
         if self.variable_names_registry is not None:
@@ -258,37 +296,37 @@ class KPISpecificationView(HasTraits):
         return non_kpi
 
     #: Listeners
+    @on_trait_change('kpi_names')
+    def _kpi_names_check(self):
+        """Reports a validation warning if duplicate KPI names exist
+        of if a KPI name is an empty string
+        """
+        error_message = ''
+        unique_check = True
+        empty_check = True
+
+        for name in self.kpi_names:
+            if self.kpi_names.count(name) > 1:
+                unique_check = False
+            if name == '':
+                empty_check = False
+
+        if not unique_check:
+            error_message += 'Two or more KPIs have a duplicate name\n'
+        if not empty_check:
+            error_message += 'A KPI does not have an assigned name\n'
+
+        self.valid = (unique_check and empty_check)
+        self.error_message = error_message
+
     @on_trait_change('model.kpis')
     def update_kpi_model_views(self):
         """Update the list of KPI model views"""
-        self.kpi_model_views = []
+        self.kpi_model_views = self._kpi_model_views_default()
 
-        if self.model is not None:
-            # Update model view list
-            self.kpi_model_views += [
-                KPISpecificationModelView(
-                    model=kpi)
-                for kpi in self.model.kpis
-            ]
         # Update selected view
         if len(self.kpi_model_views) == 0:
             self.selected_kpi = None
-        elif self.selected_kpi not in self.kpi_model_views:
-            self.selected_kpi = self.kpi_model_views[0]
-
-    @on_trait_change('kpi_names,variable_names_registry')
-    def check_kpi_names(self):
-        """Perform KPI name check"""
-        valid = True
-        self.error_message = ''
-        if self.variable_names_registry is not None:
-            for name in self.kpi_names:
-                if (name not in
-                        self.variable_names_registry.data_source_outputs):
-                    self.error_message = ('KPI name does not correspond to an'
-                                          ' existing variable')
-                    valid = False
-        self.valid = valid
 
     # Workflow Validation
     @on_trait_change('kpi_model_views.verify_workflow_event')
@@ -299,18 +337,35 @@ class KPISpecificationView(HasTraits):
     #: Button actions
     def _add_kpi_button_fired(self):
         """Call add_kpi using selected non-kpi variable from table"""
-        if self.selected_non_kpi is not None:
-            self.add_kpi(
-                KPISpecification(
-                    name=self.selected_non_kpi.name
-                )
-            )
-            self.selected_kpi = self.kpi_model_views[-1]
+
+        index = self.non_kpi_variables.index(self.selected_non_kpi)
+        self.add_kpi(KPISpecification(
+                name=self.selected_non_kpi.name
+            ))
+
+        # Update user selection
+        if len(self.non_kpi_variables) == 0:
+            self.selected_non_kpi = None
+        elif index == 0:
+            self.selected_non_kpi = self.non_kpi_variables[index]
+        else:
+            self.selected_non_kpi = self.non_kpi_variables[index-1]
+
+        # Highlight new KPI in ListEditor
+        self.selected_kpi = self.kpi_model_views[-1]
 
     def _remove_kpi_button_fired(self):
         """Call remove_kpi to delete selected kpi from list"""
-        if self.selected_kpi is not None:
-            self.remove_kpi(self.selected_kpi.model)
+
+        index = self.kpi_model_views.index(self.selected_kpi)
+        self.remove_kpi(self.selected_kpi.model)
+
+        # Update user selection
+        if len(self.kpi_model_views) > 0:
+            if index == 0:
+                self.selected_kpi = self.kpi_model_views[index]
+            else:
+                self.selected_kpi = self.kpi_model_views[index-1]
 
     #: Public methods
     def add_kpi(self, kpi):

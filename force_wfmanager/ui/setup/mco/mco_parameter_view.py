@@ -184,8 +184,11 @@ class MCOParameterView(HasTraits):
                 ),
                 HGroup(
                     Item('add_parameter_button',
-                         springy=True),
-                    Item('remove_parameter_button'),
+                         springy=True,
+                         enabled_when='object.parameter_entity_creator'
+                                      '.model is not None'),
+                    Item('remove_parameter_button',
+                         enabled_when='selected_parameter is not None'),
                     show_labels=False,
                 ),
             )
@@ -211,31 +214,42 @@ class MCOParameterView(HasTraits):
             )
             return parameter_entity_creator
 
+    def _parameter_model_views_default(self):
+        """Creates a list of MCOParameterModelViews for each
+        model.parameter"""
+        parameter_model_views = []
+
+        if self.model is not None:
+            # Add all MCO parameters as ModelViews
+            parameter_model_views += [
+                MCOParameterModelView(model=parameter)
+                for parameter in self.model.parameters
+            ]
+
+        return parameter_model_views
+
+    def _selected_parameter_default(self):
+        """Default value for selected_kpi"""
+        if len(self.parameter_model_views) > 0:
+            return self.parameter_model_views[0]
+
     #: Listeners
     @on_trait_change('model')
     def update_parameter_entity_creator(self):
+        """ Update the entity creator based on the MCO factory """
         self.parameter_entity_creator = (
                 self._parameter_entity_creator_default()
         )
 
     # Update parameter_model_views when model changes
-    @on_trait_change('model.parameters[]')
+    @on_trait_change('model.parameters')
     def update_parameter_model_views(self):
         """ Update the MCOParameterModelView(s) """
-        self.parameter_model_views = []
-
-        if self.model is not None:
-            # Add all MCO parameters as ModelViews
-            self.parameter_model_views += [
-                MCOParameterModelView(model=parameter)
-                for parameter in self.model.parameters
-            ]
+        self.parameter_model_views = self._parameter_model_views_default()
 
         # Update the selected_parameter view
         if len(self.parameter_model_views) == 0:
             self.selected_parameter = None
-        elif self.selected_parameter not in self.parameter_model_views:
-            self.selected_parameter = self.parameter_model_views[0]
 
     # Workflow Validation
     @on_trait_change('parameter_model_views.verify_workflow_event')
@@ -247,14 +261,23 @@ class MCOParameterView(HasTraits):
     def _add_parameter_button_fired(self):
         """Call add_parameter to create a new empty parameter using
         the parameter_entity_creator"""
-        if self.parameter_entity_creator.model is not None:
-            self.add_parameter(self.parameter_entity_creator.model)
-            self.parameter_entity_creator.reset_model()
-            self.selected_parameter = self.parameter_model_views[-1]
+        self.add_parameter(self.parameter_entity_creator.model)
+        self.parameter_entity_creator.reset_model()
+
+        self.selected_parameter = self.parameter_model_views[-1]
 
     def _remove_parameter_button_fired(self):
         """Call remove_parameter to delete selected_parameter"""
+
+        index = self.parameter_model_views.index(self.selected_parameter)
         self.remove_parameter(self.selected_parameter.model)
+
+        # Update user selection
+        if len(self.parameter_model_views) > 0:
+            if index == 0:
+                self.selected_parameter = self.parameter_model_views[index]
+            else:
+                self.selected_parameter = self.parameter_model_views[index-1]
 
     #: Public Methods
     def add_parameter(self, parameter):

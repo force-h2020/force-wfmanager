@@ -113,6 +113,10 @@ class SetupPane(TraitsTaskPane):
                          'entity_creator.model]'
     )
 
+    visible_add_button = Property(
+        Bool, depends_on='system_state:selected_factory_name'
+    )
+
     #: The view when editing an existing instance within the workflow tree
     def default_traits_view(self):
         """ Sets up a TraitsUI view which displays the details
@@ -183,9 +187,7 @@ class SetupPane(TraitsTaskPane):
                                     label_value='add_new_entity_label'
                                 ),
                                 enabled_when='enable_add_button',
-                                visible_when="object.system_state"
-                                             ".selected_factory_name "
-                                             "!= 'None'",
+                                visible_when="visible_add_button",
                                 springy=True
                             ),
                             # Remove Buttons
@@ -283,6 +285,11 @@ class SetupPane(TraitsTaskPane):
                 or self.system_state.entity_creator.model is None:
             return False
         return True
+
+    @cached_property
+    def _get_visible_add_button(self):
+        """ Determines if the add button in the UI should be enabled"""
+        return self.system_state.selected_factory_name == 'Data Source'
 
     @cached_property
     def _get_add_new_entity_label(self):
