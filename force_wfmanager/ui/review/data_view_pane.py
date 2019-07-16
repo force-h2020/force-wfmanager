@@ -6,6 +6,7 @@ from traitsui.api import EnumEditor, HGroup, UItem, VGroup, View
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.plot import Plot
 from force_wfmanager.ui.review.data_view import BaseDataView
+from force_wfmanager.ui.ui_utils import class_description
 
 
 class DataViewPane(TraitsTaskPane):
@@ -51,6 +52,8 @@ class DataViewPane(TraitsTaskPane):
             label="Graph type",
             show_border=True
         ),
+        # NOTE: Making the dialog resizable is a (less than optimal) workaround
+        # for a visualization issue on MacOS: see enthought/traitsui#587
         resizable=True,
         kind="livemodal"
     )
@@ -84,45 +87,9 @@ class DataViewPane(TraitsTaskPane):
         return available_data_views
 
     def update_descriptions(self, maxlength=80):
-
-        def shorten(string, maxlength):
-            if string.startswith("<class '"):
-
-                # Usual str(type) of the form <class 'foo.bar.baz'>:
-                # Remove wrapping and truncate, giving precedence to extremes.
-                words = string[8:-2].split(".")
-                num_words = len(words)
-                word_priority = [
-                    # from the out inwards, precedence to the left: 0 2 ... 3 1
-                    min(2*i, 2*num_words - 2*i - 1) for i in range(num_words)]
-                for threshold in range(num_words, 0, -1):
-                    string = ""
-                    for i, word in enumerate(words):
-                        string += word if word_priority[i] < threshold else ""
-                        string += "."
-                    if len(string) <= maxlength + 1:
-                        return string[:-1]
-                # fallback when every dot-based truncation is too long.
-                return shorten(words[0], maxlength)
-
-            else:
-
-                # Custom description: just truncate.
-                return string if len(string) <= maxlength \
-                    else string[:maxlength-3]+"..."
-
         descriptions = []
         for item in self.available_data_views:
-            length = maxlength
-            if hasattr(item, "description") and item.description is not None:
-                item_description = shorten(item.description, length)
-                # if there's enough room left, add the class name in brackets.
-                length -= len(item_description) + 3
-                if length >= 10:
-                    item_description += " (" + shorten(str(item), length) + ")"
-            else:
-                item_description = shorten(str(item), length)
-            descriptions.append((item, item_description))
+            descriptions.append((item, class_description(item)))
 
         self.data_view_descriptions = dict(descriptions)
 
