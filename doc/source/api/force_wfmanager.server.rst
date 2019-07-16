@@ -1,40 +1,33 @@
-force\_wfmanager\.server package
-================================
-
-Subpackages
------------
-
-.. toctree::
-
-    force_wfmanager.server.tests
+force\_wfmanager.server package
+===============================
 
 Submodules
 ----------
 
-
-force\_wfmanager\.server\.event\_serializer module
----------------------------------------------------------------------
-
-.. automodule:: force_wfmanager.server.event_serializer
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-force\_wfmanager\.server\.event\_deserializer module
-----------------------------------------------------
+force\_wfmanager.server.event\_deserializer module
+--------------------------------------------------
 
 .. automodule:: force_wfmanager.server.event_deserializer
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.server\.zmq\_server module
---------------------------------------------
+force\_wfmanager.server.event\_serializer module
+------------------------------------------------
+
+.. automodule:: force_wfmanager.server.event_serializer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+force\_wfmanager.server.zmq\_server module
+------------------------------------------
 
 .. automodule:: force_wfmanager.server.zmq_server
     :members:
     :undoc-members:
     :show-inheritance:
+
 
 Module contents
 ---------------

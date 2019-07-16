@@ -1,25 +1,25 @@
-force\_wfmanager\.ui package
-=================================
+force\_wfmanager.ui package
+===========================
 
 Subpackages
 -----------
 
 .. toctree::
 
-    force_wfmanager.ui.tests
-    force_wfmanager.ui.setup
     force_wfmanager.ui.review
+    force_wfmanager.ui.setup
 
 Submodules
 ----------
 
-force\_wfmanager\.ui\.view\_utils module
-------------------------------------------
+force\_wfmanager.ui.ui\_utils module
+------------------------------------
 
 .. automodule:: force_wfmanager.ui.ui_utils
     :members:
     :undoc-members:
     :show-inheritance:
+
 
 Module contents
 ---------------

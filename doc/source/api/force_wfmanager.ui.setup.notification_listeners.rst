@@ -1,19 +1,11 @@
-force\_wfmanager\.ui\.setup\.notification\_listeners package
-===================================================================
-
-Subpackages
------------
-
-.. toctree::
-
-    force_wfmanager.ui.setup.notification_listeners.tests
+force\_wfmanager.ui.setup.notification\_listeners package
+=========================================================
 
 Submodules
 ----------
 
-
-force\_wfmanager\.ui\.setup\.notification\_listeners\.notification\_listener\_model\_view module
--------------------------------------------------------------------------------------------------------
+force\_wfmanager.ui.setup.notification\_listeners.notification\_listener\_model\_view module
+--------------------------------------------------------------------------------------------
 
 .. automodule:: force_wfmanager.ui.setup.notification_listeners.notification_listener_model_view
     :members:

@@ -1,4 +1,6 @@
 import click
+import os
+import shutil
 from subprocess import check_call
 
 DEFAULT_PYTHON_VERSION = "3.6"
@@ -16,7 +18,6 @@ ADDITIONAL_CORE_DEPS = [
     "pyzmq==16.0.0-7",
     "mock==2.0.0-3"
 ]
-
 
 @click.group()
 def cli():
@@ -74,6 +75,26 @@ def docs(python_version):
     env_name = get_env_name(python_version)
 
     edm_run(env_name, ["make", "html"], cwd="doc")
+
+
+@cli.command("build-apidoc", help="Builds the API doc")
+@python_version_option
+def build_apidoc(python_version):
+    env_name = get_env_name(python_version)
+    doc_api = os.path.abspath(os.path.join("doc", "source", "api"))
+    package = os.path.abspath("force_wfmanager")
+
+    if os.path.exists(doc_api):
+        shutil.rmtree(doc_api)
+
+    cmd = [
+        'sphinx-apidoc', '-o', doc_api, package, '*tests*',
+    ]
+    edm_run(env_name, cmd)
+    click.echo(
+        "\nAPI doc generated. Please check the documentation with `ci docs` "
+        "and push the API doc changes to the repo if necessary."
+    )
 
 
 def get_env_name(python_version):

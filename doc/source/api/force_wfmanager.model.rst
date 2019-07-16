@@ -1,18 +1,11 @@
-force\_wfmanager\.model package
-=======================================
-
-Subpackages
------------
-
-.. toctree::
-
-    force_wfmanager.model.tests
+force\_wfmanager.model package
+==============================
 
 Submodules
 ----------
 
-force\_wfmanager\.model\.analysis\_model module
--------------------------------------------------------
+force\_wfmanager.model.analysis\_model module
+---------------------------------------------
 
 .. automodule:: force_wfmanager.model.analysis_model
     :members:

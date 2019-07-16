@@ -1,65 +1,62 @@
-force\_wfmanager\.ui\.setup package
-==============================================
+force\_wfmanager.ui.setup package
+=================================
 
 Subpackages
 -----------
 
 .. toctree::
 
-    force_wfmanager.ui.setup.mco
     force_wfmanager.ui.setup.execution_layers
+    force_wfmanager.ui.setup.mco
     force_wfmanager.ui.setup.notification_listeners
-    force_wfmanager.ui.setup.tests
 
 Submodules
 ----------
 
-
-force\_wfmanager\.ui\.setup\.new\_entity\_creator
--------------------------------------------------------
+force\_wfmanager.ui.setup.new\_entity\_creator module
+-----------------------------------------------------
 
 .. automodule:: force_wfmanager.ui.setup.new_entity_creator
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.ui\.setup\.setup\_pane module
------------------------------------------------------
+force\_wfmanager.ui.setup.setup\_pane module
+--------------------------------------------
 
 .. automodule:: force_wfmanager.ui.setup.setup_pane
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.ui\.setup\.tree\_pane module
---------------------------------------------------------
+force\_wfmanager.ui.setup.tree\_pane module
+-------------------------------------------
 
 .. automodule:: force_wfmanager.ui.setup.tree_pane
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.ui\.setup\.workflow\_info
--------------------------------------------------------
+force\_wfmanager.ui.setup.workflow\_info module
+-----------------------------------------------
 
 .. automodule:: force_wfmanager.ui.setup.workflow_info
     :members:
     :undoc-members:
     :show-inheritance:
 
+force\_wfmanager.ui.setup.workflow\_model\_view module
+------------------------------------------------------
 
-force\_wfmanager\.ui\.setup\.workflow\_tree
--------------------------------------------------------
-
-.. automodule:: force_wfmanager.ui.setup.workflow_tree
+.. automodule:: force_wfmanager.ui.setup.workflow_model_view
     :members:
     :undoc-members:
     :show-inheritance:
 
-force\_wfmanager\.ui\.setup\.workflow\_model\_view module
------------------------------------------------------------
+force\_wfmanager.ui.setup.workflow\_tree module
+-----------------------------------------------
 
-.. automodule:: force_wfmanager.ui.setup.workflow_model_view
+.. automodule:: force_wfmanager.ui.setup.workflow_tree
     :members:
     :undoc-members:
     :show-inheritance:
