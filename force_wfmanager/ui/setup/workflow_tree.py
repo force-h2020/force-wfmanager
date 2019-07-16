@@ -10,7 +10,7 @@ from traitsui.api import (
 
 from force_bdss.api import (
     ExecutionLayer, IFactoryRegistry, InputSlotInfo,
-    OutputSlotInfo, Workflow, verify_workflow, VerifierError
+    OutputSlotInfo, Workflow, verify_workflow
 )
 from force_wfmanager.ui.setup.process.data_source_view \
     import DataSourceView

@@ -101,18 +101,16 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         self.assertEqual(1, len(self.kpi_view.non_kpi_variables))
-        self.kpi_view.selected_non_kpi = self.kpi_view.non_kpi_variables[0]
 
         self.kpi_view._add_kpi_button_fired()
-        self.assertEqual(0, len(self.kpi_view.non_kpi_variables))
         self.assertEqual(2, len(self.workflow.mco.kpis))
         self.assertEqual(2, len(self.kpi_view.kpi_model_views))
 
         kpi_model_view = self.kpi_view.kpi_model_views[1]
+        kpi_model_view.model.name = 'T1'
         self.assertEqual('KPI: T1 (MINIMISE)', kpi_model_view.label)
         self.assertEqual(self.kpi_view.selected_kpi,
                          kpi_model_view)
-        self.assertIsNone(self.kpi_view.selected_non_kpi)
 
     def test_remove_kpi(self):
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
@@ -123,7 +121,6 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         self.assertEqual(0, len(self.workflow.mco.kpis))
         self.assertEqual(0, len(self.kpi_view.kpi_model_views))
         self.assertIsNone(self.kpi_view.selected_kpi)
-        self.assertEqual(1, len(self.kpi_view.non_kpi_variables))
 
         self.kpi_view._add_kpi_button_fired()
         self.assertEqual(1, len(self.workflow.mco.kpis))
@@ -145,6 +142,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
         self.kpi_view._add_kpi_button_fired()
+        self.workflow.mco.kpis[1].name = 'T2'
         self.assertTrue(self.kpi_view.valid)
 
         self.workflow.mco.kpis[0].name = 'T2'
@@ -158,6 +156,5 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.kpi_view.variable_names_registry = None
         self.assertEqual(0, len(self.kpi_view.non_kpi_variables))
-        self.assertIsNone(self.kpi_view.selected_non_kpi)
         self.assertEqual(1, len(self.kpi_view.kpi_names))
         self.assertEqual(1, len(self.kpi_view.kpi_model_views))

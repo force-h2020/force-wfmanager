@@ -200,6 +200,7 @@ class MCOParameterView(HasTraits):
     def _parameter_entity_creator_default(self):
         """Returns an entity creator containing parameter types
         from all installed plugins"""
+
         if self.model is not None:
             visible_factories = [
                 f for f in self.model.factory.parameter_factories
@@ -208,7 +209,7 @@ class MCOParameterView(HasTraits):
 
             parameter_entity_creator = NewEntityCreator(
                 factories=visible_factories,
-                dclick_function=self.add_parameter,
+                dclick_function=self._dclick_add_parameter,
                 factory_name='MCO Parameter',
                 config_visible=False
             )
@@ -301,3 +302,11 @@ class MCOParameterView(HasTraits):
         """
         self.model.parameters.remove(parameter)
         self.verify_workflow_event = True
+
+    # Private Methods
+    def _dclick_add_parameter(self, ui_info):
+        """Called when a parameter factory is double clicked in the entity
+        creator. The ui_info object is automatically passed by the
+        parameter_entity_creator and is unused
+        """
+        self._add_parameter_button_fired()
