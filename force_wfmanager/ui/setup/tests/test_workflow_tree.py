@@ -1,7 +1,8 @@
 from unittest import mock, TestCase
 
-from force_bdss.api import ExecutionLayer, Workflow, BaseMCOModel
-
+from force_bdss.api import (
+    ExecutionLayer, Workflow, BaseMCOModel, KPISpecification
+)
 from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 
 from force_wfmanager.ui.setup.workflow_tree import (
@@ -22,6 +23,7 @@ class TestWorkflowTree(BaseTest):
             data_sources=data_sources
         )
         self.workflow.execution_layers.append(execution_layer)
+        self.workflow.mco.kpis.append(KPISpecification())
 
         self.system_state = SystemState()
         self.workflow_tree = WorkflowTree(
@@ -352,6 +354,11 @@ class TestWorkflowTree(BaseTest):
         self.assertIn(
             "An output variable has an undefined name",
             self.workflow_tree.selected_error
+        )
+
+        self.assertIn(
+            "A KPI is not named",
+            self.workflow_tree.workflow_view.error_message
         )
 
 

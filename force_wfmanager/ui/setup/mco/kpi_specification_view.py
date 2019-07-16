@@ -299,24 +299,18 @@ class KPISpecificationView(HasTraits):
     @on_trait_change('kpi_names')
     def _kpi_names_check(self):
         """Reports a validation warning if duplicate KPI names exist
-        of if a KPI name is an empty string
         """
         error_message = ''
         unique_check = True
-        empty_check = True
 
         for name in self.kpi_names:
             if self.kpi_names.count(name) > 1:
                 unique_check = False
-            if name == '':
-                empty_check = False
 
         if not unique_check:
-            error_message += 'Two or more KPIs have a duplicate name\n'
-        if not empty_check:
-            error_message += 'A KPI does not have an assigned name\n'
+            error_message += 'Two or more KPIs have a duplicate name'
 
-        self.valid = (unique_check and empty_check)
+        self.valid = unique_check
         self.error_message = error_message
 
     @on_trait_change('model.kpis')

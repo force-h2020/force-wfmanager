@@ -139,12 +139,6 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
     def test__kpi_names_check(self):
 
-        self.assertFalse(self.kpi_view.valid)
-        self.assertIn(
-            'A KPI does not have an assigned name',
-            self.kpi_view.error_message,
-        )
-
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         self.workflow.mco.kpis[0].name = 'T1'
         self.assertTrue(self.kpi_view.valid)

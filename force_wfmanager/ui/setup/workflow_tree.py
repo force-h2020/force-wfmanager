@@ -10,7 +10,7 @@ from traitsui.api import (
 
 from force_bdss.api import (
     ExecutionLayer, IFactoryRegistry, InputSlotInfo,
-    OutputSlotInfo, Workflow, verify_workflow
+    OutputSlotInfo, Workflow, verify_workflow, VerifierError
 )
 from force_wfmanager.ui.setup.process.data_source_view \
     import DataSourceView
@@ -672,7 +672,7 @@ class WorkflowTree(ModelView):
         mappings = {
             'WorkflowView': ['mco_view', 'process_view',
                              'communicator_view'],
-            'MCOModelView': ['mco_options'],
+            'MCOView': ['mco_options'],
             'MCOParameterView': ['parameter_model_views'],
             'KPISpecificationView': ['kpi_model_views'],
             'ProcessView': ['execution_layer_views'],
