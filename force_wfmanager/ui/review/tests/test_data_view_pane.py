@@ -1,8 +1,13 @@
+import mock
 import unittest
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.review.plot import Plot
+
+
+DATA_VIEW_PANE_EDIT_TRAITS_PATH = \
+    "force_wfmanager.ui.review.data_view_pane.DataViewPane.edit_traits"
 
 
 class TestDataViewPane(unittest.TestCase):
@@ -43,7 +48,8 @@ class TestDataViewPane(unittest.TestCase):
 
     def test_data_view_descriptions(self):
         # the "change" button needs to be fired to populate the descriptions
-        self.pane.change_view = True
+        with mock.patch(DATA_VIEW_PANE_EDIT_TRAITS_PATH):
+            self.pane.change_view = True
         self.assertIn(
             "Plot with colormap (force_wfmanager.ui.review.plot.Plot)",
             self.pane.data_view_descriptions.values()

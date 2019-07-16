@@ -18,6 +18,8 @@ RESULTS_JSON_DUMP_PATH = 'force_wfmanager.io.project_io.json.dump'
 RESULTS_WRITER_PATH = \
     'force_wfmanager.io.project_io.WorkflowWriter.get_workflow_data'
 RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_review_task.error'
+DATA_VIEW_PANE_EDIT_TRAITS_PATH = \
+    "force_wfmanager.ui.review.data_view_pane.DataViewPane.edit_traits"
 
 
 class TestWFManagerTasks(GuiTestAssistant, TestCase):
@@ -61,8 +63,9 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             )
 
     def test_default_data_views(self):
-        """ Test of the data view selection feature within the task."""
-        # Two default plot types
+        # Test of the data view selection feature within the task.
+
+        # A single default plot type
         self.assertEqual(
             len(self.review_task.central_pane.available_data_views), 1)
 
@@ -73,7 +76,9 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.review_task.central_pane.data_view, Plot)
 
         # The "change" button needs to be fired to populate the descriptions
-        self.review_task.central_pane.change_view = True
+        with mock.patch(DATA_VIEW_PANE_EDIT_TRAITS_PATH) as mock_edit_traits:
+            self.review_task.central_pane.change_view = True
+            mock_edit_traits.assert_called_with(view="selection_changer")
         self.assertIn(
             "Plot with colormap (force_wfmanager.ui.review.plot.Plot)",
             self.review_task.central_pane.data_view_descriptions.values()
@@ -87,12 +92,13 @@ class TestWFManagerTasksWithPlugins(GuiTestAssistant, TestCase):
             wf_manager=DummyWfManagerWithPlugins())
 
     def test_discover_data_views(self):
-        # Two default plot types plus three contributed
+        # One default plot type plus three contributed
         self.assertEqual(
             len(self.review_task.central_pane.available_data_views), 4)
 
         # fire the button to populate descriptions
-        self.review_task.central_pane.change_view = True
+        with mock.patch(DATA_VIEW_PANE_EDIT_TRAITS_PATH):
+            self.review_task.central_pane.change_view = True
         self.assertIn(
             "Empty data view with a long description "
             "(force_wfmanager.tests..DummyDataView1)",
