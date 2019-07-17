@@ -249,6 +249,7 @@ class KPISpecificationView(HasTraits):
         """
         error_message = ''
         unique_check = True
+
         for name in self.kpi_names:
             if self.kpi_names.count(name) > 1:
                 unique_check = False
@@ -256,6 +257,7 @@ class KPISpecificationView(HasTraits):
         if not unique_check:
             error_message += 'Two or more KPIs have a duplicate name'
 
+        self.valid = (self.valid and unique_check)
         self.error_message = error_message
 
     @on_trait_change('kpi_name_options')
@@ -278,6 +280,17 @@ class KPISpecificationView(HasTraits):
     def received_verify_request(self):
         """Pass on call for verify_workflow_event"""
         self.verify_workflow_event = True
+
+    @on_trait_change('kpi_model_views.valid')
+    def update_validity(self):
+        """Pass on kpi_model_views validity"""
+
+        valid_check = True
+        for kpi_view in self.kpi_model_views:
+            if not kpi_view.valid:
+                valid_check = False
+
+        self.valid = (self.valid and valid_check)
 
     #: Button actions
     def _add_kpi_button_fired(self):

@@ -356,10 +356,15 @@ class TestWorkflowTree(BaseTest):
             self.workflow_tree.selected_error
         )
 
+        mco_view = (
+            self.workflow_tree.workflow_view.mco_view[0]
+        )
         self.assertIn(
             "A KPI is not named",
             self.workflow_tree.workflow_view.error_message
         )
+        self.assertFalse(mco_view.kpi_view.kpi_model_views[0].valid)
+        self.assertFalse(mco_view.kpi_view.valid)
 
 
 class TestProcessElementNode(TestCase):

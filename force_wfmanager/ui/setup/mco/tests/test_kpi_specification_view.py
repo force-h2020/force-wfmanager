@@ -175,8 +175,13 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
             'Two or more KPIs have a duplicate name',
             self.kpi_view.error_message,
         )
+        self.assertFalse(self.kpi_view.valid)
 
-    def test_non_variable_names_registry(self):
+    def test_update_validity(self):
+        self.kpi_view.kpi_model_views[0].valid = False
+        self.assertFalse(self.kpi_view.valid)
+
+    def test_variable_names_registry(self):
 
         self.kpi_view.variable_names_registry = None
         self.assertEqual(0, len(self.kpi_view.kpi_name_options))
