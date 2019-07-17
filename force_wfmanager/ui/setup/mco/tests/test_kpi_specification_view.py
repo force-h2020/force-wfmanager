@@ -14,27 +14,46 @@ class TestKPISpecificationModelView(unittest.TestCase, UnittestTools):
     def setUp(self):
 
         self.kpi_model_view = KPISpecificationModelView(
-            model=KPISpecification(name='kpi_test')
+            model=KPISpecification(name='T1'),
+            _combobox_names=['T1', 'T2']
         )
 
     def test_kpi_model_view_init(self):
         self.assertEqual(
-            "KPI: kpi_test (MINIMISE)",
+            "KPI: T1 (MINIMISE)",
             self.kpi_model_view.label
         )
         self.assertTrue(self.kpi_model_view.valid)
 
     def test_kpi_label(self):
-        self.kpi_model_view.model.name = 'kpi_name_test'
+        self.kpi_model_view.model.name = 'T2'
         self.assertEqual(
-            "KPI: kpi_name_test (MINIMISE)",
+            "KPI: T2 (MINIMISE)",
             self.kpi_model_view.label
         )
 
     def test_verify_workflow_event(self):
         with self.assertTraitChanges(
                 self.kpi_model_view, 'verify_workflow_event', count=1):
-            self.kpi_model_view.model.name = 'another'
+            self.kpi_model_view.model.name = 'T2'
+        with self.assertTraitChanges(
+                self.kpi_model_view, 'verify_workflow_event', count=2):
+            self.kpi_model_view.model.name = 'not_in__combobox'
+
+    def test__check_kpi_name(self):
+        self.kpi_model_view._combobox_names.remove('T2')
+        self.assertTrue(self.kpi_model_view.valid)
+        self.kpi_model_view._combobox_names.remove('T1')
+        self.assertEqual(
+            "KPI",
+            self.kpi_model_view.label
+        )
+        self.assertEqual('', self.kpi_model_view.model.name)
+        error_message = self.kpi_model_view.model.verify()
+        self.assertIn(
+            'KPI is not named',
+            error_message[0].local_error
+        )
 
 
 class TestKPISpecificationView(unittest.TestCase, UnittestTools):
@@ -65,10 +84,13 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         )
 
     def test_label(self):
+
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
 
         self.assertEqual(['T1'], self.registry.data_source_outputs)
-
+        self.assertEqual(
+            ['T1'], self.kpi_view.kpi_model_views[0]._combobox_names
+        )
         self.assertEqual('KPI', self.kpi_view.kpi_model_views[0].label)
 
         self.workflow.mco.kpis[0].name = 'T1'
@@ -100,7 +122,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
     def test_add_kpi(self):
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
-        self.assertEqual(1, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(1, len(self.kpi_view.kpi_name_options))
 
         self.kpi_view._add_kpi_button_fired()
         self.assertEqual(2, len(self.workflow.mco.kpis))
@@ -128,25 +150,27 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
                          self.kpi_view.selected_kpi)
 
     def test_verify_workflow_event(self):
+        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         kpi_model_view = self.kpi_view.kpi_model_views[0]
-
         with self.assertTraitChanges(
                 self.kpi_view, 'verify_workflow_event', count=1):
-            kpi_model_view.model.name = 'another'
+            kpi_model_view.model.name = 'T1'
+        with self.assertTraitChanges(
+                self.kpi_view, 'verify_workflow_event', count=2):
+            kpi_model_view.model.name = 'T2'
 
     def test__kpi_names_check(self):
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         self.workflow.mco.kpis[0].name = 'T1'
-        self.assertTrue(self.kpi_view.valid)
+        self.assertEqual('', self.kpi_view.error_message)
 
         self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
         self.kpi_view._add_kpi_button_fired()
         self.workflow.mco.kpis[1].name = 'T2'
-        self.assertTrue(self.kpi_view.valid)
+        self.assertEqual('', self.kpi_view.error_message)
 
         self.workflow.mco.kpis[0].name = 'T2'
-        self.assertFalse(self.kpi_view.valid)
         self.assertIn(
             'Two or more KPIs have a duplicate name',
             self.kpi_view.error_message,
@@ -155,6 +179,6 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
     def test_non_variable_names_registry(self):
 
         self.kpi_view.variable_names_registry = None
-        self.assertEqual(0, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(0, len(self.kpi_view.kpi_name_options))
         self.assertEqual(1, len(self.kpi_view.kpi_names))
         self.assertEqual(1, len(self.kpi_view.kpi_model_views))

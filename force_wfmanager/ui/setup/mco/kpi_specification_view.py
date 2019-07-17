@@ -3,8 +3,8 @@ from traits.api import (
     on_trait_change, HasTraits, Button
 )
 from traitsui.api import (
-    Item, View, ListEditor, TableEditor, ObjectColumn,
-    VGroup, HGroup, UReadonly, ModelView, EnumEditor
+    Item, View, ListEditor,
+    VGroup, HGroup, ModelView, EnumEditor
 )
 
 from force_bdss.api import KPISpecification, BaseMCOModel
@@ -24,7 +24,7 @@ class KPISpecificationModelView(ModelView):
 
     # Only display name options for existing KPIs (this isn't perfect and
     # does allow
-    kpi_names = List(Unicode)
+    _combobox_names = List(Unicode)
 
     # ------------------
     # Regular Attributes
@@ -60,7 +60,7 @@ class KPISpecificationModelView(ModelView):
     # to directly change model.name without updating kpi_names
     traits_view = View(
         Item('name', object='model',
-             editor=EnumEditor(name='object.kpi_names')),
+             editor=EnumEditor(name='object._combobox_names')),
         Item("objective", object='model'),
         Item('auto_scale', object='model'),
         Item("scale_factor", object='model',
@@ -76,15 +76,16 @@ class KPISpecificationModelView(ModelView):
         return "KPI: {} ({})".format(self.model.name, self.model.objective)
 
     #: Listeners
-    @on_trait_change('model.[name,type]')
+    @on_trait_change('model.[name,objective]')
     def kpi_change(self):
         self.verify_workflow_event = True
 
-    @on_trait_change('kpi_names')
+    @on_trait_change('model.name,_combobox_names')
     def _check_kpi_name(self):
-        if self.model is not None and self.kpi_names is not None:
-            if self.model.name not in self.kpi_names:
-                self.model.name = ''
+        if self.model is not None:
+            if self._combobox_names is not None:
+                if self.model.name not in self._combobox_names + ['']:
+                    self.model.name = ''
 
 
 class KPISpecificationView(HasTraits):
@@ -141,10 +142,9 @@ class KPISpecificationView(HasTraits):
 
     #: A list names, each representing a variable
     #: that could become a KPI
-    non_kpi_variables = Property(
+    kpi_name_options = Property(
         List(Unicode),
-        depends_on='variable_names_registry.data_source_outputs,'
-                   'kpi_names'
+        depends_on='variable_names_registry.data_source_outputs'
     )
 
     # ------------------
@@ -157,9 +157,10 @@ class KPISpecificationView(HasTraits):
     #: Removes selected_kpi from the MCO
     remove_kpi_button = Button('Delete KPI')
 
-    # ------------------
-    #       View
-    # ------------------
+    def __init__(self, model=None, *args, **kwargs):
+        super(KPISpecificationView, self).__init__(*args, **kwargs)
+        if model is not None:
+            self.model = model
 
     def default_traits_view(self):
 
@@ -202,13 +203,12 @@ class KPISpecificationView(HasTraits):
         """Creates a list of KPISpecificationModelViews for each
         model.kpi"""
         kpi_model_views = []
-
         if self.model is not None:
             # Update model view list
             kpi_model_views += [
                 KPISpecificationModelView(
                     model=kpi,
-                    kpi_names=self.non_kpi_variables
+                    _combobox_names=self.kpi_name_options
                 )
                 for kpi in self.model.kpis
             ]
@@ -224,36 +224,23 @@ class KPISpecificationView(HasTraits):
     @cached_property
     def _get_kpi_names(self):
         """Listens to model.kpis to extract model names for display"""
-
         kpi_names = []
-
         for kpi in self.model.kpis:
             kpi_names.append(kpi.name)
 
         return kpi_names
 
     @cached_property
-    def _get_non_kpi_variables(self):
-        """Listens to kpi_names and variable_names_registry to extract
+    def _get_kpi_name_options(self):
+        """Listens to variable_names_registry to extract
          possible names for new KPIs"""
-
-        non_kpi = []
-
+        kpi_name_options = []
         if self.variable_names_registry is not None:
-            variables_stack = (self.variable_names_registry
-                               .available_variables_stack)
-            for execution_layer in variables_stack:
-                for variable in execution_layer:
-                    name = variable[0]
-                    # Each KPI must refer to an output variable
-                    variable_check = (
-                            name in self.variable_names_registry
-                            .data_source_outputs
-                    )
-                    if variable_check:
-                        non_kpi.append(name)
+            kpi_name_options += (
+                self.variable_names_registry.data_source_outputs
+            )
 
-        return non_kpi
+        return kpi_name_options
 
     #: Listeners
     @on_trait_change('kpi_names')
@@ -269,11 +256,15 @@ class KPISpecificationView(HasTraits):
         if not unique_check:
             error_message += 'Two or more KPIs have a duplicate name'
 
-        self.valid = unique_check
         self.error_message = error_message
 
-    @on_trait_change('model.kpis,variable_names_registry'
-                     '.data_source_outputs')
+    @on_trait_change('kpi_name_options')
+    def update_kpi_model_views__combobox(self):
+        """Update the KPI model view name options"""
+        for kpi_view in self.kpi_model_views:
+            kpi_view._combobox_names = self.kpi_name_options
+
+    @on_trait_change('model.kpis')
     def update_kpi_model_views(self):
         """Update the list of KPI model views"""
         self.kpi_model_views = self._kpi_model_views_default()
