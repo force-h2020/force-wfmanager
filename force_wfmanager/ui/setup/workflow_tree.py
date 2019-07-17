@@ -744,8 +744,8 @@ class WorkflowTree(ModelView):
                         send_to_parent.append(verifier_error.global_error)
                         start_view.valid = False
 
-            # Pass on KPISpecification validity to KPISpecificationView, as this
-            # does not have an associated BDSS model to call verify
+            # Pass on KPISpecification validity to KPISpecificationView, as
+            # this does not have an associated BDSS model to call verify
             if err_subject_type in [KPISpecification]:
                 self.workflow_view.mco_view[0].kpi_view.valid = False
 
