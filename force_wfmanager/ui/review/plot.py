@@ -61,7 +61,14 @@ class BasePlot(BaseDataView):
     #: Boolean indicating whether the plot view can be reset or not.
     reset_enabled = Property(Bool(), depends_on="_plot_data")
 
+    #: Timer to check on required updates
     plot_updater = Instance(Timer)
+
+    #: Schedule a refresh of plot data
+    plot_update_required = Bool(False)
+
+    #: Schedule a refresh of plot limits
+    recenter_required = Bool(False)
 
     # --------------------
     # Dependent Attributes
@@ -114,11 +121,8 @@ class BasePlot(BaseDataView):
         )
     )
 
-    update_required = Bool(False)
-
     def _plot_updater_default(self):
-        return Timer(1000,
-                     self._update_plot_data)
+        return Timer(1000, self._update_plot_data)
 
     def __plot_default(self):
         self._plot = self.plot_scatter()
@@ -276,7 +280,8 @@ class BasePlot(BaseDataView):
                 self._data_arrays[index].append(evaluation_step[index])
 
         # Update plot data
-        self.update_required = True
+        self.recenter_required = True
+        self.plot_update_required = True
         # self._update_plot_data()
 
     @on_trait_change('x,y')
@@ -302,12 +307,14 @@ class BasePlot(BaseDataView):
         self._plot_data.set_data('y', self._data_arrays[y_index])
         self._plot_data.set_data('color_by', self._data_arrays[c_index])
 
-        self.resize_plot()
-        self.update_required = False
+        if self.recenter_required:
+            self.resize_plot()
+            self.recenter_required = False
+        self.plot_update_required = False
 
-    @on_trait_change('update_required')
+    @on_trait_change('plot_update_required')
     def _check_on_timer(self):
-        if not self.update_required:
+        if not self.plot_update_required:
             self._update_plot_data()
             self.plot_updater.Stop()
         else:
