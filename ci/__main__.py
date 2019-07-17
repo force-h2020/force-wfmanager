@@ -72,30 +72,28 @@ def coverage(python_version):
 
 @cli.command(help="Builds the documentation")
 @python_version_option
-def docs(python_version):
-    env_name = get_env_name(python_version)
+@click.option('--apidoc-only', is_flag=True, help="Only generate API docs.")
+@click.option(
+    '--html-only', is_flag=True,
+    help="Only generate HTML documentation (requires API docs in source/api)."
+)
+def docs(python_version, apidoc_only, html_only):
+    if apidoc_only and html_only:
+        raise click.ClickException("Conflicting request in the invocation.")
 
-    edm_run(env_name, ["make", "html"], cwd="doc")
-
-
-@cli.command("build-apidoc", help="Builds the API doc")
-@python_version_option
-def build_apidoc(python_version):
     env_name = get_env_name(python_version)
     doc_api = os.path.abspath(os.path.join("doc", "source", "api"))
     package = os.path.abspath("force_wfmanager")
 
-    if os.path.exists(doc_api):
-        shutil.rmtree(doc_api)
+    if not html_only:
+        click.echo("Generating API doc")
+        if os.path.exists(doc_api):
+            shutil.rmtree(doc_api)
+        edm_run(env_name, ['sphinx-apidoc', '-o', doc_api, package, '*tests*'])
 
-    cmd = [
-        'sphinx-apidoc', '-o', doc_api, package, '*tests*',
-    ]
-    edm_run(env_name, cmd)
-    click.echo(
-        "\nAPI doc generated. Please check the documentation with `ci docs` "
-        "and push the API doc changes to the repo if necessary."
-    )
+    if not apidoc_only:
+        click.echo("Generating HTML")
+        edm_run(env_name, ["make", "html"], cwd="doc")
 
 
 def get_env_name(python_version):
