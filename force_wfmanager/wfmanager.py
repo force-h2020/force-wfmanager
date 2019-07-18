@@ -39,18 +39,19 @@ class WfManager(TasksApplication):
 
     def _window_factory_default(self):
         """Sets a TaskWindowClosePrompt to be the default window
-        created by TasksApplication (originally a standard TaskWindow)"""
+        created by TasksApplication (originally a standard TaskWindow)."""
         return TaskWindowClosePrompt
 
-    # FIXME: This isn't needed if the bug in traitsui/qt4/ui_panel.py is fixed
     def _prepare_exit(self):
-        """Overrides `TasksApplication._prepare_exit()`. Has the same
-        functionality as `TasksApplication._prepare_exit()`, but
-        `_save_state()` is called before `application_exiting` is fired"""
-        self._save_state()
+        """Overrides `TasksApplication._prepare_exit()` to skip saving
+        a state file, which is not needed here.
+        NOTE: a override is still needed even if _save_state() is not skipped,
+        to save the application state _before_ the application_exiting event.
+        """
         self.application_exiting = self
 
-    # FIXME: This isn't needed if the bug in traitsui/qt4/ui_panel.py is fixed
+    # Defines the consequence of the application_exiting event (not defined
+    # in the parent class).
     def _application_exiting_fired(self):
         self._remove_tasks()
 
@@ -62,16 +63,6 @@ class WfManager(TasksApplication):
             tasks = window.tasks
             for task in tasks:
                 window.remove_task(task)
-
-    # FIXME: If the underlying envisage TasksApplication function is fixed to
-    #        work correctly, this will not be needed.
-    def create_window(self, layout, restore, **traits):
-        """ Creates a new TaskWindow.
-        """
-        window = super(WfManager, self).create_window(
-            layout, not restore, **traits
-        )
-        return window
 
 
 class TaskWindowClosePrompt(TaskWindow):
