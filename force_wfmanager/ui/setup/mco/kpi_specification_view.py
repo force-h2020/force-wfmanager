@@ -22,8 +22,10 @@ class KPISpecificationModelView(ModelView):
     #: KPI model
     model = Instance(KPISpecification)
 
-    # Only display name options for existing KPIs (this isn't perfect and
-    # does allow
+    #: Only display name options for existing KPIs
+    # FIXME: this isn't an ideal method, since it requires further
+    # work arounds for the name validation. Putting better error
+    # handling into the force_bdss could resolve this.
     _combobox_names = List(Unicode)
 
     # ------------------
