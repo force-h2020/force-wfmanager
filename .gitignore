@@ -2,6 +2,7 @@ __pycache__
 *.egg-info
 force_wfmanager/version.py
 doc/build/
+doc/source/api/
 *.pyc
 .DS_Store
 .coverage
