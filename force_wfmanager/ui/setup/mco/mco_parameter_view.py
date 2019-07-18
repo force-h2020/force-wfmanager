@@ -3,13 +3,17 @@ from traits.api import (
     cached_property, HasTraits, List, Button
 )
 from traitsui.api import (
-    View, Item, HGroup, ModelView, ListEditor, VGroup, InstanceEditor
+    View, Item, HGroup, ModelView, ListEditor, VGroup, InstanceEditor,
+    EnumEditor
 )
 
 from force_bdss.api import BaseMCOParameter, BaseMCOModel
 
 from force_wfmanager.ui.ui_utils import get_factory_name
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
+from force_wfmanager.utils.variable_names_registry import (
+    VariableNamesRegistry
+)
 
 
 class MCOParameterModelView(ModelView):
@@ -20,6 +24,12 @@ class MCOParameterModelView(ModelView):
 
     #: MCO parameter model
     model = Instance(BaseMCOParameter)
+
+    #: Only display name options for existing Parameters
+    # FIXME: this isn't an ideal method, since it requires further
+    # work arounds for the name validation. Putting better error
+    # handling into the force_bdss could resolve this.
+    _combobox_values = List(Unicode)
 
     # ------------------
     # Dependent Attributes
@@ -54,7 +64,8 @@ class MCOParameterModelView(ModelView):
         """Default view containing both traits from the base class and
         any additional user-defined traits"""
 
-        return View(Item('name', object='model'),
+        return View(Item('name', object='model',
+                         editor=EnumEditor(name='object._combobox_values')),
                     Item('type', object='model'),
                     Item('model',
                          editor=InstanceEditor(),
@@ -84,6 +95,14 @@ class MCOParameterModelView(ModelView):
         """Alert to a change in the model"""
         self.verify_workflow_event = True
 
+    @on_trait_change('model.name,_combobox_values')
+    def _check_parameter_name(self):
+        """Check the model name against all possible input variable
+        names. Clear the model name if a matching output is not found"""
+        if self.model is not None:
+            if self._combobox_values is not None:
+                if self.model.name not in self._combobox_values + ['']:
+                    self.model.name = ''
 
 class MCOParameterView(HasTraits):
 
@@ -93,6 +112,9 @@ class MCOParameterView(HasTraits):
 
     #: MCO model
     model = Instance(BaseMCOModel)
+
+    #: Registry of the available variables
+    variable_names_registry = Instance(VariableNamesRegistry)
 
     # -------------------
     # Regular Attributes
@@ -126,12 +148,19 @@ class MCOParameterView(HasTraits):
     #: <MCOParameterModelView>`
     verify_workflow_event = Event()
 
+    #: The human readable name of the MCOParameterView class
+    label = Unicode('MCO Parameters')
+
     # ----------
     # Properties
     # ----------
 
-    #: The human readable name of the MCOParameterView class
-    label = Unicode('MCO Parameters')
+    #: A list names, each representing a variable
+    #: that could become a KPI
+    parameter_name_options = Property(
+        List(Unicode),
+        depends_on='variable_names_registry.data_source_inputs'
+    )
 
     # ------------------
     #      Buttons
@@ -144,9 +173,10 @@ class MCOParameterView(HasTraits):
     #: Button to remove selected_parameter from the MCO
     remove_parameter_button = Button('Delete Parameter')
 
-    # ------------------
-    #       View
-    # ------------------
+    def __init__(self, model=None, *args, **kwargs):
+        super(MCOParameterView, self).__init__(*args, **kwargs)
+        if model is not None:
+            self.model = model
 
     def default_traits_view(self):
         """Creates a traits view containing a notebook list of existing MCO
@@ -196,6 +226,19 @@ class MCOParameterView(HasTraits):
 
         return traits_view
 
+    @cached_property
+    def _get_parameter_name_options(self):
+        """Listens to variable_names_registry to extract
+         possible names for new KPIs"""
+        parameter_name_options = []
+        if self.variable_names_registry is not None:
+            parameter_name_options += (
+                [input_ for input_ in self.variable_names_registry.data_source_inputs
+                 if input_ not in self.variable_names_registry.data_source_outputs]
+            )
+
+        return parameter_name_options
+
     #: Defaults
     def _parameter_entity_creator_default(self):
         """Returns an entity creator containing parameter types
@@ -223,7 +266,10 @@ class MCOParameterView(HasTraits):
         if self.model is not None:
             # Add all MCO parameters as ModelViews
             parameter_model_views += [
-                MCOParameterModelView(model=parameter)
+                MCOParameterModelView(
+                    model=parameter,
+                    _combobox_values=self.parameter_name_options
+                )
                 for parameter in self.model.parameters
             ]
 
@@ -257,6 +303,12 @@ class MCOParameterView(HasTraits):
     def received_verify_request(self):
         """Pass on request for verify_workflow_event"""
         self.verify_workflow_event = True
+
+    @on_trait_change('parameter_name_options')
+    def update_parameter_model_views__combobox(self):
+        """Update the KPI model view name options"""
+        for parameter_view in self.parameter_model_views:
+            parameter_view._combobox_values = self.parameter_name_options
 
     #: Button actions
     def _add_parameter_button_fired(self):

@@ -100,6 +100,8 @@ class VariableNamesRegistry(HasStrictTraits):
     #: It does not include MCO parameters.
     data_source_outputs = Property(List(Identifier),
                                    depends_on="available_output_variables_stack")
+    data_source_inputs = Property(List(Identifier),
+                                   depends_on="available_input_variables_stack")
 
     def __init__(self, workflow, *args, **kwargs):
         super(VariableNamesRegistry, self).__init__(*args, **kwargs)
@@ -169,48 +171,61 @@ class VariableNamesRegistry(HasStrictTraits):
         variables = []
 
         for input_layer, output_layer in zip(input_stack, output_stack):
+            layer_variables = []
             for input_data_source, output_data_source in zip(input_layer, output_layer):
-                variables += [variable[0] for variable in input_data_source
-                              if variable not in variables]
-                variables += [variable[0] for variable in output_data_source
-                              if variable not in variables]
+                layer_variables += [variable[0] for variable in input_data_source
+                              if variable not in layer_variables]
+                layer_variables += [variable[0] for variable in output_data_source
+                              if variable not in layer_variables]
+            variables.append(layer_variables)
 
         return variables
 
     @cached_property
     def _get_data_source_outputs(self):
         stack = self.available_output_variables_stack
-        res = []
-
-        for output_layer in stack:
-            print(output_layer)
-            for output_info in output_layer:
-                print(output_info)
-                res.extend([output[0] for output in output_info])
-        return res
+        return self._get_data_source_names(stack)
 
     @cached_property
     def _get_data_source_inputs(self):
         stack = self.available_input_variables_stack
-        res = []
-
-        for input_info in stack[1:]:
-            res.extend([input[0] for input in input_info])
-        return res
+        return self._get_data_source_names(stack)
 
     @cached_property
     def _get_available_variables_by_type(self):
-        stack = self.available_output_variables_stack
+        output_stack = self.available_output_variables_stack
+        input_stack = self.available_input_variables_stack
         res = []
         res_dict = {}
 
-        for idx in range(len(stack)):
-            for output_info in stack[idx]:
-                var_name = output_info[0]
-                var_type = output_info[1]
-                if var_type in res_dict:
-                    res_dict[var_type].append(var_name)
-                else:
-                    res_dict[var_type] = [var_name]
+        for input_layer, output_layer in zip(input_stack, output_stack):
+            for input_data_source, output_data_source in zip(input_layer, output_layer):
+                for input_info in input_data_source:
+                    var_name = input_info[0]
+                    var_type = input_info[1]
+
+                    if var_type in res_dict:
+                        res_dict[var_type].append(var_name)
+                    else:
+                        res_dict[var_type] = [var_name]
+
+                for output_info in output_data_source:
+                    var_name = output_info[0]
+                    var_type = output_info[1]
+
+                    if var_type in res_dict:
+                        res_dict[var_type].append(var_name)
+                    else:
+                        res_dict[var_type] = [var_name]
+
             res.append(res_dict)
+        return res
+
+    def _get_data_source_names(self, stack):
+        res = []
+
+        for layer in stack:
+            for info in layer:
+                res.extend([value[0] for value in info
+                            if value[0] not in res])
         return res

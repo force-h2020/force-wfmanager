@@ -78,7 +78,8 @@ class MCOView(HasTraits):
 
     def _parameter_view_default(self):
         return MCOParameterView(
-            model=self.model
+            model=self.model,
+            variable_names_registry=self.variable_names_registry
         )
 
     def _kpi_view_default(self):

@@ -243,7 +243,8 @@ class KPISpecificationView(HasTraits):
         kpi_name_options = []
         if self.variable_names_registry is not None:
             kpi_name_options += (
-                self.variable_names_registry.data_source_outputs
+                [output_ for output_ in self.variable_names_registry.data_source_outputs
+                 if output_ not in self.variable_names_registry.data_source_inputs]
             )
 
         return kpi_name_options

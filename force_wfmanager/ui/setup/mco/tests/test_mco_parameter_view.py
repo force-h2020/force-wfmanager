@@ -1,6 +1,7 @@
 import unittest
 from traits.testing.unittest_tools import UnittestTools
 
+from force_bdss.api import InputSlotInfo
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 from force_bdss.tests.probe_classes.mco import ProbeParameterFactory
@@ -18,8 +19,10 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
         self.mco_factory = self.plugin.mco_factories[0]
         self.parameter_factory = ProbeParameterFactory(self.mco_factory)
         self.parameter_model_view = MCOParameterModelView(
-            model=self.parameter_factory.create_model()
+            model=self.parameter_factory.create_model(),
+            _combobox_values=['P1']
         )
+
 
     def test_mco_parameter_view_init(self):
         self.assertEqual(
@@ -35,8 +38,12 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
                          "Probe parameter: PRESSURE P1")
 
     def test_verify_workflow_event(self):
+        self.parameter_model_view._combobox_values.append('T2')
         with self.assertTraitChanges(
                 self.parameter_model_view, 'verify_workflow_event', count=1):
+            self.parameter_model_view.model.name = 'T2'
+        with self.assertTraitChanges(
+                self.parameter_model_view, 'verify_workflow_event', count=2):
             self.parameter_model_view.model.name = 'another'
 
     def test_traits_view(self):
@@ -141,8 +148,11 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
         )
 
     def test_verify_workflow_event(self):
+        self.data_source1.input_slot_info = [InputSlotInfo(name='T1')]
         parameter_model_view = self.parameter_view.parameter_model_views[0]
-
         with self.assertTraitChanges(
                 self.parameter_view, 'verify_workflow_event', count=1):
+            parameter_model_view.model.name = 'T1'
+        with self.assertTraitChanges(
+                self.parameter_view, 'verify_workflow_event', count=2):
             parameter_model_view.model.name = 'another'

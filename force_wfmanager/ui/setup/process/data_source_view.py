@@ -40,37 +40,23 @@ class TableRow(HasStrictTraits):
     #: A human readable description of the slot
     description = Unicode()
 
-    def __init__(self, model, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         # FIXME: Child model should not be instantiated before super
         # class
-        self.model = model
         super(TableRow, self).__init__(*args, **kwargs)
 
 
 class InputSlotRow(TableRow):
     """Row in the UI representing DataSource inputs. """
 
-    # -------------------
-    # Required Attributes
-    # -------------------
-
-    #: Available variables as input for this evaluator
-    available_variables = List(Identifier)
-
     # ------------------
     # Derived Attributes
     # ------------------
 
     #: Name of the slot.
-    #: Listens to: :attr:`model.input_slot_info.name <TableRow.model>`
-    name = Enum(values='_combobox_values')
+    name = Identifier()
 
-    #: Possible values for the name of the input, it can be an empty string or
-    #: one of the available variables
-    #: Listens to: :attr:`available_variables`
-    _combobox_values = List(Identifier)
-
-    @on_trait_change('model.input_slot_info.name')
+    @on_trait_change('model.input_slot_info[]')
     def update_view(self):
         """Synchronises the InputSlotRow with the underlying model"""
         self.name = self.model.input_slot_info[self.index].name
@@ -82,18 +68,6 @@ class InputSlotRow(TableRow):
         """
         self.model.input_slot_info[self.index].name = self.name
 
-    @on_trait_change('available_variables')
-    def update_combobox_values(self):
-        """Updates the values shown in the dropdown menu in the UI when the
-        list of available variables changes
-        """
-        self._combobox_values = [''] + self.available_variables
-        self.name = ('' if self.name not in self.available_variables
-                     else self.name)
-
-    def __combobox_values_default(self):
-        return [''] + self.available_variables
-
 
 class OutputSlotRow(TableRow):
 
@@ -102,7 +76,6 @@ class OutputSlotRow(TableRow):
     # ------------------
 
     #: Name of the slot
-    #: Listens to: :attr:`model.output_slot_info.name <TableRow.model>`
     name = Identifier()
 
     @on_trait_change('model.output_slot_info[]')
@@ -315,7 +288,6 @@ class DataSourceView(HasTraits):
         for input_slot_row in self.input_slots_representation:
             available_variables = self._available_variables_by_type(
                 input_slot_row.type)
-            input_slot_row.available_variables = available_variables
 
     # Model change functions
     @on_trait_change('model.input_slot_info.name,model.output_slot_info.name')
@@ -390,7 +362,6 @@ class DataSourceView(HasTraits):
             if new_name not in available_variables:
                 new_name = ''
 
-            slot_representation.available_variables = available_variables
             slot_representation.name = new_name
             slot_representation.type = input_slot.type
             slot_representation.description = input_slot.description
