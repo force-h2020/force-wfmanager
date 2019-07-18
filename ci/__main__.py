@@ -1,7 +1,7 @@
 import click
 import os
 import shutil
-from subprocess import check_call
+import subprocess
 
 DEFAULT_PYTHON_VERSION = "3.6"
 PYTHON_VERSIONS = ["3.6"]
@@ -37,11 +37,17 @@ python_version_option = click.option(
 @python_version_option
 def install(python_version):
     env_name = get_env_name(python_version)
-    check_call([
+    returncode = subprocess.call([
         "edm", "install", "-e", env_name,
         "--yes"] + ADDITIONAL_CORE_DEPS)
 
-    edm_run(env_name, ["pip", "install", "-e", "."])
+    if returncode:
+        raise click.ClickException("Error while installing EDM dependencies.")
+
+    returncode = edm_run(env_name, ["pip", "install", "-e", "."])
+
+    if returncode:
+        raise click.ClickException("Error while installing the local package.")
 
 
 @cli.command(help="Run the tests")
@@ -49,7 +55,11 @@ def install(python_version):
 def test(python_version):
     env_name = get_env_name(python_version)
 
-    edm_run(env_name, ["python", "-m", "unittest", "discover", "-v"])
+    returncode = edm_run(
+        env_name, ["python", "-m", "unittest", "discover", "-v"])
+
+    if returncode:
+        raise click.ClickException("There were test failures.")
 
 
 @cli.command(help="Run flake")
@@ -57,7 +67,10 @@ def test(python_version):
 def flake8(python_version):
     env_name = get_env_name(python_version)
 
-    edm_run(env_name, ["flake8", "."])
+    returncode = edm_run(env_name, ["flake8", "."])
+    if returncode:
+        raise click.ClickException(
+            "Flake8 exited with exit status {}".format(returncode))
 
 
 @cli.command(help="Runs the coverage")
@@ -65,9 +78,18 @@ def flake8(python_version):
 def coverage(python_version):
     env_name = get_env_name(python_version)
 
-    edm_run(env_name, ["coverage", "run", "-m", "unittest", "discover"])
-    edm_run(env_name, ["pip", "install", "codecov"])
-    edm_run(env_name, ["codecov"])
+    returncode = edm_run(
+        env_name, ["coverage", "run", "-m", "unittest", "discover"])
+    if returncode:
+        raise click.ClickException("There were test failures.")
+
+    returncode = edm_run(env_name, ["pip", "install", "codecov"])
+    if not returncode:
+        returncode = edm_run(env_name, ["codecov"])
+
+    if returncode:
+        raise click.ClickException(
+            "There were errors while installing and running codecov.")
 
 
 @cli.command(help="Builds the documentation")
@@ -89,11 +111,18 @@ def docs(python_version, apidoc_only, html_only):
         click.echo("Generating API doc")
         if os.path.exists(doc_api):
             shutil.rmtree(doc_api)
-        edm_run(env_name, ['sphinx-apidoc', '-o', doc_api, package, '*tests*'])
+        returncode = edm_run(
+            env_name, ['sphinx-apidoc', '-o', doc_api, package, '*tests*'])
+        if returncode:
+            raise click.ClickException(
+                "There were errors while building the API doc.")
 
     if not apidoc_only:
         click.echo("Generating HTML")
-        edm_run(env_name, ["make", "html"], cwd="doc")
+        returncode = edm_run(env_name, ["make", "html"], cwd="doc")
+        if returncode:
+            raise click.ClickException(
+                "There were errors while building HTML documentation.")
 
 
 def get_env_name(python_version):
@@ -105,7 +134,7 @@ def remove_dot(python_version):
 
 
 def edm_run(env_name, cmd, cwd=None):
-    check_call(["edm", "run", "-e", env_name, "--"]+cmd, cwd=cwd)
+    return subprocess.call(["edm", "run", "-e", env_name, "--"]+cmd, cwd=cwd)
 
 
 if __name__ == "__main__":
