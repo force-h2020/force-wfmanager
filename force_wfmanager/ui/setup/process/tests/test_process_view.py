@@ -1,10 +1,12 @@
-from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
+from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
+    WfManagerBaseTestCase
+)
 from force_wfmanager.ui.setup.process.process_view import (
     ProcessView
 )
 
 
-class TestProcessView(BaseTest):
+class TestProcessView(WfManagerBaseTestCase):
 
     def setUp(self):
         super(TestProcessView, self).setUp()
@@ -56,7 +58,3 @@ class TestProcessView(BaseTest):
         self.assertEqual(
             len(self.process_view.execution_layer_views[0]
                 .data_source_views), 2)
-
-    def test_map_connections(self):
-
-        self.process_view.map_connections()

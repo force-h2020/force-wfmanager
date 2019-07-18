@@ -233,7 +233,6 @@ class KPISpecificationView(HasTraits):
         for kpi in self.model.kpis:
             kpi_names.append(kpi.name)
 
-
         return kpi_names
 
     @cached_property
@@ -242,9 +241,12 @@ class KPISpecificationView(HasTraits):
          possible names for new KPIs"""
         kpi_name_options = []
         if self.variable_names_registry is not None:
+            outputs = self.variable_names_registry.data_source_outputs
+            inputs = self.variable_names_registry.data_source_inputs
+
             kpi_name_options += (
-                [output_ for output_ in self.variable_names_registry.data_source_outputs
-                 if output_ not in self.variable_names_registry.data_source_inputs]
+                [output_ for output_ in outputs
+                 if output_ not in inputs]
             )
 
         return kpi_name_options

@@ -5,10 +5,12 @@ from force_bdss.api import (
 )
 from force_wfmanager.ui.setup.workflow_view import \
     WorkflowView
-from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
+from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
+    WfManagerBaseTestCase
+)
 
 
-class TestWorkflowView(BaseTest, UnittestTools):
+class TestWorkflowView(WfManagerBaseTestCase, UnittestTools):
 
     def setUp(self):
         super(TestWorkflowView, self).setUp()
@@ -150,7 +152,3 @@ class TestWorkflowView(BaseTest, UnittestTools):
         self.assertEqual(
             4, len(kpi_view.kpi_name_options)
         )
-
-    def test_output_names_mapping(self):
-
-        self.workflow_view._mappings()

@@ -104,6 +104,7 @@ class MCOParameterModelView(ModelView):
                 if self.model.name not in self._combobox_values + ['']:
                     self.model.name = ''
 
+
 class MCOParameterView(HasTraits):
 
     # -------------------
@@ -232,9 +233,11 @@ class MCOParameterView(HasTraits):
          possible names for new KPIs"""
         parameter_name_options = []
         if self.variable_names_registry is not None:
+            outputs = self.variable_names_registry.data_source_outputs
+            inputs = self.variable_names_registry.data_source_inputs
             parameter_name_options += (
-                [input_ for input_ in self.variable_names_registry.data_source_inputs
-                 if input_ not in self.variable_names_registry.data_source_outputs]
+                [input_ for input_ in inputs
+                 if input_ not in outputs]
             )
 
         return parameter_name_options

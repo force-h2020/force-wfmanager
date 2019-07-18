@@ -12,11 +12,11 @@ from force_wfmanager.ui.setup.mco.mco_parameter_view import (
 from force_wfmanager.ui.setup.mco.kpi_specification_view import (
     KPISpecificationView
 )
-from force_wfmanager.ui.setup.tests.template_test_case import \
-    BaseTest
+from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import \
+    WfManagerBaseTestCase
 
 
-class TestMCOView(BaseTest, UnittestTools):
+class TestMCOView(WfManagerBaseTestCase, UnittestTools):
 
     def setUp(self):
         super(TestMCOView, self).setUp()
@@ -117,7 +117,7 @@ class TestMCOView(BaseTest, UnittestTools):
 
         with self.assertTraitChanges(
                 self.mco_view, 'verify_workflow_event', count=1):
-            parameter_model_view.model.name = 'another'
+            parameter_model_view.model.name = 'P2'
 
         kpi_model_view = self.kpi_view.kpi_model_views[0]
         with self.assertTraitChanges(

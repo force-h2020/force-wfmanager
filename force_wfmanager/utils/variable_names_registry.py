@@ -1,6 +1,6 @@
 from traits.api import (
     HasStrictTraits, List, Instance, on_trait_change, Property,
-    cached_property, Dict, Tuple, HasTraits)
+    cached_property, Dict, Tuple)
 import logging
 
 from force_bdss.api import Identifier, Workflow
@@ -92,16 +92,19 @@ class VariableNamesRegistry(HasStrictTraits):
     #:      ["Vol_A", "Vol_B"],
     #:      ["Vol_A", "Vol_B", "Pressure_A"]]
     #:
-    available_variables = Property(List(List(Identifier)),
-                                   depends_on="available_output_variables_stack,"
-                                              "available_input_variables_stack")
+    available_variables = Property(
+        List(List(Identifier)), depends_on="available_output_variables_stack,"
+                                           "available_input_variables_stack"
+    )
 
     #: Gives only the names of the variables that are produced by data sources.
     #: It does not include MCO parameters.
-    data_source_outputs = Property(List(Identifier),
-                                   depends_on="available_output_variables_stack")
-    data_source_inputs = Property(List(Identifier),
-                                   depends_on="available_input_variables_stack")
+    data_source_outputs = Property(
+        List(Identifier), depends_on="available_output_variables_stack"
+    )
+    data_source_inputs = Property(
+        List(Identifier), depends_on="available_input_variables_stack"
+    )
 
     def __init__(self, workflow, *args, **kwargs):
         super(VariableNamesRegistry, self).__init__(*args, **kwargs)
@@ -127,13 +130,19 @@ class VariableNamesRegistry(HasStrictTraits):
             output_stack_entry_for_layer = []
 
             for data_source_model in layer.data_sources:
-                input_names = [info.name for info in data_source_model.input_slot_info]
-                output_names = [info.name for info in data_source_model.output_slot_info]
+                input_names = [
+                    info.name for info in data_source_model.input_slot_info
+                ]
+                output_names = [
+                    info.name for info in data_source_model.output_slot_info
+                ]
 
                 # This try-except is also in execute.py in force_bdss, so if
                 # this fails the workflow would not be able to run anyway.
                 try:
-                    data_source = data_source_model.factory.create_data_source()
+                    data_source = (
+                        data_source_model.factory.create_data_source())
+
                     # ds.slots() returns (input_slots, output_slots)
                     input_slots = data_source.slots(data_source_model)[0]
                     output_slots = data_source.slots(data_source_model)[1]
@@ -172,11 +181,16 @@ class VariableNamesRegistry(HasStrictTraits):
 
         for input_layer, output_layer in zip(input_stack, output_stack):
             layer_variables = []
-            for input_data_source, output_data_source in zip(input_layer, output_layer):
-                layer_variables += [variable[0] for variable in input_data_source
-                              if variable not in layer_variables]
-                layer_variables += [variable[0] for variable in output_data_source
-                              if variable not in layer_variables]
+            generator = zip(input_layer, output_layer)
+            for input_data_source, output_data_source in generator:
+                layer_variables += [
+                    variable[0] for variable in input_data_source
+                    if variable not in layer_variables
+                ]
+                layer_variables += [
+                    variable[0] for variable in output_data_source
+                    if variable not in layer_variables
+                ]
             variables.append(layer_variables)
 
         return variables
@@ -196,10 +210,11 @@ class VariableNamesRegistry(HasStrictTraits):
         output_stack = self.available_output_variables_stack
         input_stack = self.available_input_variables_stack
         res = []
-        res_dict = {}
 
         for input_layer, output_layer in zip(input_stack, output_stack):
-            for input_data_source, output_data_source in zip(input_layer, output_layer):
+            res_dict = {}
+            generator = zip(input_layer, output_layer)
+            for input_data_source, output_data_source in generator:
                 for input_info in input_data_source:
                     var_name = input_info[0]
                     var_type = input_info[1]

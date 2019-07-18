@@ -1,5 +1,5 @@
 from traits.api import (
-    HasStrictTraits, Instance, List, Int, on_trait_change, Enum,
+    HasStrictTraits, Instance, List, Int, on_trait_change,
     Bool, HTML, Property, Either, Event, Unicode, HasTraits,
     cached_property
 )
@@ -39,11 +39,6 @@ class TableRow(HasStrictTraits):
 
     #: A human readable description of the slot
     description = Unicode()
-
-    def __init__(self, *args, **kwargs):
-        # FIXME: Child model should not be instantiated before super
-        # class
-        super(TableRow, self).__init__(*args, **kwargs)
 
 
 class InputSlotRow(TableRow):
@@ -277,18 +272,6 @@ class DataSourceView(HasTraits):
         self._fill_slot_rows(input_slots, output_slots)
 
     # Available Variables Functions
-    @on_trait_change(
-        'variable_names_registry.available_variables[],'
-        'output_slots_representation.[name,type],'
-        'input_slots_representation.[name,type]'
-    )
-    def update_data_source_input_rows(self):
-        """Updates the available variables attribute for any InputSlotRow
-        of this data source"""
-        for input_slot_row in self.input_slots_representation:
-            available_variables = self._available_variables_by_type(
-                input_slot_row.type)
-
     # Model change functions
     @on_trait_change('model.input_slot_info.name,model.output_slot_info.name')
     def update_slot_info_names(self):
@@ -401,6 +384,7 @@ class DataSourceView(HasTraits):
         """
         registry = self.variable_names_registry
         idx = self.layer_index
+
         if variable_type in registry.available_variables_by_type[idx]:
             return registry.available_variables_by_type[idx][variable_type]
         return []

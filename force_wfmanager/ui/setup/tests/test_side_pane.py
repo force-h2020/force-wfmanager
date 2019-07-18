@@ -1,9 +1,11 @@
 from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.setup.system_state import SystemState
-from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
+from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
+    WfManagerBaseTestCase
+)
 
 
-class TestSidePane(BaseTest):
+class TestSidePane(WfManagerBaseTestCase):
 
     def setUp(self):
         super(TestSidePane, self).setUp()

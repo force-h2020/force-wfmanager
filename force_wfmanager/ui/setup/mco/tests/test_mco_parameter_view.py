@@ -23,7 +23,6 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
             _combobox_values=['P1']
         )
 
-
     def test_mco_parameter_view_init(self):
         self.assertEqual(
             "Probe parameter", self.parameter_model_view.label,
