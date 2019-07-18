@@ -8,8 +8,9 @@ from .notification_listener_view import NotificationListenerView
 
 
 class CommunicatorView(HasTraits):
-    """A class containing a list of NotificationListenerViews, corresponding
-    to the list of NotificationListeners in the Workflow"""
+    """This class is a container for a list of NotificationListenerViews
+    corresponding to each NotificationListenerin the Workflow.
+    It has the same the hierarchy as MCOView and ProcessView classes"""
 
     # -------------------
     # Required Attributes

@@ -96,6 +96,11 @@ class SetupPane(TraitsTaskPane):
         Bool, depends_on='system_state:selected_factory_name'
     )
 
+    #: A Boolean indicating whether the entity creator view should be displayed
+    entity_creator_visible = Property(
+        Bool, depends_on='system_state:entity_creator'
+    )
+
     #: A panel displaying extra information about the workflow: Available
     #: Plugins, non-KPI variables, current filenames and any error messages.
     #: Displayed for factories which have a lot of empty screen space.
@@ -105,12 +110,20 @@ class SetupPane(TraitsTaskPane):
                    'task.current_file'
     )
 
-    #: Determines if the add button should be active. KPI and Execution
-    #: Layers can always be added, but other workflow items need a specific
-    #: factory to be selected.
-    enable_add_button = Property(
+    #: Determines if the add button should be enabled/visible.
+    #  KPI and Execution Layers can always be added, but other workflow items
+    #  need a specific factory to be selected.
+    add_button_enabled = Property(
         Bool, depends_on='system_state:[selected_factory_name,'
                          'entity_creator.model]'
+    )
+    add_button_visible = Property(
+        Bool, depends_on='system_state:selected_factory_name'
+    )
+
+    #: Determines if the remove button should be visible.
+    remove_button_visible = Property(
+        Bool, depends_on='system_state:selected_factory_name'
     )
 
     #: The view when editing an existing instance within the workflow tree
@@ -169,9 +182,7 @@ class SetupPane(TraitsTaskPane):
                                 "object.system_state.entity_creator",
                                 editor=InstanceEditor(),
                                 style="custom",
-                                visible_when="object.system_state"
-                                             ".entity_creator "
-                                             "is not None",
+                                visible_when="entity_creator_visible",
                                 width=825
                             ),
                             springy=True,
@@ -182,21 +193,15 @@ class SetupPane(TraitsTaskPane):
                                 editor=ButtonEditor(
                                     label_value='add_new_entity_label'
                                 ),
-                                enabled_when='enable_add_button',
-                                visible_when="object.system_state"
-                                             ".selected_factory_name "
-                                             "!= 'None'",
+                                enabled_when='add_button_enabled',
+                                visible_when="add_button_visible",
                                 springy=True
                             ),
                             # Remove Buttons
                             UItem(
                                 'remove_entity_btn',
                                 label='Delete Layer',
-                                visible_when=(
-                                    "object.system_state"
-                                    ".selected_factory_name "
-                                    "== 'Data Source'"
-                                ),
+                                visible_when='remove_button_visible'
                             ),
                             label="New Item Details",
                             visible_when="factory_view_visible",
@@ -261,21 +266,12 @@ class SetupPane(TraitsTaskPane):
         return self.system_state.selected_factory_name == 'None'
 
     @cached_property
-    def _get_enable_add_button(self):
-        """ Determines if the add button in the UI should be enabled.
+    def _get_entity_creator_visible(self):
+        return self.system_state.entity_creator is not None
 
-        Parameters
-        ----------
-        self.entity_creator.model: BaseModel
-            The result of calling `create_model()` on the selected factory.
-            This occurs automatically when a factory is selected in the UI.
-
-        Returns
-        -------
-        Bool
-            Returns True if the selected factory can create a new instance.
-            Returns False otherwise.
-        """
+    @cached_property
+    def _get_add_button_enabled(self):
+        """ Determines if the add button in the UI should be enabled."""
         simple_factories = ['Execution Layer', 'MCO']
         if self.system_state.selected_factory_name in simple_factories:
             return True
@@ -283,6 +279,16 @@ class SetupPane(TraitsTaskPane):
                 or self.system_state.entity_creator.model is None:
             return False
         return True
+
+    @cached_property
+    def _get_add_button_visible(self):
+        """ Determines if the add button in the UI should be enabled"""
+        return self.system_state.selected_factory_name != 'None'
+
+    @cached_property
+    def _get_remove_button_visible(self):
+        """ Determines if the add button in the UI should be visible"""
+        return self.system_state.selected_factory_name == 'Data Source'
 
     @cached_property
     def _get_add_new_entity_label(self):

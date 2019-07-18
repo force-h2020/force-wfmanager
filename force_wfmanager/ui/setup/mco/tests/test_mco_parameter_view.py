@@ -93,10 +93,7 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
         self.assertEqual(None, self.parameter_view.selected_parameter)
 
         self.parameter_view.model = mco_model
-        self.parameter_view.selected_parameter = None
-        with self.assertTraitChanges(
-                self.parameter_view.model, 'parameters', count=0):
-            self.parameter_view._add_parameter_button_fired()
+        self.assertIsNotNone(self.parameter_view.parameter_entity_creator)
 
     def test_add_parameter(self):
 
@@ -118,6 +115,9 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
             self.parameter_view.selected_parameter,
             self.parameter_view.parameter_model_views[3]
         )
+
+        self.parameter_view._dclick_add_parameter(None)
+        self.assertEqual(5, len(self.workflow.mco.parameters))
 
     def test_remove_parameter(self):
 

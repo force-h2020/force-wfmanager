@@ -1,6 +1,6 @@
 from traits.api import (
     HasStrictTraits, List, Instance, on_trait_change, Property,
-    cached_property, Dict, Tuple)
+    cached_property, Dict, Tuple, HasTraits)
 import logging
 
 from force_bdss.api import Identifier, Workflow
@@ -35,11 +35,11 @@ class VariableNamesRegistry(HasStrictTraits):
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the input variables produced by that execution layer
-    exec_layer_input = List(Tuple(Identifier, CUBAType))
+    exec_layer_input = List(data_source_input)
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the output variables produced by that execution layer
-    exec_layer_output = List(Tuple(Identifier, CUBAType))
+    exec_layer_output = List(data_source_output)
 
     #: Dictionary allowing the lookup of names associated with a chosen CUBA
     #: type.
@@ -93,7 +93,8 @@ class VariableNamesRegistry(HasStrictTraits):
     #:      ["Vol_A", "Vol_B", "Pressure_A"]]
     #:
     available_variables = Property(List(List(Identifier)),
-                                   depends_on="available_output_variables_stack")
+                                   depends_on="available_output_variables_stack,"
+                                              "available_input_variables_stack")
 
     #: Gives only the names of the variables that are produced by data sources.
     #: It does not include MCO parameters.
@@ -108,7 +109,7 @@ class VariableNamesRegistry(HasStrictTraits):
         'workflow.mco.parameters.[name,type],'
         'workflow.execution_layers.data_sources.output_slot_info.name'
     )
-    def update_available_variables_stack(self):
+    def update_available_variables_stacks(self):
         """Updates the list of available variables. At present getting
         the datasource output slots requires creating the datasource by
         calling ``create_data_source()``."""
@@ -118,13 +119,6 @@ class VariableNamesRegistry(HasStrictTraits):
         input_stack = []
         output_stack = []
         # At the first layer, the available variables are the MCO parameters
-        if self.workflow.mco is None:
-            output_stack.append([])
-        else:
-            output_stack.append([
-                (p.name, p.type) for p in self.workflow.mco.parameters
-                if len(p.name) != 0
-            ])
 
         for layer in self.workflow.execution_layers:
             input_stack_entry_for_layer = []
@@ -153,11 +147,11 @@ class VariableNamesRegistry(HasStrictTraits):
                 input_types = [slot.type for slot in input_slots]
                 output_types = [slot.type for slot in output_slots]
 
-                input_stack_entry_for_layer.extend([
+                input_stack_entry_for_layer.append([
                     (name, type) for name, type
                     in zip(input_names, input_types) if name != ''
                 ])
-                output_stack_entry_for_layer.extend([
+                output_stack_entry_for_layer.append([
                     (name, type) for name, type
                     in zip(output_names, output_types) if name != ''
                 ])
@@ -170,22 +164,29 @@ class VariableNamesRegistry(HasStrictTraits):
 
     @cached_property
     def _get_available_variables(self):
-        stack = self.available_output_variables_stack
-        res = []
-        for idx in range(len(stack)):
-            cumsum = []
-            for output_info in stack[0:idx + 1]:
-                cumsum.extend([output[0] for output in output_info])
-            res.append(cumsum)
-        return res
+        output_stack = self.available_output_variables_stack
+        input_stack = self.available_input_variables_stack
+        variables = []
+
+        for input_layer, output_layer in zip(input_stack, output_stack):
+            for input_data_source, output_data_source in zip(input_layer, output_layer):
+                variables += [variable[0] for variable in input_data_source
+                              if variable not in variables]
+                variables += [variable[0] for variable in output_data_source
+                              if variable not in variables]
+
+        return variables
 
     @cached_property
     def _get_data_source_outputs(self):
         stack = self.available_output_variables_stack
         res = []
 
-        for output_info in stack[1:]:
-            res.extend([output[0] for output in output_info])
+        for output_layer in stack:
+            print(output_layer)
+            for output_info in output_layer:
+                print(output_info)
+                res.extend([output[0] for output in output_info])
         return res
 
     @cached_property

@@ -144,17 +144,15 @@ class NewEntityCreator(HasStrictTraits):
         view = View(
                 HSplit(
                     VGroup(
-                        UItem("view_header",
-                              editor=InstanceEditor(),
-                              style='custom'
-                              ),
-                        UItem("plugins_root",
-                              editor=editor
-                              ),
-                        style="custom",
-                        label=self.view_header,
-                        show_border=True,
-                        springy=True,
+                        VGroup(
+                            UItem("plugins_root",
+                                  editor=editor
+                                  ),
+                            style="custom",
+                            label=self.view_header,
+                            show_border=True,
+                            springy=True,
+                        )
                     ),
                     VGroup(
                         VGroup(
@@ -230,8 +228,8 @@ class NewEntityCreator(HasStrictTraits):
     def _get_view_header(self):
         """Return a header to the view clearly showing the factory name"""
         if self.factory_name == '':
-            return "<h1>Available Factories</h1>"
-        return f"<h1>Available {self.factory_name} Factories</h1>"
+            return "Available Factories"
+        return f"Available {self.factory_name} Factories"
 
     @on_trait_change("selected_factory")
     def update_current_model(self):

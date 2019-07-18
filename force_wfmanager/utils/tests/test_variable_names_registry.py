@@ -75,7 +75,30 @@ class VariableNamesRegistryTest(unittest.TestCase):
 
         self.assertEqual(len(self.registry.available_output_variables_stack),4)
 
-    def test_available_names_update(self):
+    def test_available_variables(self):
+
+        self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
+        self.data_source2.input_slot_info = [InputSlotInfo(name='V2')]
+        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
+
+        self.data_source3.input_slot_info = [InputSlotInfo(name='T1')]
+        self.data_source3.output_slot_info = [OutputSlotInfo(name='P1')]
+
+        self.assertEqual(
+            6,
+            len(self.registry.available_variables)
+        )
+        self.assertEqual(
+            ['V1', 'T1', 'V2', 'T2', 'T1', 'P1'],
+            self.registry.available_variables
+        )
+
+
+    def test_connections(self):
+
+
+        """
         self.param1.name = 'V1'
         self.assertEqual(self.registry.available_output_variables_stack[0],
                          [('V1', '')])
@@ -92,28 +115,12 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.assertEqual(self.registry.available_output_variables_stack[0],
                          [('V2', ''), ('V3', '')])
 
+
         self.assertEqual(self.registry.available_output_variables_stack[1], [])
         self.assertEqual(self.registry.available_output_variables_stack[2], [])
 
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
-        self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
-        self.assertEqual(
-            self.registry.available_output_variables_stack[1],
-            [('T1', 'PRESSURE'), ('T2', 'PRESSURE')])
+        """
 
-        self.data_source2.output_slot_info[0].name = 'T4'
-        self.assertEqual(
-            self.registry.available_output_variables_stack[1],
-            [('T1', 'PRESSURE'), ('T4', 'PRESSURE')])
-
-        self.assertEqual(
-            self.registry.available_variables,
-            [
-                ['V2', 'V3'],
-                ['V2', 'V3', 'T1', 'T4'],
-                ['V2', 'V3', 'T1', 'T4'],
-                ['V2', 'V3', 'T1', 'T4']
-            ])
 
     def test_data_source_outputs(self):
         self.param1.name = 'V1'

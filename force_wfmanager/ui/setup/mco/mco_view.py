@@ -17,6 +17,7 @@ from force_wfmanager.ui.ui_utils import get_factory_name
 
 
 class MCOView(HasTraits):
+    """This class provides a view for the BaseMCOModel"""
 
     # -------------------
     # Required Attributes

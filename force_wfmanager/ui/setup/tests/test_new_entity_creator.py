@@ -129,13 +129,13 @@ class TestNewEntityModel(unittest.TestCase):
         model, _ = self._get_mco_selector()
 
         self.assertEqual(
-            "<h1>Available Factories</h1>",
+            "Available Factories",
             model.view_header
         )
 
         model.factory_name = 'MCO'
 
         self.assertEqual(
-            "<h1>Available MCO Factories</h1>",
+            "Available MCO Factories",
             model.view_header
         )

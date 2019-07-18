@@ -53,7 +53,7 @@ class TestMCOView(BaseTest, UnittestTools):
         )
 
         self.assertEqual(1, len(self.kpi_view.kpi_model_views))
-        self.assertEqual(2, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(3, len(self.kpi_view.kpi_name_options))
         self.assertEqual(
             'outputA',
             self.kpi_view.kpi_model_views[0].model.name)
@@ -77,7 +77,7 @@ class TestMCOView(BaseTest, UnittestTools):
 
         self.kpi_view.add_kpi(kpi_spec)
         self.assertEqual(2, len(self.kpi_view.kpi_model_views))
-        self.assertEqual(1, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(3, len(self.kpi_view.kpi_name_options))
         self.assertEqual(2, len(self.kpi_view.kpi_names))
         self.assertEqual(self.kpi_view.kpi_model_views[1].model, kpi_spec)
         self.assertEqual(
@@ -92,7 +92,7 @@ class TestMCOView(BaseTest, UnittestTools):
         kpi_spec = self.kpi_view.kpi_model_views[0].model
         self.kpi_view.remove_kpi(kpi_spec)
         self.assertEqual(0, len(self.kpi_view.kpi_model_views))
-        self.assertEqual(3, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(3, len(self.kpi_view.kpi_name_options))
         self.assertEqual(0, len(self.kpi_view.kpi_names))
 
     def test_add_parameter(self):
@@ -100,7 +100,7 @@ class TestMCOView(BaseTest, UnittestTools):
 
         self.parameter_view.add_parameter(parameter)
         self.assertEqual(3, len(self.parameter_view.parameter_model_views))
-        self.assertEqual(2, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(3, len(self.kpi_view.kpi_name_options))
         self.assertEqual(1, len(self.kpi_view.kpi_names))
         self.assertEqual(
             parameter, self.parameter_view.parameter_model_views[2].model)
@@ -109,7 +109,7 @@ class TestMCOView(BaseTest, UnittestTools):
         parameter = self.parameter_view.parameter_model_views[1].model
         self.parameter_view.remove_parameter(parameter)
         self.assertEqual(1, len(self.parameter_view.parameter_model_views))
-        self.assertEqual(2, len(self.kpi_view.non_kpi_variables))
+        self.assertEqual(3, len(self.kpi_view.kpi_name_options))
         self.assertEqual(1, len(self.kpi_view.kpi_names))
 
     def test_verify_workflow_event(self):
@@ -120,9 +120,8 @@ class TestMCOView(BaseTest, UnittestTools):
             parameter_model_view.model.name = 'another'
 
         kpi_model_view = self.kpi_view.kpi_model_views[0]
-
         with self.assertTraitChanges(
-                self.mco_view, 'verify_workflow_event', count=1):
+                self.mco_view, 'verify_workflow_event', count=2):
             kpi_model_view.model.name = 'another'
 
     def test_sync_mco_options(self):
