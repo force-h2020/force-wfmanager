@@ -39,9 +39,7 @@ class DummyWfManager(WfManager):
         plugins = [CorePlugin(), TasksPlugin()]
         super(DummyWfManager, self).__init__(plugins=plugins)
 
-    # Requires a docstring to silence Sphinx warnings.
     def run(self):
-        """Run the application (dummy class: does nothing in this case)."""
         pass
 
 
@@ -76,9 +74,7 @@ class DummyWfManagerWithPlugins(WfManager):
         ]
         super(DummyWfManagerWithPlugins, self).__init__(plugins=plugins)
 
-    # Requires a docstring to silence Sphinx warnings.
     def run(self):
-        """Run the application (dummy class: does nothing in this case)."""
         pass
 
 
