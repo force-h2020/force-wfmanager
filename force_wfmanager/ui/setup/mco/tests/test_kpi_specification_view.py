@@ -15,7 +15,7 @@ class TestKPISpecificationModelView(unittest.TestCase, UnittestTools):
 
         self.kpi_model_view = KPISpecificationModelView(
             model=KPISpecification(name='T1'),
-            _combobox_names=['T1', 'T2']
+            _combobox_values=['T1', 'T2']
         )
 
     def test_kpi_model_view_init(self):
@@ -41,9 +41,9 @@ class TestKPISpecificationModelView(unittest.TestCase, UnittestTools):
             self.kpi_model_view.model.name = 'not_in__combobox'
 
     def test__check_kpi_name(self):
-        self.kpi_model_view._combobox_names.remove('T2')
+        self.kpi_model_view._combobox_values.remove('T2')
         self.assertTrue(self.kpi_model_view.valid)
-        self.kpi_model_view._combobox_names.remove('T1')
+        self.kpi_model_view._combobox_values.remove('T1')
         self.assertEqual(
             "KPI",
             self.kpi_model_view.label
@@ -89,7 +89,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.assertEqual(['T1'], self.registry.data_source_outputs)
         self.assertEqual(
-            ['T1'], self.kpi_view.kpi_model_views[0]._combobox_names
+            ['T1'], self.kpi_view.kpi_model_views[0]._combobox_values
         )
         self.assertEqual('KPI', self.kpi_view.kpi_model_views[0].label)
 

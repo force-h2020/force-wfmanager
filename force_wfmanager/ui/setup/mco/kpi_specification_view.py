@@ -26,7 +26,7 @@ class KPISpecificationModelView(ModelView):
     # FIXME: this isn't an ideal method, since it requires further
     # work arounds for the name validation. Putting better error
     # handling into the force_bdss could resolve this.
-    _combobox_names = List(Unicode)
+    _combobox_values = List(Unicode)
 
     # ------------------
     # Regular Attributes
@@ -62,7 +62,7 @@ class KPISpecificationModelView(ModelView):
     # to directly change model.name without updating kpi_names
     traits_view = View(
         Item('name', object='model',
-             editor=EnumEditor(name='object._combobox_names')),
+             editor=EnumEditor(name='object._combobox_values')),
         Item("objective", object='model'),
         Item('auto_scale', object='model'),
         Item("scale_factor", object='model',
@@ -80,13 +80,16 @@ class KPISpecificationModelView(ModelView):
     #: Listeners
     @on_trait_change('model.[name,objective]')
     def kpi_change(self):
+        """Raise verfiy workflow event upon change in model"""
         self.verify_workflow_event = True
 
-    @on_trait_change('model.name,_combobox_names')
+    @on_trait_change('model.name,_combobox_values')
     def _check_kpi_name(self):
+        """Check the model name against all possible output variable
+        names. Clear the model name if a matching output is not found"""
         if self.model is not None:
-            if self._combobox_names is not None:
-                if self.model.name not in self._combobox_names + ['']:
+            if self._combobox_values is not None:
+                if self.model.name not in self._combobox_values + ['']:
                     self.model.name = ''
 
 
@@ -210,7 +213,7 @@ class KPISpecificationView(HasTraits):
             kpi_model_views += [
                 KPISpecificationModelView(
                     model=kpi,
-                    _combobox_names=self.kpi_name_options
+                    _combobox_values=self.kpi_name_options
                 )
                 for kpi in self.model.kpis
             ]
@@ -218,7 +221,7 @@ class KPISpecificationView(HasTraits):
         return kpi_model_views
 
     def _selected_kpi_default(self):
-        """Default value for selected_kpi"""
+        """Default selected_kpi is the first in the list"""
         if len(self.kpi_model_views) > 0:
             return self.kpi_model_views[0]
 
@@ -266,7 +269,7 @@ class KPISpecificationView(HasTraits):
     def update_kpi_model_views__combobox(self):
         """Update the KPI model view name options"""
         for kpi_view in self.kpi_model_views:
-            kpi_view._combobox_names = self.kpi_name_options
+            kpi_view._combobox_values = self.kpi_name_options
 
     @on_trait_change('model.kpis')
     def update_kpi_model_views(self):
@@ -285,14 +288,14 @@ class KPISpecificationView(HasTraits):
 
     #: Button actions
     def _add_kpi_button_fired(self):
-        """Call add_kpi using selected non-kpi variable from table"""
+        """Call add_kpi to insert a blank KPI to the model"""
         self.add_kpi(KPISpecification())
 
         # Highlight new KPI in ListEditor
         self.selected_kpi = self.kpi_model_views[-1]
 
     def _remove_kpi_button_fired(self):
-        """Call remove_kpi to delete selected kpi from list"""
+        """Call remove_kpi to delete selected kpi from model"""
 
         index = self.kpi_model_views.index(self.selected_kpi)
         self.remove_kpi(self.selected_kpi.model)
