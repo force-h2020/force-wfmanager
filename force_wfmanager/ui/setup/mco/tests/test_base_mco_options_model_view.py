@@ -28,7 +28,7 @@ class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
 
     def test__check_model_name(self):
 
-        self.mco_options_model_view._combobox_values =['T1', 'T2']
+        self.mco_options_model_view._combobox_values = ['T1', 'T2']
         self.mco_options_model_view.model = KPISpecification(name='T1')
 
         self.mco_options_model_view._combobox_values.remove('T2')

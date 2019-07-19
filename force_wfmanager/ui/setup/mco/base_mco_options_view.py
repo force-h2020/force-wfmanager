@@ -1,6 +1,6 @@
 from traits.api import (
     Bool, Event, Instance, List, Unicode,
-    on_trait_change, HasTraits, Either
+    on_trait_change, HasTraits
 )
 
 from force_bdss.api import BaseMCOModel

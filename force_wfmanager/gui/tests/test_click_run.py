@@ -7,7 +7,7 @@ from click.testing import CliRunner
 
 import force_wfmanager.gui.run
 from force_wfmanager.version import __version__
-from force_wfmanager.tests.dummy_classes import DummyWfManager
+from force_wfmanager.tests.dummy_classes.dummy_wfmanager import DummyWfManager
 
 
 def mock_run_constructor(*args, **kwargs):
