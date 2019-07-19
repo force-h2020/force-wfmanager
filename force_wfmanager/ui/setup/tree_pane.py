@@ -1,8 +1,6 @@
 from pyface.tasks.api import TraitsDockPane
-
-from traits.api import Instance, Button, on_trait_change, Bool
-
-from traitsui.api import View, UItem, VGroup
+from traits.api import Bool, Button, Instance, on_trait_change
+from traitsui.api import UItem, VGroup, View
 
 from force_bdss.api import IFactoryRegistry, Workflow
 
@@ -73,7 +71,7 @@ class TreePane(TraitsDockPane):
 
     traits_view = View(VGroup(
         UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
-        UItem('run_button', enabled_when="run_enabled")
+        UItem('run_button', enabled_when="run_enabled"),
     ))
 
     def _workflow_tree_default(self):
@@ -88,7 +86,7 @@ class TreePane(TraitsDockPane):
     def update_run_btn_status(self):
         """Enables/Disables the run button if the workflow is valid/invalid"""
         self.run_enabled = (
-                self.workflow_tree.workflow_mv.valid and self.ui_enabled
+            self.workflow_tree.workflow_mv.valid and self.ui_enabled
         )
 
     @on_trait_change('workflow_model', post_init=True)

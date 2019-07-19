@@ -10,7 +10,8 @@ from pyface.api import (
 )
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
-from traits.api import Instance, on_trait_change, List, Bool, Unicode, File
+from traits.api import (
+    Bool, File, Instance, List, on_trait_change, Unicode)
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
@@ -240,7 +241,7 @@ class WfManagerSetupTask(Task):
     def _side_pane_default(self):
         return TreePane(
             factory_registry=self.factory_registry,
-            workflow_model=self.workflow_model
+            workflow_model=self.workflow_model,
         )
 
     def _workflow_model_default(self):
@@ -616,6 +617,7 @@ class WfManagerSetupTask(Task):
 
         self.side_pane.ui_enabled = not self.computation_running
         self.save_load_enabled = not self.computation_running
+        self.run_enabled = not self.computation_running
 
     # Method call from side pane interaction
 

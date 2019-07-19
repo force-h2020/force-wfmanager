@@ -16,7 +16,6 @@ from force_bdss.io.workflow_writer import WorkflowWriter
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.tests.utils import wait_condition
 
-
 from .mock_methods import (
     mock_file_reader, mock_file_writer, mock_dialog, mock_return_args,
     mock_file_reader_failure, mock_confirm_function,

@@ -19,6 +19,13 @@ ADDITIONAL_CORE_DEPS = [
     "mock==2.0.0-3"
 ]
 
+ADDITIONAL_PIP_DEPS = [
+    # FIXME: Using pyface from master to take advantage of this not yet
+    #        released bugfix: enthought/pyface#409
+    'git+https://github.com/enthought/pyface.git'
+    '@c3fee1b80c73c3b95b37be5023a3fd03a2a885d3'
+]
+
 
 @click.group()
 def cli():
@@ -44,8 +51,13 @@ def install(python_version):
     if returncode:
         raise click.ClickException("Error while installing EDM dependencies.")
 
-    returncode = edm_run(env_name, ["pip", "install", "-e", "."])
+    for dep in ADDITIONAL_PIP_DEPS:
+        returncode = edm_run(env_name, ["pip", "install", dep])
+        if returncode:
+            raise click.ClickException(
+                "Error while installing {!r} through pip.".format(dep))
 
+    returncode = edm_run(env_name, ["pip", "install", "-e", "."])
     if returncode:
         raise click.ClickException("Error while installing the local package.")
 
