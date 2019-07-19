@@ -4,11 +4,13 @@ from pyface.constant import OK
 from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
+from force_wfmanager.ui.review.plot import Plot
+
 from .mock_methods import (
     mock_file_writer, mock_dialog, mock_return_args
 )
 from .test_wfmanager_tasks import get_probe_wfmanager_tasks
-
+from .dummy_classes import DummyDataView1, DummyWfManagerWithPlugins
 
 RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_review_task.FileDialog'
 RESULTS_FILE_OPEN_PATH = 'force_wfmanager.io.project_io.open'
@@ -16,6 +18,8 @@ RESULTS_JSON_DUMP_PATH = 'force_wfmanager.io.project_io.json.dump'
 RESULTS_WRITER_PATH = \
     'force_wfmanager.io.project_io.WorkflowWriter.get_workflow_data'
 RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_review_task.error'
+DATA_VIEW_PANE_EDIT_TRAITS_PATH = \
+    "force_wfmanager.ui.review.data_view_pane.DataViewPane.edit_traits"
 
 
 class TestWFManagerTasks(GuiTestAssistant, TestCase):
@@ -57,3 +61,79 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 'Cannot save in the requested file:\n\nOUPS',
                 'Error when saving the project'
             )
+
+    def test_default_data_views(self):
+        # Test of the data view selection feature within the task.
+
+        # A single default plot type
+        self.assertEqual(
+            len(self.review_task.central_pane.available_data_views), 1)
+
+        # Initial state
+        self.assertEqual(
+            self.review_task.central_pane.data_view_selection, Plot)
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, Plot)
+
+        # The "change" button needs to be fired to populate the descriptions
+        with mock.patch(DATA_VIEW_PANE_EDIT_TRAITS_PATH) as mock_edit_traits:
+            self.review_task.central_pane.change_view = True
+            mock_edit_traits.assert_called_with(view="selection_changer")
+        self.assertIn(
+            "Plot with colormap (force_wfmanager.ui.review.plot.Plot)",
+            self.review_task.central_pane.data_view_descriptions.values()
+        )
+
+
+class TestWFManagerTasksWithPlugins(GuiTestAssistant, TestCase):
+    def setUp(self):
+        super(TestWFManagerTasksWithPlugins, self).setUp()
+        _, self.review_task = get_probe_wfmanager_tasks(
+            wf_manager=DummyWfManagerWithPlugins())
+
+    def test_discover_data_views(self):
+        # One default plot type plus three contributed
+        self.assertEqual(
+            len(self.review_task.central_pane.available_data_views), 4)
+
+        # fire the button to populate descriptions
+        with mock.patch(DATA_VIEW_PANE_EDIT_TRAITS_PATH):
+            self.review_task.central_pane.change_view = True
+        self.assertIn(
+            "Empty data view with a long description "
+            "(force_wfmanager.tests..DummyDataView1)",
+            self.review_task.central_pane.data_view_descriptions.values()
+        )
+        self.assertIn(
+            "force_wfmanager.tests.dummy_classes.DummyDataView2",
+            self.review_task.central_pane.data_view_descriptions.values()
+        )
+        self.assertIn(
+            "Empty dummy data view that actually has a even longer "
+            "description (force_wfm...)",
+            self.review_task.central_pane.data_view_descriptions.values()
+        )
+
+    def test_change_data_view(self):
+        # check the initial state
+        self.assertEqual(
+            self.review_task.central_pane.data_view_selection, Plot)
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, Plot)
+
+        # then change data view
+        self.review_task.central_pane.data_view_selection = DummyDataView1
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, DummyDataView1)
+
+    def test_data_views_not_reinstantiated(self):
+        # two data views are visited once
+        initial = self.review_task.central_pane.data_view
+        self.assertIsInstance(initial, Plot)
+        self.review_task.central_pane.data_view_selection = DummyDataView1
+        other = self.review_task.central_pane.data_view
+        # they should be the same instance when visited again
+        self.review_task.central_pane.data_view_selection = Plot
+        self.assertTrue(self.review_task.central_pane.data_view is initial)
+        self.review_task.central_pane.data_view_selection = DummyDataView1
+        self.assertTrue(self.review_task.central_pane.data_view is other)
