@@ -7,11 +7,8 @@ from force_bdss.api import BaseMCOModel
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
-from force_wfmanager.ui.setup.mco.kpi_specification_model_view import (
-    KPISpecificationModelView
-)
-from force_wfmanager.ui.setup.mco.mco_parameter_model_view import (
-    MCOParameterModelView
+from force_wfmanager.ui.setup.mco.base_mco_options_model_view import (
+    BaseMCOOptionsModelView
 )
 
 
@@ -29,24 +26,19 @@ class BaseMCOOptionsView(HasTraits):
     #: Registry of the available variables
     variable_names_registry = Instance(VariableNamesRegistry)
 
-    # --------------------------------
-    #  Regular / Dependent Attributes
-    # --------------------------------
-
-    #: The selected KPI in model_views
-    selected_model_view = Either(Instance(MCOParameterModelView),
-                                 Instance(KPISpecificationModelView))
-
     # -----------------------
     #    Regular Attributes
     # -----------------------
 
     #: List of kpi ModelViews to display in ListEditor notebook
-    model_views = List(selected_model_view)
+    model_views = List(Instance(BaseMCOOptionsModelView))
 
     # ------------------
     # Dependent Attributes
     # ------------------
+
+    #: The selected option model_views
+    selected_model_view = Instance(BaseMCOOptionsModelView)
 
     #: Defines if the MCOOption is valid or not. Set by the function
     #: :func:`verify_tree
