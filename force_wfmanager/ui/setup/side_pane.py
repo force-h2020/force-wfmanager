@@ -5,15 +5,16 @@ from traitsui.api import UItem, VGroup, View
 from force_bdss.api import IFactoryRegistry, Workflow
 
 from force_wfmanager.ui.setup.workflow_tree import WorkflowTree
+from force_wfmanager.ui.setup.system_state import SystemState
 
 
-class TreePane(TraitsDockPane):
+class SidePane(TraitsDockPane):
     """ Side pane which contains a visualisation of the workflow (via a
     TraitsUI TreeEditor) along with a button to run the workflow.
     """
 
     # -----------------------------
-    # Required/Dependent Attributes
+    #    Required Attributes
     # -----------------------------
 
     #: The Workflow model. Updated when
@@ -21,22 +22,20 @@ class TreePane(TraitsDockPane):
     # wfmanager_setup_task.WfManagerSetupTask.workflow_model>` changes.
     #: Listens to: :attr:`WfManagerSetupTask.workflow_model <force_wfmanager.\
     #: wfmanager_setup_task.WfManagerSetupTask.workflow_model>`
-    #:
-    workflow_model = Instance(Workflow)
+    workflow_model = Instance(Workflow, allow_none=False)
 
-    # -------------------
-    # Required Attributes
-    # -------------------
+    #: Holds information about current selected objects
+    system_state = Instance(SystemState, allow_none=False)
 
     #: The factory registry containing all the factories
-    factory_registry = Instance(IFactoryRegistry)
+    factory_registry = Instance(IFactoryRegistry, allow_none=False)
 
     # ------------------
     # Regular Attributes
     # ------------------
 
     #: An internal identifier for this pane
-    id = 'force_wfmanager.tree_pane'
+    id = 'force_wfmanager.side_pane'
 
     #: Name displayed as the title of this pane
     name = 'Workflow'
@@ -53,9 +52,6 @@ class TreePane(TraitsDockPane):
     #: Make the pane visible by default
     visible = True
 
-    #: Tree editor for the Workflow
-    workflow_tree = Instance(WorkflowTree)
-
     #: Run button for running the computation
     run_button = Button('Run')
 
@@ -65,28 +61,36 @@ class TreePane(TraitsDockPane):
     #: Enable or disable the run button.
     run_enabled = Bool(True)
 
+    #: Tree editor for the Process Model Workflow
+    workflow_tree = Instance(WorkflowTree)
+
     # ----
     # View
     # ----
 
-    traits_view = View(VGroup(
-        UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
-        UItem('run_button', enabled_when="run_enabled"),
-    ))
-
-    def _workflow_tree_default(self):
-        wf_tree = WorkflowTree(
-            _factory_registry=self.factory_registry,
-            model=self.workflow_model
+    traits_view = View(
+        VGroup(
+            UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
+            UItem('run_button', enabled_when="run_enabled")
         )
-        self.run_enabled = wf_tree.workflow_mv.valid
-        return wf_tree
+    )
 
-    @on_trait_change('workflow_tree.workflow_mv.valid')
+    #: Defaults
+    def _workflow_tree_default(self):
+        workflow_tree = WorkflowTree(
+            model=self.workflow_model,
+            _factory_registry=self.factory_registry,
+            system_state=self.system_state
+        )
+        self.run_enabled = workflow_tree.workflow_view.valid
+        return workflow_tree
+
+    #: Listeners
+    @on_trait_change('workflow_tree.workflow_view.valid')
     def update_run_btn_status(self):
         """Enables/Disables the run button if the workflow is valid/invalid"""
         self.run_enabled = (
-            self.workflow_tree.workflow_mv.valid and self.ui_enabled
+                self.workflow_tree.workflow_view.valid and self.ui_enabled
         )
 
     @on_trait_change('workflow_model', post_init=True)

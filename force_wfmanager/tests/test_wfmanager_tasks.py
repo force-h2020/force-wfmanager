@@ -11,7 +11,7 @@ from force_bdss.tests.probe_classes.factory_registry import \
 from force_bdss.api import Workflow
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.setup.setup_pane import SetupPane
-from force_wfmanager.ui.setup.tree_pane import TreePane
+from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
@@ -91,7 +91,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         self.assertIsInstance(self.setup_task.create_central_pane(),
                               SetupPane)
         self.assertEqual(len(self.setup_task.create_dock_panes()), 1)
-        self.assertIsInstance(self.setup_task.side_pane, TreePane)
+        self.assertIsInstance(self.setup_task.side_pane, SidePane)
 
         self.assertEqual(len(self.review_task.create_dock_panes()),
                          1)

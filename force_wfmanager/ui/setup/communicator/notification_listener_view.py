@@ -1,11 +1,11 @@
-from traits.api import Instance, Unicode, Bool, Event
-from traitsui.api import ModelView
-
+from traits.api import (
+    Instance, Unicode, Bool, Event, HasTraits
+)
 from force_bdss.api import BaseNotificationListenerModel
 from force_wfmanager.ui.ui_utils import get_factory_name
 
 
-class NotificationListenerModelView(ModelView):
+class NotificationListenerView(HasTraits):
 
     # -------------------
     # Required Attributes
@@ -38,5 +38,6 @@ class NotificationListenerModelView(ModelView):
     #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
+    #: Defaults
     def _label_default(self):
         return get_factory_name(self.model.factory)

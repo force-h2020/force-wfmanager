@@ -15,12 +15,14 @@ from traits.api import (
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
-    MCOProgressEvent, MCOStartEvent, Workflow,
+    MCOProgressEvent, MCOStartEvent,
     InvalidFileException
 )
+from force_bdss.api import Workflow
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.setup.setup_pane import SetupPane
-from force_wfmanager.ui.setup.tree_pane import TreePane
+from force_wfmanager.ui.setup.side_pane import SidePane
+from force_wfmanager.ui.setup.system_state import SystemState
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.wfmanager import (
@@ -29,11 +31,15 @@ from force_wfmanager.wfmanager import (
 from force_wfmanager.io.workflow_io import (
     write_workflow_file, load_workflow_file
 )
+
 log = logging.getLogger(__name__)
 
 
 class WfManagerSetupTask(Task):
+    """Task responsible for building / editing the Workflow"""
+
     id = 'force_wfmanager.wfmanager_setup_task'
+
     name = 'Workflow Setup'
 
     #: Workflow model.
@@ -46,11 +52,14 @@ class WfManagerSetupTask(Task):
     #: Registry of the available factories
     factory_registry = Instance(IFactoryRegistry)
 
+    #: Conduit for passing state information of the GUI
+    system_state = SystemState()
+
     #: Current workflow file on which the application is writing
     current_file = File()
 
     #: Side Pane containing the tree editor for the Workflow and the Run button
-    side_pane = Instance(TreePane)
+    side_pane = Instance(SidePane)
 
     #: The menu bar for this task.
     menu_bar = Instance(SMenuBar)
@@ -88,22 +97,7 @@ class WfManagerSetupTask(Task):
     #: Review Task
     review_task = Instance(Task)
 
-    # ZMQ Setup
-
-    def initialized(self):
-        """Overrides method from Task. Starts the ZMQ Server when this Task is
-        initialized
-        """
-        self.zmq_server.start()
-
-    def prepare_destroy(self):
-        """Overrides method from Task. Stops the ZMQ Server when this Task is
-        about to be destroyed
-        """
-        self.zmq_server.stop()
-
     # Task Defaults and Initialisers
-
     def _menu_bar_default(self):
         """A menu bar with functions relevant to the Setup task.
         """
@@ -168,6 +162,14 @@ class WfManagerSetupTask(Task):
         return [
             SToolBar(
                 TaskAction(
+                    name="Run",
+                    tooltip="Run Workflow",
+                    image=ImageResource("baseline_play_arrow_black_48dp"),
+                    method="run_bdss",
+                    enabled_name="run_enabled",
+                    image_size=(64, 64)
+                ),
+                TaskAction(
                     name="View Results",
                     tooltip="View Results",
                     image=ImageResource("baseline_bar_chart_black_48dp"),
@@ -207,30 +209,25 @@ class WfManagerSetupTask(Task):
                     method="open_plugins",
                     image_size=(64, 64)
                 ),
-            ),
-            SToolBar(
-                TaskAction(
-                    name="Run",
-                    tooltip="Run Workflow",
-                    image=ImageResource("baseline_play_arrow_black_48dp"),
-                    method="run_bdss",
-                    enabled_name="run_enabled",
-                    image_size=(64, 64)
-                ),
+
             )
         ]
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
         return TaskLayout(
-            left=PaneItem('force_wfmanager.tree_pane'),
+            left=PaneItem('force_wfmanager.side_pane')
         )
+
+    # Overloaded Methods
 
     def create_central_pane(self):
         """ Creates the central pane which contains the layer info part
         (factory selection and new object configuration editors)
         """
-        return SetupPane(workflow_model=self.workflow_model)
+        return SetupPane(
+            system_state=self.system_state
+        )
 
     def create_dock_panes(self):
         """ Creates the dock panes """
@@ -239,9 +236,10 @@ class WfManagerSetupTask(Task):
     # Default initializers
 
     def _side_pane_default(self):
-        return TreePane(
-            factory_registry=self.factory_registry,
+        return SidePane(
             workflow_model=self.workflow_model,
+            factory_registry=self.factory_registry,
+            system_state=self.system_state
         )
 
     def _workflow_model_default(self):
@@ -275,8 +273,21 @@ class WfManagerSetupTask(Task):
             on_error_callback=self._server_error_callback
         )
 
-    # Workflow Methods
+    #: Public Methods
+    # ZMQ Setup
+    def initialized(self):
+        """Overrides method from Task. Starts the ZMQ Server when this Task is
+        initialized
+        """
+        self.zmq_server.start()
 
+    def prepare_destroy(self):
+        """Overrides method from Task. Stops the ZMQ Server when this Task is
+        about to be destroyed
+        """
+        self.zmq_server.stop()
+
+    # Workflow Methods
     def open_workflow(self):
         """ Shows a dialog to open a workflow file """
 
@@ -404,7 +415,6 @@ class WfManagerSetupTask(Task):
         )
 
     # BDSS Interaction
-
     def run_bdss(self):
         """ Run the BDSS computation """
 
@@ -535,11 +545,8 @@ class WfManagerSetupTask(Task):
             )
 
     # Plugin Status
+    def lookup_plugins(self):
 
-    def open_plugins(self):
-        """Opens a dialogue window displaying information about the currently
-        loaded plugins
-        """
         plugins = [plugin
                    for plugin in self.window.application.plugin_manager
                    if isinstance(plugin, BaseExtensionPlugin)]
@@ -547,11 +554,19 @@ class WfManagerSetupTask(Task):
         # Plugins guaranteed to have an id, so sort by that if name is not set
         plugins.sort(key=lambda s: s.name
                      if s.name not in ('', None) else s.id)
+
+        return plugins
+
+    def open_plugins(self):
+        """Opens a dialogue window displaying information about the currently
+        loaded plugins
+        """
+        plugins = self.lookup_plugins()
+
         dlg = PluginDialog(plugins)
         dlg.edit_traits()
 
     # Handling of BDSS events via ZMQ server
-
     def _server_event_callback(self, event):
         """Callback that is called by the server thread
         when a new event is received. This method is
@@ -587,22 +602,21 @@ class WfManagerSetupTask(Task):
             self.analysis_model.add_evaluation_step(data)
 
     # Error Display
-
     def _show_error_dialog(self, message):
         """Shows an error dialog to the user with a given message"""
         error(None, message, "Server error")
 
+    #: Listeners
     # Synchronization with side pane (Tree Pane)
-
     @on_trait_change('side_pane.run_enabled')
     def set_toolbar_run_btn_state(self):
         """ Sets the run button to be enabled/disabled, matching the
         value of :attr:`side_pane.run_enabled
-        <.panes.tree_pane.TreePane.run_enabled>`
+        <.panes.side_pane.TreePane.run_enabled>`
         """
         self.run_enabled = self.side_pane.run_enabled
 
-    @on_trait_change('workflow_model')
+    @on_trait_change('workflow_model', post_init=True)
     def update_side_pane_model(self):
         """ Updates the local :attr:`workflow_model`, to match
         :attr:`side_pane.workflow_model
@@ -620,7 +634,6 @@ class WfManagerSetupTask(Task):
         self.run_enabled = not self.computation_running
 
     # Method call from side pane interaction
-
     @on_trait_change('side_pane.run_button')
     def run_button_clicked(self):
         """ Calls :func:`run_bdss` and runs the BDSS!"""
@@ -628,7 +641,7 @@ class WfManagerSetupTask(Task):
 
     # Synchronization with Window
     @on_trait_change('window.tasks')
-    def get_review_task(self):
+    def sync_review_task(self):
         if self.window is not None:
             for task in self.window.tasks:
                 if task.name == "Review":
@@ -636,7 +649,6 @@ class WfManagerSetupTask(Task):
                     self.review_task.run_enabled = self.run_enabled
 
     # Menu/Toolbar Methods
-
     def switch_task(self):
         """Switches to the review task and verifies startup setting are
         correct for toolbars/menus etc."""

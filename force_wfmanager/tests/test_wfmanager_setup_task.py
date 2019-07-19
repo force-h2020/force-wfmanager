@@ -187,6 +187,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_reader.side_effect = mock_file_reader
+
             old_workflow = self.setup_task.workflow_model
             self.assertEqual(
                 old_workflow,
@@ -200,7 +201,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertTrue(mock_open.called)
             self.assertTrue(mock_reader.called)
 
-            self.assertNotEqual(old_workflow, self.setup_task.workflow_model)
             self.assertNotEqual(
                 old_workflow,
                 self.setup_task.workflow_model)

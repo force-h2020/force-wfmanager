@@ -22,7 +22,7 @@ class DummyUI:
         pass
 
 
-class DummyModalInfo(HasTraits):
+class DummyModelInfo(HasTraits):
 
     object = Instance(HasTraits)
 

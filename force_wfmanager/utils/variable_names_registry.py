@@ -91,9 +91,8 @@ class VariableNamesRegistry(HasStrictTraits):
         self.workflow = workflow
 
     @on_trait_change(
-        'workflow.mco.parameters.name,'
-        'workflow.execution_layers.data_sources.output_slot_info.name,'
-        'workflow.mco.parameters.type'
+        'workflow.mco.parameters.[name,type],'
+        'workflow.execution_layers.data_sources.output_slot_info.name'
     )
     def update_available_variables_stack(self):
         """Updates the list of available variables. At present getting

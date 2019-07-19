@@ -1,16 +1,17 @@
-from traits.api import (Instance, Unicode, Bool, on_trait_change, List, Int,
-                        Event)
-from traitsui.api import ModelView
-
+from traits.api import (
+    Instance, Unicode, Bool, on_trait_change, List, Int,
+    Event, HasTraits
+    )
 from force_bdss.api import ExecutionLayer
 
-from .data_source_model_view import \
-    DataSourceModelView
+from .data_source_view import \
+    DataSourceView
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
 
 
-class ExecutionLayerModelView(ModelView):
+class ExecutionLayerView(HasTraits):
+    """A view for a single execution layer in a workflow process"""
 
     # -------------------
     # Required Attributes
@@ -32,8 +33,8 @@ class ExecutionLayerModelView(ModelView):
     # Regular Attributes
     # ------------------
 
-    #: List of the data source's modelviews.
-    data_sources_mv = List(Instance(DataSourceModelView))
+    #: List of the data source's views.
+    data_source_views = List(Instance(DataSourceView))
 
     # --------------------
     # Dependent Attributes
@@ -51,21 +52,39 @@ class ExecutionLayerModelView(ModelView):
 
     #: Event to request a verification check on the workflow
     #: Listens to: :attr:`data_sources_mv.verify_workflow_event
-    #: <force_wfmanager.ui.setup.execution_layer.data_source_model_view.\
+    #: <force_wfmanager.ui.setup.execution_layer.data_source_view.\
     #: DataSourceModelView.verify_workflow_event>`
     verify_workflow_event = Event()
 
-    # Workflow Verification
+    def __init__(self, model, *args, **kwargs):
+        super(ExecutionLayerView, self).__init__(*args, **kwargs)
+        # Assigns model after super instantiation in order to ensure
+        # variable_names_registry has been assigned first
+        self.model = model
 
-    @on_trait_change('data_sources_mv.verify_workflow_event')
+    #: Listeners
+    # Synchronizing UI and model
+    @on_trait_change("model.data_sources[]")
+    def update_data_source_views(self):
+        """Updates the data source modelviews on a change in the underlying
+        data source model. """
+        self.data_source_views = [
+            DataSourceView(
+                layer_index=self.layer_index,
+                model=data_source,
+                variable_names_registry=self.variable_names_registry
+            ) for data_source in self.model.data_sources]
+
+    # Workflow Verification
+    @on_trait_change('data_source_views.verify_workflow_event')
     def received_verify_request(self):
         """Fires :attr:`verify_workflow_event` when a data source contained
         in this execution layer fires its `verify_workflow_event`
         """
         self.verify_workflow_event = True
 
+    #: Public methods
     # Data Source Actions
-
     def add_data_source(self, data_source):
         """Adds the passed data source model to this execution layer model's
         data sources list.
@@ -87,16 +106,3 @@ class ExecutionLayerModelView(ModelView):
             The data source being removed from this execution layer.
          """
         self.model.data_sources.remove(data_source)
-
-    # Synchronizing UI and model
-
-    @on_trait_change("model.data_sources[]")
-    def update_data_sources_mv(self):
-        """Updates the data source modelviews on a change in the underlying
-        data source model. """
-        self.data_sources_mv = [
-            DataSourceModelView(
-                layer_index=self.layer_index,
-                model=data_source,
-                variable_names_registry=self.variable_names_registry
-            ) for data_source in self.model.data_sources]
