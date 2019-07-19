@@ -11,8 +11,8 @@ from pyface.api import (
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
 from traits.api import (
-    Instance, on_trait_change, List, Bool, Unicode, File
-)
+    Bool, File, Instance, List, on_trait_change, Unicode)
+
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
     MCOProgressEvent, MCOStartEvent,

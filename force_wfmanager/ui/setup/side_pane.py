@@ -1,15 +1,10 @@
 from pyface.tasks.api import TraitsDockPane
+from traits.api import Bool, Button, Instance, on_trait_change
+from traitsui.api import UItem, VGroup, View
 
-from traits.api import (
-    Instance, on_trait_change, Bool, Button
-)
-from traitsui.api import (
-    View, UItem, VGroup
-)
+from force_bdss.api import IFactoryRegistry, Workflow
 
-from force_bdss.api import IFactoryRegistry
 from force_wfmanager.ui.setup.workflow_tree import WorkflowTree
-from force_bdss.api import Workflow
 from force_wfmanager.ui.setup.system_state import SystemState
 
 
