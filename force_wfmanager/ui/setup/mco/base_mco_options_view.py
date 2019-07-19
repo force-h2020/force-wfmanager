@@ -62,11 +62,6 @@ class BaseMCOOptionsView(HasTraits):
     #: Listens to: `model.name`,`model.objective`
     verify_workflow_event = Event()
 
-    # ------------------
-    #     Properties
-    # ------------------
-
-
     def __init__(self, model=None, *args, **kwargs):
         super(BaseMCOOptionsView, self).__init__(*args, **kwargs)
         if model is not None:
@@ -95,7 +90,7 @@ class BaseMCOOptionsView(HasTraits):
          default selected_model_view. This method can be combined with an
          on_trait_change decorator in a child class"""
 
-        #Update the list of ModelView(s)
+        # Update the list of ModelView(s)
         self.model_views = self._model_views_default()
 
         # Update the selected_model_view

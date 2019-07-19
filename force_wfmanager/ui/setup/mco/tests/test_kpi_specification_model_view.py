@@ -6,7 +6,6 @@ from force_wfmanager.ui.setup.mco.kpi_specification_model_view import \
     KPISpecificationModelView
 
 
-
 class TestKPISpecificationModelView(unittest.TestCase, UnittestTools):
 
     def setUp(self):

@@ -1,6 +1,6 @@
 from traits.api import (
     Instance, List, Unicode, on_trait_change, Bool, Event,
-    HasTraits, Either
+    HasTraits
 )
 from traitsui.api import View
 

@@ -87,4 +87,3 @@ class KPISpecificationModelView(ModelView):
             if self._combobox_values is not None:
                 if self.model.name not in self._combobox_values + ['']:
                     self.model.name = ''
-

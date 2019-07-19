@@ -27,6 +27,4 @@ class TestBaseMCOOptionsView(unittest.TestCase, UnittestTools):
 
         with self.assertRaises(NotImplementedError):
             self.assertIsNone(self.mco_options_view.selected_model_view)
-            self.assertEqual(0,
-                    len(self.mco_options_view.model_views)
-            )
+            self.assertEqual(0, len(self.mco_options_view.model_views))

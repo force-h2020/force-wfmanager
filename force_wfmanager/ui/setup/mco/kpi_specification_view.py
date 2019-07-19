@@ -1,17 +1,15 @@
 from traits.api import (
-    Bool, Event, Instance, List, Property, Unicode, cached_property,
-    on_trait_change, HasTraits, Button
+    List, Property, Unicode, cached_property,
+    on_trait_change, Button
 )
 from traitsui.api import (
     Item, View, ListEditor,
     VGroup, HGroup
 )
 
-from force_bdss.api import KPISpecification, BaseMCOModel
-from force_wfmanager.utils.variable_names_registry import (
-    VariableNamesRegistry
-)
-from force_wfmanager.ui.setup.mco.base_mco_options_view import BaseMCOOptionsView
+from force_bdss.api import KPISpecification
+from force_wfmanager.ui.setup.mco.base_mco_options_view import \
+    BaseMCOOptionsView
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import (
     KPISpecificationModelView
 )

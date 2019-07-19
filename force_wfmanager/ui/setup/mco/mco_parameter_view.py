@@ -6,10 +6,10 @@ from traitsui.api import (
     View, Item, HGroup, ListEditor, VGroup, InstanceEditor
 )
 
-from force_bdss.api import BaseMCOParameter
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
 
-from force_wfmanager.ui.setup.mco.base_mco_options_view import BaseMCOOptionsView
+from force_wfmanager.ui.setup.mco.base_mco_options_view import \
+    BaseMCOOptionsView
 from force_wfmanager.ui.setup.mco.mco_parameter_model_view import \
     MCOParameterModelView
 
