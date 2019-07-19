@@ -39,9 +39,9 @@ class TestSidePane(WfManagerBaseTestCase):
         self.assertIsNotNone(mco_view)
         self.assertEqual(
             0,
-            len(mco_view.kpi_view.kpi_model_views)
+            len(mco_view.kpi_view.model_views)
         )
         self.assertEqual(
             2,
-            len(mco_view.parameter_view.parameter_model_views)
+            len(mco_view.parameter_view.model_views)
         )

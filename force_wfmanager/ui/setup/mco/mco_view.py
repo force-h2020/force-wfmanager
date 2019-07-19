@@ -8,6 +8,8 @@ from force_bdss.api import BaseMCOModel
 
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
+from force_wfmanager.ui.setup.mco.base_mco_options_view import \
+    BaseMCOOptionsView
 from force_wfmanager.ui.setup.mco.kpi_specification_view import \
     KPISpecificationView
 from force_wfmanager.ui.setup.mco.mco_parameter_view import (
@@ -35,8 +37,7 @@ class MCOView(HasTraits):
 
     #: List of MCO parameter and KPI views to be displayed in the TreeEditor
     #: NOTE: (Has to be a list to be selectable in TreeEditor)
-    mco_options = List(Either(Instance(MCOParameterView),
-                              Instance(KPISpecificationView)))
+    mco_options = List(Instance(BaseMCOOptionsView))
 
     #: A view containing all MCO parameters
     parameter_view = Instance(MCOParameterView)

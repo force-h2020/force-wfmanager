@@ -364,7 +364,7 @@ class TestWorkflowTree(WfManagerBaseTestCase):
             "A KPI is not named",
             self.workflow_tree.workflow_view.error_message
         )
-        self.assertFalse(mco_view.kpi_view.kpi_model_views[0].valid)
+        self.assertFalse(mco_view.kpi_view.model_views[0].valid)
         self.assertFalse(mco_view.kpi_view.valid)
 
 

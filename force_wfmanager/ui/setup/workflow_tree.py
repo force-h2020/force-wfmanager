@@ -673,8 +673,8 @@ class WorkflowTree(ModelView):
             'WorkflowView': ['mco_view', 'process_view',
                              'communicator_view'],
             'MCOView': ['mco_options'],
-            'MCOParameterView': ['parameter_model_views'],
-            'KPISpecificationView': ['kpi_model_views'],
+            'MCOParameterView': ['model_views'],
+            'KPISpecificationView': ['model_views'],
             'ProcessView': ['execution_layer_views'],
             'ExecutionLayerView': ['data_source_views'],
             'CommunicatorView': ['notification_listener_views']
