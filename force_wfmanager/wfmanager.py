@@ -20,7 +20,7 @@ class WfManager(TasksApplication):
     window_size = Either(Tuple(Int, Int), None)
 
     def __init__(self, *args, **kwargs):
-        self.always_use_default_layout = True  # FIXME not enough apparently
+        self.always_use_default_layout = True
         super().__init__(*args, **kwargs)
 
     # Overridden defaults from TasksApplication/Application
