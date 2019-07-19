@@ -112,7 +112,8 @@ class VariableNamesRegistry(HasStrictTraits):
 
     @on_trait_change(
         'workflow.mco.parameters.[name,type],'
-        'workflow.execution_layers.data_sources.output_slot_info.name'
+        'workflow.execution_layers.data_sources.'
+        '[input_slot_info.name,output_slot_info.name]'
     )
     def update_available_variables_stacks(self):
         """Updates the list of available variables. At present getting
@@ -185,11 +186,11 @@ class VariableNamesRegistry(HasStrictTraits):
             for input_data_source, output_data_source in generator:
                 layer_variables += [
                     variable[0] for variable in input_data_source
-                    if variable not in layer_variables
+                    #if variable not in layer_variables
                 ]
                 layer_variables += [
                     variable[0] for variable in output_data_source
-                    if variable not in layer_variables
+                    #if variable not in layer_variables
                 ]
             variables.append(layer_variables)
 

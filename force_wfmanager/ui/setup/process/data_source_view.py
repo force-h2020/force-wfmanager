@@ -152,8 +152,7 @@ class DataSourceView(HasTraits):
 
     #: Currently selected slot in the table
     #: Listens to: :attr:`input_slots_editor`, :attr:`output_slots_editor`
-    selected_slot_row = Either(Instance(InputSlotRow),
-                               Instance(OutputSlotRow))
+    selected_slot_row = Instance(TableRow)
 
     #: Event to request a verification check on the workflow
     #: Listens to: :attr:`input_slots_representation.name
@@ -278,6 +277,7 @@ class DataSourceView(HasTraits):
         """Updates the name displayed in a Input/OutputSlotRow if the name
         changes in the model.
         """
+        print('update_slot_info_names')
         for info, row in zip(self.model.input_slot_info,
                              self.input_slots_representation):
             row.name = info.name
@@ -341,11 +341,7 @@ class DataSourceView(HasTraits):
 
         for index, input_slot in enumerate(input_slots):
             slot_representation = InputSlotRow(model=self.model, index=index)
-            new_name = self.model.input_slot_info[index].name
-            if new_name not in available_variables:
-                new_name = ''
-
-            slot_representation.name = new_name
+            slot_representation.name = self.model.input_slot_info[index].name
             slot_representation.type = input_slot.type
             slot_representation.description = input_slot.description
             input_representations.append(slot_representation)
@@ -359,7 +355,6 @@ class DataSourceView(HasTraits):
             slot_representation.name = self.model.output_slot_info[index].name
             slot_representation.type = output_slot.type
             slot_representation.description = output_slot.description
-
             output_representation.append(slot_representation)
 
         self.output_slots_representation[:] = output_representation
