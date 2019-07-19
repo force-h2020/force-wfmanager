@@ -134,6 +134,17 @@ class VariableNamesRegistryTest(unittest.TestCase):
             self.registry.available_variables_by_type
         )
 
+        self.data_source1.input_slot_info[0].name = 'V2'
+        self.assertEqual(
+            [['V2', 'T1', 'V2', 'T2'], ['T1', 'P1'], []],
+            self.registry.available_variables
+        )
+        self.assertEqual(
+            [{'PRESSURE': ['V2', 'T1', 'V2', 'T2']},
+             {'PRESSURE': ['T1', 'P1']}, {}],
+            self.registry.available_variables_by_type
+        )
+
     def test_data_source_outputs(self):
         self.param1.name = 'V1'
         self.assertEqual(self.registry.data_source_outputs, [])

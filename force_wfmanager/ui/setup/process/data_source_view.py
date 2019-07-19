@@ -1,6 +1,6 @@
 from traits.api import (
     HasStrictTraits, Instance, List, Int, on_trait_change,
-    Bool, HTML, Property, Either, Event, Unicode, HasTraits,
+    Bool, HTML, Property, Event, Unicode, HasTraits,
     cached_property
 )
 from traitsui.api import (
@@ -277,7 +277,6 @@ class DataSourceView(HasTraits):
         """Updates the name displayed in a Input/OutputSlotRow if the name
         changes in the model.
         """
-        print('update_slot_info_names')
         for info, row in zip(self.model.input_slot_info,
                              self.input_slots_representation):
             row.name = info.name
@@ -336,7 +335,7 @@ class DataSourceView(HasTraits):
     def _fill_slot_rows(self, input_slots, output_slots):
         """ Fill the tables rows according to input_slots and output_slots
         needed by the evaluator and the model slot values """
-        available_variables = self._available_variables()
+
         input_representations = []
 
         for index, input_slot in enumerate(input_slots):

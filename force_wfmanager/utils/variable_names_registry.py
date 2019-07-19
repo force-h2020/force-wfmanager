@@ -82,7 +82,9 @@ class VariableNamesRegistry(HasStrictTraits):
     #: A list of type lookup dictionaries, with one dictionary for each
     #: execution layer
     available_variables_by_type = Property(
-        List(exec_layer_by_type), depends_on="available_output_variables_stack"
+        List(exec_layer_by_type),
+        depends_on="available_output_variables_stack,"
+                   "available_input_variables_stack"
         )
 
     #: Same structure as available_output_variables_stack, but this contains
@@ -93,8 +95,9 @@ class VariableNamesRegistry(HasStrictTraits):
     #:      ["Vol_A", "Vol_B", "Pressure_A"]]
     #:
     available_variables = Property(
-        List(List(Identifier)), depends_on="available_output_variables_stack,"
-                                           "available_input_variables_stack"
+        List(List(Identifier)),
+        depends_on="available_output_variables_stack,"
+                   "available_input_variables_stack"
     )
 
     #: Gives only the names of the variables that are produced by data sources.
@@ -186,11 +189,9 @@ class VariableNamesRegistry(HasStrictTraits):
             for input_data_source, output_data_source in generator:
                 layer_variables += [
                     variable[0] for variable in input_data_source
-                    #if variable not in layer_variables
                 ]
                 layer_variables += [
                     variable[0] for variable in output_data_source
-                    #if variable not in layer_variables
                 ]
             variables.append(layer_variables)
 
