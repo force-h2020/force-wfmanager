@@ -6,7 +6,6 @@ from unittest import mock, TestCase
 
 from pyface.api import (ConfirmationDialog, YES, NO, CANCEL)
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
-from traits.trait_errors import TraitError
 
 from force_bdss.api import Workflow
 
@@ -80,15 +79,14 @@ class TestWfManager(GuiTestAssistant, TestCase):
                 )
 
     def test_init_ignores_state_file(self):
-
-         # XXX WIP
-
         # Add a application_memento to a test location and set
-        # it as a state location
+        # that location as the state location
         temp_dir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, temp_dir)
         state_dir = os.path.join(temp_dir, "example_state_location")
         os.mkdir(state_dir)
+
+        # this application_memento file has the review panel in focus.
         ref_state_file = os.path.join(
             fixtures.get('example_state_location'),
             "application_memento.review_in_focus")
@@ -96,23 +94,25 @@ class TestWfManager(GuiTestAssistant, TestCase):
         shutil.copyfile(ref_state_file, target_state_file)
         self.wfmanager.state_location = state_dir
 
-        with mock.patch('force_wfmanager.wfmanager') as mock_wfmanager:
+        with mock.patch.object(
+                ProbeWfManager, "_save_state") as mock_save_state:
             self.wfmanager.run()
             self.setup_task = self.wfmanager.windows[0].tasks[0]
             self.review_task = self.wfmanager.windows[0].tasks[1]
 
-            # if the provided memento has been read, review would be active
+            # If the provided memento has been read and used, review would be
+            # active.
             self.assertEqual(
                 self.wfmanager.windows[0].active_task,
                 self.setup_task,
             )
-
-            # cleanup
+            # Cleanup
             for plugin in self.wfmanager:
                 self.wfmanager.remove_plugin(plugin)
             self.wfmanager.exit()
 
-            mock_wfmanager._default_layout_default.assert_called_once()
+            # Check that the tasks application doesn't save the state on exit.
+            mock_save_state.assert_not_called()
 
     def test_remove_tasks_on_application_exiting(self):
         self.wfmanager.run()
