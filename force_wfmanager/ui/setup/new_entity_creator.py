@@ -1,3 +1,5 @@
+from envisage.plugin import Plugin
+
 from traits.api import (
     Bool, Callable, Dict, Either, HasStrictTraits, Instance, List, ReadOnly,
     Property, Unicode, on_trait_change
@@ -6,9 +8,9 @@ from traitsui.api import (
     HSplit, HTMLEditor, InstanceEditor, Menu, TreeEditor, TreeNode, UItem,
     VGroup, View
 )
-from envisage.plugin import Plugin
 
 from force_bdss.api import BaseFactory, BaseMCOParameter, BaseModel
+
 from force_wfmanager.ui.ui_utils import model_info
 
 no_view = View()

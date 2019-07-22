@@ -4,6 +4,7 @@ from traits.api import (
 from traitsui.api import View, Item
 
 from force_bdss.api import Workflow
+
 from .notification_listener_view import NotificationListenerView
 
 

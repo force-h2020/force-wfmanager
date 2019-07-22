@@ -8,8 +8,8 @@ from traitsui.api import (
 
 from force_bdss.api import BaseMCOParameter, BaseMCOModel
 
-from force_wfmanager.ui.ui_utils import get_factory_name
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
+from force_wfmanager.ui.ui_utils import get_factory_name
 
 
 class MCOParameterModelView(ModelView):

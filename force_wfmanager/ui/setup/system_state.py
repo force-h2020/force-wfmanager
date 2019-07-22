@@ -1,6 +1,7 @@
 from traits.api import (
     HasTraits, Instance, Unicode, Callable
 )
+
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
 
 

@@ -4,12 +4,12 @@ from traits.api import (
 
 from force_bdss.api import Workflow
 
+from force_wfmanager.ui.setup.communicator\
+    .communicator_view import CommunicatorView
 from force_wfmanager.ui.setup.mco.mco_view import MCOView
 from force_wfmanager.ui.setup.process.process_view import (
     ProcessView
 )
-from force_wfmanager.ui.setup.communicator\
-    .communicator_view import CommunicatorView
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )

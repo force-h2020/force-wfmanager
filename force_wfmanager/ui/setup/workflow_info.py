@@ -1,6 +1,6 @@
 from envisage.plugin import Plugin
-
 from pyface.api import ImageResource
+
 from traits.api import (
     HasTraits, List, Unicode
 )
@@ -38,9 +38,9 @@ class WorkflowInfo(HasTraits):
     #: An error message for the entire workflow
     error_message = Unicode()
 
-    # -------------------
+    # ---------------------
     # Dependent Attributes
-    # -------------------
+    # ---------------------
 
     #: The force project logo! Stored at images/Force_Logo.png
     image = ImageResource('Force_Logo.png')

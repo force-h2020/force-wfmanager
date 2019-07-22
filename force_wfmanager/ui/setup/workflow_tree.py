@@ -12,13 +12,12 @@ from force_bdss.api import (
     ExecutionLayer, IFactoryRegistry, InputSlotInfo,
     OutputSlotInfo, Workflow, verify_workflow, KPISpecification
 )
-from force_wfmanager.ui.setup.process.data_source_view \
-    import DataSourceView
-from force_wfmanager.ui.setup.process.execution_layer_view \
-    import ExecutionLayerView
-from force_wfmanager.ui.setup.process.process_view import (
-    ProcessView
+
+from force_wfmanager.ui.setup.communicator.communicator_view import (
+    CommunicatorView
 )
+from force_wfmanager.ui.setup.communicator. \
+    notification_listener_view import NotificationListenerView
 from force_wfmanager.ui.setup.mco.kpi_specification_view import (
     KPISpecificationView
 )
@@ -28,15 +27,13 @@ from force_wfmanager.ui.setup.mco.mco_parameter_view import (
     MCOParameterView
 )
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
-from force_wfmanager.ui.setup.communicator. \
-    notification_listener_view import NotificationListenerView
-from force_wfmanager.ui.setup.workflow_view import (
-    WorkflowView
-)
-from force_wfmanager.ui.setup.communicator.communicator_view import (
-    CommunicatorView
-)
+from force_wfmanager.ui.setup.process.data_source_view \
+    import DataSourceView
+from force_wfmanager.ui.setup.process.execution_layer_view \
+    import ExecutionLayerView
+from force_wfmanager.ui.setup.process.process_view import ProcessView
 from force_wfmanager.ui.setup.system_state import SystemState
+from force_wfmanager.ui.setup.workflow_view import WorkflowView
 
 
 # VerifierError severity constants

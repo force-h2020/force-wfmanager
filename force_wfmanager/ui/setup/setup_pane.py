@@ -1,4 +1,5 @@
 from pyface.tasks.api import TraitsTaskPane
+
 from traits.api import (
     Bool, Button, Instance, Property, Unicode,
     on_trait_change, cached_property
@@ -8,8 +9,9 @@ from traitsui.api import (
 )
 
 from force_bdss.api import BaseModel
-from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
+
 from force_wfmanager.ui.setup.system_state import SystemState
+from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
 
 
 class SetupPane(TraitsTaskPane):

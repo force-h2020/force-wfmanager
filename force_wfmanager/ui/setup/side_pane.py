@@ -1,11 +1,12 @@
 from pyface.tasks.api import TraitsDockPane
+
 from traits.api import Bool, Button, Instance, on_trait_change
 from traitsui.api import UItem, VGroup, View
 
 from force_bdss.api import IFactoryRegistry, Workflow
 
-from force_wfmanager.ui.setup.workflow_tree import WorkflowTree
 from force_wfmanager.ui.setup.system_state import SystemState
+from force_wfmanager.ui.setup.workflow_tree import WorkflowTree
 
 
 class SidePane(TraitsDockPane):

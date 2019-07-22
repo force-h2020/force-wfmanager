@@ -1,11 +1,13 @@
 from traits.api import (
     HasTraits, Instance, List, on_trait_change, Bool, Event, Unicode
 )
+
+from force_bdss.api import Workflow
+
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
 from .execution_layer_view import ExecutionLayerView
-from force_bdss.api import Workflow
 
 
 class ProcessView(HasTraits):

@@ -2,12 +2,13 @@ from traits.api import (
     Instance, Unicode, Bool, on_trait_change, List, Int,
     Event, HasTraits
     )
+
 from force_bdss.api import ExecutionLayer
 
-from .data_source_view import \
-    DataSourceView
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
+from .data_source_view import \
+    DataSourceView
 
 
 class ExecutionLayerView(HasTraits):
