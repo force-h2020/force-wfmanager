@@ -52,6 +52,21 @@ class TestUiUtils(unittest.TestCase):
 
     def test_class_description(self):
 
+        # Workaround needed if the test is not run from the repository root.
+        allclasses = [
+            HasDescriptionNone, HasShortDescription, HasLongDescription,
+            HasLongerDescription, DescriptionIsLabel
+        ]
+        for cl in allclasses:
+            # This is not a test assertion, but a working assumption. It
+            # should never be false.
+            assert cl.__module__.endswith("test_ui_utils"), \
+                "The test has been invoked in such a way that locally " \
+                "defined classes don't appear as belonging to this module!"
+            # Fakes a module structure that starts at root
+            cl.__module__ = "force_wfmanager.ui.tests.test_ui_utils"
+
+        # Actual test.
         self.assertEqual(
             class_description(HasDescriptionNone),
             "force_wfmanager.ui.tests.test_ui_utils.HasDescriptionNone"
