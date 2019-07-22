@@ -1,4 +1,5 @@
 import json
+
 from traits.api import (
     Bool, Either, HasStrictTraits, Int, List, Property, Tuple, on_trait_change
 )

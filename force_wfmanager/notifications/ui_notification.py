@@ -1,12 +1,14 @@
 import logging
 
 import zmq
+
 from traits.api import Instance, String
 
 from force_bdss.api import (
     BaseNotificationListener,
     BaseDriverEvent,
 )
+
 from force_wfmanager.server.event_serializer import EventSerializer
 
 log = logging.getLogger(__name__)

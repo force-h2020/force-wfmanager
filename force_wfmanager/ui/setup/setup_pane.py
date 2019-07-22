@@ -1,5 +1,4 @@
 from pyface.tasks.api import TraitsTaskPane
-
 from traits.api import (
     Bool, Button, Instance, Property, Unicode,
     on_trait_change, cached_property

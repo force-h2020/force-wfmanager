@@ -1,7 +1,8 @@
+import logging
+
 from traits.api import (
     HasStrictTraits, List, Instance, on_trait_change, Property,
     cached_property, Dict, Tuple)
-import logging
 
 from force_bdss.api import Identifier, Workflow
 from force_bdss.local_traits import CUBAType

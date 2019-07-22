@@ -1,11 +1,10 @@
-from traitsui.editors import HTMLEditor
-from traitsui.list_str_adapter import ListStrAdapter
-from traitsui.api import View, UItem, ListStrEditor, HGroup
-
 from traits.api import (
     HasStrictTraits, List, Instance, Unicode,
     on_trait_change
 )
+from traitsui.editors import HTMLEditor
+from traitsui.list_str_adapter import ListStrAdapter
+from traitsui.api import View, UItem, ListStrEditor, HGroup
 
 from force_bdss.api import BaseExtensionPlugin
 

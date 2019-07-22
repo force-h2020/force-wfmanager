@@ -1,7 +1,9 @@
 from traits.api import (
     Instance, Unicode, Bool, Event, HasTraits
 )
+
 from force_bdss.api import BaseNotificationListenerModel
+
 from force_wfmanager.ui.ui_utils import get_factory_name
 
 

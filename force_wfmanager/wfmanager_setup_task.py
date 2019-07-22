@@ -19,6 +19,7 @@ from force_bdss.api import (
     InvalidFileException
 )
 from force_bdss.api import Workflow
+
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.side_pane import SidePane

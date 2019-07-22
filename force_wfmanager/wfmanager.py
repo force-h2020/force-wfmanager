@@ -1,7 +1,6 @@
 import logging
 
 from envisage.ui.tasks.api import TasksApplication, TaskWindow
-
 from pyface.api import (CANCEL, ConfirmationDialog, NO, YES)
 from pyface.tasks.api import TaskWindowLayout
 from pyface.action.api import ActionItem

@@ -1,5 +1,4 @@
 from envisage.plugin import Plugin
-
 from traits.api import (
     Bool, Callable, Dict, Either, HasStrictTraits, Instance, List, ReadOnly,
     Property, Unicode, on_trait_change
