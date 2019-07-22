@@ -19,6 +19,7 @@ from force_bdss.api import (
     InvalidFileException
 )
 from force_bdss.api import Workflow
+
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.side_pane import SidePane
@@ -97,7 +98,10 @@ class WfManagerSetupTask(Task):
     #: Review Task
     review_task = Instance(Task)
 
-    # Task Defaults and Initialisers
+    # ------------------
+    #      Defaults
+    # ------------------
+
     def _menu_bar_default(self):
         """A menu bar with functions relevant to the Setup task.
         """
@@ -219,22 +223,6 @@ class WfManagerSetupTask(Task):
             left=PaneItem('force_wfmanager.side_pane')
         )
 
-    # Overloaded Methods
-
-    def create_central_pane(self):
-        """ Creates the central pane which contains the layer info part
-        (factory selection and new object configuration editors)
-        """
-        return SetupPane(
-            system_state=self.system_state
-        )
-
-    def create_dock_panes(self):
-        """ Creates the dock panes """
-        return [self.side_pane]
-
-    # Default initializers
-
     def _side_pane_default(self):
         return SidePane(
             workflow_model=self.workflow_model,
@@ -273,84 +261,54 @@ class WfManagerSetupTask(Task):
             on_error_callback=self._server_error_callback
         )
 
-    #: Public Methods
-    # ZMQ Setup
-    def initialized(self):
-        """Overrides method from Task. Starts the ZMQ Server when this Task is
-        initialized
+    # ------------------
+    #     Listeners
+    # ------------------
+
+    # Synchronization with side pane (Tree Pane)
+    @on_trait_change('side_pane.run_enabled')
+    def set_toolbar_run_btn_state(self):
+        """ Sets the run button to be enabled/disabled, matching the
+        value of :attr:`side_pane.run_enabled
+        <.panes.side_pane.TreePane.run_enabled>`
         """
-        self.zmq_server.start()
+        self.run_enabled = self.side_pane.run_enabled
 
-    def prepare_destroy(self):
-        """Overrides method from Task. Stops the ZMQ Server when this Task is
-        about to be destroyed
-        """
-        self.zmq_server.stop()
+    @on_trait_change('workflow_model', post_init=True)
+    def update_side_pane_model(self):
+        """ Updates the local :attr:`workflow_model`, to match
+        :attr:`side_pane.workflow_model
+        <.panes.tree_pane.TreePane.workflow_model>`, which will
+        change as the user modifies a workflow via the UI."""
+        self.side_pane.workflow_model = self.workflow_model
 
-    # Workflow Methods
-    def open_workflow(self):
-        """ Shows a dialog to open a workflow file """
+    @on_trait_change('computation_running')
+    def update_pane_active_status(self):
+        """Disables the saving/loading toolbar buttons and the TreePane UI
+        if a computation is running, and re-enables them when it finishes."""
 
-        dialog = FileDialog(
-            action="open",
-            wildcard='JSON files (*.json)|*.json|'
-        )
-        result = dialog.open()
-        file_path = dialog.path
+        self.side_pane.ui_enabled = not self.computation_running
+        self.save_load_enabled = not self.computation_running
+        self.run_enabled = not self.computation_running
 
-        if result is OK:
-            self.load_workflow(file_path)
+    # Method call from side pane interaction
+    @on_trait_change('side_pane.run_button')
+    def run_button_clicked(self):
+        """ Calls :func:`run_bdss` and runs the BDSS!"""
+        self.run_bdss()
 
-    def load_workflow(self, file_path):
-        """ Loads a workflow from the specified file name
-        Parameters
-        ----------
-        file_path: str
-            The path to the workflow file
-        """
-        try:
-            self.workflow_model = load_workflow_file(
-                self.factory_registry, file_path)
-        except (InvalidFileException, FileNotFoundError) as e:
-            error(
-                None,
-                'Cannot read the requested file:\n\n{}'.format(
-                    str(e)),
-                'Error when reading file'
-            )
-        else:
-            self.current_file = file_path
+    # Synchronization with Window
+    @on_trait_change('window.tasks')
+    def sync_review_task(self):
+        if self.window is not None:
+            for task in self.window.tasks:
+                if task.name == "Review":
+                    self.review_task = task
+                    self.review_task.run_enabled = self.run_enabled
 
-    def save_workflow(self):
-        """ Saves the workflow into the currently used file. If there is no
-        current file, it shows a dialog """
-        if len(self.current_file) == 0:
-            return self.save_workflow_as()
-
-        if not self._write_workflow(self.current_file):
-            self.current_file = ''
-            return False
-        return True
-
-    def save_workflow_as(self):
-        """ Shows a dialog to save the workflow into a JSON file """
-        dialog = FileDialog(
-            action="save as",
-            default_filename="workflow.json",
-            wildcard='JSON files (*.json)|*.json|'
-        )
-
-        result = dialog.open()
-
-        if result is not OK:
-            return
-
-        current_file = dialog.path
-
-        if self._write_workflow(current_file):
-            self.current_file = current_file
-            return True
-        return False
+    # ------------------
+    #   Private Methods
+    # ------------------
 
     def _write_workflow(self, file_path):
         """ Creates a JSON file in the file_path and write the workflow
@@ -397,69 +355,6 @@ class WfManagerSetupTask(Task):
             return False
         else:
             return True
-
-    def open_about(self):
-        """Opens an information dialog"""
-        information(
-            None,
-            textwrap.dedent(
-                """
-                Workflow Manager: a UI application for Business Decision System.
-
-                Developed as part of the FORCE project (Horizon 2020/NMBP-23-2016/721027).
-
-                This software is released under the BSD license.
-                """,  # noqa
-            ),
-            "About WorkflowManager"
-        )
-
-    # BDSS Interaction
-    def run_bdss(self):
-        """ Run the BDSS computation """
-
-        # Confirm we want to run a calculation
-        if len(self.analysis_model.evaluation_steps) != 0:
-            result = confirm(
-                None,
-                "Are you sure you want to run the computation and "
-                "empty the result table?")
-            if result is not YES:
-                return
-
-        # Flag that a computation is running
-        self.computation_running = True
-        # Run any plugin injected ui hooks before execution
-        # For example, the UI Notification Hooks Manager sets up sockets
-        # to communicate with the server before executing a workflow
-        try:
-            for hook_manager in self.ui_hooks_managers:
-                try:
-                    hook_manager.before_execution(self)
-                except Exception:
-                    log.exception(
-                        "Failed before_execution hook "
-                        "for hook manager {}".format(
-                            hook_manager.__class__.__name__)
-                    )
-
-            # Creates a temporary file containing the workflow
-            tmpfile_path = tempfile.mktemp()
-            write_workflow_file(self.workflow_model, tmpfile_path)
-
-            # Clear the analysis model before attempting to run
-            self.analysis_model.clear()
-
-            # Execute the bdss on a different thread
-            future = self.executor.submit(self._execute_bdss, tmpfile_path)
-            future.add_done_callback(self._execution_done_callback)
-        except Exception as e:
-            logging.exception("Unable to run BDSS.")
-            error(None,
-                  "Unable to run BDSS: {}".format(e),
-                  'Error when running BDSS'
-                  )
-            self.computation_running = False
 
     def _execute_bdss(self, workflow_path):
         """Secondary thread executor routine.
@@ -544,28 +439,6 @@ class WfManagerSetupTask(Task):
                 'Error when running BDSS'
             )
 
-    # Plugin Status
-    def lookup_plugins(self):
-
-        plugins = [plugin
-                   for plugin in self.window.application.plugin_manager
-                   if isinstance(plugin, BaseExtensionPlugin)]
-
-        # Plugins guaranteed to have an id, so sort by that if name is not set
-        plugins.sort(key=lambda s: s.name
-                     if s.name not in ('', None) else s.id)
-
-        return plugins
-
-    def open_plugins(self):
-        """Opens a dialogue window displaying information about the currently
-        loaded plugins
-        """
-        plugins = self.lookup_plugins()
-
-        dlg = PluginDialog(plugins)
-        dlg.edit_traits()
-
     # Handling of BDSS events via ZMQ server
     def _server_event_callback(self, event):
         """Callback that is called by the server thread
@@ -606,47 +479,184 @@ class WfManagerSetupTask(Task):
         """Shows an error dialog to the user with a given message"""
         error(None, message, "Server error")
 
-    #: Listeners
-    # Synchronization with side pane (Tree Pane)
-    @on_trait_change('side_pane.run_enabled')
-    def set_toolbar_run_btn_state(self):
-        """ Sets the run button to be enabled/disabled, matching the
-        value of :attr:`side_pane.run_enabled
-        <.panes.side_pane.TreePane.run_enabled>`
+    # ------------------
+    #   Public Methods
+    # ------------------
+
+    def create_central_pane(self):
+        """ Creates the central pane which contains the layer info part
+        (factory selection and new object configuration editors)
         """
-        self.run_enabled = self.side_pane.run_enabled
+        return SetupPane(
+            system_state=self.system_state
+        )
 
-    @on_trait_change('workflow_model', post_init=True)
-    def update_side_pane_model(self):
-        """ Updates the local :attr:`workflow_model`, to match
-        :attr:`side_pane.workflow_model
-        <.panes.tree_pane.TreePane.workflow_model>`, which will
-        change as the user modifies a workflow via the UI."""
-        self.side_pane.workflow_model = self.workflow_model
+    def create_dock_panes(self):
+        """ Creates the dock panes """
+        return [self.side_pane]
 
-    @on_trait_change('computation_running')
-    def update_pane_active_status(self):
-        """Disables the saving/loading toolbar buttons and the TreePane UI
-        if a computation is running, and re-enables them when it finishes."""
+    # ZMQ Setup
+    def initialized(self):
+        """Overrides method from Task. Starts the ZMQ Server when this Task is
+        initialized
+        """
+        self.zmq_server.start()
 
-        self.side_pane.ui_enabled = not self.computation_running
-        self.save_load_enabled = not self.computation_running
-        self.run_enabled = not self.computation_running
+    def prepare_destroy(self):
+        """Overrides method from Task. Stops the ZMQ Server when this Task is
+        about to be destroyed
+        """
+        self.zmq_server.stop()
 
-    # Method call from side pane interaction
-    @on_trait_change('side_pane.run_button')
-    def run_button_clicked(self):
-        """ Calls :func:`run_bdss` and runs the BDSS!"""
-        self.run_bdss()
+    # Workflow Methods
+    def open_workflow(self):
+        """ Shows a dialog to open a workflow file """
 
-    # Synchronization with Window
-    @on_trait_change('window.tasks')
-    def sync_review_task(self):
-        if self.window is not None:
-            for task in self.window.tasks:
-                if task.name == "Review":
-                    self.review_task = task
-                    self.review_task.run_enabled = self.run_enabled
+        dialog = FileDialog(
+            action="open",
+            wildcard='JSON files (*.json)|*.json|'
+        )
+        result = dialog.open()
+        file_path = dialog.path
+
+        if result is OK:
+            self.load_workflow(file_path)
+
+    def load_workflow(self, file_path):
+        """ Loads a workflow from the specified file name
+        Parameters
+        ----------
+        file_path: str
+            The path to the workflow file
+        """
+        try:
+            self.workflow_model = load_workflow_file(
+                self.factory_registry, file_path)
+        except (InvalidFileException, FileNotFoundError) as e:
+            error(
+                None,
+                'Cannot read the requested file:\n\n{}'.format(
+                    str(e)),
+                'Error when reading file'
+            )
+        else:
+            self.current_file = file_path
+
+    def save_workflow(self):
+        """ Saves the workflow into the currently used file. If there is no
+        current file, it shows a dialog """
+        if len(self.current_file) == 0:
+            return self.save_workflow_as()
+
+        if not self._write_workflow(self.current_file):
+            self.current_file = ''
+            return False
+        return True
+
+    def save_workflow_as(self):
+        """ Shows a dialog to save the workflow into a JSON file """
+        dialog = FileDialog(
+            action="save as",
+            default_filename="workflow.json",
+            wildcard='JSON files (*.json)|*.json|'
+        )
+
+        result = dialog.open()
+
+        if result is not OK:
+            return
+
+        current_file = dialog.path
+
+        if self._write_workflow(current_file):
+            self.current_file = current_file
+            return True
+        return False
+
+    def open_about(self):
+        """Opens an information dialog"""
+        information(
+            None,
+            textwrap.dedent(
+                """
+                Workflow Manager: a UI application for Business Decision System.
+
+                Developed as part of the FORCE project (Horizon 2020/NMBP-23-2016/721027).
+
+                This software is released under the BSD license.
+                """,  # noqa
+            ),
+            "About WorkflowManager"
+        )
+
+    # BDSS Interaction
+    def run_bdss(self):
+        """ Run the BDSS computation """
+
+        # Confirm we want to run a calculation
+        if len(self.analysis_model.evaluation_steps) != 0:
+            result = confirm(
+                None,
+                "Are you sure you want to run the computation and "
+                "empty the result table?")
+            if result is not YES:
+                return
+
+        # Flag that a computation is running
+        self.computation_running = True
+        # Run any plugin injected ui hooks before execution
+        # For example, the UI Notification Hooks Manager sets up sockets
+        # to communicate with the server before executing a workflow
+        try:
+            for hook_manager in self.ui_hooks_managers:
+                try:
+                    hook_manager.before_execution(self)
+                except Exception:
+                    log.exception(
+                        "Failed before_execution hook "
+                        "for hook manager {}".format(
+                            hook_manager.__class__.__name__)
+                    )
+
+            # Creates a temporary file containing the workflow
+            tmpfile_path = tempfile.mktemp()
+            write_workflow_file(self.workflow_model, tmpfile_path)
+
+            # Clear the analysis model before attempting to run
+            self.analysis_model.clear()
+
+            # Execute the bdss on a different thread
+            future = self.executor.submit(self._execute_bdss, tmpfile_path)
+            future.add_done_callback(self._execution_done_callback)
+        except Exception as e:
+            logging.exception("Unable to run BDSS.")
+            error(None,
+                  "Unable to run BDSS: {}".format(e),
+                  'Error when running BDSS'
+                  )
+            self.computation_running = False
+
+    # Plugin Status
+    def lookup_plugins(self):
+
+        plugins = [plugin
+                   for plugin in self.window.application.plugin_manager
+                   if isinstance(plugin, BaseExtensionPlugin)]
+
+        # Plugins guaranteed to have an id, so sort by that if name is not set
+        plugins.sort(key=lambda s: s.name
+                     if s.name not in ('', None) else s.id)
+
+        return plugins
+
+    def open_plugins(self):
+        """Opens a dialogue window displaying information about the currently
+        loaded plugins
+        """
+        plugins = self.lookup_plugins()
+
+        dlg = PluginDialog(plugins)
+        dlg.edit_traits()
 
     # Menu/Toolbar Methods
     def switch_task(self):

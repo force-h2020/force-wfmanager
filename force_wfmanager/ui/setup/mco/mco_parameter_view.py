@@ -8,8 +8,8 @@ from traitsui.api import (
 
 from force_bdss.api import BaseMCOParameter, BaseMCOModel
 
-from force_wfmanager.ui.ui_utils import get_factory_name
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
+from force_wfmanager.ui.ui_utils import get_factory_name
 
 
 class MCOParameterModelView(ModelView):
@@ -21,9 +21,9 @@ class MCOParameterModelView(ModelView):
     #: MCO parameter model
     model = Instance(BaseMCOParameter)
 
-    # ------------------
+    # --------------------
     # Dependent Attributes
-    # ------------------
+    # --------------------
 
     #: Defines if the MCO parameter is valid or not. Updated by
     #: :func:`verify_tree
@@ -39,16 +39,16 @@ class MCOParameterModelView(ModelView):
     #: Listens to: :attr:`model.name <model>` and :attr:`model.type <model>`
     verify_workflow_event = Event
 
-    # ----------
-    # Properties
-    # ----------
+    # -----------------
+    #     Properties
+    # -----------------
 
     #: The human readable name of the MCO parameter class
     label = Property(Unicode(), depends_on="model.[name,type]")
 
-    # ----------
-    #    View
-    # ----------
+    # ---------------
+    #      View
+    # ----------------
 
     def default_traits_view(self):
         """Default view containing both traits from the base class and
@@ -61,12 +61,18 @@ class MCOParameterModelView(ModelView):
                          style='custom')
                     )
 
-    #: Defaults
+    # -------------------
+    #      Defaults
+    # -------------------
+
     def _label_default(self):
         """Return a default label corresponding to the MCO parameter factory"""
         return get_factory_name(self.model.factory)
 
-    #: Property getters
+    # -------------------
+    #     Listeners
+    # -------------------
+
     @cached_property
     def _get_label(self):
         """Return a label appending both the parameter name and type to the
@@ -77,7 +83,6 @@ class MCOParameterModelView(ModelView):
             type=self.model.type, name=self.model.name
         )
 
-    #: Listeners
     # Workflow Validation
     @on_trait_change('model.[name,type]')
     def parameter_change(self):
@@ -126,9 +131,9 @@ class MCOParameterView(HasTraits):
     #: <MCOParameterModelView>`
     verify_workflow_event = Event()
 
-    # ----------
-    # Properties
-    # ----------
+    # -----------------
+    #     Properties
+    # -----------------
 
     #: The human readable name of the MCOParameterView class
     label = Unicode('MCO Parameters')
@@ -196,7 +201,10 @@ class MCOParameterView(HasTraits):
 
         return traits_view
 
-    #: Defaults
+    # -------------------
+    #      Defaults
+    # -------------------
+
     def _parameter_entity_creator_default(self):
         """Returns an entity creator containing parameter types
         from all installed plugins"""
@@ -234,7 +242,10 @@ class MCOParameterView(HasTraits):
         if len(self.parameter_model_views) > 0:
             return self.parameter_model_views[0]
 
-    #: Listeners
+    # -------------------
+    #     Listeners
+    # -------------------
+
     @on_trait_change('model')
     def update_parameter_entity_creator(self):
         """ Update the entity creator based on the MCO factory """
@@ -258,7 +269,6 @@ class MCOParameterView(HasTraits):
         """Pass on request for verify_workflow_event"""
         self.verify_workflow_event = True
 
-    #: Button actions
     def _add_parameter_button_fired(self):
         """Call add_parameter to create a new empty parameter using
         the parameter_entity_creator"""
@@ -280,7 +290,10 @@ class MCOParameterView(HasTraits):
             else:
                 self.selected_parameter = self.parameter_model_views[index-1]
 
-    #: Private Methods
+    # -------------------
+    #   Private Methods
+    # -------------------
+
     def _dclick_add_parameter(self, ui_info):
         """Called when a parameter factory is double clicked in the entity
         creator. The ui_info object is automatically passed by the
@@ -288,7 +301,10 @@ class MCOParameterView(HasTraits):
         """
         self._add_parameter_button_fired()
 
-    #: Public Methods
+    # -------------------
+    #    Public Methods
+    # -------------------
+
     def add_parameter(self, parameter):
         """Adds a parameter to the MCO model associated with this view.
 

@@ -2,6 +2,8 @@ import unittest
 
 from traits.api import Int
 
+from force_bdss.api import BaseDataSourceModel
+from force_bdss.tests.dummy_classes.data_source import DummyDataSourceModel
 from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeMCOModel
 from force_bdss.tests.probe_classes.data_source import (
     ProbeDataSourceFactory, ProbeDataSourceModel
@@ -9,14 +11,13 @@ from force_bdss.tests.probe_classes.data_source import (
 from force_bdss.tests.probe_classes.probe_extension_plugin import (
     ProbeExtensionPlugin
 )
-from force_bdss.tests.dummy_classes.data_source import DummyDataSourceModel
-from force_bdss.api import BaseDataSourceModel
+
+from force_wfmanager.tests.dummy_classes import DummyModelInfo
 from force_wfmanager.ui.setup.new_entity_creator import (
      NewEntityCreator
 )
 from force_wfmanager.ui.setup.workflow_tree import WorkflowView
 from force_wfmanager.ui.ui_utils import model_info
-from force_wfmanager.tests.dummy_classes import DummyModelInfo
 
 
 class DataSourceModelDescription(BaseDataSourceModel):

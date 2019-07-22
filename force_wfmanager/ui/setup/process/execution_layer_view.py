@@ -2,12 +2,13 @@ from traits.api import (
     Instance, Unicode, Bool, on_trait_change, List, Int,
     Event, HasTraits
     )
+
 from force_bdss.api import ExecutionLayer
 
-from .data_source_view import \
-    DataSourceView
 from force_wfmanager.utils.variable_names_registry import \
     VariableNamesRegistry
+from .data_source_view import \
+    DataSourceView
 
 
 class ExecutionLayerView(HasTraits):
@@ -62,7 +63,10 @@ class ExecutionLayerView(HasTraits):
         # variable_names_registry has been assigned first
         self.model = model
 
-    #: Listeners
+    # -------------------
+    #     Listeners
+    # -------------------
+
     # Synchronizing UI and model
     @on_trait_change("model.data_sources[]")
     def update_data_source_views(self):
@@ -83,7 +87,10 @@ class ExecutionLayerView(HasTraits):
         """
         self.verify_workflow_event = True
 
-    #: Public methods
+    # -------------------
+    #   Public Methods
+    # -------------------
+
     # Data Source Actions
     def add_data_source(self, data_source):
         """Adds the passed data source model to this execution layer model's

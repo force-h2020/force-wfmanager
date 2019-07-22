@@ -1,7 +1,7 @@
-from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 from force_wfmanager.ui.setup.process.execution_layer_view import (
     ExecutionLayerView
 )
+from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 
 
 class TestExecutionLayerView(BaseTest):

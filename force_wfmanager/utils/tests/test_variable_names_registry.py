@@ -1,13 +1,13 @@
 import unittest
 
 from force_bdss.api import OutputSlotInfo, ExecutionLayer
-from force_bdss.tests.probe_classes.mco import (
-    ProbeParameterFactory, ProbeMCOFactory
-)
+from force_bdss.core.workflow import Workflow
 from force_bdss.tests.probe_classes.data_source import (
     ProbeDataSourceFactory
 )
-from force_bdss.core.workflow import Workflow
+from force_bdss.tests.probe_classes.mco import (
+    ProbeParameterFactory, ProbeMCOFactory
+)
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 

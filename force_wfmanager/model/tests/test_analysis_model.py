@@ -1,12 +1,11 @@
-import unittest
-from unittest import mock
+from unittest import mock, TestCase
 
 from traits.trait_errors import TraitError
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 
 
-class TestAnalysisModel(unittest.TestCase):
+class TestAnalysisModel(TestCase):
     def setUp(self):
         self.analysis = AnalysisModel()
 

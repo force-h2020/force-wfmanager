@@ -12,13 +12,12 @@ from force_bdss.api import (
     ExecutionLayer, IFactoryRegistry, InputSlotInfo,
     OutputSlotInfo, Workflow, verify_workflow, KPISpecification
 )
-from force_wfmanager.ui.setup.process.data_source_view \
-    import DataSourceView
-from force_wfmanager.ui.setup.process.execution_layer_view \
-    import ExecutionLayerView
-from force_wfmanager.ui.setup.process.process_view import (
-    ProcessView
+
+from force_wfmanager.ui.setup.communicator.communicator_view import (
+    CommunicatorView
 )
+from force_wfmanager.ui.setup.communicator. \
+    notification_listener_view import NotificationListenerView
 from force_wfmanager.ui.setup.mco.kpi_specification_view import (
     KPISpecificationView
 )
@@ -28,15 +27,13 @@ from force_wfmanager.ui.setup.mco.mco_parameter_view import (
     MCOParameterView
 )
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
-from force_wfmanager.ui.setup.communicator. \
-    notification_listener_view import NotificationListenerView
-from force_wfmanager.ui.setup.workflow_view import (
-    WorkflowView
-)
-from force_wfmanager.ui.setup.communicator.communicator_view import (
-    CommunicatorView
-)
+from force_wfmanager.ui.setup.process.data_source_view \
+    import DataSourceView
+from force_wfmanager.ui.setup.process.execution_layer_view \
+    import ExecutionLayerView
+from force_wfmanager.ui.setup.process.process_view import ProcessView
 from force_wfmanager.ui.setup.system_state import SystemState
+from force_wfmanager.ui.setup.workflow_view import WorkflowView
 
 
 # VerifierError severity constants
@@ -194,15 +191,19 @@ class WorkflowTree(ModelView):
     #: Listens to: :func:`~workflow_view.verify_workflow_event`
     verify_workflow_event = Event
 
-    # ----------
-    # Properties
-    # ----------
+    # ------------------
+    #     Properties
+    # ------------------
 
     #: The error message currently displayed in the UI.
     selected_error = Property(
         Unicode(),
         depends_on="system_state.selected_view.[error_message,label]"
     )
+
+    # -------------------
+    #        View
+    # -------------------
 
     def default_traits_view(self):
         """The layout of the View for the WorkflowTree"""
@@ -365,12 +366,18 @@ class WorkflowTree(ModelView):
 
         return view
 
-    #: Defaults
+    # -------------------
+    #      Defaults
+    # -------------------
+
     def _workflow_view_default(self):
         """A default WorkflowModelView"""
         return WorkflowView(model=self.model)
 
-    #: Property getters
+    # -------------------
+    #     Listeners
+    # -------------------
+
     def _get_selected_error(self):
         """Returns the error messages for the currently selected modelview"""
         if self.system_state.selected_view is None:
@@ -389,7 +396,6 @@ class WorkflowTree(ModelView):
             return ERROR_TEMPLATE.format(
                 "Errors for {}:".format(mv_label), body_strings)
 
-    #: Listeners
     @on_trait_change('model')
     def update_model_view(self):
         """Update the workflow modelview's model and verify, on either loading
@@ -414,6 +420,10 @@ class WorkflowTree(ModelView):
         # Communicate the verification errors to each level of the
         # workflow tree
         self.verify_tree(errors)
+
+    # -------------------
+    #    Public Methods
+    # -------------------
 
     # Item Selection Actions - create an appropriate NewEntityModal,
     # set add_new_entity to be for the right object type and provide a way to
