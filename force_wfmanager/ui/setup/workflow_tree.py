@@ -10,7 +10,8 @@ from traitsui.api import (
 
 from force_bdss.api import (
     ExecutionLayer, IFactoryRegistry, InputSlotInfo,
-    OutputSlotInfo, Workflow, verify_workflow, KPISpecification
+    OutputSlotInfo, Workflow, verify_workflow, KPISpecification,
+    BaseMCOParameter
 )
 from force_wfmanager.ui.setup.process.data_source_view \
     import DataSourceView
@@ -744,10 +745,13 @@ class WorkflowTree(ModelView):
                         send_to_parent.append(verifier_error.global_error)
                         start_view.valid = False
 
-            # Pass on KPISpecification validity to KPISpecificationView, as
-            # this does not have an associated BDSS model to call verify
+            # Pass on KPISpecification validity to KPISpecificationView,
+            # and BaseMCOParameter to MCOParameterView as
+            # they do not have an associated BDSS model to call verify
             if err_subject_type in [KPISpecification]:
                 self.workflow_view.mco_view[0].kpi_view.valid = False
+            if err_subject_type in [BaseMCOParameter]:
+                self.workflow_view.mco_view[0].parameter_view.valid = False
 
         # Display message so that errors relevant to this ModelView come first
         start_view.error_message = '\n'.join(reversed(message_list))
