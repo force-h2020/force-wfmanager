@@ -70,6 +70,13 @@ class NewEntityCreator(HasStrictTraits):
     #: A message to be displayed if there are no config options
     _no_config_options_msg = ReadOnly(Unicode)
 
+    #: Option for the user to manually control the visibility of the
+    #: configuration option display
+    config_visible = Bool(True)
+
+    # Factory name to be displayed in view_header
+    factory_name = Unicode()
+
     # --------------------
     # Dependent Attributes
     # --------------------
@@ -93,6 +100,9 @@ class NewEntityCreator(HasStrictTraits):
     # ----------
     # Properties
     # ----------
+
+    #: HTML header containing the factory name
+    view_header = Property(Instance(Unicode), depends_on='factory_name')
 
     #: HTML containing a model description, obtained from the model's
     #: get_name and get_description methods.
@@ -132,40 +142,53 @@ class NewEntityCreator(HasStrictTraits):
         )
 
         view = View(
-            HSplit(
-                VGroup(
-                    UItem("plugins_root", editor=editor),
-                ),
-                VGroup(
+                HSplit(
                     VGroup(
-                        UItem(
-                            "model", style="custom", editor=InstanceEditor(),
-                            visible_when="_current_model_editable is True"
-                              ),
-                        UItem(
-                            "_no_config_options_msg", style="readonly",
-                            editor=HTMLEditor(),
-                            visible_when="_current_model_editable is False"
+                        VGroup(
+                            UItem("plugins_root",
+                                  editor=editor
+                                  ),
+                            style="custom",
+                            label=self.view_header,
+                            show_border=True,
+                            springy=True,
+                        )
+                    ),
+                    VGroup(
+                        VGroup(
+                            UItem(
+                                "model",
+                                style="custom",
+                                editor=InstanceEditor(),
+                                visible_when="_current_model_editable"
+                                  ),
+                            UItem(
+                                "_no_config_options_msg", style="readonly",
+                                editor=HTMLEditor(),
+                                visible_when="not _current_model_editable"
+                            ),
+                            visible_when="model is not None "
+                                         "and config_visible",
+                            style="custom",
+                            label="Configuration Options",
+                            show_border=True,
+                            springy=True,
                         ),
-                        visible_when="model is not None",
-                        style="custom",
-                        label="Configuration Options",
-                        show_border=True,
-                        springy=True,
+                        VGroup(
+                            UItem("model_description_HTML",
+                                  editor=HTMLEditor()),
+                            style="readonly",
+                            label="Description",
+                            show_border=True,
+                            springy=True,
+                        ),
                     ),
-                    VGroup(
-                        UItem("model_description_HTML", editor=HTMLEditor()),
-                        style="readonly",
-                        label="Description",
-                        show_border=True,
-                        springy=True,
-                    ),
-                )
-            ),
-            title="Add New Element",
-            width=500,
-            resizable=True,
-            kind="livemodal"
+                    springy=True,
+                ),
+                title="Add New Element",
+                width=500,
+                resizable=True,
+                kind="livemodal"
         )
 
         return view
@@ -201,6 +224,12 @@ class NewEntityCreator(HasStrictTraits):
         """
         return htmlformat(body="<p>No configuration options "
                           "available for this selection</p>")
+
+    def _get_view_header(self):
+        """Return a header to the view clearly showing the factory name"""
+        if self.factory_name == '':
+            return "Available Factories"
+        return f"Available {self.factory_name} Factories"
 
     @on_trait_change("selected_factory")
     def update_current_model(self):
