@@ -1,9 +1,10 @@
 import unittest
+
 from traits.testing.unittest_tools import UnittestTools
 
+from force_bdss.tests.probe_classes.mco import ProbeParameterFactory
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
-from force_bdss.tests.probe_classes.mco import ProbeParameterFactory
 
 from force_wfmanager.ui.setup.mco.mco_parameter_view import \
     MCOParameterModelView, MCOParameterView

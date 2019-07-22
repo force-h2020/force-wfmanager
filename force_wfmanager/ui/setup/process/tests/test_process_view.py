@@ -1,7 +1,7 @@
-from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 from force_wfmanager.ui.setup.process.process_view import (
     ProcessView
 )
+from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 
 
 class TestProcessView(BaseTest):

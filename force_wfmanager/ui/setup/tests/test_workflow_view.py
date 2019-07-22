@@ -3,9 +3,10 @@ from traits.testing.unittest_tools import UnittestTools
 from force_bdss.api import (
     KPISpecification, OutputSlotInfo, ExecutionLayer
 )
+
+from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 from force_wfmanager.ui.setup.workflow_view import \
     WorkflowView
-from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 
 
 class TestWorkflowView(BaseTest, UnittestTools):

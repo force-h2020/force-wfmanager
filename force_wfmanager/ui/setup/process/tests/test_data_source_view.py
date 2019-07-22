@@ -1,6 +1,7 @@
 from traits.api import TraitError
 
 from force_bdss.api import (OutputSlotInfo, InputSlotInfo, BaseDataSourceModel)
+
 from force_wfmanager.ui.setup.process.data_source_view import \
     DataSourceView
 from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
