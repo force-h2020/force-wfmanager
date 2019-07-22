@@ -48,6 +48,10 @@ class PluginDialog(HasStrictTraits):
     def __init__(self, plugins):
         super(PluginDialog, self).__init__(plugins=plugins)
 
+    # --------------------
+    #        View
+    # --------------------
+
     def default_traits_view(self):
         return View(
             HGroup(
@@ -65,6 +69,17 @@ class PluginDialog(HasStrictTraits):
                 show_border=True
             )
         )
+
+    # --------------------
+    #      Defaults
+    # --------------------
+
+    def _selected_plugin_HTML_default(self):
+        return htmlformat("No plugin selected")
+
+    # --------------------
+    #      Listeners
+    # --------------------
 
     @on_trait_change('selected_plugin')
     def _sync_error(self):
@@ -87,9 +102,6 @@ class PluginDialog(HasStrictTraits):
             version=plugin.version,
             description=plugin.description
         )
-
-    def _selected_plugin_HTML_default(self):
-        return htmlformat("No plugin selected")
 
 
 def htmlformat(title, version=None, description=None, error_msg=None,
