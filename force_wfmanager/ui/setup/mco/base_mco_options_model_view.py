@@ -47,8 +47,7 @@ class BaseMCOOptionsModelView(ModelView):
     # ------------------
 
     #: Human readable label for ModelView
-    label = Property(Instance(Unicode),
-                     depends_on='model:[name,objective]')
+    label = Instance(Property)
 
     #: Property getters
     def _get_label(self):
@@ -58,9 +57,10 @@ class BaseMCOOptionsModelView(ModelView):
                 self.__class__))
 
     #: Listeners
-    @on_trait_change('model.[name,objective]')
+    # Assign an on_trait_change decorator to specify traits to listen to
+    # in child class implementation
     def model_change(self):
-        """Raise verfiy workflow event upon change in model"""
+        """Raise verify workflow event upon change in model"""
         self.verify_workflow_event = True
 
     @on_trait_change('model.name,_combobox_values')

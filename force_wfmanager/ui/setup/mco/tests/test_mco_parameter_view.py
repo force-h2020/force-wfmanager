@@ -36,6 +36,8 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
             self.parameter_view.model_views[0]
         )
 
+        self.parameter_view.configure_traits()
+
     def test_parameter_entity_creator(self):
 
         mco_model = self.parameter_view.model

@@ -1,3 +1,6 @@
+from traits.api import (
+    Property, Instance, Unicode, on_trait_change
+)
 from traitsui.api import (
     Item, View, EnumEditor
 )
@@ -8,9 +11,16 @@ from force_wfmanager.ui.setup.mco.base_mco_options_model_view import \
 
 class KPISpecificationModelView(BaseMCOOptionsModelView):
 
-    # ------------------
+    # -------------
+    #  Properties
+    # -------------
+
+    label = Property(Instance(Unicode),
+                     depends_on='model.[name,objective]')
+
+    # -----------
     #     View
-    # ------------------
+    # ----------
 
     # The traits_view only displays possible options for
     # model.name listed in kpi_names. However, it is possible
@@ -31,3 +41,8 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
         if self.model.name == '':
             return "KPI"
         return "KPI: {} ({})".format(self.model.name, self.model.objective)
+
+    #: Listeners
+    @on_trait_change('model.[name,objective]')
+    def parameter_model_change(self):
+        self.model_change()

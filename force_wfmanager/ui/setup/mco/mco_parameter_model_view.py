@@ -1,4 +1,6 @@
-from traits.api import cached_property
+from traits.api import (
+    cached_property, Property, Instance, Unicode, on_trait_change
+)
 from traitsui.api import (
     View, Item, InstanceEditor,
     EnumEditor
@@ -11,6 +13,13 @@ from force_wfmanager.ui.ui_utils import get_factory_name
 
 
 class MCOParameterModelView(BaseMCOOptionsModelView):
+
+    # -------------
+    #  Properties
+    # -------------
+
+    label = Property(Instance(Unicode),
+                     depends_on='model.factory')
 
     # ----------
     #    View
@@ -43,3 +52,8 @@ class MCOParameterModelView(BaseMCOOptionsModelView):
         return self._label_default()+': {type} {name}'.format(
             type=self.model.type, name=self.model.name
         )
+
+    #: Listeners
+    @on_trait_change('model.[name,type]')
+    def parameter_model_change(self):
+        self.model_change()
