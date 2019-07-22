@@ -61,9 +61,9 @@ class VariableNamesRegistry(HasStrictTraits):
     #: `workflow.mco.parameters.type`
     available_variables_stack = List(exec_layer_output)
 
-    # ----------
-    # Properties
-    # ----------
+    # -------------
+    #   Properties
+    # -------------
 
     #: A list of type lookup dictionaries, with one dictionary for each
     #: execution layer
@@ -89,6 +89,47 @@ class VariableNamesRegistry(HasStrictTraits):
     def __init__(self, workflow, *args, **kwargs):
         super(VariableNamesRegistry, self).__init__(*args, **kwargs)
         self.workflow = workflow
+
+    # ---------------
+    #    Listeners
+    # ---------------
+
+    @cached_property
+    def _get_available_variables(self):
+        stack = self.available_variables_stack
+        res = []
+        for idx in range(len(stack)):
+            cumsum = []
+            for output_info in stack[0:idx + 1]:
+                cumsum.extend([output[0] for output in output_info])
+            res.append(cumsum)
+        return res
+
+    @cached_property
+    def _get_data_source_outputs(self):
+        stack = self.available_variables_stack
+        res = []
+
+        for output_info in stack[1:]:
+            res.extend([output[0] for output in output_info])
+        return res
+
+    @cached_property
+    def _get_available_variables_by_type(self):
+        stack = self.available_variables_stack
+        res = []
+        res_dict = {}
+
+        for idx in range(len(stack)):
+            for output_info in stack[idx]:
+                var_name = output_info[0]
+                var_type = output_info[1]
+                if var_type in res_dict:
+                    res_dict[var_type].append(var_name)
+                else:
+                    res_dict[var_type] = [var_name]
+            res.append(res_dict)
+        return res
 
     @on_trait_change(
         'workflow.mco.parameters.[name,type],'
@@ -140,40 +181,3 @@ class VariableNamesRegistry(HasStrictTraits):
             stack.append(stack_entry_for_layer)
 
         self.available_variables_stack = stack
-
-    @cached_property
-    def _get_available_variables(self):
-        stack = self.available_variables_stack
-        res = []
-        for idx in range(len(stack)):
-            cumsum = []
-            for output_info in stack[0:idx + 1]:
-                cumsum.extend([output[0] for output in output_info])
-            res.append(cumsum)
-        return res
-
-    @cached_property
-    def _get_data_source_outputs(self):
-        stack = self.available_variables_stack
-        res = []
-
-        for output_info in stack[1:]:
-            res.extend([output[0] for output in output_info])
-        return res
-
-    @cached_property
-    def _get_available_variables_by_type(self):
-        stack = self.available_variables_stack
-        res = []
-        res_dict = {}
-
-        for idx in range(len(stack)):
-            for output_info in stack[idx]:
-                var_name = output_info[0]
-                var_type = output_info[1]
-                if var_type in res_dict:
-                    res_dict[var_type].append(var_name)
-                else:
-                    res_dict[var_type] = [var_name]
-            res.append(res_dict)
-        return res
