@@ -68,7 +68,10 @@ class WorkflowView(HasTraits):
     #: A label for the Workflow
     label = Unicode("Workflow")
 
-    # Defaults
+    # -------------------
+    #     Defaults
+    # -------------------
+
     def _model_default(self):
         return Workflow()
 
@@ -93,7 +96,10 @@ class WorkflowView(HasTraits):
             model=self.model,
             variable_names_registry=self.variable_names_registry)]
 
-    #: Listeners
+    # -------------------
+    #     Listeners
+    # -------------------
+
     @on_trait_change('model')
     def update_process_view(self):
         self.process_view = self._process_view_default()
@@ -112,7 +118,10 @@ class WorkflowView(HasTraits):
     def received_verify_request(self):
         self.verify_workflow_event = True
 
-    #: Public methods
+    # -------------------
+    #   Public Methods
+    # -------------------
+
     def set_mco(self, mco_model):
         """Set the MCO"""
         self.model.mco = mco_model

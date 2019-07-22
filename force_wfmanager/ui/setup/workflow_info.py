@@ -51,9 +51,9 @@ class WorkflowInfo(HasTraits):
     #: A list of plugin names
     plugin_names = List(Unicode)
 
-    # ----
-    # View
-    # ----
+    # -----------
+    #    View
+    # -----------
 
     traits_view = View(
         VGroup(
@@ -87,6 +87,10 @@ class WorkflowInfo(HasTraits):
 
         )
     )
+
+    # -------------------
+    #      Defaults
+    # -------------------
 
     def _plugin_names_default(self):
         return [plugin.name for plugin in self.plugins]

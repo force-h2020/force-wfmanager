@@ -62,7 +62,10 @@ class ExecutionLayerView(HasTraits):
         # variable_names_registry has been assigned first
         self.model = model
 
-    #: Listeners
+    # -------------------
+    #     Listeners
+    # -------------------
+
     # Synchronizing UI and model
     @on_trait_change("model.data_sources[]")
     def update_data_source_views(self):
@@ -83,7 +86,10 @@ class ExecutionLayerView(HasTraits):
         """
         self.verify_workflow_event = True
 
-    #: Public methods
+    # -------------------
+    #   Public Methods
+    # -------------------
+
     # Data Source Actions
     def add_data_source(self, data_source):
         """Adds the passed data source model to this execution layer model's

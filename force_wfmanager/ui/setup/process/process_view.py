@@ -60,7 +60,10 @@ class ProcessView(HasTraits):
         # variable_names_registry has been assigned first
         self.model = model
 
-    #: Listeners
+    # -------------------
+    #     Listeners
+    # -------------------
+
     @on_trait_change('model.execution_layers[]')
     def update_execution_layers_views(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
@@ -82,7 +85,9 @@ class ProcessView(HasTraits):
         """
         self.verify_workflow_event = True
 
-    #: Public methods
+    # -------------------
+    #   Public Methods
+    # -------------------
     def add_execution_layer(self, execution_layer):
         """Adds a new empty execution layer"""
         self.model.execution_layers.append(execution_layer)

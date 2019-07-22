@@ -70,6 +70,17 @@ class InputSlotRow(TableRow):
     #: Listens to: :attr:`available_variables`
     _combobox_values = List(Identifier)
 
+    # -------------------
+    #      Defaults
+    # -------------------
+
+    def __combobox_values_default(self):
+        return [''] + self.available_variables
+
+    # -------------------
+    #     Listeners
+    # -------------------
+
     @on_trait_change('model.input_slot_info.name')
     def update_view(self):
         """Synchronises the InputSlotRow with the underlying model"""
@@ -91,9 +102,6 @@ class InputSlotRow(TableRow):
         self.name = ('' if self.name not in self.available_variables
                      else self.name)
 
-    def __combobox_values_default(self):
-        return [''] + self.available_variables
-
 
 class OutputSlotRow(TableRow):
 
@@ -104,6 +112,10 @@ class OutputSlotRow(TableRow):
     #: Name of the slot
     #: Listens to: :attr:`model.output_slot_info.name <TableRow.model>`
     name = Identifier()
+
+    # -------------------
+    #     Listeners
+    # -------------------
 
     @on_trait_change('model.output_slot_info[]')
     def update_view(self):
@@ -203,16 +215,16 @@ class DataSourceView(HasTraits):
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
-    # ----------
-    # Properties
-    # ----------
+    # ----------------
+    #    Properties
+    # ----------------
 
     #: HTML for the selected slot description
     selected_slot_description = Property(HTML, depends_on="selected_slot_row")
 
-    # ----
-    # View
-    # ----
+    # -------------
+    #     View
+    # -------------
 
     #: Base view for the evaluator
     traits_view = View(
@@ -245,14 +257,20 @@ class DataSourceView(HasTraits):
         # Performs private method to set up slots tables on instantiation
         self._create_slots_tables()
 
-    #: Defaults
+    # -------------------
+    #     Defaults
+    # -------------------
+
     def _label_default(self):
         return get_factory_name(self.model.factory)
 
     def __data_source_default(self):
         return self.model.factory.create_data_source()
 
-    #: Property getters
+    # -------------------
+    #     Listeners
+    # -------------------
+
     # Description update on UI selection change
     @cached_property
     def _get_selected_slot_description(self):
@@ -268,7 +286,6 @@ class DataSourceView(HasTraits):
             else "Output")
         return SLOT_DESCRIPTION.format(row_type, type_text, idx, description)
 
-    #: Listeners
     @on_trait_change(
         'input_slots_representation.name,output_slots_representation.name'
     )
@@ -331,7 +348,10 @@ class DataSourceView(HasTraits):
                              self.output_slots_representation):
             row.name = info.name
 
-    #: Private methods
+    # -------------------
+    #   Private Methods
+    # -------------------
+
     # Initialization
     def _create_slots_tables(self):
         """ Initialize the tables for editing the input and output slots

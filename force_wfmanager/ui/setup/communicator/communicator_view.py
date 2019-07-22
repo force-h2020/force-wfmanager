@@ -41,10 +41,13 @@ class CommunicatorView(HasTraits):
 
         return traits_view
 
-    #: Listeners
+    # -------------------
+    #      Listeners
+    # -------------------
+
     @on_trait_change("model.notification_listeners[]")
     def update_notification_listener_views(self):
-        """Updates the modelviews for the notification listeners, but ignoring
+        """Updates the views for the notification listeners, but ignores
         any which are non UI visible"""
         self.notification_listener_views = [
             NotificationListenerView(
@@ -58,7 +61,10 @@ class CommunicatorView(HasTraits):
     def received_verify_request(self):
         self.verify_workflow_event = True
 
-    #: Public methods
+    # -------------------
+    #    Public Methods
+    # -------------------
+
     def add_notification_listener(self, notification_listener):
         """Adds a new notification listener"""
         self.model.notification_listeners.append(notification_listener)

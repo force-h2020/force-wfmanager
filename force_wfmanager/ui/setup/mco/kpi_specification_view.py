@@ -54,7 +54,7 @@ class KPISpecificationModelView(ModelView):
                      depends_on='model:[name,objective]')
 
     # ------------------
-    #     View
+    #       View
     # ------------------
 
     # The traits_view only displays possible options for
@@ -70,14 +70,16 @@ class KPISpecificationModelView(ModelView):
         kind="subpanel",
     )
 
-    #: Property getters
+    # -------------------
+    #     Listeners
+    # -------------------
+
     def _get_label(self):
         """Gets the label from the model object"""
         if self.model.name == '':
             return "KPI"
         return "KPI: {} ({})".format(self.model.name, self.model.objective)
 
-    #: Listeners
     @on_trait_change('model.[name,objective]')
     def kpi_change(self):
         """Raise verfiy workflow event upon change in model"""
@@ -167,6 +169,10 @@ class KPISpecificationView(HasTraits):
         if model is not None:
             self.model = model
 
+    # -------------------
+    #        View
+    # -------------------
+
     def default_traits_view(self):
 
         # ListEditor to display kpi_model_views
@@ -203,7 +209,10 @@ class KPISpecificationView(HasTraits):
 
         return traits_view
 
-    # Defaults
+    # -------------------
+    #      Defaults
+    # -------------------
+
     def _kpi_model_views_default(self):
         """Creates a list of KPISpecificationModelViews for each
         model.kpi"""
@@ -225,7 +234,10 @@ class KPISpecificationView(HasTraits):
         if len(self.kpi_model_views) > 0:
             return self.kpi_model_views[0]
 
-    #: Property getters
+    # -------------------
+    #     Listeners
+    # -------------------
+
     @cached_property
     def _get_kpi_names(self):
         """Listens to model.kpis to extract model names for display"""
@@ -247,7 +259,6 @@ class KPISpecificationView(HasTraits):
 
         return kpi_name_options
 
-    #: Listeners
     @on_trait_change('kpi_names')
     def _kpi_names_check(self):
         """Reports a validation warning if duplicate KPI names exist
@@ -286,7 +297,6 @@ class KPISpecificationView(HasTraits):
         """Pass on call for verify_workflow_event"""
         self.verify_workflow_event = True
 
-    #: Button actions
     def _add_kpi_button_fired(self):
         """Call add_kpi to insert a blank KPI to the model"""
         self.add_kpi(KPISpecification())
@@ -307,7 +317,10 @@ class KPISpecificationView(HasTraits):
             else:
                 self.selected_kpi = self.kpi_model_views[index-1]
 
-    #: Public methods
+    # -------------------
+    #   Public methods
+    # -------------------
+
     def add_kpi(self, kpi):
         """Adds a KPISpecification to the MCO model associated with this
          modelview.
