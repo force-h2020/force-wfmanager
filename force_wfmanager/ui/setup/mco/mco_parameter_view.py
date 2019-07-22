@@ -6,19 +6,18 @@ from traitsui.api import (
     View, Item, HGroup, ListEditor, VGroup, InstanceEditor
 )
 
-from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
-
 from force_wfmanager.ui.setup.mco.base_mco_options_view import \
     BaseMCOOptionsView
 from force_wfmanager.ui.setup.mco.mco_parameter_model_view import \
     MCOParameterModelView
+from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
 
 
 class MCOParameterView(BaseMCOOptionsView):
 
-    # --------------------
-    #  Regular Attributes
-    # --------------------
+    # -------------------
+    # Regular Attributes
+    # -------------------
 
     #: The human readable name of the MCOParameterView class
     label = Unicode('MCO Parameters')
@@ -100,22 +99,10 @@ class MCOParameterView(BaseMCOOptionsView):
 
         return traits_view
 
-    @cached_property
-    def _get_parameter_name_options(self):
-        """Listens to variable_names_registry to extract
-         possible names for new KPIs"""
-        parameter_name_options = []
-        if self.variable_names_registry is not None:
-            outputs = self.variable_names_registry.data_source_outputs
-            inputs = self.variable_names_registry.data_source_inputs
-            parameter_name_options += (
-                [input_ for input_ in inputs
-                 if input_ not in outputs]
-            )
+    # -------------------
+    #      Defaults
+    # -------------------
 
-        return parameter_name_options
-
-    #: Defaults
     def _parameter_entity_creator_default(self):
         """Returns an entity creator containing parameter types
         from all installed plugins"""
@@ -151,7 +138,25 @@ class MCOParameterView(BaseMCOOptionsView):
 
         return model_views
 
-    #: Listeners
+    # -------------------
+    #     Listeners
+    # -------------------
+
+    @cached_property
+    def _get_parameter_name_options(self):
+        """Listens to variable_names_registry to extract
+         possible names for new KPIs"""
+        parameter_name_options = []
+        if self.variable_names_registry is not None:
+            outputs = self.variable_names_registry.data_source_outputs
+            inputs = self.variable_names_registry.data_source_inputs
+            parameter_name_options += (
+                [input_ for input_ in inputs
+                 if input_ not in outputs]
+            )
+
+        return parameter_name_options
+
     @on_trait_change('model')
     def update_parameter_entity_creator(self):
         """ Update the entity creator based on the MCO factory """
@@ -173,7 +178,6 @@ class MCOParameterView(BaseMCOOptionsView):
         for parameter_view in self.model_views:
             parameter_view._combobox_values = self.parameter_name_options
 
-    #: Button actions
     def _add_parameter_button_fired(self):
         """Call add_parameter to create a new empty parameter using
         the parameter_entity_creator"""
@@ -195,7 +199,10 @@ class MCOParameterView(BaseMCOOptionsView):
             else:
                 self.selected_model_view = self.model_views[index-1]
 
-    #: Private Methods
+    # -------------------
+    #   Private Methods
+    # -------------------
+
     def _dclick_add_parameter(self, ui_info):
         """Called when a parameter factory is double clicked in the entity
         creator. The ui_info object is automatically passed by the
@@ -203,7 +210,10 @@ class MCOParameterView(BaseMCOOptionsView):
         """
         self._add_parameter_button_fired()
 
-    #: Public Methods
+    # -------------------
+    #    Public Methods
+    # -------------------
+
     def add_parameter(self, parameter):
         """Adds a parameter to the MCO model associated with this view.
 

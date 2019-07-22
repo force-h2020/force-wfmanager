@@ -1,4 +1,5 @@
 import re
+
 from traits.api import BaseUnicode, HasStrictTraits, TraitError
 
 

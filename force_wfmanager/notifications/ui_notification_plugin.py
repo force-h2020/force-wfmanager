@@ -1,4 +1,5 @@
 from force_bdss.api import BaseExtensionPlugin, plugin_id
+
 from .ui_notification_factory import UINotificationFactory
 from .ui_notification_hooks_factory import UINotificationHooksFactory
 

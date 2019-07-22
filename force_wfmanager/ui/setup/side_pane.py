@@ -4,8 +4,8 @@ from traitsui.api import UItem, VGroup, View
 
 from force_bdss.api import IFactoryRegistry, Workflow
 
-from force_wfmanager.ui.setup.workflow_tree import WorkflowTree
 from force_wfmanager.ui.setup.system_state import SystemState
+from force_wfmanager.ui.setup.workflow_tree import WorkflowTree
 
 
 class SidePane(TraitsDockPane):
@@ -30,9 +30,16 @@ class SidePane(TraitsDockPane):
     #: The factory registry containing all the factories
     factory_registry = Instance(IFactoryRegistry, allow_none=False)
 
-    # ------------------
-    # Regular Attributes
-    # ------------------
+    # --------------------
+    # Dependent Attributes
+    # --------------------
+
+    #: Tree editor for the Process Model Workflow
+    workflow_tree = Instance(WorkflowTree)
+
+    # ----------------------
+    #   Regular Attributes
+    # ----------------------
 
     #: An internal identifier for this pane
     id = 'force_wfmanager.side_pane'
@@ -52,6 +59,10 @@ class SidePane(TraitsDockPane):
     #: Make the pane visible by default
     visible = True
 
+    # -------------------
+    #     Buttons
+    # -------------------
+
     #: Run button for running the computation
     run_button = Button('Run')
 
@@ -61,12 +72,9 @@ class SidePane(TraitsDockPane):
     #: Enable or disable the run button.
     run_enabled = Bool(True)
 
-    #: Tree editor for the Process Model Workflow
-    workflow_tree = Instance(WorkflowTree)
-
-    # ----
-    # View
-    # ----
+    # -------------------
+    #        View
+    # -------------------
 
     traits_view = View(
         VGroup(
@@ -75,7 +83,10 @@ class SidePane(TraitsDockPane):
         )
     )
 
-    #: Defaults
+    # -------------------
+    #     Defaults
+    # -------------------
+
     def _workflow_tree_default(self):
         workflow_tree = WorkflowTree(
             model=self.workflow_model,
@@ -85,7 +96,10 @@ class SidePane(TraitsDockPane):
         self.run_enabled = workflow_tree.workflow_view.valid
         return workflow_tree
 
-    #: Listeners
+    # -------------------
+    #      Listeners
+    # -------------------
+
     @on_trait_change('workflow_tree.workflow_view.valid')
     def update_run_btn_status(self):
         """Enables/Disables the run button if the workflow is valid/invalid"""

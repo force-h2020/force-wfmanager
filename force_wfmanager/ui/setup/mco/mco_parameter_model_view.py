@@ -8,7 +8,6 @@ from traitsui.api import (
 
 from force_wfmanager.ui.setup.mco.base_mco_options_model_view import \
     BaseMCOOptionsModelView
-
 from force_wfmanager.ui.ui_utils import get_factory_name
 
 

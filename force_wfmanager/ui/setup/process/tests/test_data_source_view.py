@@ -1,4 +1,5 @@
 from force_bdss.api import (OutputSlotInfo, InputSlotInfo, BaseDataSourceModel)
+
 from force_wfmanager.ui.setup.process.data_source_view import \
     DataSourceView
 from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (

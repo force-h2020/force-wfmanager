@@ -35,8 +35,10 @@ class MCOView(HasTraits):
     # Regular Attributes
     # ------------------
 
-    #: List of MCO parameter and KPI views to be displayed in the TreeEditor
-    #: NOTE: (Has to be a list to be selectable in TreeEditor)
+    #: List of [MCOParameterView, KPISpecificationView] objects to be
+    #: displayed in WorkflowTree, containing information on the MCO
+    #: options.
+    # NOTE: (Has to be a list to be selectable in TreeEditor)
     mco_options = List(Instance(BaseMCOOptionsView))
 
     #: A view containing all MCO parameters
@@ -72,7 +74,10 @@ class MCOView(HasTraits):
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
-    #: Defaults
+    # -------------------
+    #      Defaults
+    # -------------------
+
     def _label_default(self):
         """Return a default label corresponding to the MCO factory"""
         return get_factory_name(self.model.factory)
@@ -93,7 +98,10 @@ class MCOView(HasTraits):
         """Return a mco_options containing already constructed objects"""
         return [self.parameter_view, self.kpi_view]
 
-    #: Listeners
+    # -------------------
+    #     Listeners
+    # -------------------
+
     # Workflow Verification
     @on_trait_change('parameter_view.verify_workflow_event,'
                      'kpi_view.verify_workflow_event')

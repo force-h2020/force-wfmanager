@@ -3,10 +3,11 @@ import unittest
 from traits.testing.unittest_tools import UnittestTools
 
 from force_bdss.api import KPISpecification
-from force_wfmanager.ui.setup.mco.base_mco_options_model_view import \
-    BaseMCOOptionsModelView
+
 from force_wfmanager.tests.dummy_classes.dummy_mco_options_view import \
     DummyBaseMCOOptionsModelView
+from force_wfmanager.ui.setup.mco.base_mco_options_model_view import \
+    BaseMCOOptionsModelView
 
 
 class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
@@ -24,7 +25,7 @@ class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
 
         with self.assertRaises(NotImplementedError):
             mco_options_model_view = BaseMCOOptionsModelView()
-            self.assertIsInstance(mco_options_model_view.label)
+            self.assertIsNotNone(mco_options_model_view.label)
 
     def test__check_model_name(self):
 

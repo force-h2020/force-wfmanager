@@ -8,6 +8,7 @@ from traitsui.api import (
 )
 
 from force_bdss.api import KPISpecification
+
 from force_wfmanager.ui.setup.mco.base_mco_options_view import \
     BaseMCOOptionsView
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import (
@@ -50,6 +51,10 @@ class KPISpecificationView(BaseMCOOptionsView):
     #: Removes selected_model_view from the MCO
     remove_kpi_button = Button('Delete KPI')
 
+    # -------------------
+    #        View
+    # -------------------
+
     def default_traits_view(self):
 
         # ListEditor to display model_views
@@ -87,7 +92,10 @@ class KPISpecificationView(BaseMCOOptionsView):
 
         return traits_view
 
-    # Defaults
+    # -------------------
+    #      Defaults
+    # -------------------
+
     def _model_views_default(self):
         """Creates a list of KPISpecificationModelViews for each
         model.kpi"""
@@ -104,7 +112,10 @@ class KPISpecificationView(BaseMCOOptionsView):
 
         return model_views
 
-    #: Property getters
+    # -------------------
+    #     Listeners
+    # -------------------
+
     @cached_property
     def _get_kpi_names(self):
         """Listens to model.kpis to extract model names for display"""
@@ -130,7 +141,6 @@ class KPISpecificationView(BaseMCOOptionsView):
 
         return kpi_name_options
 
-    #: Listeners
     @on_trait_change('kpi_name_options')
     def update_model_views__combobox(self):
         """Update the KPI model view name options"""
@@ -161,7 +171,6 @@ class KPISpecificationView(BaseMCOOptionsView):
         self.valid = (self.valid and unique_check)
         self.error_message = error_message
 
-    #: Button actions
     def _add_kpi_button_fired(self):
         """Call add_kpi to insert a blank KPI to the model"""
         self.add_kpi(KPISpecification())
@@ -182,7 +191,10 @@ class KPISpecificationView(BaseMCOOptionsView):
             else:
                 self.selected_model_view = self.model_views[index-1]
 
-    #: Public methods
+    # -------------------
+    #   Public methods
+    # -------------------
+
     def add_kpi(self, kpi):
         """Adds a KPISpecification to the MCO model associated with this
          modelview.

@@ -1,8 +1,8 @@
-from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
-    WfManagerBaseTestCase
-)
 from force_wfmanager.ui.setup.process.process_view import (
     ProcessView
+)
+from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
+    WfManagerBaseTestCase
 )
 
 

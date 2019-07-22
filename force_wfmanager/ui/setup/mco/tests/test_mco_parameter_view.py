@@ -1,4 +1,5 @@
 import unittest
+
 from traits.testing.unittest_tools import UnittestTools
 
 from force_bdss.api import InputSlotInfo
@@ -35,8 +36,6 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
             self.parameter_view.selected_model_view,
             self.parameter_view.model_views[0]
         )
-
-        self.parameter_view.configure_traits()
 
     def test_parameter_entity_creator(self):
 

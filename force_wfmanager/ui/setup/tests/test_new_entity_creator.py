@@ -1,24 +1,25 @@
 import unittest
 
-from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeMCOModel
+from force_bdss.tests.dummy_classes.data_source import DummyDataSourceModel
 from force_bdss.tests.probe_classes.data_source import (
     ProbeDataSourceFactory, ProbeDataSourceModel
 )
+from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeMCOModel
 from force_bdss.tests.probe_classes.probe_extension_plugin import (
     ProbeExtensionPlugin
 )
-from force_bdss.tests.dummy_classes.data_source import DummyDataSourceModel
-from force_wfmanager.ui.setup.new_entity_creator import (
-     NewEntityCreator
-)
-from force_wfmanager.ui.setup.workflow_tree import WorkflowView
-from force_wfmanager.ui.ui_utils import model_info
+
 from force_wfmanager.tests.dummy_classes.dummy_model_info import (
     DummyModelInfo
 )
 from force_wfmanager.tests.probe_classes import (
     ProbeDataSourceModel as ProbeDataSourceModelDescription
 )
+from force_wfmanager.ui.setup.new_entity_creator import (
+     NewEntityCreator
+)
+from force_wfmanager.ui.setup.workflow_tree import WorkflowView
+from force_wfmanager.ui.ui_utils import model_info
 
 
 class TestNewEntityModel(unittest.TestCase):

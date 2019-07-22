@@ -47,7 +47,7 @@ class BaseMCOOptionsModelView(ModelView):
     # ------------------
 
     #: Human readable label for ModelView
-    label = Instance(Property)
+    label = Property(Instance(Unicode), depends_on='model.name')
 
     #: Property getters
     def _get_label(self):

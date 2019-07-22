@@ -4,11 +4,12 @@ from traits.api import (
 )
 
 from force_bdss.api import BaseMCOModel
-from force_wfmanager.utils.variable_names_registry import (
-    VariableNamesRegistry
-)
+
 from force_wfmanager.ui.setup.mco.base_mco_options_model_view import (
     BaseMCOOptionsModelView
+)
+from force_wfmanager.utils.variable_names_registry import (
+    VariableNamesRegistry
 )
 
 

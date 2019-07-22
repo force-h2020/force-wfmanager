@@ -1,5 +1,5 @@
-from traitsui.api import Group, Item
 from pyface.qt import QtGui
+from traitsui.api import Group, Item
 
 
 def get_factory_name(factory):

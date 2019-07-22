@@ -3,13 +3,14 @@ from unittest import mock, TestCase
 from force_bdss.api import (
     ExecutionLayer, Workflow, BaseMCOModel, KPISpecification
 )
+
+from force_wfmanager.ui.setup.system_state import SystemState
 from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
     WfManagerBaseTestCase
 )
 from force_wfmanager.ui.setup.workflow_tree import (
     WorkflowTree, TreeNodeWithStatus
 )
-from force_wfmanager.ui.setup.system_state import SystemState
 
 
 class TestWorkflowTree(WfManagerBaseTestCase):

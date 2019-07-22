@@ -3,6 +3,7 @@ from envisage.ui.tasks.api import TaskFactory
 from traits.api import Either, List, Unicode
 
 from force_bdss.api import IFactoryRegistry
+
 from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
@@ -20,6 +21,10 @@ class WfManagerPlugin(Plugin):
 
     workflow_file = Either(None, Unicode())
 
+    # -----------------
+    #      Defaults
+    # -----------------
+
     def _tasks_default(self):
         return [TaskFactory(id='force_wfmanager.wfmanager_setup_task',
                             name='Workflow Manager (Setup)',
@@ -28,6 +33,10 @@ class WfManagerPlugin(Plugin):
                             name='Workflow Manager (Review)',
                             factory=self._create_review_task)
                 ]
+
+    # -----------------
+    #  Private Methods
+    # -----------------
 
     def _create_setup_task(self):
         factory_registry = self.application.get_service(

@@ -1,6 +1,8 @@
 from traits.api import Unicode
+
 from force_bdss.api import (
     BaseNotificationListenerModel)
+
 from force_wfmanager.utils.local_traits import ZMQSocketURL
 
 

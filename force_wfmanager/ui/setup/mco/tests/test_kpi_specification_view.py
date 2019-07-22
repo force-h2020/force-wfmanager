@@ -1,12 +1,13 @@
 import unittest
-from traits.testing.unittest_tools import UnittestTools
-from force_bdss.api import OutputSlotInfo
-from force_wfmanager.utils.tests.test_variable_names_registry import \
-    get_basic_variable_names_registry
 
-from force_bdss.api import KPISpecification
+from traits.testing.unittest_tools import UnittestTools
+
+from force_bdss.api import OutputSlotInfo, KPISpecification
+
 from force_wfmanager.ui.setup.mco.kpi_specification_view import \
     KPISpecificationView
+from force_wfmanager.utils.tests.test_variable_names_registry import \
+    get_basic_variable_names_registry
 
 
 class TestKPISpecificationView(unittest.TestCase, UnittestTools):

@@ -1,6 +1,6 @@
 from envisage.plugin import Plugin
-
 from pyface.api import ImageResource
+
 from traits.api import (
     HasTraits, List, Unicode
 )
@@ -38,9 +38,9 @@ class WorkflowInfo(HasTraits):
     #: An error message for the entire workflow
     error_message = Unicode()
 
-    # -------------------
+    # ---------------------
     # Dependent Attributes
-    # -------------------
+    # ---------------------
 
     #: The force project logo! Stored at images/Force_Logo.png
     image = ImageResource('Force_Logo.png')
@@ -51,9 +51,9 @@ class WorkflowInfo(HasTraits):
     #: A list of plugin names
     plugin_names = List(Unicode)
 
-    # ----
-    # View
-    # ----
+    # -----------
+    #    View
+    # -----------
 
     traits_view = View(
         VGroup(
@@ -87,6 +87,10 @@ class WorkflowInfo(HasTraits):
 
         )
     )
+
+    # -------------------
+    #      Defaults
+    # -------------------
 
     def _plugin_names_default(self):
         return [plugin.name for plugin in self.plugins]
