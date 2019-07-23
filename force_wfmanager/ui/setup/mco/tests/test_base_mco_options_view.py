@@ -32,6 +32,7 @@ class TestBaseMCOOptionsView(unittest.TestCase, UnittestTools):
         self.assertEqual(0, len(self.mco_options_view.model_views))
         self.assertEqual('Options', self.mco_options_view.name)
         self.assertEqual('MCO Options', self.mco_options_view.label)
+        self.assertTrue(self.mco_options_view.valid)
 
     def test___model_views_default_error(self):
 

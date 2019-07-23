@@ -100,14 +100,15 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
 
         self.workflow.mco.parameters[0].name = 'T1'
         self.workflow.mco.parameters[1].name = 'T2'
-        self.assertEqual('', self.parameter_view.error_message)
+        error_message = self.parameter_view.verify_model_names()
+        self.assertEqual(0, len(error_message))
 
         self.workflow.mco.parameters[0].name = 'T2'
+        error_message = self.parameter_view.verify_model_names()
         self.assertIn(
             'Two or more Parameters have a duplicate name',
-            self.parameter_view.error_message,
+            error_message[0].local_error,
         )
-        self.assertFalse(self.parameter_view.valid)
 
     def test_verify_workflow_event(self):
         self.data_source1.input_slot_info = [InputSlotInfo(name='T1')]

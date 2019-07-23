@@ -118,19 +118,22 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         self.workflow.mco.kpis[0].name = 'T1'
-        self.assertEqual('', self.kpi_view.error_message)
+        error_message = self.kpi_view.verify_model_names()
+        self.assertEqual(0, len(error_message))
 
         self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
         self.kpi_view._add_kpi_button_fired()
         self.workflow.mco.kpis[1].name = 'T2'
-        self.assertEqual('', self.kpi_view.error_message)
+        error_message = self.kpi_view.verify_model_names()
+        self.assertEqual(0, len(error_message))
 
         self.workflow.mco.kpis[0].name = 'T2'
+        error_message = self.kpi_view.verify_model_names()
+        self.assertEqual(1, len(error_message))
         self.assertIn(
             'Two or more KPIs have a duplicate name',
-            self.kpi_view.error_message,
+            error_message[0].local_error,
         )
-        self.assertFalse(self.kpi_view.valid)
 
     def test_variable_names_registry(self):
 

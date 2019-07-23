@@ -418,6 +418,17 @@ class WorkflowTree(ModelView):
         every ModelView in the workflow"""
         errors = verify_workflow(self.model)
 
+        # Update the error list with verification checks that occur
+        # outside the foce_bdss
+        if self.workflow_view.model.mco is not None:
+            errors += (
+                self.workflow_view.mco_view[0]
+                .parameter_view.verify_model_names()
+            )
+            errors += (
+                self.workflow_view.mco_view[0]
+                .kpi_view.verify_model_names()
+            )
         # Communicate the verification errors to each level of the
         # workflow tree
         self.verify_tree(errors)
@@ -758,9 +769,17 @@ class WorkflowTree(ModelView):
             # Pass on KPISpecification validity to KPISpecificationView,
             # and BaseMCOParameter to MCOParameterView as
             # they do not have an associated BDSS model to call verify
+            if start_view == verifier_error.subject:
+                message_list.append(verifier_error.local_error)
+                # If there are any 'error' level entries, set the modelview
+                # as invalid, and communicate these to the parent modelview.
+                if verifier_error.severity == _ERROR:
+                    send_to_parent.append(verifier_error.global_error)
+                    start_view.valid = False
+
             if err_subject_type in [KPISpecification]:
                 self.workflow_view.mco_view[0].kpi_view.valid = False
-            if err_subject_type in [BaseMCOParameter]:
+            elif err_subject_type in [BaseMCOParameter]:
                 self.workflow_view.mco_view[0].parameter_view.valid = False
 
         # Display message so that errors relevant to this ModelView come first

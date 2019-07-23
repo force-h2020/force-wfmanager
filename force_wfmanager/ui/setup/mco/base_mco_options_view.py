@@ -4,6 +4,7 @@ from traits.api import (
 )
 
 from force_bdss.api import BaseMCOModel
+from force_bdss.core.verifier import VerifierError
 
 from force_wfmanager.ui.setup.mco.base_mco_options_model_view import (
     BaseMCOOptionsModelView
@@ -100,14 +101,14 @@ class BaseMCOOptionsView(HasTraits):
         self.verify_workflow_event = True
 
     @on_trait_change('model_views.model.name')
-    def _model_names_check(self):
+    def verify_model_names(self):
         """Reports a validation warning if duplicate KPI names exist
         """
         model_names = []
         for model_view in self.model_views:
             model_names.append(model_view.model.name)
 
-        error_message = ''
+        errors = []
         unique_check = True
 
         for name in model_names:
@@ -115,10 +116,18 @@ class BaseMCOOptionsView(HasTraits):
                 unique_check = False
 
         if not unique_check:
-            error_message += f'Two or more {self.name} have a duplicate name'
+            errors.append(
+                VerifierError(
+                    subject=self,
+                    global_error=f'Two or more {self.name} have a duplicate name',
+                )
+            )
 
-        self.valid = (self.valid and unique_check)
-        self.error_message = error_message
+        return errors
+
+    # ------------------
+    #   Public Methods
+    # ------------------
 
     def update_model_views(self):
         """Regenerates the model_views from the model and sets the
