@@ -1,12 +1,15 @@
 from traits.api import (
     Bool, Event, Instance, List, Property, Unicode,
-    on_trait_change, Either
+    on_trait_change, Either, Tuple
 )
 from traitsui.api import (
     ModelView
 )
 
-from force_bdss.api import KPISpecification, BaseMCOParameter
+from force_bdss.api import (
+    KPISpecification, BaseMCOParameter, Identifier
+)
+from force_bdss.local_traits import CUBAType
 
 
 class BaseMCOOptionsModelView(ModelView):
@@ -19,11 +22,11 @@ class BaseMCOOptionsModelView(ModelView):
     model = Either(Instance(KPISpecification),
                    Instance(BaseMCOParameter))
 
-    #: Only display name options for existing MCO Parameters and KPIs
+    #: Only display name and type options for available variables
     # FIXME: this isn't an ideal method, since it requires further
     # work arounds for the name validation. Putting better error
     # handling into the force_bdss could resolve this.
-    _combobox_values = List(Unicode)
+    available_variables = List(Tuple(Identifier, CUBAType))
 
     # ------------------
     # Regular Attributes
@@ -46,17 +49,28 @@ class BaseMCOOptionsModelView(ModelView):
     #     Properties
     # ------------------
 
-    #: Human readable label for ModelView
-    label = Property(Instance(Unicode), depends_on='model.name')
+    #: Values for model.name EnumEditor in traits_view
+    _combobox_values = Property(List(Identifier),
+                                depends_on='available_variables')
 
-    #: Property getters
-    def _get_label(self):
-        """Needs to be implemented by child class"""
-        raise NotImplementedError(
-            "_get_label was not implemented in {}".format(
-                self.__class__))
+    def __init__(self, model=None, *args, **kwargs):
+        super(BaseMCOOptionsModelView, self).__init__(*args, **kwargs)
+        if model is not None:
+            self.model = model
 
-    #: Listeners
+    # ------------------
+    #     Listeners
+    # ------------------
+
+    def _get__combobox_values(self):
+        """Update combobox_values based on available variable names"""
+        _combobox_values = []
+        if self.available_variables is not None:
+            for variable in self.available_variables:
+                _combobox_values.append(variable[0])
+
+        return _combobox_values
+
     # Assign an on_trait_change decorator to specify traits to listen to
     # in child class implementation
     def model_change(self):

@@ -6,8 +6,6 @@ from force_bdss.api import KPISpecification
 
 from force_wfmanager.tests.dummy_classes.dummy_mco_options_view import \
     DummyBaseMCOOptionsModelView
-from force_wfmanager.ui.setup.mco.base_mco_options_model_view import \
-    BaseMCOOptionsModelView
 
 
 class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
@@ -21,20 +19,22 @@ class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
         self.assertIsNone(self.mco_options_model_view.model)
         self.assertTrue(self.mco_options_model_view.valid)
 
-    def test__get_label_error(self):
-
-        with self.assertRaises(NotImplementedError):
-            mco_options_model_view = BaseMCOOptionsModelView()
-            self.assertIsNotNone(mco_options_model_view.label)
-
     def test__check_model_name(self):
 
-        self.mco_options_model_view._combobox_values = ['T1', 'T2']
+        self.mco_options_model_view.available_variables = (
+            [('T1', 'PRESSURE'), ('T2', 'PRESSURE')]
+        )
+        self.assertEqual(['T1', 'T2'],
+                         self.mco_options_model_view._combobox_values)
         self.mco_options_model_view.model = KPISpecification(name='T1')
 
-        self.mco_options_model_view._combobox_values.remove('T2')
+        self.mco_options_model_view.available_variables.remove(
+            self.mco_options_model_view.available_variables[-1]
+        )
         self.assertTrue(self.mco_options_model_view.valid)
-        self.mco_options_model_view._combobox_values.remove('T1')
+        self.mco_options_model_view.available_variables.remove(
+            self.mco_options_model_view.available_variables[0]
+        )
 
         self.assertEqual('', self.mco_options_model_view.model.name)
         error_message = self.mco_options_model_view.model.verify()

@@ -23,7 +23,7 @@ class KPISpecificationView(BaseMCOOptionsView):
     # ------------------
 
     #: The human readable name of the KPI View
-    label = Unicode('MCO KPIs')
+    name = Unicode('KPIs')
 
     # ------------------
     #     Properties
@@ -105,7 +105,7 @@ class KPISpecificationView(BaseMCOOptionsView):
             model_views += [
                 KPISpecificationModelView(
                     model=kpi,
-                    _combobox_values=self.kpi_name_options
+                    available_variables=self.kpi_name_options
                 )
                 for kpi in self.model.kpis
             ]
@@ -145,31 +145,13 @@ class KPISpecificationView(BaseMCOOptionsView):
     def update_model_views__combobox(self):
         """Update the KPI model view name options"""
         for kpi_view in self.model_views:
-            kpi_view._combobox_values = self.kpi_name_options
+            kpi_view.available_variables = self.kpi_name_options
 
     @on_trait_change('model.kpis')
     def update_kpi_model_views(self):
         """ Triggers the base method update_model_views when
         KPISpecifications are updated"""
         self.update_model_views()
-
-    # Workflow Validation
-    @on_trait_change('kpi_names')
-    def _kpi_names_check(self):
-        """Reports a validation warning if duplicate KPI names exist
-        """
-        error_message = ''
-        unique_check = True
-
-        for name in self.kpi_names:
-            if self.kpi_names.count(name) > 1:
-                unique_check = False
-
-        if not unique_check:
-            error_message += 'Two or more KPIs have a duplicate name'
-
-        self.valid = (self.valid and unique_check)
-        self.error_message = error_message
 
     def _add_kpi_button_fired(self):
         """Call add_kpi to insert a blank KPI to the model"""

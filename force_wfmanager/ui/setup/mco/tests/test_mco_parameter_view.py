@@ -36,6 +36,7 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
             self.parameter_view.selected_model_view,
             self.parameter_view.model_views[0]
         )
+        self.assertEqual('MCO Parameters', self.parameter_view.label)
 
     def test_parameter_entity_creator(self):
 
@@ -93,12 +94,27 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
             self.parameter_view.selected_model_view
         )
 
+    def test__parameter_names_check(self):
+        self.data_source1.input_slot_info = [InputSlotInfo(name='T1')]
+        self.data_source2.input_slot_info = [InputSlotInfo(name='T2')]
+
+        self.workflow.mco.parameters[0].name = 'T1'
+        self.workflow.mco.parameters[1].name = 'T2'
+        self.assertEqual('', self.parameter_view.error_message)
+
+        self.workflow.mco.parameters[0].name = 'T2'
+        self.assertIn(
+            'Two or more Parameters have a duplicate name',
+            self.parameter_view.error_message,
+        )
+        self.assertFalse(self.parameter_view.valid)
+
     def test_verify_workflow_event(self):
         self.data_source1.input_slot_info = [InputSlotInfo(name='T1')]
         parameter_model_view = self.parameter_view.model_views[0]
         with self.assertTraitChanges(
-                self.parameter_view, 'verify_workflow_event', count=1):
+                self.parameter_view, 'verify_workflow_event', count=2):
             parameter_model_view.model.name = 'T1'
         with self.assertTraitChanges(
-                self.parameter_view, 'verify_workflow_event', count=2):
+                self.parameter_view, 'verify_workflow_event', count=3):
             parameter_model_view.model.name = 'another'

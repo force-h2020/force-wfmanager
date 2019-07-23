@@ -2,12 +2,12 @@ import unittest
 
 from traits.testing.unittest_tools import UnittestTools
 
+from force_wfmanager.tests.dummy_classes.dummy_mco_options_view import \
+    DummyBaseMCOOptionsView
 from force_wfmanager.ui.setup.mco.base_mco_options_view import \
     BaseMCOOptionsView
 from force_wfmanager.utils.tests.test_variable_names_registry import \
     get_basic_variable_names_registry
-from force_wfmanager.tests.dummy_classes.dummy_mco_options_view import \
-    DummyBaseMCOOptionsView
 
 
 class TestBaseMCOOptionsView(unittest.TestCase, UnittestTools):
@@ -30,6 +30,8 @@ class TestBaseMCOOptionsView(unittest.TestCase, UnittestTools):
 
         self.assertIsNone(self.mco_options_view.selected_model_view)
         self.assertEqual(0, len(self.mco_options_view.model_views))
+        self.assertEqual('Options', self.mco_options_view.name)
+        self.assertEqual('MCO Options', self.mco_options_view.label)
 
     def test___model_views_default_error(self):
 

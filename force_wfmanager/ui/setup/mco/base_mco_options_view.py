@@ -1,6 +1,6 @@
 from traits.api import (
     Bool, Event, Instance, List, Unicode,
-    on_trait_change, HasTraits
+    on_trait_change, HasTraits, Property
 )
 
 from force_bdss.api import BaseMCOModel
@@ -31,6 +31,9 @@ class BaseMCOOptionsView(HasTraits):
     #    Regular Attributes
     # -----------------------
 
+    #: Defines the human readable name for the View
+    name = Unicode('Options')
+
     #: List of kpi ModelViews to display in ListEditor notebook
     model_views = List(Instance(BaseMCOOptionsModelView))
 
@@ -55,16 +58,40 @@ class BaseMCOOptionsView(HasTraits):
     #: Listens to: `model.name`,`model.objective`
     verify_workflow_event = Event()
 
+    # ------------------
+    # Dependent Attributes
+    # ------------------
+
+    #: The human readable name of the KPI View
+    label = Property(Instance(Unicode), depends_on='name')
+
     def __init__(self, model=None, *args, **kwargs):
         super(BaseMCOOptionsView, self).__init__(*args, **kwargs)
         if model is not None:
             self.model = model
 
-    # Defaults
+    # ------------------
+    #      Defaults
+    # ------------------
+
     def _selected_model_view_default(self):
         """Default selected_model_view is the first in the list"""
         if len(self.model_views) > 0:
             return self.model_views[0]
+
+    def _model_views_default(self):
+        """A default constructor for this trait needs to be implemented"""
+        raise NotImplementedError(
+            "_model_views_default was not implemented in {}".format(
+                self.__class__))
+
+    # ------------------
+    #     Listeners
+    # ------------------
+
+    def _get_label(self):
+        if self.name is not None:
+            return f'MCO {self.name}'
 
     # Workflow Validation
     @on_trait_change('model_views.verify_workflow_event')
@@ -72,11 +99,26 @@ class BaseMCOOptionsView(HasTraits):
         """Pass on call for verify_workflow_event"""
         self.verify_workflow_event = True
 
-    def _model_views_default(self):
-        """A default constructor for this trait needs to be implemented"""
-        raise NotImplementedError(
-            "_model_views_default was not implemented in {}".format(
-                self.__class__))
+    @on_trait_change('model_views.model.name')
+    def _model_names_check(self):
+        """Reports a validation warning if duplicate KPI names exist
+        """
+        model_names = []
+        for model_view in self.model_views:
+            model_names.append(model_view.model.name)
+
+        error_message = ''
+        unique_check = True
+
+        for name in model_names:
+            if model_names.count(name) > 1:
+                unique_check = False
+
+        if not unique_check:
+            error_message += f'Two or more {self.name} have a duplicate name'
+
+        self.valid = (self.valid and unique_check)
+        self.error_message = error_message
 
     def update_model_views(self):
         """Regenerates the model_views from the model and sets the

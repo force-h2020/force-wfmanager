@@ -17,7 +17,7 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
         self.parameter_factory = ProbeParameterFactory(self.mco_factory)
         self.parameter_model_view = MCOParameterModelView(
             model=self.parameter_factory.create_model(),
-            _combobox_values=['P1']
+            available_variables=[('P1', 'PRESSURE')]
         )
 
     def test_mco_parameter_view_init(self):
@@ -27,19 +27,24 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
         self.assertEqual(self.parameter_model_view.label,
                          "Probe parameter")
 
+    def test_parameter_model_update(self):
+        self.parameter_model_view.model.name = 'P1'
+        self.assertEqual('PRESSURE', self.parameter_model_view.model.type)
+
     def test_mco_parameter_label(self):
         self.parameter_model_view.model.name = 'P1'
-        self.parameter_model_view.model.type = 'PRESSURE'
         self.assertEqual(self.parameter_model_view.label,
                          "Probe parameter: PRESSURE P1")
 
     def test_verify_workflow_event(self):
-        self.parameter_model_view._combobox_values.append('T2')
-        with self.assertTraitChanges(
-                self.parameter_model_view, 'verify_workflow_event', count=1):
-            self.parameter_model_view.model.name = 'T2'
+        self.parameter_model_view.available_variables.append(
+            ('T2', 'PRESSURE')
+        )
         with self.assertTraitChanges(
                 self.parameter_model_view, 'verify_workflow_event', count=2):
+            self.parameter_model_view.model.name = 'T2'
+        with self.assertTraitChanges(
+                self.parameter_model_view, 'verify_workflow_event', count=3):
             self.parameter_model_view.model.name = 'another'
 
     def test_traits_view(self):

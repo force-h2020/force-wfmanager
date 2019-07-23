@@ -181,11 +181,10 @@ class VariableNamesRegistry(HasStrictTraits):
 
     def _get_data_source_names(self, stack):
         res = []
-
         for layer in stack:
             for info in layer:
-                res.extend([value[0] for value in info
-                            if value[0] not in res])
+                res.extend([value for value in info
+                            if value not in res])
         return res
 
     @on_trait_change(

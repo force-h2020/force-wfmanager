@@ -2,7 +2,7 @@ from traits.api import (
     cached_property, Property, Instance, Unicode, on_trait_change
 )
 from traitsui.api import (
-    View, Item, InstanceEditor,
+    View, Item, InstanceEditor, Readonly,
     EnumEditor
 )
 
@@ -18,7 +18,7 @@ class MCOParameterModelView(BaseMCOOptionsModelView):
     # -------------
 
     label = Property(Instance(Unicode),
-                     depends_on='model.factory')
+                     depends_on='model.[name,type]')
 
     # ----------
     #    View
@@ -30,18 +30,24 @@ class MCOParameterModelView(BaseMCOOptionsModelView):
 
         return View(Item('name', object='model',
                          editor=EnumEditor(name='object._combobox_values')),
-                    Item('type', object='model'),
+                    Readonly('type', object='model'),
                     Item('model',
                          editor=InstanceEditor(),
                          style='custom')
                     )
 
-    #: Defaults
+    # -------------
+    #    Defaults
+    # -------------
+
     def _label_default(self):
         """Return a default label corresponding to the MCO parameter factory"""
         return get_factory_name(self.model.factory)
 
-    #: Property getters
+    # -------------
+    #   Listeners
+    # -------------
+
     @cached_property
     def _get_label(self):
         """Return a label appending both the parameter name and type to the
@@ -52,7 +58,13 @@ class MCOParameterModelView(BaseMCOOptionsModelView):
             type=self.model.type, name=self.model.name
         )
 
-    #: Listeners
     @on_trait_change('model.[name,type]')
     def parameter_model_change(self):
+        if self.model is not None:
+            try:
+                index = self._combobox_values.index(self.model.name)
+                self.model.type = self.available_variables[index][1]
+            except ValueError:
+                self.model.type = ''
+
         self.model_change()

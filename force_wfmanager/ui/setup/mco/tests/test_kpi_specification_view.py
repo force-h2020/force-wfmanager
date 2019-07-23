@@ -41,7 +41,8 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
 
-        self.assertEqual(['T1'], self.registry.data_source_outputs)
+        self.assertEqual([('T1', 'PRESSURE')],
+                         self.registry.data_source_outputs)
         self.assertEqual(
             ['T1'], self.kpi_view.model_views[0]._combobox_values
         )

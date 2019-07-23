@@ -1,10 +1,13 @@
 from traits.api import (
     Instance, Unicode, on_trait_change, Property,
-    cached_property, List, Button
+    cached_property, List, Button, Tuple
 )
 from traitsui.api import (
     View, Item, HGroup, ListEditor, VGroup, InstanceEditor
 )
+
+from force_bdss.api import Identifier
+from force_bdss.local_traits import CUBAType
 
 from force_wfmanager.ui.setup.mco.base_mco_options_view import \
     BaseMCOOptionsView
@@ -20,7 +23,7 @@ class MCOParameterView(BaseMCOOptionsView):
     # -------------------
 
     #: The human readable name of the MCOParameterView class
-    label = Unicode('MCO Parameters')
+    name = Unicode('Parameters')
 
     # --------------------
     # Dependent Attributes
@@ -36,7 +39,7 @@ class MCOParameterView(BaseMCOOptionsView):
     #: A list names, each representing a variable
     #: that could become a KPI
     parameter_name_options = Property(
-        List(Unicode),
+        List(Tuple(Identifier, CUBAType)),
         depends_on='variable_names_registry.data_source_inputs'
     )
 
@@ -131,7 +134,7 @@ class MCOParameterView(BaseMCOOptionsView):
             model_views += [
                 MCOParameterModelView(
                     model=parameter,
-                    _combobox_values=self.parameter_name_options
+                    available_variables=self.parameter_name_options
                 )
                 for parameter in self.model.parameters
             ]
@@ -176,7 +179,7 @@ class MCOParameterView(BaseMCOOptionsView):
     def update_model_views__combobox(self):
         """Update the KPI model view name options"""
         for parameter_view in self.model_views:
-            parameter_view._combobox_values = self.parameter_name_options
+            parameter_view.available_variables = self.parameter_name_options
 
     def _add_parameter_button_fired(self):
         """Call add_parameter to create a new empty parameter using
