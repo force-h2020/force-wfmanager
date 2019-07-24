@@ -712,6 +712,9 @@ class WorkflowTree(ModelView):
         # A list of error messages to be displayed in the UI
         message_list = []
 
+        # Reset the validity of each view
+        start_view.valid = True
+
         # If the current ModelView has any child modelviews
         # retrieve their error messages by calling self.verify_tree
         if current_view_type in mappings:
@@ -725,6 +728,9 @@ class WorkflowTree(ModelView):
                     child_view_errors = self.verify_tree(
                         errors, start_view=child_view
                     )
+                    # If a child view is invalid, invalidate the parent
+                    if not child_view.valid:
+                        start_view.valid = False
 
                     # Add any unique error messages to the list
                     for message in child_view_errors:
@@ -733,8 +739,6 @@ class WorkflowTree(ModelView):
 
         # A list of messages to pass to the parent ModelView
         send_to_parent = message_list[:]
-
-        start_view.valid = True
 
         for verifier_error in errors:
 
@@ -749,8 +753,8 @@ class WorkflowTree(ModelView):
 
             # For errors where the subject is an Input/OutputSlotInfo object,
             # check if this is an attribute of the (DataSource) model
-            if (isinstance(verifier_error.subject, InputSlotInfo)
-                    or isinstance(verifier_error.subject, OutputSlotInfo)):
+            if isinstance(verifier_error.subject,
+                          (InputSlotInfo, OutputSlotInfo)):
                 slots = []
                 slots.extend(
                     getattr(start_view.model, 'input_slot_info', [])
@@ -766,22 +770,11 @@ class WorkflowTree(ModelView):
             # For errors where the subject is an KPISpecification or
             # BaseMCOParameter, check if this is an attribute of
             # the (BaseMCOOptionsView) model
-            if (isinstance(verifier_error.subject, KPISpecification)
-                    or isinstance(verifier_error.subject, BaseMCOParameter)):
+            if isinstance(verifier_error.subject,
+                          (KPISpecification, BaseMCOParameter)):
                 model_views = getattr(start_view, 'model_views', [])
                 models = [model_view.model for model_view in model_views]
                 if verifier_error.subject in models:
-                    verifier_check(
-                        verifier_error, _ERROR, message_list,
-                        send_to_parent, start_view)
-
-            # For errors where the subject is an KPISpecificationView or
-            # MCOParameterView object, check if this is an attribute of
-            # the (MCOView) model
-            if (isinstance(verifier_error.subject, KPISpecificationView)
-                    or isinstance(verifier_error.subject, MCOParameterView)):
-                mco_options = getattr(start_view, 'mco_options', [])
-                if verifier_error.subject in mco_options:
                     verifier_check(
                         verifier_error, _ERROR, message_list,
                         send_to_parent, start_view)
