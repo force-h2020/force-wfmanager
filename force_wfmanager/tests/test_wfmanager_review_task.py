@@ -6,14 +6,13 @@ from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 from force_wfmanager.ui.review.plot import Plot
 
+from .dummy_classes.dummy_data_view import DummyDataView1
+from .dummy_classes.dummy_wfmanager import DummyWfManagerWithPlugins
 from .mock_methods import (
     mock_file_writer, mock_dialog, mock_return_args
 )
 from .test_wfmanager_tasks import get_probe_wfmanager_tasks
-from .dummy_classes.dummy_data_view import (
-    DummyDataView1
-)
-from .dummy_classes.dummy_wfmanager import DummyWfManagerWithPlugins
+
 RESULTS_FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_review_task.FileDialog'
 RESULTS_FILE_OPEN_PATH = 'force_wfmanager.io.project_io.open'
 RESULTS_JSON_DUMP_PATH = 'force_wfmanager.io.project_io.json.dump'

@@ -32,8 +32,9 @@ class BaseMCOOptionsModelView(ModelView):
     # Regular Attributes
     # ------------------
 
-    #: Defines if the KPI is valid or not. Set by the function
-    #: map_verify_workflow in workflow_view.py
+    #: Defines if the KPI/parameter is valid or not. Updated by
+    #: :func:`verify_tree
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     valid = Bool(True)
 
     #: An error message for issues in this modelview. Updated by
@@ -79,8 +80,9 @@ class BaseMCOOptionsModelView(ModelView):
 
     @on_trait_change('model.name,_combobox_values')
     def _check_model_name(self):
-        """Check the model name against all possible output variable
-        names. Clear the model name if a matching output is not found"""
+        """Check the model name against a compiled list of available
+         output variable names. Clear the model name if a matching
+         output is not found"""
         if self.model is not None:
             if self._combobox_values is not None:
                 if self.model.name not in self._combobox_values + ['']:

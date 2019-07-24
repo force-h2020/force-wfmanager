@@ -6,8 +6,6 @@ from traitsui.api import View
 
 from force_bdss.api import BaseMCOModel
 
-from force_wfmanager.utils.variable_names_registry import \
-    VariableNamesRegistry
 from force_wfmanager.ui.setup.mco.base_mco_options_view import \
     BaseMCOOptionsView
 from force_wfmanager.ui.setup.mco.kpi_specification_view import \
@@ -16,6 +14,8 @@ from force_wfmanager.ui.setup.mco.mco_parameter_view import (
     MCOParameterView
 )
 from force_wfmanager.ui.ui_utils import get_factory_name
+from force_wfmanager.utils.variable_names_registry import \
+    VariableNamesRegistry
 
 
 class MCOView(HasTraits):

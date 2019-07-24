@@ -35,7 +35,7 @@ class BaseMCOOptionsView(HasTraits):
     #: Defines the human readable name for the View
     name = Unicode('Options')
 
-    #: List of kpi ModelViews to display in ListEditor notebook
+    #: List of option ModelViews to display in ListEditor notebook
     model_views = List(Instance(BaseMCOOptionsModelView))
 
     # ------------------
