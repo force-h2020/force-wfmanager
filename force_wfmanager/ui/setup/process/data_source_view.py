@@ -250,7 +250,8 @@ class DataSourceView(HasTraits):
         return SLOT_DESCRIPTION.format(row_type, type_text, idx, description)
 
     @on_trait_change(
-        'input_slots_representation.name,output_slots_representation.name'
+        'input_slots_representation.[name,type],'
+        'output_slots_representation.[name,type]'
     )
     def data_source_change(self):
         """Fires :func:`verify_workflow_event` when an input slot or output

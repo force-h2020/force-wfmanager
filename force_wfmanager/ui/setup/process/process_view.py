@@ -90,6 +90,7 @@ class ProcessView(HasTraits):
     # -------------------
     #   Public Methods
     # -------------------
+
     def add_execution_layer(self, execution_layer):
         """Adds a new empty execution layer"""
         self.model.execution_layers.append(execution_layer)
