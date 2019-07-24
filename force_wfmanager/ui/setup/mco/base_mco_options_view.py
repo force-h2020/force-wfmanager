@@ -105,15 +105,13 @@ class BaseMCOOptionsView(HasTraits):
         """Reports a validation warning if duplicate KPI names exist
         """
         model_names = []
-        for model_view in self.model_views:
-            model_names.append(model_view.model.name)
-
         errors = []
         unique_check = True
 
-        for name in model_names:
-            if model_names.count(name) > 1:
+        for model_view in self.model_views:
+            if model_view.model.name in model_names:
                 unique_check = False
+            model_names.append(model_view.model.name)
 
         if not unique_check:
             errors.append(

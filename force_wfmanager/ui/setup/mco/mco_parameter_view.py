@@ -36,8 +36,8 @@ class MCOParameterView(BaseMCOOptionsView):
     # Properties
     # ----------
 
-    #: A list names, each representing a variable
-    #: that could become a KPI
+    #: A list of variable names and types, each from a variable
+    #: that could become a MCO parameter
     parameter_name_options = Property(
         List(Tuple(Identifier, CUBAType)),
         depends_on='variable_names_registry.data_source_inputs'
@@ -148,7 +148,7 @@ class MCOParameterView(BaseMCOOptionsView):
     @cached_property
     def _get_parameter_name_options(self):
         """Listens to variable_names_registry to extract
-         possible names for new KPIs"""
+         possible names for new MCO parameters"""
         parameter_name_options = []
         if self.variable_names_registry is not None:
             outputs = self.variable_names_registry.data_source_outputs
@@ -177,7 +177,7 @@ class MCOParameterView(BaseMCOOptionsView):
     # Workflow Validation
     @on_trait_change('parameter_name_options')
     def update_model_views__combobox(self):
-        """Update the KPI model view name options"""
+        """Update the parameter model view name options"""
         for parameter_view in self.model_views:
             parameter_view.available_variables = self.parameter_name_options
 

@@ -746,11 +746,11 @@ class WorkflowTree(ModelView):
 
             # Further checks for UI objects not relating to an object in the
             # force_bdss Workflow model
-            err_subject_type = type(verifier_error.subject)
 
             # For errors where the subject is an Input/OutputSlotInfo object,
             # check if this is an attribute of the (DataSource) model
-            if err_subject_type in [InputSlotInfo, OutputSlotInfo]:
+            if (isinstance(verifier_error.subject, InputSlotInfo)
+                    or isinstance(verifier_error.subject, OutputSlotInfo)):
                 slots = []
                 slots.extend(
                     getattr(start_view.model, 'input_slot_info', [])
@@ -766,7 +766,8 @@ class WorkflowTree(ModelView):
             # For errors where the subject is an KPISpecification or
             # BaseMCOParameter, check if this is an attribute of
             # the (BaseMCOOptionsView) model
-            if err_subject_type in [KPISpecification, BaseMCOParameter]:
+            if (isinstance(verifier_error.subject, KPISpecification)
+                    or isinstance(verifier_error.subject, BaseMCOParameter)):
                 model_views = getattr(start_view, 'model_views', [])
                 models = [model_view.model for model_view in model_views]
                 if verifier_error.subject in models:
@@ -777,7 +778,8 @@ class WorkflowTree(ModelView):
             # For errors where the subject is an KPISpecificationView or
             # MCOParameterView object, check if this is an attribute of
             # the (MCOView) model
-            if err_subject_type in [KPISpecificationView, MCOParameterView]:
+            if (isinstance(verifier_error.subject, KPISpecificationView)
+                    or isinstance(verifier_error.subject, MCOParameterView)):
                 mco_options = getattr(start_view, 'mco_options', [])
                 if verifier_error.subject in mco_options:
                     verifier_check(

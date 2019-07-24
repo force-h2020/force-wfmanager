@@ -18,7 +18,7 @@ class BaseMCOOptionsModelView(ModelView):
     # Required Attributes
     # -------------------
 
-    #: KPI model
+    #: Either a MCO KPI or parameter model
     model = Either(Instance(KPISpecification),
                    Instance(BaseMCOParameter))
 
