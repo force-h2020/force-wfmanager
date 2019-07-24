@@ -125,6 +125,24 @@ class BaseMCOOptionsView(HasTraits):
         return errors
 
     # ------------------
+    #   Private Methods
+    # ------------------
+
+    def _remove_button_action(self, remove_function):
+        """A default set of actions to perform on firing of a button
+        to remove selected_model_view"""
+
+        index = self.model_views.index(self.selected_model_view)
+        remove_function(self.selected_model_view.model)
+
+        # Update user selection
+        if len(self.model_views) > 0:
+            if index == 0:
+                self.selected_model_view = self.model_views[index]
+            else:
+                self.selected_model_view = self.model_views[index-1]
+
+    # ------------------
     #   Public Methods
     # ------------------
 

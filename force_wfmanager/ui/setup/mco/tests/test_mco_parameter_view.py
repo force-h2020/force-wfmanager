@@ -87,12 +87,12 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
         )
 
         self.parameter_view._remove_parameter_button_fired()
-        self.parameter_view._remove_parameter_button_fired()
-
         self.assertEqual(
-            None,
-            self.parameter_view.selected_model_view
+            self.parameter_view.selected_model_view,
+            self.parameter_view.model_views[0]
         )
+        self.parameter_view._remove_parameter_button_fired()
+        self.assertIsNone(self.parameter_view.selected_model_view)
 
     def test__parameter_names_check(self):
         self.data_source1.input_slot_info = [InputSlotInfo(name='T1')]

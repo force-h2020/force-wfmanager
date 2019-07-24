@@ -162,16 +162,7 @@ class KPISpecificationView(BaseMCOOptionsView):
 
     def _remove_kpi_button_fired(self):
         """Call remove_kpi to delete selected kpi from model"""
-
-        index = self.model_views.index(self.selected_model_view)
-        self.remove_kpi(self.selected_model_view.model)
-
-        # Update user selection
-        if len(self.model_views) > 0:
-            if index == 0:
-                self.selected_model_view = self.model_views[index]
-            else:
-                self.selected_model_view = self.model_views[index-1]
+        self._remove_button_action(self.remove_kpi)
 
     # -------------------
     #   Public methods

@@ -187,20 +187,12 @@ class MCOParameterView(BaseMCOOptionsView):
         self.add_parameter(self.parameter_entity_creator.model)
         self.parameter_entity_creator.reset_model()
 
+        # Highlight new Parameter in ListEditor
         self.selected_model_view = self.model_views[-1]
 
     def _remove_parameter_button_fired(self):
-        """Call remove_parameter to delete selected_model_view"""
-
-        index = self.model_views.index(self.selected_model_view)
-        self.remove_parameter(self.selected_model_view.model)
-
-        # Update user selection
-        if len(self.model_views) > 0:
-            if index == 0:
-                self.selected_model_view = self.model_views[index]
-            else:
-                self.selected_model_view = self.model_views[index-1]
+        """Call remove_parameter to delete selected parameter from model"""
+        self._remove_button_action(self.remove_parameter)
 
     # -------------------
     #   Private Methods

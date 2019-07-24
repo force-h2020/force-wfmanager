@@ -100,7 +100,18 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         self.assertIsNone(self.kpi_view.selected_model_view)
 
         self.kpi_view._add_kpi_button_fired()
-        self.assertEqual(1, len(self.workflow.mco.kpis))
+        self.kpi_view._add_kpi_button_fired()
+        self.kpi_view._add_kpi_button_fired()
+        self.assertEqual(3, len(self.workflow.mco.kpis))
+        self.assertEqual(self.kpi_view.model_views[2],
+                         self.kpi_view.selected_model_view)
+
+        self.kpi_view.selected_model_view = self.kpi_view.model_views[0]
+        self.kpi_view._remove_kpi_button_fired()
+        self.assertEqual(self.kpi_view.model_views[0],
+                         self.kpi_view.selected_model_view)
+        self.kpi_view._remove_kpi_button_fired()
+        self.kpi_view.selected_model_view = self.kpi_view.model_views[-1]
         self.assertEqual(self.kpi_view.model_views[0],
                          self.kpi_view.selected_model_view)
 
