@@ -11,7 +11,7 @@ from traitsui.api import (
 from force_bdss.api import (
     ExecutionLayer, IFactoryRegistry, InputSlotInfo,
     OutputSlotInfo, Workflow, verify_workflow, KPISpecification,
-    BaseMCOParameter, BaseDataSourceModel
+    BaseMCOParameter
 )
 
 from force_wfmanager.ui.setup.communicator.communicator_view import (
@@ -738,15 +738,14 @@ class WorkflowTree(ModelView):
 
         for verifier_error in errors:
 
-            # Check whether this model is the subject of an error.
-            # For errors where the subject is an KPISpecification /
-            # BaseMCOParameter object, check if this is an attribute of
-            # the (BaseMCOModel) model and update the MCOView and
-            # MCOOptionsViews accordingly
-            verifier_check(
-                verifier_error, [start_view.model, start_view],
-                message_list, send_to_parent, start_view)
+            # Check whether this model or view is the subject of an error.
+            if verifier_error.subject in [start_view, start_view.model]:
+                verifier_check(
+                    verifier_error, _ERROR, message_list,
+                    send_to_parent, start_view)
 
+            # Further checks for UI objects not relating to an object in the
+            # force_bdss Workflow model
             err_subject_type = type(verifier_error.subject)
 
             # For errors where the subject is an Input/OutputSlotInfo object,
@@ -759,55 +758,31 @@ class WorkflowTree(ModelView):
                 slots.extend(
                     getattr(start_view.model, 'output_slot_info', [])
                 )
-
-                verifier_check(
-                    verifier_error, slots, message_list,
-                    send_to_parent, start_view)
-
-            # For errors where the subject is an DataSource object,
-            # check if this is an attribute of the (ExecutionLayerView) model
-            if err_subject_type in [BaseDataSourceModel]:
-                data_views = (
-                    getattr(start_view.model, 'data_source_views', [])
-                )
-                data_sources = [data.model for data in data_views]
-
-                verifier_check(
-                    verifier_error, data_sources, message_list,
-                    send_to_parent, start_view)
-
-            # For errors where the subject is an ExecutionLayer object,
-            # check if this is an attribute of the (ProcessView) model
-            if err_subject_type in [ExecutionLayer]:
-                layer_views = (
-                    getattr(start_view.model, 'execution_layer_views', [])
-                )
-                layers = [layer.model for layer in layer_views]
-
-                verifier_check(
-                    verifier_error, layers, message_list,
-                    send_to_parent, start_view)
+                if verifier_error.subject in slots:
+                    verifier_check(
+                        verifier_error, _ERROR, message_list,
+                        send_to_parent, start_view)
 
             # For errors where the subject is an KPISpecification or
-            # BaseMCOParameter object, check if this is an attribute of
+            # BaseMCOParameter, check if this is an attribute of
             # the (BaseMCOOptionsView) model
             if err_subject_type in [KPISpecification, BaseMCOParameter]:
                 model_views = getattr(start_view, 'model_views', [])
                 models = [model_view.model for model_view in model_views]
-
-                verifier_check(
-                    verifier_error, models, message_list,
-                    send_to_parent, start_view)
+                if verifier_error.subject in models:
+                    verifier_check(
+                        verifier_error, _ERROR, message_list,
+                        send_to_parent, start_view)
 
             # For errors where the subject is an KPISpecificationView or
             # MCOParameterView object, check if this is an attribute of
             # the (MCOView) model
             if err_subject_type in [KPISpecificationView, MCOParameterView]:
                 mco_options = getattr(start_view, 'mco_options', [])
-
-                verifier_check(
-                    verifier_error, mco_options, message_list,
-                    send_to_parent, start_view)
+                if verifier_error.subject in mco_options:
+                    verifier_check(
+                        verifier_error, _ERROR, message_list,
+                        send_to_parent, start_view)
 
         # Display message so that errors relevant to this ModelView come first
         start_view.error_message = '\n'.join(reversed(message_list))
@@ -816,17 +791,32 @@ class WorkflowTree(ModelView):
         return send_to_parent
 
 
-def verifier_check(error, attributes, message_list, send_to_parent, view):
-    # If there are any 'error' level entries, set the modelview
-    # as invalid, and communicate these to the parent modelview.
-    # 'warning' or 'information' level messages are only displayed
-    # locally and don't invalidate that modelview
-    if error.subject in attributes:
-        if error.local_error not in message_list:
-            message_list.append(error.local_error)
-        if error.severity == _ERROR:
-            send_to_parent.append(error.global_error)
-            view.valid = False
+def verifier_check(verifier_error, severity, message_list,
+                   send_to_parent, view):
+    """Function to check whether there are any severity level entries in a
+    VerifierError, and if so, set the corresponding view as invalid, and
+    communicate these to the parent view.
+
+    Parameters
+    ----------
+    verifier_error : VerifierError
+        Error under inspection
+    severity : str
+        Required severity level of error to pass to parent
+    message_list : list(str)
+        List of current error messages to display in UI
+    send_to_parent : list(str)
+        List of current error messages to pass to parent view
+    view : HasTraits
+        View under inspection
+
+    """
+    if verifier_error.local_error not in message_list:
+        message_list.append(verifier_error.local_error)
+
+    if verifier_error.severity == severity:
+        send_to_parent.append(verifier_error.global_error)
+        view.valid = False
 
 
 # HTML Formatting Templates

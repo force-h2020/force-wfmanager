@@ -1,15 +1,19 @@
 from unittest import mock, TestCase
 
 from force_bdss.api import (
-    ExecutionLayer, Workflow, BaseMCOModel, KPISpecification
+    ExecutionLayer, Workflow, BaseMCOModel, KPISpecification,
+    VerifierError
 )
 
+from force_wfmanager.tests.dummy_classes.dummy_mco_options_view import (
+    DummyBaseMCOOptionsView
+)
 from force_wfmanager.ui.setup.system_state import SystemState
 from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
     WfManagerBaseTestCase
 )
 from force_wfmanager.ui.setup.workflow_tree import (
-    WorkflowTree, TreeNodeWithStatus
+    WorkflowTree, TreeNodeWithStatus, verifier_check
 )
 
 
@@ -381,3 +385,62 @@ class TestProcessElementNode(TestCase):
         obj.valid = False
         self.assertEqual(wfelement_node.get_icon(obj, False),
                          'icons/invalid.png')
+
+
+class TestVerifierCheck(TestCase):
+
+    def setUp(self):
+        self.view = DummyBaseMCOOptionsView()
+        self.verifier_error = VerifierError(
+            subject=self.view,
+            local_error='an error',
+            global_error='AN ERROR',
+            severity='error'
+        )
+        self.message_list = []
+        self.send_to_parent = []
+
+    def test_verifier_check_error(self):
+
+        self.assertTrue(self.view.valid)
+        self.assertEqual(0, len(self.message_list))
+        self.assertEqual(0, len(self.send_to_parent))
+
+        verifier_check(
+            self.verifier_error, 'error', self.message_list,
+            self.send_to_parent, self.view)
+
+        self.assertFalse(self.view.valid)
+        self.assertEqual(1, len(self.message_list))
+        self.assertEqual('an error', self.message_list[0])
+        self.assertEqual(1, len(self.send_to_parent))
+        self.assertEqual('AN ERROR', self.send_to_parent[0])
+
+    def test_verifier_check_warning(self):
+
+        self.verifier_error.severity = 'warning'
+        self.verifier_error.local_error = 'a warning'
+        self.verifier_error.global_error = 'A WARNING'
+
+        self.assertTrue(self.view.valid)
+        self.assertEqual(0, len(self.message_list))
+        self.assertEqual(0, len(self.send_to_parent))
+
+        verifier_check(
+            self.verifier_error, 'error', self.message_list,
+            self.send_to_parent, self.view)
+
+        self.assertTrue(self.view.valid)
+        self.assertEqual(1, len(self.message_list))
+        self.assertEqual('a warning', self.message_list[0])
+        self.assertEqual(0, len(self.send_to_parent))
+
+        verifier_check(
+            self.verifier_error, 'warning', self.message_list,
+            self.send_to_parent, self.view)
+
+        self.assertFalse(self.view.valid)
+        self.assertEqual(1, len(self.message_list))
+        self.assertEqual('a warning', self.message_list[0])
+        self.assertEqual(1, len(self.send_to_parent))
+        self.assertEqual('A WARNING', self.send_to_parent[0])

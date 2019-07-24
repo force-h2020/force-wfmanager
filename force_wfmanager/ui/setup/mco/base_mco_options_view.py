@@ -119,7 +119,8 @@ class BaseMCOOptionsView(HasTraits):
             errors.append(
                 VerifierError(
                     subject=self,
-                    global_error=f'Two or more {self.name} have a duplicate name',
+                    global_error=(f'Two or more {self.name} have'
+                                  ' a duplicate name'),
                 )
             )
 

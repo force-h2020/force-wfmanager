@@ -4,15 +4,16 @@ from traits.testing.unittest_tools import UnittestTools
 
 from force_bdss.api import KPISpecification
 
-from force_wfmanager.tests.dummy_classes.dummy_mco_options_view import \
-    DummyBaseMCOOptionsModelView
+from force_wfmanager.ui.setup.mco.base_mco_options_model_view import (
+    BaseMCOOptionsModelView
+)
 
 
 class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
 
     def setUp(self):
 
-        self.mco_options_model_view = DummyBaseMCOOptionsModelView()
+        self.mco_options_model_view = BaseMCOOptionsModelView()
 
     def test_mco_options_model_view_init(self):
 
