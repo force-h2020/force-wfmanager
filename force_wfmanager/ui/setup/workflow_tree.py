@@ -784,8 +784,10 @@ class WorkflowTree(ModelView):
                 model_views = getattr(start_view, 'model_views', [])
                 models = [model_view.model for model_view in model_views]
                 if verifier_error.subject in models:
+                    # Don't append local_error to message_list as we don't
+                    # want to show duplicate messages on BaseMCOOptionsView
                     verifier_check(
-                        verifier_error, _ERROR, message_list,
+                        verifier_error, _ERROR, [],
                         send_to_parent, start_view)
 
         # Display message so that errors relevant to this ModelView come first
