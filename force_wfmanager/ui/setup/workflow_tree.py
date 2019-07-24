@@ -742,15 +742,24 @@ class WorkflowTree(ModelView):
 
         for verifier_error in errors:
 
-            # Check whether this model or view is the subject of an error.
-            if verifier_error.subject in [start_view, start_view.model]:
+            # If start_view does not have a corresponding model object,
+            # check whether this view is the subject of an error.
+            if isinstance(
+                    start_view,
+                    (ProcessView, KPISpecificationView, MCOParameterView)
+            ):
+                subject = start_view
+            # Otherwise check whether the model is the subject of an error.
+            else:
+                subject = start_view.model
+
+            if verifier_error.subject == subject:
                 verifier_check(
                     verifier_error, _ERROR, message_list,
                     send_to_parent, start_view)
 
             # Further checks for UI objects not relating to an object in the
             # force_bdss Workflow model
-
             # For errors where the subject is an Input/OutputSlotInfo object,
             # check if this is an attribute of the (DataSource) model
             if isinstance(verifier_error.subject,

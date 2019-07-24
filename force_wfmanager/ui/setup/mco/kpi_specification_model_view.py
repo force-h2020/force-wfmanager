@@ -44,5 +44,5 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
 
     #: Listeners
     @on_trait_change('model.[name,objective]')
-    def parameter_model_change(self):
+    def kpi_model_change(self):
         self.model_change()

@@ -344,18 +344,6 @@ class TestWorkflowTree(WfManagerBaseTestCase):
             "An input slot is not named", self.workflow_tree.selected_error
         )
 
-        parameter_view = (self.workflow_tree.workflow_view
-                          .mco_view[0].parameter_view)
-        self.system_state.selected_view = parameter_view
-        self.assertIn("No errors", self.workflow_tree.selected_error)
-
-        parameter_view.model_views[0].model.name = ''
-        self.assertIn("An MCO parameter is not named",
-                      self.workflow_tree.selected_error)
-        self.assertIn("An MCO parameter has no type set",
-                      self.workflow_tree.selected_error)
-        self.assertFalse(parameter_view.valid)
-
         data_source_view = (
             self.workflow_tree.workflow_view.process_view[0]
             .execution_layer_views[0].data_source_views[0]
@@ -367,6 +355,8 @@ class TestWorkflowTree(WfManagerBaseTestCase):
             "An output variable has an undefined name",
             self.workflow_tree.selected_error
         )
+
+    def test_mco_error_messaging_independence(self):
 
         mco_view = (
             self.workflow_tree.workflow_view.mco_view[0]
@@ -380,6 +370,19 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         self.assertFalse(mco_view.kpi_view.valid)
         self.assertFalse(mco_view.valid)
         self.assertFalse(self.workflow_tree.workflow_view.valid)
+
+        self.workflow.mco.kpis = []
+        self.assertTrue(mco_view.parameter_view.valid)
+
+        self.system_state.selected_view = mco_view.parameter_view
+        self.assertIn("No errors", self.workflow_tree.selected_error)
+
+        mco_view.parameter_view.model_views[0].model.name = ''
+        self.assertIn("An MCO parameter is not named",
+                      self.workflow_tree.selected_error)
+        self.assertIn("An MCO parameter has no type set",
+                      self.workflow_tree.selected_error)
+        self.assertFalse(mco_view.parameter_view.valid)
 
 
 class TestProcessElementNode(TestCase):
