@@ -28,11 +28,11 @@ class VariableNamesRegistry(HasStrictTraits):
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the input variables produced by that execution layer
-    data_source_input = List(Tuple(Identifier, CUBAType, BaseDataSourceModel))
+    data_source_input = Tuple(Identifier, CUBAType, BaseDataSourceModel)
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the output variables produced by that execution layer
-    data_source_output = List(Tuple(Identifier, CUBAType, BaseDataSourceModel))
+    data_source_output = Tuple(Identifier, CUBAType, BaseDataSourceModel)
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the input variables produced by that execution layer
@@ -126,14 +126,12 @@ class VariableNamesRegistry(HasStrictTraits):
 
         for input_layer, output_layer in zip(input_stack, output_stack):
             layer_variables = []
-            generator = zip(input_layer, output_layer)
-            for input_data_source, output_data_source in generator:
-                layer_variables += [
-                    variable[0] for variable in input_data_source
-                ]
-                layer_variables += [
-                    variable[0] for variable in output_data_source
-                ]
+            layer_variables += [
+                variable[0] for variable in input_layer
+            ]
+            layer_variables += [
+                variable[0] for variable in output_layer
+            ]
             variables.append(layer_variables)
 
         return variables
@@ -156,25 +154,23 @@ class VariableNamesRegistry(HasStrictTraits):
 
         for input_layer, output_layer in zip(input_stack, output_stack):
             res_dict = {}
-            generator = zip(input_layer, output_layer)
-            for input_data_source, output_data_source in generator:
-                for input_info in input_data_source:
-                    var_name = input_info[0]
-                    var_type = input_info[1]
+            for input_info in input_layer:
+                var_name = input_info[0]
+                var_type = input_info[1]
 
-                    if var_type in res_dict:
-                        res_dict[var_type].append(var_name)
-                    else:
-                        res_dict[var_type] = [var_name]
+                if var_type in res_dict:
+                    res_dict[var_type].append(var_name)
+                else:
+                    res_dict[var_type] = [var_name]
 
-                for output_info in output_data_source:
-                    var_name = output_info[0]
-                    var_type = output_info[1]
+            for output_info in output_layer:
+                var_name = output_info[0]
+                var_type = output_info[1]
 
-                    if var_type in res_dict:
-                        res_dict[var_type].append(var_name)
-                    else:
-                        res_dict[var_type] = [var_name]
+                if var_type in res_dict:
+                    res_dict[var_type].append(var_name)
+                else:
+                    res_dict[var_type] = [var_name]
 
             res.append(res_dict)
         return res
@@ -182,9 +178,8 @@ class VariableNamesRegistry(HasStrictTraits):
     def _get_data_source_names(self, stack):
         res = []
         for layer in stack:
-            for info in layer:
-                res.extend([value for value in info
-                            if value not in res])
+            res.extend([value for value in layer
+                        if value not in res])
         return res
 
     @on_trait_change(
@@ -236,11 +231,11 @@ class VariableNamesRegistry(HasStrictTraits):
                 input_types = [slot.type for slot in input_slots]
                 output_types = [slot.type for slot in output_slots]
 
-                input_stack_entry_for_layer.append([
+                input_stack_entry_for_layer.extend([
                     (name, type, data_source_model) for name, type
                     in zip(input_names, input_types) if name != ''
                 ])
-                output_stack_entry_for_layer.append([
+                output_stack_entry_for_layer.extend([
                     (name, type, data_source_model) for name, type
                     in zip(output_names, output_types) if name != ''
                 ])
