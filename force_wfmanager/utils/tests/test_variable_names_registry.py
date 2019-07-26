@@ -84,17 +84,19 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
 
-        self.assertEqual([[('V1', 'PRESSURE')], []],
+        self.assertEqual([[('V1', 'PRESSURE', self.data_source1)], []],
                          self.registry.available_input_variables_stack[0])
-        self.assertEqual([[('T1', 'PRESSURE')], []],
+        self.assertEqual([[('T1', 'PRESSURE', self.data_source1)], []],
                          self.registry.available_output_variables_stack[0])
 
         self.data_source2.input_slot_info = [InputSlotInfo(name='V2')]
         self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
 
-        self.assertEqual([[('V1', 'PRESSURE')], [('V2', 'PRESSURE')]],
+        self.assertEqual([[('V1', 'PRESSURE', self.data_source1)],
+                          [('V2', 'PRESSURE', self.data_source2)]],
                          self.registry.available_input_variables_stack[0])
-        self.assertEqual([[('T1', 'PRESSURE')], [('T2', 'PRESSURE')]],
+        self.assertEqual([[('T1', 'PRESSURE', self.data_source1)],
+                          [('T2', 'PRESSURE', self.data_source2)]],
                          self.registry.available_output_variables_stack[0])
 
         self.data_source3.input_slot_info = [InputSlotInfo(name='T1')]

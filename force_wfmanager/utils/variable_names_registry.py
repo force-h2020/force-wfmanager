@@ -4,7 +4,7 @@ from traits.api import (
     HasStrictTraits, List, Instance, on_trait_change, Property,
     cached_property, Dict, Tuple)
 
-from force_bdss.api import Identifier, Workflow
+from force_bdss.api import Identifier, Workflow, BaseDataSourceModel
 from force_bdss.local_traits import CUBAType
 
 log = logging.getLogger(__name__)
@@ -28,11 +28,11 @@ class VariableNamesRegistry(HasStrictTraits):
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the input variables produced by that execution layer
-    data_source_input = List(Tuple(Identifier, CUBAType))
+    data_source_input = List(Tuple(Identifier, CUBAType, BaseDataSourceModel))
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the output variables produced by that execution layer
-    data_source_output = List(Tuple(Identifier, CUBAType))
+    data_source_output = List(Tuple(Identifier, CUBAType, BaseDataSourceModel))
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the input variables produced by that execution layer
@@ -237,11 +237,11 @@ class VariableNamesRegistry(HasStrictTraits):
                 output_types = [slot.type for slot in output_slots]
 
                 input_stack_entry_for_layer.append([
-                    (name, type) for name, type
+                    (name, type, data_source_model) for name, type
                     in zip(input_names, input_types) if name != ''
                 ])
                 output_stack_entry_for_layer.append([
-                    (name, type) for name, type
+                    (name, type, data_source_model) for name, type
                     in zip(output_names, output_types) if name != ''
                 ])
 
