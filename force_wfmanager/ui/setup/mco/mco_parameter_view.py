@@ -155,7 +155,8 @@ class MCOParameterView(BaseMCOOptionsView):
             inputs = self.variable_names_registry.data_source_inputs
             parameter_name_options += (
                 [input_ for input_ in inputs
-                 if input_ not in outputs]
+                 if input_ not in outputs and
+                 input_ not in parameter_name_options]
             )
 
         return parameter_name_options

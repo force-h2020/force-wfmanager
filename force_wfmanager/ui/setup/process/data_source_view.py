@@ -4,12 +4,13 @@ from traits.api import (
     cached_property
 )
 from traitsui.api import (
-    View, Item, TableEditor, VGroup, TextEditor, UReadonly
+    View, Item, TableEditor, VGroup, TextEditor, UReadonly,
+    EnumEditor
 )
 from traitsui.table_column import ObjectColumn
 
 from force_bdss.api import (BaseDataSourceModel, BaseDataSource,
-                            InputSlotInfo, OutputSlotInfo)
+                            InputSlotInfo, OutputSlotInfo, Identifier)
 
 from force_wfmanager.ui.ui_utils import (
     get_factory_name, get_default_background_color)
@@ -47,6 +48,9 @@ class InputSlotRow(TableRow):
 
     #: Model of the evaluator
     model = Instance(InputSlotInfo)
+
+    # Available names for input variables
+    available_names = List(Identifier)
 
 
 class OutputSlotRow(TableRow):
@@ -308,7 +312,6 @@ class DataSourceView(HasTraits):
         needed by the evaluator and the model slot values """
 
         input_representations = []
-
         for index, input_slot in enumerate(input_slots):
             slot_representation = InputSlotRow(
                 model=self.model.input_slot_info[index],
@@ -336,7 +339,12 @@ class DataSourceView(HasTraits):
         registry = self.variable_names_registry
         idx = self.layer_index
 
-        return registry.available_variables[idx]
+        available_names = []
+
+        for layer in registry.available_variables[:idx]:
+            available_names += layer
+
+        return available_names
 
     def _available_variables_by_type(self, variable_type):
         """Returns the available variables of variable_type for the

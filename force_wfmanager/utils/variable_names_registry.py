@@ -4,7 +4,9 @@ from traits.api import (
     HasStrictTraits, List, Instance, on_trait_change, Property,
     cached_property, Dict, Tuple)
 
-from force_bdss.api import Identifier, Workflow, BaseDataSourceModel
+from force_bdss.api import (
+    Identifier, Workflow, BaseDataSourceModel, InputSlotInfo
+)
 from force_bdss.local_traits import CUBAType
 
 log = logging.getLogger(__name__)
@@ -28,11 +30,11 @@ class VariableNamesRegistry(HasStrictTraits):
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the input variables produced by that execution layer
-    data_source_input = Tuple(Identifier, CUBAType, BaseDataSourceModel)
+    data_source_input = Tuple(Identifier, CUBAType)
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the output variables produced by that execution layer
-    data_source_output = Tuple(Identifier, CUBAType, BaseDataSourceModel)
+    data_source_output = Tuple(Identifier, CUBAType)
 
     #: For each execution layer, there will be a list of (name, type) pairs
     #: representing the input variables produced by that execution layer
@@ -123,6 +125,14 @@ class VariableNamesRegistry(HasStrictTraits):
         output_stack = self.available_output_variables_stack
         input_stack = self.available_input_variables_stack
         variables = []
+
+        parameter_names = []
+        if self.workflow.mco is not None:
+            for parameter in self.workflow.mco.parameters:
+                parameter_names = []
+                parameter_names.append(parameter.name)
+
+        variables.append(parameter_names)
 
         for input_layer, output_layer in zip(input_stack, output_stack):
             layer_variables = []
@@ -232,11 +242,11 @@ class VariableNamesRegistry(HasStrictTraits):
                 output_types = [slot.type for slot in output_slots]
 
                 input_stack_entry_for_layer.extend([
-                    (name, type, data_source_model) for name, type
+                    (name, type) for name, type
                     in zip(input_names, input_types) if name != ''
                 ])
                 output_stack_entry_for_layer.extend([
-                    (name, type, data_source_model) for name, type
+                    (name, type) for name, type
                     in zip(output_names, output_types) if name != ''
                 ])
 

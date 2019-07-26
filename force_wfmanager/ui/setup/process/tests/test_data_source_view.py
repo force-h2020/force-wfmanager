@@ -105,3 +105,6 @@ class TestDataSourceView(WfManagerBaseTestCase):
                       self.data_source_view.selected_slot_description)
         self.assertIn("PRESSURE",
                       self.data_source_view.selected_slot_description)
+
+    def test__available_variables(self):
+        self.data_source_view._available_variables()
