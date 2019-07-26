@@ -399,6 +399,27 @@ class BasePlot(BaseDataView):
         self._plot.range2d.y_range.low_setting = y_low
         self._plot.range2d.y_range.high_setting = y_high
 
+    def _get_plot_range(self):
+        """ Helper method to get the size of the current _plot
+
+        Returns
+        ----------
+        x_low: Float
+            Minimum value for x range of plot
+        x_high: Float
+            Maximum value for x range of plot
+        y_low: Float
+            Minimum value for y range of plot
+        y_high: Float
+            Maximum value for y range of plot
+        """
+        return (
+            self._plot.range2d.x_range.low_setting,
+            self._plot.range2d.x_range.high_setting,
+            self._plot.range2d.y_range.low_setting,
+            self._plot.range2d.y_range.high_setting
+        )
+
 
 class Plot(BasePlot):
     """Simple 2D scatter plot with optional colormap (see module doc)."""
@@ -453,11 +474,12 @@ class Plot(BasePlot):
 
     @on_trait_change('color_plot')
     def change_plot_style(self):
+        ranges = self._get_plot_range()
         if self.color_plot:
             self._plot = self.plot_cmap_scatter()
         else:
             self._plot = self.plot_scatter()
-        self.recenter_plot()
+        self._set_plot_range(*ranges)
 
     @on_trait_change('colormap')
     def _update_cmap(self):
