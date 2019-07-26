@@ -40,11 +40,11 @@ class TestDataSourceView(WfManagerBaseTestCase):
         self.workflow.mco.parameters[0].name = 'P2'
         self.assertEqual('P1', self.model_1.input_slot_info[0].name)
 
-        self.data_source_view.input_slots_representation[0].name = 'P2'
+        self.data_source_view.input_slots_representation[0].model.name = 'P2'
         self.assertEqual('P2', self.model_1.input_slot_info[0].name)
 
     def test_output_slot_update(self):
-        self.data_source_view.output_slots_representation[0].name = 'output'
+        self.data_source_view.output_slots_representation[0].model.name = 'output'
         self.assertEqual('output', self.model_1.output_slot_info[0].name)
 
     def test_bad_input_slots(self):
@@ -77,17 +77,17 @@ class TestDataSourceView(WfManagerBaseTestCase):
 
         self.assertEqual(
             'p1',
-            self.data_source_view.output_slots_representation[0].name
+            self.data_source_view.output_slots_representation[0].model.name
         )
         self.assertEqual(
             't1',
-            self.data_source_view.output_slots_representation[1].name
+            self.data_source_view.output_slots_representation[1].model.name
         )
 
         self.model_1.input_slot_info[0].name = 'P2'
         self.assertEqual(
             'P2',
-            self.data_source_view.input_slots_representation[0].name
+            self.data_source_view.input_slots_representation[0].model.name
         )
 
     def test_HTML_description(self):
