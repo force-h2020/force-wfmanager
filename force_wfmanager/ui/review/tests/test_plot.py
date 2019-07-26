@@ -298,3 +298,5 @@ class TestPlot(TestAnyPlot, unittest.TestCase):
         self.plot.color_plot = True
         self.plot.color_by = 'color'
         self.assertEqual(self.plot._get_plot_range(), (0.5, 2, 100000, 103000))
+        self.assertEqual(self.plot._plot.x_axis.title, "density")
+        self.assertEqual(self.plot._plot.y_axis.title, "pressure")

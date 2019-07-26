@@ -476,11 +476,17 @@ class Plot(BasePlot):
     @on_trait_change('color_plot')
     def change_plot_style(self):
         ranges = self._get_plot_range()
+        x_title = self._plot.x_axis.title
+        y_title = self._plot.y_axis.title
+
         if self.color_plot:
             self._plot = self.plot_cmap_scatter()
         else:
             self._plot = self.plot_scatter()
+
         self._set_plot_range(*ranges)
+        self._plot.x_axis.title = x_title
+        self._plot.y_axis.title = y_title
 
     @on_trait_change('colormap')
     def _update_cmap(self):
