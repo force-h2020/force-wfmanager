@@ -29,11 +29,6 @@ class KPISpecificationView(BaseMCOOptionsView):
     #     Properties
     # ------------------
 
-    #: The names of the KPIs in the Workflow.
-    kpi_names = Property(
-        List(Unicode), depends_on='model.kpis.name'
-    )
-
     #: A list names, each representing a variable
     #: that could become a KPI
     kpi_name_options = Property(
@@ -115,15 +110,6 @@ class KPISpecificationView(BaseMCOOptionsView):
     # -------------------
     #     Listeners
     # -------------------
-
-    @cached_property
-    def _get_kpi_names(self):
-        """Listens to model.kpis to extract model names for display"""
-        kpi_names = []
-        for kpi in self.model.kpis:
-            kpi_names.append(kpi.name)
-
-        return kpi_names
 
     @cached_property
     def _get_kpi_name_options(self):
