@@ -1,3 +1,5 @@
+import mock
+import time
 import unittest
 import warnings
 
@@ -28,6 +30,7 @@ class TestAnyPlot(object):
             self.plot._plot_data.get_data('x').tolist(), [])
         self.assertEqual(
             self.plot._plot_data.get_data('y').tolist(), [])
+        self.assertTrue(self.plot.plot_updater.IsRunning())
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ('density', 'pressure')
@@ -42,6 +45,28 @@ class TestAnyPlot(object):
             warnings.simplefilter('ignore')
             self.assertIsInstance(self.plot._plot, ChacoPlot)
             self.assertIsInstance(self.plot._axis, ScatterPlot)
+
+    def test_plot_updater(self):
+        self.assertTrue(self.plot.plot_updater.IsRunning())
+        with mock.patch(
+                "force_wfmanager.ui.review.plot."
+                + self.plot.__class__.__name__
+                + "._update_plot") as mock_update_plot:
+
+            self.assertFalse(self.plot.update_required)
+
+            # check that after a cycle no update is done
+            time.sleep(1.1)
+            mock_update_plot.assert_not_called()
+
+            self.analysis_model.value_names = ('density', 'pressure')
+            self.analysis_model.add_evaluation_step((1.010, 101325))
+            self.analysis_model.add_evaluation_step((1.100, 101423))
+            self.assertTrue(self.plot.update_required)
+
+            # wait a cycle for the update
+            time.sleep(1.1)
+            mock_update_plot.assert_called()
 
     def test_push_new_evaluation_steps(self):
         self.analysis_model.value_names = ('density', 'pressure')

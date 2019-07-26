@@ -124,6 +124,7 @@ class BasePlot(BaseDataView):
     def __plot_default(self):
         self._plot = self.plot_scatter()
         self.recenter_plot()
+        self.plot_updater.Start()
         return self._plot
 
     def _get_scatter_inspector_overlay(self, scatter_plot):
