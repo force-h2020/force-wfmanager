@@ -8,7 +8,7 @@ from traitsui.api import (
 )
 from traitsui.table_column import ObjectColumn
 
-from force_bdss.api import (BaseDataSourceModel, BaseDataSource, Identifier,
+from force_bdss.api import (BaseDataSourceModel, BaseDataSource,
                             InputSlotInfo, OutputSlotInfo)
 
 from force_wfmanager.ui.ui_utils import (
@@ -30,9 +30,6 @@ class TableRow(HasStrictTraits):
     #: Index of the slot in the slot list
     index = Int()
 
-    #: Model of the evaluator
-    model = Instance(BaseDataSourceModel)
-
     # ------------------
     # Regular Attributes
     # ------------------
@@ -44,54 +41,23 @@ class TableRow(HasStrictTraits):
 class InputSlotRow(TableRow):
     """Row in the UI representing DataSource inputs. """
 
-    # ------------------
-    # Derived Attributes
-    # ------------------
-
-    #: Name of the slot.
-    name = Identifier()
-
     # -------------------
-    #     Listeners
+    # Required Attributes
     # -------------------
 
-    @on_trait_change('model.input_slot_info[]')
-    def update_view(self):
-        """Synchronises the InputSlotRow with the underlying model"""
-        self.name = self.model.input_slot_info[self.index].name
-
-    @on_trait_change('name')
-    def update_model(self):
-        """Synchronises the model if the user changes a model object's name
-        via the UI
-        """
-        self.model.input_slot_info[self.index].name = self.name
+    #: Model of the evaluator
+    model = Instance(InputSlotInfo)
 
 
 class OutputSlotRow(TableRow):
-
-    # ------------------
-    # Derived Attributes
-    # ------------------
-
-    #: Name of the slot
-    name = Identifier()
+    """Row in the UI representing DataSource outputs. """
 
     # -------------------
-    #     Listeners
+    # Required Attributes
     # -------------------
 
-    @on_trait_change('model.output_slot_info[]')
-    def update_view(self):
-        """ Synchronises the OutputSlotRow with the underlying model"""
-        self.name = self.model.output_slot_info[self.index].name
-
-    @on_trait_change('name')
-    def update_model(self):
-        """ Synchronises the model if the user changes a model object's name
-        via the UI
-        """
-        self.model.output_slot_info[self.index].name = self.name
+    #: Model of the evaluator
+    model = Instance(OutputSlotInfo)
 
 
 #: The TraitsUI editor used for :class:`InputSlotRow`
@@ -102,7 +68,8 @@ input_slots_editor = TableEditor(
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
-        ObjectColumn(name="name", label="Variable Name", editable=True),
+        ObjectColumn(name="model.name", label="Variable Name",
+                     editable=True),
     ]
 )
 
@@ -114,7 +81,8 @@ output_slots_editor = TableEditor(
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
-        ObjectColumn(name="name", label="Variable Name", editable=True),
+        ObjectColumn(name="model.name", label="Variable Name",
+                     editable=True),
     ]
 )
 
@@ -145,7 +113,8 @@ class DataSourceView(HasTraits):
     #: The human readable name of the data source
     label = Unicode()
 
-    #: evaluator object, shouldn't be touched
+    #: evaluator object, used to generate slots containing type and description
+    # of each variable (shouldn't be touched)
     _data_source = Instance(BaseDataSource)
 
     #: Input slots representation for the table editor
@@ -250,8 +219,8 @@ class DataSourceView(HasTraits):
         return SLOT_DESCRIPTION.format(row_type, type_text, idx, description)
 
     @on_trait_change(
-        'input_slots_representation.[name,type],'
-        'output_slots_representation.[name,type]'
+        'input_slots_representation.[model.name,type],'
+        'output_slots_representation.[model.name,type]'
     )
     def data_source_change(self):
         """Fires :func:`verify_workflow_event` when an input slot or output
@@ -272,8 +241,8 @@ class DataSourceView(HasTraits):
 
         #: Initialize the input slots
         self.model.input_slot_info = [
-            InputSlotInfo(name='')
-            for _ in input_slots
+            InputSlotInfo(model=slot)
+            for slot in input_slots
         ]
 
         #: Initialize the output slots
@@ -283,21 +252,6 @@ class DataSourceView(HasTraits):
         ]
 
         self._fill_slot_rows(input_slots, output_slots)
-
-    # Available Variables Functions
-    # Model change functions
-    @on_trait_change('model.input_slot_info.name,model.output_slot_info.name')
-    def update_slot_info_names(self):
-        """Updates the name displayed in a Input/OutputSlotRow if the name
-        changes in the model.
-        """
-        for info, row in zip(self.model.input_slot_info,
-                             self.input_slots_representation):
-            row.name = info.name
-
-        for info, row in zip(self.model.output_slot_info,
-                             self.output_slots_representation):
-            row.name = info.name
 
     # -------------------
     #   Private Methods
@@ -356,10 +310,10 @@ class DataSourceView(HasTraits):
         input_representations = []
 
         for index, input_slot in enumerate(input_slots):
-            slot_representation = InputSlotRow(model=self.model, index=index)
-            slot_representation.name = self.model.input_slot_info[index].name
-            slot_representation.type = input_slot.type
-            slot_representation.description = input_slot.description
+            slot_representation = InputSlotRow(
+                model=self.model.input_slot_info[index],
+                index=index, type=input_slot.type,
+                description=input_slot.description)
             input_representations.append(slot_representation)
 
         self.input_slots_representation[:] = input_representations
@@ -367,10 +321,10 @@ class DataSourceView(HasTraits):
         output_representation = []
 
         for index, output_slot in enumerate(output_slots):
-            slot_representation = OutputSlotRow(model=self.model, index=index)
-            slot_representation.name = self.model.output_slot_info[index].name
-            slot_representation.type = output_slot.type
-            slot_representation.description = output_slot.description
+            slot_representation = OutputSlotRow(
+                model=self.model.output_slot_info[index],
+                index=index, type=output_slot.type,
+                description=output_slot.description)
             output_representation.append(slot_representation)
 
         self.output_slots_representation[:] = output_representation
