@@ -64,11 +64,8 @@ class BasePlot(BaseDataView):
     #: Timer to check on required updates
     plot_updater = Instance(Timer)
 
-    #: Schedule a refresh of plot data
-    plot_update_required = Bool(False)
-
-    #: Schedule a refresh of plot limits
-    recenter_required = Bool(False)
+    #: Schedule a refresh of plot data and axes
+    update_required = Bool(False)
 
     # --------------------
     # Dependent Attributes
@@ -122,11 +119,11 @@ class BasePlot(BaseDataView):
     )
 
     def _plot_updater_default(self):
-        return Timer(1000, self._update_plot_data)
+        return Timer(1000, self._check_scheduled_updates)
 
     def __plot_default(self):
         self._plot = self.plot_scatter()
-        self.resize_plot()
+        self.recenter_plot()
         return self._plot
 
     def _get_scatter_inspector_overlay(self, scatter_plot):
@@ -228,7 +225,7 @@ class BasePlot(BaseDataView):
             self._plot.x_axis.title = ""
             self._plot.y_axis.title = ""
 
-        self._update_plot_data()
+        self._update_plot()
 
     @on_trait_change('analysis_model.evaluation_steps[]')
     def update_data_arrays(self):
@@ -252,7 +249,7 @@ class BasePlot(BaseDataView):
         # If there is no data yet, or the data has been removed, make sure the
         # plot is updated accordingly (empty arrays)
         if data_dim == 0:
-            self._update_plot_data()
+            self._update_plot()
             return
 
         evaluation_steps = self.analysis_model.evaluation_steps
@@ -280,20 +277,25 @@ class BasePlot(BaseDataView):
             for index in range(data_dim):
                 self._data_arrays[index].append(evaluation_step[index])
 
-        # Update plot data
-        self.recenter_required = True
-        self.plot_update_required = True
-        # self._update_plot_data()
+        # Update plot data at the next cycle
+        self.update_required = True
+
+    def _check_scheduled_updates(self):
+        """ Update the plot if an update was required. This function is a
+        callback for the _plot_updater timer.
+        """
+        if self.update_required:
+            self._update_plot()
+            self.update_required = False
 
     @on_trait_change('x,y')
-    def _update_plot_data(self):
-        """Set the plot data model to the appropriate arrays so that they
-        can be displayed when either X or Y selections have been changed.
-        """
+    def _update_plot(self):
+        """Refresh the plot's axes and data. """
         if self.x is None or self.y is None \
                 or self.color_by is None or self._data_arrays == []:
             self._plot_data.set_data('x', [])
             self._plot_data.set_data('y', [])
+            self.recenter_plot()
             return
 
         x_index = self.analysis_model.value_names.index(self.x)
@@ -308,25 +310,13 @@ class BasePlot(BaseDataView):
         self._plot_data.set_data('y', self._data_arrays[y_index])
         self._plot_data.set_data('color_by', self._data_arrays[c_index])
 
-        if self.recenter_required:
-            self.resize_plot()
-            self.recenter_required = False
-        self.plot_update_required = False
-
-    @on_trait_change('plot_update_required')
-    def _check_on_timer(self):
-        if not self.plot_update_required:
-            self._update_plot_data()
-            self.plot_updater.Stop()
-        else:
-            if not self.plot_updater.IsRunning():
-                self.plot_updater.Start()
+        self.recenter_plot()
 
     def _reset_plot_fired(self):
         """ Event handler for :attr:`reset_plot`"""
-        self.resize_plot()
+        self.recenter_plot()
 
-    def resize_plot(self):
+    def recenter_plot(self):
         """ Sets the size of the current plot to have some spacing between the
         largest/smallest value and the plot edge. Also returns the new values
         (X min, X max, Y min, Y max) if the plot area changes or None if it
@@ -368,6 +358,7 @@ class BasePlot(BaseDataView):
 
             return (x_data[0] - 0.5, x_data[0] + 0.5, y_data[0] - 0.5,
                     y_data[0] + 0.5)
+
         return None
 
     @on_trait_change('analysis_model.selected_step_indices')
@@ -466,7 +457,7 @@ class Plot(BasePlot):
             self._plot = self.plot_cmap_scatter()
         else:
             self._plot = self.plot_scatter()
-        self.resize_plot()
+        self.recenter_plot()
 
     @on_trait_change('colormap')
     def _update_cmap(self):
