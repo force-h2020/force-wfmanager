@@ -68,6 +68,20 @@ class TestAnyPlot(object):
             time.sleep(1.1)
             mock_update_plot.assert_called()
 
+    def test_check_scheduled_updates(self):
+        with mock.patch(
+                "force_wfmanager.ui.review.plot."
+                + self.plot.__class__.__name__
+                + "._update_plot") as mock_update_plot:
+            self.assertFalse(self.plot.update_required)
+            self.plot._check_scheduled_updates()
+            mock_update_plot.assert_not_called()
+
+            self.plot.update_required = True
+            self.plot._check_scheduled_updates()
+            mock_update_plot.assert_called()
+            self.assertFalse(self.plot.update_required)
+
     def test_push_new_evaluation_steps(self):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
