@@ -174,3 +174,54 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.assertEqual([("V1", 'PRESSURE'),
                           ("T1", 'PRESSURE')],
                          self.registry.data_source_inputs)
+
+    def test_update_variable_database(self):
+        self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
+        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        self.data_source3.input_slot_info = [InputSlotInfo(name='T1')]
+        self.data_source3.output_slot_info = [OutputSlotInfo(name='P1')]
+
+        database = self.registry.variable_database
+        variable_list = list(database.values())
+
+        self.assertEqual(3, len(variable_list))
+        self.assertIn('V1:PRESSURE', database.keys())
+
+        self.assertEqual('PRESSURE V1', variable_list[0].label)
+        self.assertEqual('PRESSURE T1', variable_list[1].label)
+        self.assertEqual('PRESSURE P1', variable_list[2].label)
+
+        self.assertIsNone(variable_list[0].origin)
+        self.assertIsNotNone(variable_list[1].origin)
+        self.assertIsNotNone(variable_list[2].origin)
+
+        self.data_source1.output_slot_info = [OutputSlotInfo(name='B1')]
+
+        variable_list = list(database.values())
+
+        self.assertEqual(4, len(variable_list))
+
+        self.assertEqual('PRESSURE V1', variable_list[0].label)
+        self.assertEqual('PRESSURE P1', variable_list[1].label)
+        self.assertEqual('PRESSURE B1', variable_list[2].label)
+        self.assertEqual('PRESSURE T1', variable_list[3].label)
+
+        self.assertIsNone(variable_list[0].origin)
+        self.assertIsNotNone(variable_list[1].origin)
+        self.assertIsNotNone(variable_list[2].origin)
+        self.assertIsNone(variable_list[3].origin)
+
+        self.data_source1.output_slot_info[0].name = 'T1'
+
+        variable_list = list(database.values())
+
+        self.assertEqual(3, len(variable_list))
+        self.assertIn('V1:PRESSURE', database.keys())
+
+        self.assertEqual('PRESSURE V1', variable_list[0].label)
+        self.assertEqual('PRESSURE P1', variable_list[1].label)
+        self.assertEqual('PRESSURE T1', variable_list[2].label)
+
+        self.assertIsNone(variable_list[0].origin)
+        self.assertIsNotNone(variable_list[1].origin)
+        self.assertIsNotNone(variable_list[2].origin)

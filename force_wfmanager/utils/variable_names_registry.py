@@ -2,7 +2,7 @@ import logging
 
 from traits.api import (
     HasStrictTraits, List, Instance, on_trait_change, Property,
-    cached_property, Dict, Tuple)
+    cached_property, Dict, Tuple, HasTraits, Int, Unicode)
 
 from force_bdss.api import (
     Identifier, Workflow, BaseDataSourceModel, InputSlotInfo
@@ -10,6 +10,25 @@ from force_bdss.api import (
 from force_bdss.local_traits import CUBAType
 
 log = logging.getLogger(__name__)
+
+
+class Variable(HasTraits):
+
+    name = Identifier()
+
+    type = CUBAType()
+
+    layer = Int()
+
+    origin = Instance(BaseDataSourceModel)
+
+    inputs = List(BaseDataSourceModel)
+
+    label = Property(Unicode, depends_on='name,type')
+
+    def _get_label(self):
+        return f'{self.type} {self.name}'
+
 
 
 class VariableNamesRegistry(HasStrictTraits):
@@ -47,6 +66,8 @@ class VariableNamesRegistry(HasStrictTraits):
     #: Dictionary allowing the lookup of names associated with a chosen CUBA
     #: type.
     exec_layer_by_type = Dict(CUBAType, List(Identifier))
+
+    variable_database = Dict(Unicode, Variable)
 
     # ------------------
     # Derived Attributes
@@ -255,3 +276,93 @@ class VariableNamesRegistry(HasStrictTraits):
 
         self.available_input_variables_stack = input_stack
         self.available_output_variables_stack = output_stack
+
+    @on_trait_change(
+        'workflow.execution_layers.data_sources.'
+        '[input_slot_info.name,output_slot_info.name]'
+    )
+    def update_variable_database(self):
+
+        # List of keys referring to existing variables
+        existing_variable_keys = []
+
+        # List of references to variables with a defined origin
+        output_variables = []
+
+        for index, layer in enumerate(self.workflow.execution_layers):
+            for data_source_model in layer.data_sources:
+                # This try-except is also in execute.py in force_bdss, so if
+                # this fails the workflow would not be able to run anyway.
+                try:
+                    data_source = (
+                        data_source_model.factory.create_data_source())
+
+                    # ds.slots() returns (input_slots, output_slots)
+                    input_slots = data_source.slots(data_source_model)[0]
+                    output_slots = data_source.slots(data_source_model)[1]
+                except Exception:
+                    log.exception(
+                        "Unable to create data source from factory '{}' "
+                        "in plugin '{}'. This may indicate a programming "
+                        "error in the plugin".format(
+                            data_source_model.factory.id,
+                            data_source_model.factory.plugin.id))
+                    raise
+
+                for info, slot in zip(data_source_model.output_slot_info, output_slots):
+                    # Key is reference to slot attribute on data_source_model. Therefore it
+                    # is unique and exists as long as the slot exists
+                    key = f'{id(info)}'
+                    existing_variable_keys.append(key)
+
+                    # If the Variable has been defined before this update, do not
+                    # create it again
+                    if key not in self.variable_database.keys():
+                        data = Variable(
+                            layer=index,
+                            origin=data_source_model
+                        )
+                        self.variable_database[key] = data
+
+                    # Update Variable object attributes with UI slots
+                    self.variable_database[key].name = info.name
+                    self.variable_database[key].type = slot.type
+
+                    # Store a reference to the existing name and type of the Variable -
+                    # this is used to cross check against possible input slots
+                    ref = f'{info.name}:{slot.type}'
+                    if ref not in output_variables:
+                        output_variables.append(ref)
+
+                for info, slot in zip(data_source_model.input_slot_info, input_slots):
+                    # Check whether an existing output variable could be passed to this
+                    # input slot
+                    ref = f'{info.name}:{slot.type}'
+                    if ref not in output_variables:
+                        # Store the reference to retain the Variable during cleanup
+                        existing_variable_keys.append(ref)
+
+                        # If another input slot has referenced this Variable, then simply
+                        # add the data_source to the input_list, otherwise create a new
+                        # Variable
+                        if ref not in self.variable_database.keys():
+                            data = Variable(
+                                name=info.name,
+                                type=slot.type,
+                                layer=index
+                            )
+                            self.variable_database[ref] = data
+                        else:
+                            self.variable_database[ref].inputs.append(data_source_model)
+
+                    # Search through existing variables to find a name and type match
+                    else:
+                        for variable in self.variable_database.values():
+                            if variable.name == info.name and variable.type == slot.type:
+                                variable.inputs.append(data_source_model)
+
+        # Clean up any Variable that no longer have slots that exist in the workflow
+        non_existing_variables = [ref for ref in self.variable_database.keys()
+                                  if ref not in existing_variable_keys]
+        for key in non_existing_variables:
+            self.variable_database.pop(key, None)
