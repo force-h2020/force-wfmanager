@@ -13,7 +13,7 @@ from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
 from chaco.api import BaseXYPlot, ColormappedScatterPlot
 from chaco.default_colormaps import color_map_name_dict
-from pyface.timer.api import Timer
+from pyface.timer.api import CallbackTimer, do_later
 from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
 from enable.api import KeySpec
@@ -62,7 +62,7 @@ class BasePlot(BaseDataView):
     reset_enabled = Property(Bool(), depends_on="_plot_data")
 
     #: Timer to check on required updates
-    plot_updater = Instance(Timer)
+    plot_updater = Instance(CallbackTimer)
 
     #: Schedule a refresh of plot data and axes
     update_required = Bool(False)
@@ -119,13 +119,14 @@ class BasePlot(BaseDataView):
     )
 
     def _plot_updater_default(self):
-        return Timer(1000, self._check_scheduled_updates)
+        return CallbackTimer.timer(
+            interval=1, callback=self._check_scheduled_updates)
 
     def __plot_default(self):
-        self._plot = self.plot_scatter()
-        self.recenter_plot()
-        self.plot_updater.Start()
-        return self._plot
+        plot = self.plot_scatter()
+        self.plot_updater.start()
+        do_later(self.recenter_plot)
+        return plot
 
     def _get_scatter_inspector_overlay(self, scatter_plot):
 
