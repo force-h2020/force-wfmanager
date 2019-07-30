@@ -170,6 +170,7 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.assertEqual(1, len(variable_list))
         self.assertEqual('PRESSURE T1', variable_list[0].label)
         self.assertIsNotNone(variable_list[0].origin)
+        self.assertEqual(1, len(variable_list[0].input_slots))
 
         self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
 
@@ -184,6 +185,7 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.assertEqual('PRESSURE P1', variable_list[2].label)
         self.assertIsNotNone(variable_list[2].origin)
 
+        # Rename an output variable
         self.data_source1.output_slot_info[0].name = 'B1'
 
         variable_list = list(database.values())
@@ -192,6 +194,15 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.assertEqual('PRESSURE P1', variable_list[2].label)
         self.assertIsNotNone(variable_list[2].origin)
         self.assertIsNone(variable_list[1].origin)
+
+        # Rename an input variable
+        self.data_source3.input_slot_info[0].name = 'C1'
+
+        variable_list = list(database.values())
+        self.assertEqual(4, len(variable_list))
+        self.assertEqual('PRESSURE C1', variable_list[3].label)
+        self.assertIsNone(variable_list[3].origin)
+        self.assertEqual(0, len(variable_list[0].input_slots))
 
 
 class VariableTest(unittest.TestCase):

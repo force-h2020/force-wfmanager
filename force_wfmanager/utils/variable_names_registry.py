@@ -59,6 +59,8 @@ class Variable(HasTraits):
 
     @on_trait_change('origin_slot.name')
     def update_name(self):
+        """If the origin output slot name is changed, update the
+        variable name and all linked input slots"""
         self.name = self.origin_slot.name
         for input_slot in self.input_slots:
             input_slot[1].name = self.name
@@ -381,6 +383,13 @@ class VariableNamesRegistry(HasStrictTraits):
                     # to this input slot
                     ref = f'{info.name}:{slot.type}'
                     if ref not in output_variables:
+                        # Perform a check through existing output variables to
+                        # unhook input slot if it has been renamed
+                        for key in existing_variable_keys:
+                            variable = self.variable_registry[key]
+                            if (index, info) in variable.input_slots:
+                                variable.input_slots.remove((index, info))
+
                         # Store the reference to retain the Variable during
                         # cleanup
                         existing_variable_keys.append(ref)
@@ -407,9 +416,10 @@ class VariableNamesRegistry(HasStrictTraits):
                             name_check = variable.name == info.name
                             type_check = variable.type == slot.type
                             if name_check and type_check:
-                                variable.input_slots.append(
-                                    (index, info)
-                                )
+                                if (index, info) not in variable.input_slots:
+                                    variable.input_slots.append(
+                                        (index, info)
+                                    )
 
         # Clean up any Variable that no longer have slots that exist
         # in the workflow
