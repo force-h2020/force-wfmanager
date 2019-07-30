@@ -12,7 +12,8 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 
 from force_wfmanager.utils.variable_names_registry import (
-    VariableNamesRegistry)
+    Variable, VariableNamesRegistry
+)
 
 
 def get_basic_variable_names_registry():
@@ -130,22 +131,6 @@ class VariableNamesRegistryTest(unittest.TestCase):
             [[''], ['V1', 'V2', 'T1', 'T2'], ['T1', 'P1'], []],
             self.registry.available_variables
         )
-        self.assertEqual(
-            [{'PRESSURE': ['V1', 'V2', 'T1', 'T2']},
-             {'PRESSURE': ['T1', 'P1']}, {}],
-            self.registry.available_variables_by_type
-        )
-
-        self.data_source1.input_slot_info[0].name = 'V2'
-        self.assertEqual(
-            [[''], ['V2', 'V2', 'T1', 'T2'], ['T1', 'P1'], []],
-            self.registry.available_variables
-        )
-        self.assertEqual(
-            [{'PRESSURE': ['V2', 'V2', 'T1', 'T2']},
-             {'PRESSURE': ['T1', 'P1']}, {}],
-            self.registry.available_variables_by_type
-        )
 
     def test_data_source_outputs(self):
         self.param1.name = 'V1'
@@ -176,52 +161,83 @@ class VariableNamesRegistryTest(unittest.TestCase):
                          self.registry.data_source_inputs)
 
     def test_update_variable_database(self):
-        self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
+        database = self.registry.variable_database
+
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         self.data_source3.input_slot_info = [InputSlotInfo(name='T1')]
-        self.data_source3.output_slot_info = [OutputSlotInfo(name='P1')]
 
-        database = self.registry.variable_database
         variable_list = list(database.values())
+        self.assertEqual(1, len(variable_list))
+        self.assertEqual('PRESSURE T1', variable_list[0].label)
+        self.assertIsNotNone(variable_list[0].origin)
 
-        self.assertEqual(3, len(variable_list))
+        self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
+
+        variable_list = list(database.values())
+        self.assertEqual('PRESSURE V1', variable_list[1].label)
+        self.assertIsNone(variable_list[1].origin)
         self.assertIn('V1:PRESSURE', database.keys())
 
-        self.assertEqual('PRESSURE V1', variable_list[0].label)
-        self.assertEqual('PRESSURE T1', variable_list[1].label)
-        self.assertEqual('PRESSURE P1', variable_list[2].label)
-
-        self.assertIsNone(variable_list[0].origin)
-        self.assertIsNotNone(variable_list[1].origin)
-        self.assertIsNotNone(variable_list[2].origin)
-
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='B1')]
+        self.data_source3.output_slot_info = [OutputSlotInfo(name='P1')]
 
         variable_list = list(database.values())
+        self.assertEqual('PRESSURE P1', variable_list[2].label)
+        self.assertIsNotNone(variable_list[2].origin)
 
+        self.data_source1.output_slot_info[0].name = 'B1'
+
+        variable_list = list(database.values())
         self.assertEqual(4, len(variable_list))
-
-        self.assertEqual('PRESSURE V1', variable_list[0].label)
-        self.assertEqual('PRESSURE P1', variable_list[1].label)
-        self.assertEqual('PRESSURE B1', variable_list[2].label)
+        self.assertEqual('PRESSURE B1', variable_list[0].label)
         self.assertEqual('PRESSURE T1', variable_list[3].label)
-
-        self.assertIsNone(variable_list[0].origin)
-        self.assertIsNotNone(variable_list[1].origin)
         self.assertIsNotNone(variable_list[2].origin)
         self.assertIsNone(variable_list[3].origin)
 
-        self.data_source1.output_slot_info[0].name = 'T1'
-
+        self.data_source2.input_slot_info = [InputSlotInfo(name='P1')]
         variable_list = list(database.values())
 
-        self.assertEqual(3, len(variable_list))
-        self.assertIn('V1:PRESSURE', database.keys())
 
-        self.assertEqual('PRESSURE V1', variable_list[0].label)
-        self.assertEqual('PRESSURE P1', variable_list[1].label)
-        self.assertEqual('PRESSURE T1', variable_list[2].label)
+class VariableTest(unittest.TestCase):
 
-        self.assertIsNone(variable_list[0].origin)
-        self.assertIsNotNone(variable_list[1].origin)
-        self.assertIsNotNone(variable_list[2].origin)
+    def setUp(self):
+        plugin = ProbeExtensionPlugin()
+        self.data_source_factory = ProbeDataSourceFactory(
+            plugin,
+            input_slots_size=1,
+            output_slots_size=1)
+
+        data_source = self.data_source_factory.create_model()
+        data_source.output_slot_info = [OutputSlotInfo(name='T1')]
+
+        self.variable = Variable(
+            type='PRESSURE',
+            layer=0,
+            origin=data_source,
+            origin_slot=data_source.output_slot_info[0],
+        )
+
+    def test_label(self):
+        self.assertEqual('PRESSURE T1', self.variable.label)
+        self.variable.name = 'P1'
+        self.assertEqual('PRESSURE P1', self.variable.label)
+        self.variable.origin_slot.name = 'B1'
+        self.assertEqual('PRESSURE B1', self.variable.label)
+
+    def test_verify_generation(self):
+        errors = self.variable.verify_generation()
+        self.assertEqual(0, len(errors))
+
+        new_input_model = self.data_source_factory.create_model()
+        self.variable.inputs.append((1, new_input_model))
+
+        errors = self.variable.verify_generation()
+        self.assertEqual(0, len(errors))
+
+        new_input_model = self.data_source_factory.create_model()
+        self.variable.inputs.append((0, new_input_model))
+
+        errors = self.variable.verify_generation()
+        self.assertEqual(1, len(errors))
+        self.assertIn(
+            'Variable is being used as an input before being generated',
+            errors[0].global_error)

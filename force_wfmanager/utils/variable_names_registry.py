@@ -5,7 +5,8 @@ from traits.api import (
     cached_property, Dict, Tuple, HasTraits, Int, Unicode)
 
 from force_bdss.api import (
-    Identifier, Workflow, BaseDataSourceModel, InputSlotInfo
+    Identifier, Workflow, BaseDataSourceModel, OutputSlotInfo,
+    VerifierError
 )
 from force_bdss.local_traits import CUBAType
 
@@ -13,22 +14,79 @@ log = logging.getLogger(__name__)
 
 
 class Variable(HasTraits):
+    """Class used to store UI input and output information from DataSources
+    as individual variables. These are then selected by the MCO optimiser as
+    possible parameters or KPIs"""
 
-    name = Identifier()
+    # -------------------
+    # Required Attributes
+    # -------------------
 
+    # CUBA type of Variable
     type = CUBAType()
 
-    layer = Int()
+    # ------------------
+    # Regular Attributes
+    # ------------------
 
+    # Layer index at which variable is generated
+    layer = Int
+
+    # DataSource that contains Variable as an output
     origin = Instance(BaseDataSourceModel)
 
-    inputs = List(BaseDataSourceModel)
+    # DataSource output slot that is used to update Variable name
+    origin_slot = Instance(OutputSlotInfo)
 
-    label = Property(Unicode, depends_on='name,type')
+    # DataSources where Variable is used as an input
+    inputs = List(Tuple(Int, BaseDataSourceModel))
+
+    # ---------------------
+    # Dependent Attributes
+    # ---------------------
+
+    # Name of Variable, listens to origin_slot if updated by UI
+    name = Identifier()
+
+    # ------------------
+    #     Properties
+    # ------------------
+
+    label = Property(Unicode, depends_on='origin_slot.name,type')
 
     def _get_label(self):
         return f'{self.type} {self.name}'
 
+    @on_trait_change('origin_slot.name')
+    def update_name(self):
+        self.name = self.origin_slot.name
+
+    @on_trait_change('inputs,layer')
+    def verify_generation(self):
+        """Reports a validation warning if variable is used as
+        an input before being generated
+        """
+        errors = []
+        layer_check = True
+
+        # Only perform check if Variable is being created by a
+        # DataSource
+        if self.origin is not None:
+            for value in self.inputs:
+                if value[0] <= self.layer:
+                    layer_check = False
+                    break
+
+        if not layer_check:
+            errors.append(
+                VerifierError(
+                    subject=self,
+                    global_error=('Variable is being used as an input'
+                                  ' before being generated'),
+                )
+            )
+
+        return errors
 
 
 class VariableNamesRegistry(HasStrictTraits):
@@ -177,35 +235,6 @@ class VariableNamesRegistry(HasStrictTraits):
         stack = self.available_input_variables_stack
         return self._get_data_source_names(stack)
 
-    @cached_property
-    def _get_available_variables_by_type(self):
-        output_stack = self.available_output_variables_stack
-        input_stack = self.available_input_variables_stack
-        res = []
-
-        for input_layer, output_layer in zip(input_stack, output_stack):
-            res_dict = {}
-            for input_info in input_layer:
-                var_name = input_info[0]
-                var_type = input_info[1]
-
-                if var_type in res_dict:
-                    res_dict[var_type].append(var_name)
-                else:
-                    res_dict[var_type] = [var_name]
-
-            for output_info in output_layer:
-                var_name = output_info[0]
-                var_type = output_info[1]
-
-                if var_type in res_dict:
-                    res_dict[var_type].append(var_name)
-                else:
-                    res_dict[var_type] = [var_name]
-
-            res.append(res_dict)
-        return res
-
     def _get_data_source_names(self, stack):
         res = []
         for layer in stack:
@@ -282,6 +311,10 @@ class VariableNamesRegistry(HasStrictTraits):
         '[input_slot_info.name,output_slot_info.name]'
     )
     def update_variable_database(self):
+        """Method takes information from DataSourceModel input and output slots,
+         and compiles it into a dictionary containing a set of Variable objects.
+         The keys to each Variable are mainly used for persistence checking /
+         cleanup purposes"""
 
         # List of keys referring to existing variables
         existing_variable_keys = []
@@ -293,6 +326,9 @@ class VariableNamesRegistry(HasStrictTraits):
             for data_source_model in layer.data_sources:
                 # This try-except is also in execute.py in force_bdss, so if
                 # this fails the workflow would not be able to run anyway.
+                # FIXME: Remove reliance on create_data_source(). If one datasource
+                # FIXME: has an error, this shouldn't blow up the whole workflow.
+                # FIXME: Especially during the setup phase!
                 try:
                     data_source = (
                         data_source_model.factory.create_data_source())
@@ -312,27 +348,23 @@ class VariableNamesRegistry(HasStrictTraits):
                 for info, slot in zip(data_source_model.output_slot_info, output_slots):
                     # Key is reference to slot attribute on data_source_model. Therefore it
                     # is unique and exists as long as the slot exists
-                    key = f'{id(info)}'
+                    key = f'{id(info)}:{slot.type}'
                     existing_variable_keys.append(key)
 
-                    # If the Variable has been defined before this update, do not
-                    # create it again
+                    # Only create the Variable if it has not been defined before this update
                     if key not in self.variable_database.keys():
                         data = Variable(
+                            type=slot.type,
                             layer=index,
+                            origin_slot=info,
                             origin=data_source_model
                         )
                         self.variable_database[key] = data
 
-                    # Update Variable object attributes with UI slots
-                    self.variable_database[key].name = info.name
-                    self.variable_database[key].type = slot.type
-
                     # Store a reference to the existing name and type of the Variable -
                     # this is used to cross check against possible input slots
                     ref = f'{info.name}:{slot.type}'
-                    if ref not in output_variables:
-                        output_variables.append(ref)
+                    output_variables.append(ref)
 
                 for info, slot in zip(data_source_model.input_slot_info, input_slots):
                     # Check whether an existing output variable could be passed to this
@@ -343,23 +375,25 @@ class VariableNamesRegistry(HasStrictTraits):
                         existing_variable_keys.append(ref)
 
                         # If another input slot has referenced this Variable, then simply
-                        # add the data_source to the input_list, otherwise create a new
+                        # add the data_source to the inputs list, otherwise create a new
                         # Variable
                         if ref not in self.variable_database.keys():
                             data = Variable(
-                                name=info.name,
                                 type=slot.type,
-                                layer=index
+                                layer=index,
+                                name=info.name
                             )
                             self.variable_database[ref] = data
                         else:
-                            self.variable_database[ref].inputs.append(data_source_model)
+                            self.variable_database[ref].inputs.append(
+                                (index, data_source_model)
+                            )
 
                     # Search through existing variables to find a name and type match
                     else:
                         for variable in self.variable_database.values():
                             if variable.name == info.name and variable.type == slot.type:
-                                variable.inputs.append(data_source_model)
+                                variable.inputs.append((index, data_source_model))
 
         # Clean up any Variable that no longer have slots that exist in the workflow
         non_existing_variables = [ref for ref in self.variable_database.keys()
