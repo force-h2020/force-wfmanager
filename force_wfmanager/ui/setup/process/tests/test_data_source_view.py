@@ -1,13 +1,13 @@
-from traits.api import TraitError
-
 from force_bdss.api import (OutputSlotInfo, InputSlotInfo, BaseDataSourceModel)
 
 from force_wfmanager.ui.setup.process.data_source_view import \
     DataSourceView
-from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
+from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
+    WfManagerBaseTestCase
+)
 
 
-class TestDataSourceView(BaseTest):
+class TestDataSourceView(WfManagerBaseTestCase):
 
     def setUp(self):
         super(TestDataSourceView, self).setUp()
@@ -26,12 +26,6 @@ class TestDataSourceView(BaseTest):
             len(self.data_source_view.output_slots_representation),
             len(self.model_1.output_slot_info))
 
-    def test_init_slot_rows(self):
-        self.assertEqual(
-            ['P1', 'P2'],
-            self.data_source_view.input_slots_representation[0]
-            .available_variables)
-
     def test_evaluator_view_init(self):
         self.assertEqual("test_data_source", self.data_source_view.label)
         self.assertIsInstance(self.data_source_view.model, BaseDataSourceModel)
@@ -39,21 +33,15 @@ class TestDataSourceView(BaseTest):
             1, len(self.data_source_view.input_slots_representation))
         self.assertEqual(
             2, len(self.data_source_view.output_slots_representation))
-        self.assertEqual('', self.model_1.input_slot_info[0].name)
+        self.assertEqual('P1', self.model_1.input_slot_info[0].name)
         self.assertEqual('', self.model_1.output_slot_info[0].name)
 
     def test_input_slot_update(self):
-        self.data_source_view.input_slots_representation[0].name = 'P1'
-        self.assertEqual('P1', self.model_1.input_slot_info[0].name)
-
         self.workflow.mco.parameters[0].name = 'P2'
-        self.assertEqual('', self.model_1.input_slot_info[0].name)
+        self.assertEqual('P1', self.model_1.input_slot_info[0].name)
 
         self.data_source_view.input_slots_representation[0].name = 'P2'
         self.assertEqual('P2', self.model_1.input_slot_info[0].name)
-
-        with self.assertRaises(TraitError):
-            self.data_source_view.input_slots_representation[0].name = 'P1'
 
     def test_output_slot_update(self):
         self.data_source_view.output_slots_representation[0].name = 'output'
@@ -63,7 +51,7 @@ class TestDataSourceView(BaseTest):
         input_slots, _ = self.data_source.slots(self.model_1)
 
         self.model_1.input_slot_info = [
-            InputSlotInfo(name='') for _ in range(len(input_slots) + 1)  # noqa
+            InputSlotInfo(name='') for _ in range(len(input_slots) + 1) # noqa
         ]
 
         with self.assertRaisesRegex(RuntimeError, "input slots"):
