@@ -332,36 +332,6 @@ class DataSourceView(HasTraits):
 
         self.output_slots_representation[:] = output_representation
 
-    def _available_variables(self):
-        """Returns the available variables for the containing execution layer
-        of this data source
-        """
-        registry = self.variable_names_registry
-        idx = self.layer_index
-
-        available_names = []
-
-        for layer in registry.available_variables[:idx]:
-            available_names += layer
-
-        return available_names
-
-    def _available_variables_by_type(self, variable_type):
-        """Returns the available variables of variable_type for the
-        containing execution layer of this data source
-
-        Parameters
-        ----------
-        variable_type: CUBAType
-            Searches for available variables of this type
-        """
-        registry = self.variable_names_registry
-        idx = self.layer_index
-
-        if variable_type in registry.available_variables_by_type[idx]:
-            return registry.available_variables_by_type[idx][variable_type]
-        return []
-
 
 BACKGROUND_COLOR = get_default_background_color()
 

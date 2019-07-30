@@ -6,14 +6,12 @@ from traitsui.api import (
     View, Item, HGroup, ListEditor, VGroup, InstanceEditor
 )
 
-from force_bdss.api import Identifier
-from force_bdss.local_traits import CUBAType
-
 from force_wfmanager.ui.setup.mco.base_mco_options_view import \
     BaseMCOOptionsView
 from force_wfmanager.ui.setup.mco.mco_parameter_model_view import \
     MCOParameterModelView
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
+from force_wfmanager.utils.variable_names_registry import Variable
 
 
 class MCOParameterView(BaseMCOOptionsView):
@@ -39,8 +37,8 @@ class MCOParameterView(BaseMCOOptionsView):
     #: A list of variable names and types, each from a variable
     #: that could become a MCO parameter
     parameter_name_options = Property(
-        List(Tuple(Identifier, CUBAType)),
-        depends_on='variable_names_registry.data_source_inputs'
+        List(Variable),
+        depends_on='variable_names_registry.variable_database'
     )
 
     # ------------------
@@ -131,13 +129,16 @@ class MCOParameterView(BaseMCOOptionsView):
 
         if self.model is not None:
             # Add all MCO parameters as ModelViews
-            model_views += [
-                MCOParameterModelView(
-                    model=parameter,
-                    available_variables=self.parameter_name_options
+            for parameter in self.model.parameters:
+                key = f'{parameter.name}:{parameter.type}'
+                variable = self.variable_names_registry.variable_database[key]
+                model_views.append(
+                    MCOParameterModelView(
+                        model=parameter,
+                        selected_variable=variable,
+                        available_variables=self.parameter_name_options
+                    )
                 )
-                for parameter in self.model.parameters
-            ]
 
         return model_views
 
@@ -151,13 +152,9 @@ class MCOParameterView(BaseMCOOptionsView):
          possible names for new MCO parameters"""
         parameter_name_options = []
         if self.variable_names_registry is not None:
-            outputs = self.variable_names_registry.data_source_outputs
-            inputs = self.variable_names_registry.data_source_inputs
-            parameter_name_options += (
-                [input_ for input_ in inputs
-                 if input_ not in outputs and
-                 input_ not in parameter_name_options]
-            )
+            for key, value in self.variable_names_registry.variable_database.items():
+                if ':' in key:
+                    parameter_name_options.append(value)
 
         return parameter_name_options
 

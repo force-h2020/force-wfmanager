@@ -2,7 +2,7 @@ from traits.api import (
     Property, Instance, Unicode, on_trait_change
 )
 from traitsui.api import (
-    Item, View, EnumEditor
+    Item, View, InstanceEditor
 )
 
 from force_wfmanager.ui.setup.mco.base_mco_options_model_view import \
@@ -26,8 +26,11 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
     # model.name listed in kpi_names. However, it is possible
     # to directly change model.name without updating kpi_names
     traits_view = View(
-        Item('name', object='model',
-             editor=EnumEditor(name='object._combobox_values')),
+        Item('selected_variable',
+             editor=InstanceEditor(
+                 name='available_variables',
+                 editable=False)
+                     ),
         Item("objective", object='model'),
         Item('auto_scale', object='model'),
         Item("scale_factor", object='model',
@@ -46,3 +49,8 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
     @on_trait_change('model.[name,objective]')
     def kpi_model_change(self):
         self.model_change()
+
+    @on_trait_change('selected_variable.name')
+    def selected_variable_change(self):
+        if self.model is not None:
+            self.model.name = self.selected_variable.name

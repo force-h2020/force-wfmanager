@@ -14,6 +14,7 @@ from force_wfmanager.ui.setup.mco.base_mco_options_view import \
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import (
     KPISpecificationModelView
 )
+from force_wfmanager.utils.variable_names_registry import Variable
 
 
 class KPISpecificationView(BaseMCOOptionsView):
@@ -32,8 +33,8 @@ class KPISpecificationView(BaseMCOOptionsView):
     #: A list names, each representing a variable
     #: that could become a KPI
     kpi_name_options = Property(
-        List(Unicode),
-        depends_on='variable_names_registry.data_source_outputs'
+        List(Variable),
+        depends_on='variable_names_registry.variable_database'
     )
 
     # ------------------
@@ -95,15 +96,18 @@ class KPISpecificationView(BaseMCOOptionsView):
         """Creates a list of KPISpecificationModelViews for each
         model.kpi"""
         model_views = []
+
         if self.model is not None:
-            # Update model view list
-            model_views += [
-                KPISpecificationModelView(
-                    model=kpi,
-                    available_variables=self.kpi_name_options
-                )
-                for kpi in self.model.kpis
-            ]
+            # Add all MCO KPIs as ModelViews
+            for kpi in self.model.kpis:
+                model_view = KPISpecificationModelView(
+                        model=kpi,
+                        available_variables=self.kpi_name_options
+                    )
+                for var in self.kpi_name_options:
+                    if var.name == kpi.name:
+                        model_view.selected_variable = var
+                model_views.append(model_view)
 
         return model_views
 
@@ -117,13 +121,9 @@ class KPISpecificationView(BaseMCOOptionsView):
          possible names for new KPIs"""
         kpi_name_options = []
         if self.variable_names_registry is not None:
-            outputs = self.variable_names_registry.data_source_outputs
-            inputs = self.variable_names_registry.data_source_inputs
-
-            kpi_name_options += (
-                [output_ for output_ in outputs
-                 if output_ not in inputs]
-            )
+            for key, value in self.variable_names_registry.variable_database.items():
+                if len(value.inputs) == 0:
+                    kpi_name_options.append(value)
 
         return kpi_name_options
 
