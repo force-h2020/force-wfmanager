@@ -125,7 +125,7 @@ class VariableNamesRegistry(HasStrictTraits):
     #: type.
     exec_layer_by_type = Dict(CUBAType, List(Identifier))
 
-    variable_database = Dict(Unicode, Variable)
+    variable_registry = Dict(Unicode, Variable)
 
     # ------------------
     # Derived Attributes
@@ -310,11 +310,11 @@ class VariableNamesRegistry(HasStrictTraits):
         'workflow.execution_layers.data_sources.'
         '[input_slot_info.name,output_slot_info.name]'
     )
-    def update_variable_database(self):
-        """Method takes information from DataSourceModel input and output slots,
-         and compiles it into a dictionary containing a set of Variable objects.
-         The keys to each Variable are mainly used for persistence checking /
-         cleanup purposes"""
+    def update_variable_registry(self):
+        """Method takes information from DataSourceModel input and
+        output slots, and compiles it into a dictionary containing a
+        set of Variable objects. The keys to each Variable are mainly
+        used for persistence checking cleanup purposes"""
 
         # List of keys referring to existing variables
         existing_variable_keys = []
@@ -324,11 +324,13 @@ class VariableNamesRegistry(HasStrictTraits):
 
         for index, layer in enumerate(self.workflow.execution_layers):
             for data_source_model in layer.data_sources:
-                # This try-except is also in execute.py in force_bdss, so if
-                # this fails the workflow would not be able to run anyway.
-                # FIXME: Remove reliance on create_data_source(). If one datasource
-                # FIXME: has an error, this shouldn't blow up the whole workflow.
-                # FIXME: Especially during the setup phase!
+                # This try-except is also in execute.py in force_bdss,
+                # so if this fails the workflow would not be able to run
+                # anyway.
+                # FIXME: Remove reliance on create_data_source(). If one
+                # FIXME: datasource has an error, this shouldn't blow up
+                # FIXME: the whole workflow. Especially during the setup
+                # FIXME: phase!
                 try:
                     data_source = (
                         data_source_model.factory.create_data_source())
@@ -345,58 +347,72 @@ class VariableNamesRegistry(HasStrictTraits):
                             data_source_model.factory.plugin.id))
                     raise
 
-                for info, slot in zip(data_source_model.output_slot_info, output_slots):
-                    # Key is reference to slot attribute on data_source_model. Therefore it
-                    # is unique and exists as long as the slot exists
+                for info, slot in zip(data_source_model.output_slot_info,
+                                      output_slots):
+                    # Key is reference to slot attribute on data_source_model.
+                    # Therefore it is unique and exists as long as the slot
+                    # exists
                     key = f'{id(info)}:{slot.type}'
                     existing_variable_keys.append(key)
 
-                    # Only create the Variable if it has not been defined before this update
-                    if key not in self.variable_database.keys():
+                    # Only create the Variable if it has not been defined
+                    # before this update
+                    if key not in self.variable_registry.keys():
                         data = Variable(
                             type=slot.type,
                             layer=index,
                             origin_slot=info,
                             origin=data_source_model
                         )
-                        self.variable_database[key] = data
+                        self.variable_registry[key] = data
 
-                    # Store a reference to the existing name and type of the Variable -
-                    # this is used to cross check against possible input slots
+                    # Store a reference to the existing name and type of the
+                    # Variable - this is used to cross check against possible
+                    # input slots
                     ref = f'{info.name}:{slot.type}'
                     output_variables.append(ref)
 
-                for info, slot in zip(data_source_model.input_slot_info, input_slots):
-                    # Check whether an existing output variable could be passed to this
-                    # input slot
+                for info, slot in zip(data_source_model.input_slot_info,
+                                      input_slots):
+                    # Check whether an existing output variable could be passed
+                    # to this input slot
                     ref = f'{info.name}:{slot.type}'
                     if ref not in output_variables:
-                        # Store the reference to retain the Variable during cleanup
+                        # Store the reference to retain the Variable during
+                        # cleanup
                         existing_variable_keys.append(ref)
 
-                        # If another input slot has referenced this Variable, then simply
-                        # add the data_source to the inputs list, otherwise create a new
-                        # Variable
-                        if ref not in self.variable_database.keys():
+                        # If another input slot has referenced this Variable,
+                        # then simply add the data_source to the inputs list,
+                        # otherwise create a new Variable
+                        if ref not in self.variable_registry.keys():
                             data = Variable(
                                 type=slot.type,
                                 layer=index,
                                 name=info.name
                             )
-                            self.variable_database[ref] = data
+                            self.variable_registry[ref] = data
                         else:
-                            self.variable_database[ref].inputs.append(
+                            self.variable_registry[ref].inputs.append(
                                 (index, data_source_model)
                             )
 
-                    # Search through existing variables to find a name and type match
+                    # Search through existing variables to find a name and
+                    # type match
                     else:
-                        for variable in self.variable_database.values():
-                            if variable.name == info.name and variable.type == slot.type:
-                                variable.inputs.append((index, data_source_model))
+                        for variable in self.variable_registry.values():
+                            name_check = variable.name == info.name
+                            type_check = variable.type == slot.type
+                            if name_check and type_check:
+                                variable.inputs.append(
+                                    (index, data_source_model)
+                                )
 
-        # Clean up any Variable that no longer have slots that exist in the workflow
-        non_existing_variables = [ref for ref in self.variable_database.keys()
-                                  if ref not in existing_variable_keys]
+        # Clean up any Variable that no longer have slots that exist
+        # in the workflow
+        non_existing_variables = [
+            ref for ref in self.variable_registry.keys()
+            if ref not in existing_variable_keys
+        ]
         for key in non_existing_variables:
-            self.variable_database.pop(key, None)
+            self.variable_registry.pop(key, None)

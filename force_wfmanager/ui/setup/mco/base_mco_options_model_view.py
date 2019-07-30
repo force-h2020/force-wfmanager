@@ -1,13 +1,12 @@
 from traits.api import (
-    Bool, Event, Instance, List, Property, Unicode,
-    on_trait_change, Either, Tuple
+    Bool, Event, Instance, List, Unicode, Either, on_trait_change
 )
 from traitsui.api import (
     ModelView
 )
 
 from force_bdss.api import (
-    KPISpecification, BaseMCOParameter, Identifier
+    KPISpecification, BaseMCOParameter
 )
 from force_wfmanager.utils.variable_names_registry import (
     Variable
@@ -60,6 +59,21 @@ class BaseMCOOptionsModelView(ModelView):
     # ------------------
     #     Listeners
     # ------------------
+    @on_trait_change('selected_variable,available_variables')
+    def _check_available_variables(self):
+
+        if self.selected_variable is not None:
+            if self.selected_variable not in self.available_variables:
+                self.selected_variable = None
+
+    @on_trait_change('selected_variable')
+    def _check_selected_model(self):
+
+        if self.selected_variable is None:
+            if self.model is not None:
+                self.model.name = ''
+                if isinstance(self.model, BaseMCOParameter):
+                    self.model.type = ''
 
     # Assign an on_trait_change decorator to specify traits to listen to
     # in child class implementation

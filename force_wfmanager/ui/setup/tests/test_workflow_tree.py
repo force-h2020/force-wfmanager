@@ -377,7 +377,7 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         self.system_state.selected_view = mco_view.parameter_view
         self.assertIn("No errors", self.workflow_tree.selected_error)
 
-        mco_view.parameter_view.model_views[0].model.name = ''
+        mco_view.parameter_view.model_views[0].selected_variable = None
         self.assertIn("An MCO parameter is not named",
                       self.workflow_tree.selected_error)
         self.assertIn("An MCO parameter has no type set",

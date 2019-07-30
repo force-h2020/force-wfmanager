@@ -160,8 +160,8 @@ class VariableNamesRegistryTest(unittest.TestCase):
                           ("T1", 'PRESSURE')],
                          self.registry.data_source_inputs)
 
-    def test_update_variable_database(self):
-        database = self.registry.variable_database
+    def test_update_variable_registry(self):
+        database = self.registry.variable_registry
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         self.data_source3.input_slot_info = [InputSlotInfo(name='T1')]
@@ -194,7 +194,6 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.assertIsNone(variable_list[3].origin)
 
         self.data_source2.input_slot_info = [InputSlotInfo(name='P1')]
-        variable_list = list(database.values())
 
 
 class VariableTest(unittest.TestCase):

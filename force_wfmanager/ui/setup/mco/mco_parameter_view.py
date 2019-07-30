@@ -1,6 +1,6 @@
 from traits.api import (
     Instance, Unicode, on_trait_change, Property,
-    cached_property, List, Button, Tuple
+    cached_property, List, Button
 )
 from traitsui.api import (
     View, Item, HGroup, ListEditor, VGroup, InstanceEditor
@@ -38,7 +38,7 @@ class MCOParameterView(BaseMCOOptionsView):
     #: that could become a MCO parameter
     parameter_name_options = Property(
         List(Variable),
-        depends_on='variable_names_registry.variable_database'
+        depends_on='variable_names_registry.variable_registry'
     )
 
     # ------------------
@@ -130,15 +130,16 @@ class MCOParameterView(BaseMCOOptionsView):
         if self.model is not None:
             # Add all MCO parameters as ModelViews
             for parameter in self.model.parameters:
-                key = f'{parameter.name}:{parameter.type}'
-                variable = self.variable_names_registry.variable_database[key]
-                model_views.append(
-                    MCOParameterModelView(
+                model_view = MCOParameterModelView(
                         model=parameter,
-                        selected_variable=variable,
                         available_variables=self.parameter_name_options
                     )
-                )
+                for var in self.parameter_name_options:
+                    name_check = var.name == parameter.name
+                    type_check = var.type == parameter.type
+                    if name_check and type_check:
+                        model_view.selected_variable = var
+                model_views.append(model_view)
 
         return model_views
 
@@ -152,8 +153,9 @@ class MCOParameterView(BaseMCOOptionsView):
          possible names for new MCO parameters"""
         parameter_name_options = []
         if self.variable_names_registry is not None:
-            for key, value in self.variable_names_registry.variable_database.items():
-                if ':' in key:
+            registry = self.variable_names_registry.variable_registry
+            for key, value in registry.items():
+                if value.origin is None:
                     parameter_name_options.append(value)
 
         return parameter_name_options

@@ -34,7 +34,7 @@ class KPISpecificationView(BaseMCOOptionsView):
     #: that could become a KPI
     kpi_name_options = Property(
         List(Variable),
-        depends_on='variable_names_registry.variable_database'
+        depends_on='variable_names_registry.variable_registry'
     )
 
     # ------------------
@@ -121,7 +121,8 @@ class KPISpecificationView(BaseMCOOptionsView):
          possible names for new KPIs"""
         kpi_name_options = []
         if self.variable_names_registry is not None:
-            for key, value in self.variable_names_registry.variable_database.items():
+            registry = self.variable_names_registry.variable_registry
+            for key, value in registry.items():
                 if len(value.inputs) == 0:
                     kpi_name_options.append(value)
 

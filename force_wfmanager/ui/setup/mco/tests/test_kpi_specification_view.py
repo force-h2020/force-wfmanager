@@ -28,7 +28,6 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         )
 
     def test_kpi_view_init(self):
-        self.assertEqual(1, len(self.kpi_view.kpi_names))
         self.assertEqual(1, len(self.kpi_view.model_views))
         self.assertEqual('KPI', self.kpi_view.model_views[0].label)
         self.assertEqual("MCO KPIs", self.kpi_view.label)
@@ -40,39 +39,38 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
     def test_label(self):
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        kpi_model_view = self.kpi_view.model_views[0]
 
-        self.assertEqual([('T1', 'PRESSURE')],
-                         self.registry.data_source_outputs)
+        self.assertEqual(1, len(self.registry.variable_registry))
+        self.assertEqual(1, len(kpi_model_view.available_variables))
         self.assertEqual(
-            ['T1'], self.kpi_view.model_views[0]._combobox_values
+            'T1', kpi_model_view.available_variables[0].name
         )
-        self.assertEqual('KPI', self.kpi_view.model_views[0].label)
+        self.assertEqual('KPI', kpi_model_view.label)
 
-        self.workflow.mco.kpis[0].name = 'T1'
+        variable = kpi_model_view.available_variables[0]
+        kpi_model_view.selected_variable = variable
 
-        self.assertEqual(
-            "KPI: T1 (MINIMISE)",
-            self.kpi_view.model_views[0].label
-        )
+        self.assertEqual("KPI: T1 (MINIMISE)", kpi_model_view.label)
 
         self.workflow.mco.kpis[0].objective = 'MAXIMISE'
 
-        self.assertEqual(
-            "KPI: T1 (MAXIMISE)",
-            self.kpi_view.model_views[0].label
-        )
+        self.assertEqual("KPI: T1 (MAXIMISE)", kpi_model_view.label)
 
     def test_name_change(self):
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         kpi_model_view = self.kpi_view.model_views[0]
+        variable = kpi_model_view.available_variables[0]
+        kpi_model_view.selected_variable = variable
 
         with self.assertTraitChanges(kpi_model_view, 'label', count=0):
-            self.assertEqual('KPI', kpi_model_view.label)
+            self.workflow.mco.kpis[0].name = 'T1'
+            self.assertEqual("KPI: T1 (MINIMISE)", kpi_model_view.label)
 
         with self.assertTraitChanges(kpi_model_view, 'label', count=1):
-            self.workflow.mco.kpis[0].name = 'T1'
-            self.assertEqual('KPI: T1 (MINIMISE)', kpi_model_view.label)
+            kpi_model_view.selected_variable.name = 'V1'
+            self.assertEqual('KPI: V1 (MINIMISE)', kpi_model_view.label)
 
     def test_add_kpi(self):
 
@@ -84,7 +82,8 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         self.assertEqual(2, len(self.kpi_view.model_views))
 
         kpi_model_view = self.kpi_view.model_views[1]
-        kpi_model_view.model.name = 'T1'
+        variable = kpi_model_view.available_variables[0]
+        kpi_model_view.selected_variable = variable
         self.assertEqual('KPI: T1 (MINIMISE)', kpi_model_view.label)
         self.assertEqual(self.kpi_view.selected_model_view,
                          kpi_model_view)
@@ -119,8 +118,9 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         kpi_model_view = self.kpi_view.model_views[0]
         with self.assertTraitChanges(
-                self.kpi_view, 'verify_workflow_event', count=1):
-            kpi_model_view.model.name = 'T1'
+                self.kpi_view, 'verify_workflow_event', count=2):
+            variable = kpi_model_view.available_variables[0]
+            kpi_model_view.selected_variable = variable
         with self.assertTraitChanges(
                 self.kpi_view, 'verify_workflow_event', count=2):
             kpi_model_view.model.name = 'T2'
@@ -134,11 +134,15 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
         self.kpi_view._add_kpi_button_fired()
-        self.workflow.mco.kpis[1].name = 'T2'
+        kpi_model_view = self.kpi_view.model_views[1]
+        variable = kpi_model_view.available_variables[1]
+        kpi_model_view.selected_variable = variable
         error_message = self.kpi_view.verify_model_names()
         self.assertEqual(0, len(error_message))
 
-        self.workflow.mco.kpis[0].name = 'T2'
+        kpi_model_view = self.kpi_view.model_views[0]
+        variable = kpi_model_view.available_variables[1]
+        kpi_model_view.selected_variable = variable
         error_message = self.kpi_view.verify_model_names()
         self.assertEqual(1, len(error_message))
         self.assertIn(
@@ -150,5 +154,8 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.kpi_view.variable_names_registry = None
         self.assertEqual(0, len(self.kpi_view.kpi_name_options))
-        self.assertEqual(1, len(self.kpi_view.kpi_names))
         self.assertEqual(1, len(self.kpi_view.model_views))
+        self.assertEqual(
+            0, len(self.kpi_view.model_views[0].available_variables))
+        self.assertIsNone(
+            self.kpi_view.model_views[0].selected_variable)

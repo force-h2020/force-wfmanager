@@ -4,8 +4,7 @@ from traits.api import (
     cached_property
 )
 from traitsui.api import (
-    View, Item, TableEditor, VGroup, TextEditor, UReadonly,
-    EnumEditor
+    View, Item, TableEditor, VGroup, TextEditor, UReadonly
 )
 from traitsui.table_column import ObjectColumn
 

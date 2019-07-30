@@ -44,7 +44,8 @@ class TestDataSourceView(WfManagerBaseTestCase):
         self.assertEqual('P2', self.model_1.input_slot_info[0].name)
 
     def test_output_slot_update(self):
-        self.data_source_view.output_slots_representation[0].model.name = 'output'
+        model = self.data_source_view.output_slots_representation[0].model
+        model.name = 'output'
         self.assertEqual('output', self.model_1.output_slot_info[0].name)
 
     def test_bad_input_slots(self):
@@ -105,6 +106,3 @@ class TestDataSourceView(WfManagerBaseTestCase):
                       self.data_source_view.selected_slot_description)
         self.assertIn("PRESSURE",
                       self.data_source_view.selected_slot_description)
-
-    def test__available_variables(self):
-        self.data_source_view._available_variables()

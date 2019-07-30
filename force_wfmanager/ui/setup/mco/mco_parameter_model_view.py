@@ -54,15 +54,21 @@ class MCOParameterModelView(BaseMCOOptionsModelView):
     def _get_label(self):
         """Return a label appending both the parameter name and type to the
         default"""
-        if self.model.name == '' and self.model.type == '':
+        if self.model is None:
+            return self._label_default()
+        if self.selected_variable is None:
             return self._label_default()
         return self._label_default()+': {type} {name}'.format(
             type=self.model.type, name=self.model.name
         )
 
-    @on_trait_change('selected_variable.[name,type]')
+    @on_trait_change('model.[name,type],'
+                     'selected_variable.[name,type]')
     def selected_variable_change(self):
+        """Syncs the model name and type with the selected variable name
+        and type (prevents direct changes to the MCOParameter model)"""
         if self.model is not None:
-            self.model.name = self.selected_variable.name
-            self.model.type = self.selected_variable.type
-        self.model_change()
+            if self.selected_variable is not None:
+                self.model.name = self.selected_variable.name
+                self.model.type = self.selected_variable.type
+            self.model_change()

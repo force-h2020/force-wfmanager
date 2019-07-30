@@ -29,8 +29,9 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
         Item('selected_variable',
              editor=InstanceEditor(
                  name='available_variables',
-                 editable=False)
-                     ),
+                 editable=False
+             )
+             ),
         Item("objective", object='model'),
         Item('auto_scale', object='model'),
         Item("scale_factor", object='model',
@@ -43,14 +44,17 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
         """Gets the label from the model object"""
         if self.model.name == '':
             return "KPI"
-        return "KPI: {} ({})".format(self.model.name, self.model.objective)
+        return "KPI: {} ({})".format(
+            self.model.name, self.model.objective
+        )
 
     #: Listeners
-    @on_trait_change('model.[name,objective]')
-    def kpi_model_change(self):
-        self.model_change()
-
-    @on_trait_change('selected_variable.name')
+    @on_trait_change('model.name,'
+                     'selected_variable.name')
     def selected_variable_change(self):
+        """Syncs the model name with the selected variable name
+        (prevents direct changes to the KPISpecifications model)"""
         if self.model is not None:
-            self.model.name = self.selected_variable.name
+            if self.selected_variable is not None:
+                self.model.name = self.selected_variable.name
+            self.model_change()
