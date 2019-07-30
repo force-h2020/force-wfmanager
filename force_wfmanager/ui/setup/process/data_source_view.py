@@ -39,7 +39,7 @@ class TableRow(HasStrictTraits):
 
 
 class InputSlotRow(TableRow):
-    """Row in the UI representing DataSource inputs. """
+    """Row in the UI representing DataSource input_slots. """
 
     # -------------------
     # Required Attributes

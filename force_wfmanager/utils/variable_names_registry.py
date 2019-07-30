@@ -6,7 +6,7 @@ from traits.api import (
 
 from force_bdss.api import (
     Identifier, Workflow, BaseDataSourceModel, OutputSlotInfo,
-    VerifierError
+    InputSlotInfo, VerifierError
 )
 from force_bdss.local_traits import CUBAType
 
@@ -39,7 +39,7 @@ class Variable(HasTraits):
     origin_slot = Instance(OutputSlotInfo)
 
     # DataSources where Variable is used as an input
-    inputs = List(Tuple(Int, BaseDataSourceModel))
+    input_slots = List(Tuple(Int, InputSlotInfo))
 
     # ---------------------
     # Dependent Attributes
@@ -60,8 +60,10 @@ class Variable(HasTraits):
     @on_trait_change('origin_slot.name')
     def update_name(self):
         self.name = self.origin_slot.name
+        for input_slot in self.input_slots:
+            input_slot[1].name = self.name
 
-    @on_trait_change('inputs,layer')
+    @on_trait_change('input_slots,layer')
     def verify_generation(self):
         """Reports a validation warning if variable is used as
         an input before being generated
@@ -72,7 +74,7 @@ class Variable(HasTraits):
         # Only perform check if Variable is being created by a
         # DataSource
         if self.origin is not None:
-            for value in self.inputs:
+            for value in self.input_slots:
                 if value[0] <= self.layer:
                     layer_check = False
                     break
@@ -90,8 +92,9 @@ class Variable(HasTraits):
 
 
 class VariableNamesRegistry(HasStrictTraits):
-    """ Class used for listening to the structure of the Workflow in order to
-    check the available variables that can be used as inputs for each layer
+    """ Class used for listening to the structure of the Workflow in
+    order to check the available variables that can be used as input_slots
+    for each layer
     """
 
     # -------------------
@@ -383,8 +386,8 @@ class VariableNamesRegistry(HasStrictTraits):
                         existing_variable_keys.append(ref)
 
                         # If another input slot has referenced this Variable,
-                        # then simply add the data_source to the inputs list,
-                        # otherwise create a new Variable
+                        # then simply add the data_source to the input_slots
+                        # list, otherwise create a new Variable
                         if ref not in self.variable_registry.keys():
                             data = Variable(
                                 type=slot.type,
@@ -393,8 +396,8 @@ class VariableNamesRegistry(HasStrictTraits):
                             )
                             self.variable_registry[ref] = data
                         else:
-                            self.variable_registry[ref].inputs.append(
-                                (index, data_source_model)
+                            self.variable_registry[ref].input_slots.append(
+                                (index, info)
                             )
 
                     # Search through existing variables to find a name and
@@ -404,8 +407,8 @@ class VariableNamesRegistry(HasStrictTraits):
                             name_check = variable.name == info.name
                             type_check = variable.type == slot.type
                             if name_check and type_check:
-                                variable.inputs.append(
-                                    (index, data_source_model)
+                                variable.input_slots.append(
+                                    (index, info)
                                 )
 
         # Clean up any Variable that no longer have slots that exist

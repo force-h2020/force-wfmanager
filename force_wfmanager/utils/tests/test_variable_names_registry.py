@@ -187,13 +187,11 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.data_source1.output_slot_info[0].name = 'B1'
 
         variable_list = list(database.values())
-        self.assertEqual(4, len(variable_list))
+        self.assertEqual(3, len(variable_list))
         self.assertEqual('PRESSURE B1', variable_list[0].label)
-        self.assertEqual('PRESSURE T1', variable_list[3].label)
+        self.assertEqual('PRESSURE P1', variable_list[2].label)
         self.assertIsNotNone(variable_list[2].origin)
-        self.assertIsNone(variable_list[3].origin)
-
-        self.data_source2.input_slot_info = [InputSlotInfo(name='P1')]
+        self.assertIsNone(variable_list[1].origin)
 
 
 class VariableTest(unittest.TestCase):
@@ -226,17 +224,21 @@ class VariableTest(unittest.TestCase):
         errors = self.variable.verify_generation()
         self.assertEqual(0, len(errors))
 
-        new_input_model = self.data_source_factory.create_model()
-        self.variable.inputs.append((1, new_input_model))
+        self.variable.input_slots.append((1, InputSlotInfo()))
 
         errors = self.variable.verify_generation()
         self.assertEqual(0, len(errors))
 
-        new_input_model = self.data_source_factory.create_model()
-        self.variable.inputs.append((0, new_input_model))
+        self.variable.input_slots.append((0, InputSlotInfo()))
 
         errors = self.variable.verify_generation()
         self.assertEqual(1, len(errors))
         self.assertIn(
             'Variable is being used as an input before being generated',
             errors[0].global_error)
+
+    def test_update_name(self):
+        self.variable.input_slots.append((1, InputSlotInfo(name='T1')))
+        self.variable.origin_slot.name = 'V1'
+
+        self.assertEqual('V1', self.variable.input_slots[0][1].name)

@@ -123,7 +123,7 @@ class KPISpecificationView(BaseMCOOptionsView):
         if self.variable_names_registry is not None:
             registry = self.variable_names_registry.variable_registry
             for key, value in registry.items():
-                if len(value.inputs) == 0:
+                if len(value.input_slots) == 0:
                     kpi_name_options.append(value)
 
         return kpi_name_options
