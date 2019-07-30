@@ -110,57 +110,13 @@ class VariableNamesRegistry(HasStrictTraits):
     # Regular Attributes
     # ------------------
 
-    #: For each execution layer, there will be a list of (name, type) pairs
-    #: representing the input variables produced by that execution layer
-    data_source_input = Tuple(Identifier, CUBAType)
-
-    #: For each execution layer, there will be a list of (name, type) pairs
-    #: representing the output variables produced by that execution layer
-    data_source_output = Tuple(Identifier, CUBAType)
-
-    #: For each execution layer, there will be a list of (name, type) pairs
-    #: representing the input variables produced by that execution layer
-    exec_layer_input = List(data_source_input)
-
-    #: For each execution layer, there will be a list of (name, type) pairs
-    #: representing the output variables produced by that execution layer
-    exec_layer_output = List(data_source_output)
+    #: Dictionary allowing the lookup of names associated with a chosen CUBA
+    #: type.
+    exec_layer_by_type = Dict(CUBAType, List(Variable))
 
     #: Dictionary allowing the lookup of names associated with a chosen CUBA
     #: type.
-    exec_layer_by_type = Dict(CUBAType, List(Identifier))
-
     variable_registry = Dict(Unicode, Variable)
-
-    # ------------------
-    # Derived Attributes
-    # ------------------
-
-    #: List of lists of the available variables.
-    #: The first entry is a list of all the variables that are visible at the
-    #: first layer, i.e. those which come from the MCO.
-    #: The second entry is a list of all the variable names that the first
-    #: layer added. NOT all the variables.
-    #: For example, a situation like::
-    #:
-    #:     [[("Vol_A", "Volume"), ("Vol_B", "Volume")], [],
-    #      [("Pressure_A", "Pressure")]]
-    #:
-    #: means:
-    #: - the first layer has "Vol_A" and "Vol_B" available.
-    #: - the second layer has "Vol_A" and "Vol_B" available,
-    #: because the first layer added nothing (hence the empty second list)
-    #: - the third layer has "Vol_A", "Vol_B" and "Pressure_A" available.
-    #:
-    #: The size of the base list should be the number of layers plus one.
-    #: the last one being the variables that are added by the last layer.
-    #:
-    #: Listens to: `workflow.mco.parameters.name`,
-    #: `workflow.execution_layers.data_sources.output_slot_info.name`,
-    #: `workflow.mco.parameters.type`
-    available_input_variables_stack = List(exec_layer_input)
-
-    available_output_variables_stack = List(exec_layer_output)
 
     # -------------
     #   Properties
@@ -170,8 +126,7 @@ class VariableNamesRegistry(HasStrictTraits):
     #: execution layer
     available_variables_by_type = Property(
         List(exec_layer_by_type),
-        depends_on="available_output_variables_stack,"
-                   "available_input_variables_stack"
+        depends_on="variable_registry"
         )
 
     #: Same structure as available_output_variables_stack, but this contains
@@ -182,18 +137,8 @@ class VariableNamesRegistry(HasStrictTraits):
     #:      ["Vol_A", "Vol_B", "Pressure_A"]]
     #:
     available_variables = Property(
-        List(List(Identifier)),
-        depends_on="available_output_variables_stack,"
-                   "available_input_variables_stack"
-    )
-
-    #: Gives only the names of the variables that are produced by data sources.
-    #: It does not include MCO parameters.
-    data_source_outputs = Property(
-        List(Identifier), depends_on="available_output_variables_stack"
-    )
-    data_source_inputs = Property(
-        List(Identifier), depends_on="available_input_variables_stack"
+        List(List(Variable)),
+        depends_on="variable_registry"
     )
 
     def __init__(self, workflow, *args, **kwargs):
@@ -206,110 +151,32 @@ class VariableNamesRegistry(HasStrictTraits):
 
     @cached_property
     def _get_available_variables(self):
-        output_stack = self.available_output_variables_stack
-        input_stack = self.available_input_variables_stack
-        variables = []
+        available_variables = [
+            [] for _ in range(len(self.workflow.execution_layers))
+        ]
 
-        parameter_names = []
-        if self.workflow.mco is not None:
-            for parameter in self.workflow.mco.parameters:
-                parameter_names = []
-                parameter_names.append(parameter.name)
+        for variable in self.variable_registry.values():
+            available_variables[variable.layer].append(variable.name)
+            for slot in variable.input_slots:
+                if slot[1].name not in available_variables[slot[0]]:
+                    available_variables[slot[0]].append(slot[1].name)
 
-        variables.append(parameter_names)
+        return available_variables
 
-        for input_layer, output_layer in zip(input_stack, output_stack):
-            layer_variables = []
-            layer_variables += [
-                variable[0] for variable in input_layer
-            ]
-            layer_variables += [
-                variable[0] for variable in output_layer
-            ]
-            variables.append(layer_variables)
+    def _get_available_variables_by_type(self):
 
-        return variables
+        available_variables = [
+            {} for _ in range(len(self.workflow.execution_layers))
+        ]
 
-    @cached_property
-    def _get_data_source_outputs(self):
-        stack = self.available_output_variables_stack
-        return self._get_data_source_names(stack)
+        for variable in self.variable_registry.values():
+            var_dict = available_variables[variable.layer]
+            if variable.type in var_dict:
+                var_dict[variable.type].append(variable)
+            else:
+                var_dict[variable.type] = [variable]
 
-    @cached_property
-    def _get_data_source_inputs(self):
-        stack = self.available_input_variables_stack
-        return self._get_data_source_names(stack)
-
-    def _get_data_source_names(self, stack):
-        res = []
-        for layer in stack:
-            res.extend([value for value in layer
-                        if value not in res])
-        return res
-
-    @on_trait_change(
-        'workflow.mco.parameters.[name,type],'
-        'workflow.execution_layers.data_sources.'
-        '[input_slot_info.name,output_slot_info.name]'
-    )
-    def update_available_variables_stacks(self):
-        """Updates the list of available variables. At present getting
-        the datasource output slots requires creating the datasource by
-        calling ``create_data_source()``."""
-        # FIXME: Remove reliance on create_data_source(). If one datasource
-        # FIXME: has an error, this shouldn't blow up the whole workflow.
-        # FIXME: Especially during the setup phase!
-        input_stack = []
-        output_stack = []
-        # At the first layer, the available variables are the MCO parameters
-
-        for layer in self.workflow.execution_layers:
-            input_stack_entry_for_layer = []
-            output_stack_entry_for_layer = []
-
-            for data_source_model in layer.data_sources:
-                input_names = [
-                    info.name for info in data_source_model.input_slot_info
-                ]
-                output_names = [
-                    info.name for info in data_source_model.output_slot_info
-                ]
-
-                # This try-except is also in execute.py in force_bdss, so if
-                # this fails the workflow would not be able to run anyway.
-                try:
-                    data_source = (
-                        data_source_model.factory.create_data_source())
-
-                    # ds.slots() returns (input_slots, output_slots)
-                    input_slots = data_source.slots(data_source_model)[0]
-                    output_slots = data_source.slots(data_source_model)[1]
-                except Exception:
-                    log.exception(
-                        "Unable to create data source from factory '{}' "
-                        "in plugin '{}'. This may indicate a programming "
-                        "error in the plugin".format(
-                            data_source_model.factory.id,
-                            data_source_model.factory.plugin.id))
-                    raise
-
-                input_types = [slot.type for slot in input_slots]
-                output_types = [slot.type for slot in output_slots]
-
-                input_stack_entry_for_layer.extend([
-                    (name, type) for name, type
-                    in zip(input_names, input_types) if name != ''
-                ])
-                output_stack_entry_for_layer.extend([
-                    (name, type) for name, type
-                    in zip(output_names, output_types) if name != ''
-                ])
-
-            input_stack.append(input_stack_entry_for_layer)
-            output_stack.append(output_stack_entry_for_layer)
-
-        self.available_input_variables_stack = input_stack
-        self.available_output_variables_stack = output_stack
+        return available_variables
 
     @on_trait_change(
         'workflow.execution_layers.data_sources.'

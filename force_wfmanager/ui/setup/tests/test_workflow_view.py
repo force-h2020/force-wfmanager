@@ -118,10 +118,6 @@ class TestWorkflowView(WfManagerBaseTestCase, UnittestTools):
 
     def test_add_output_variable(self):
 
-        self.assertEqual(
-            3, len(self.variable_names_registry.data_source_outputs)
-        )
-
         kpi_view = self.workflow_view.mco_view[0].kpi_view
         self.assertEqual(
             self.variable_names_registry,
