@@ -41,7 +41,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         kpi_model_view = self.kpi_view.model_views[0]
 
-        self.assertEqual(1, len(self.registry.variable_registry))
+        self.assertEqual(1, len(self.registry.available_variables))
         self.assertEqual(1, len(kpi_model_view.available_variables))
         self.assertEqual(
             'T1', kpi_model_view.available_variables[0].name

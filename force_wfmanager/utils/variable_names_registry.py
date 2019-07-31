@@ -114,32 +114,38 @@ class VariableNamesRegistry(HasStrictTraits):
     #: type.
     exec_layer_by_type = Dict(CUBAType, List(Variable))
 
-    #: Dictionary allowing the lookup of names associated with a chosen CUBA
-    #: type.
-    variable_registry = Dict(Unicode, Variable)
+    #: Dictionary allowing the lookup of Variable objects with an associated
+    #: key. Practically, these keys are only used by update__variable_registry
+    #: to maintain the dictionary whenever its content is edited. Therefore
+    #: the dictionary itself remains private, whilst the Variables within the
+    #: dictionary are referred to externally, using the properties
+    #: available_variables, available_variable_names and
+    #: available_variables_by_type
+    _variable_registry = Dict(Unicode, Variable)
 
     # -------------
     #   Properties
     # -------------
 
+    #: A list containing the values of variable_registry dictionary
+    available_variables = Property(
+        List(Variable),
+        depends_on='_variable_registry'
+    )
+
+    #: Same structure as available_output_variables_stack, but this contains
+    #: the cumulated information.
+    available_variable_names = Property(
+        List(List(Identifier)),
+        depends_on="_variable_registry"
+    )
+
     #: A list of type lookup dictionaries, with one dictionary for each
     #: execution layer
     available_variables_by_type = Property(
         List(exec_layer_by_type),
-        depends_on="variable_registry"
+        depends_on="_variable_registry"
         )
-
-    #: Same structure as available_output_variables_stack, but this contains
-    #: the cumulated information. From the example above, this would contain::
-    #:
-    #:     [["Vol_A", "Vol_B"],
-    #:      ["Vol_A", "Vol_B"],
-    #:      ["Vol_A", "Vol_B", "Pressure_A"]]
-    #:
-    available_variables = Property(
-        List(List(Variable)),
-        depends_on="variable_registry"
-    )
 
     def __init__(self, workflow, *args, **kwargs):
         super(VariableNamesRegistry, self).__init__(*args, **kwargs)
@@ -151,12 +157,49 @@ class VariableNamesRegistry(HasStrictTraits):
 
     @cached_property
     def _get_available_variables(self):
+        """Returns a list containing the values of _variable_registry"""
+        available_variables = list(self._variable_registry.values())
+
+        return available_variables
+
+    @cached_property
+    def _get_available_variable_names(self):
+        """Returns a cumulative list of variable names, indicating the layers
+        at which they are available
+        The first entry is a list of all the variables that are visible at the
+        first layer, i.e. those which need to come from the MCO. The second
+        entry also contains all the variable names that the first layer added.
+        From the example above, the structure,
+
+           [["Vol_A", "Vol_B"],
+            ["Vol_A", "Vol_B", "Pressure_A"],
+            ["Vol_A", "Vol_B", "Pressure_A", "Pressure_B"]]
+
+        means:
+        - the first layer has "Vol_A" and "Vol_B" available.
+        - the second layer has "Pressure_A", "Vol_A" and "Vol_B" available,
+          indicating that the first layer added "Pressure_A"
+        - the last layer has "Pressure_A", "Pressure_B, ""Vol_A" and "Vol_B"
+          available, indicating that the second layer added "Pressure_B"
+
+        The size of the base list should equal to the number of layers plus
+        one, with the last layer containing all the variables created by all
+        execution layers.
+        """
+        n_layers = len(self.workflow.execution_layers)
         available_variables = [
-            [] for _ in range(len(self.workflow.execution_layers))
+            [] for _ in range(n_layers+1)
         ]
 
-        for variable in self.variable_registry.values():
-            available_variables[variable.layer].append(variable.name)
+        for variable in self.available_variables:
+            # Fill the layers at which any output variable is accessible
+            # by other DataSources
+            for index in range(variable.layer+1, n_layers+1):
+                if variable.name not in available_variables[index]:
+                    available_variables[index].append(variable.name)
+
+            # Fill the layers at which any input variable has been declared
+            # and therefore needs to be generated
             for slot in variable.input_slots:
                 if slot[1].name not in available_variables[slot[0]]:
                     available_variables[slot[0]].append(slot[1].name)
@@ -164,13 +207,34 @@ class VariableNamesRegistry(HasStrictTraits):
         return available_variables
 
     def _get_available_variables_by_type(self):
+        """Returns a list of dictionaries, referring to the variables created
+        in each execution layer. The key for each dictionary indicates the
+        variable CUBA type.
+        From the example above, the structure,
 
+           [{"VOLUME": [<Variable object>, <Variable object>]}
+            {"PRESSURE": [<Variable object>]},
+            {"PRESSURE": [<Variable object>]}]
+
+        means:
+        - two variables of type "PRESSURE" are required as MCO Parameters.
+        - the first layer added a variable of type "PRESSURE".
+        - the second layer added a variable of type "PRESSURE".
+        """
+        n_layers = len(self.workflow.execution_layers)
         available_variables = [
-            {} for _ in range(len(self.workflow.execution_layers))
+            {} for _ in range(n_layers+1)
         ]
 
-        for variable in self.variable_registry.values():
-            var_dict = available_variables[variable.layer]
+        for variable in self.available_variables:
+            # Reserve the first list for variables from the MCO
+            if variable.origin is None:
+                layer = 0
+            else:
+                layer = variable.layer + 1
+
+            var_dict = available_variables[layer]
+
             if variable.type in var_dict:
                 var_dict[variable.type].append(variable)
             else:
@@ -182,7 +246,7 @@ class VariableNamesRegistry(HasStrictTraits):
         'workflow.execution_layers.data_sources.'
         '[input_slot_info.name,output_slot_info.name]'
     )
-    def update_variable_registry(self):
+    def update__variable_registry(self):
         """Method takes information from DataSourceModel input and
         output slots, and compiles it into a dictionary containing a
         set of Variable objects. The keys to each Variable are mainly
@@ -229,14 +293,14 @@ class VariableNamesRegistry(HasStrictTraits):
 
                     # Only create the Variable if it has not been defined
                     # before this update
-                    if key not in self.variable_registry.keys():
+                    if key not in self._variable_registry.keys():
                         data = Variable(
                             type=slot.type,
                             layer=index,
                             origin_slot=info,
                             origin=data_source_model
                         )
-                        self.variable_registry[key] = data
+                        self._variable_registry[key] = data
 
                     # Store a reference to the existing name and type of the
                     # Variable - this is used to cross check against possible
@@ -253,7 +317,7 @@ class VariableNamesRegistry(HasStrictTraits):
                         # Perform a check through existing output variables to
                         # unhook input slot if it has been renamed
                         for key in existing_variable_keys:
-                            variable = self.variable_registry[key]
+                            variable = self._variable_registry[key]
                             if (index, info) in variable.input_slots:
                                 variable.input_slots.remove((index, info))
 
@@ -264,22 +328,22 @@ class VariableNamesRegistry(HasStrictTraits):
                         # If another input slot has referenced this Variable,
                         # then simply add the data_source to the input_slots
                         # list, otherwise create a new Variable
-                        if ref not in self.variable_registry.keys():
+                        if ref not in self._variable_registry.keys():
                             data = Variable(
                                 type=slot.type,
                                 layer=index,
                                 name=info.name
                             )
-                            self.variable_registry[ref] = data
+                            self._variable_registry[ref] = data
                         else:
-                            self.variable_registry[ref].input_slots.append(
+                            self._variable_registry[ref].input_slots.append(
                                 (index, info)
                             )
 
                     # Search through existing variables to find a name and
                     # type match
                     else:
-                        for variable in self.variable_registry.values():
+                        for variable in self._variable_registry.values():
                             name_check = variable.name == info.name
                             type_check = variable.type == slot.type
                             if name_check and type_check:
@@ -291,8 +355,8 @@ class VariableNamesRegistry(HasStrictTraits):
         # Clean up any Variable that no longer have slots that exist
         # in the workflow
         non_existing_variables = [
-            ref for ref in self.variable_registry.keys()
+            ref for ref in self._variable_registry.keys()
             if ref not in existing_variable_keys
         ]
         for key in non_existing_variables:
-            self.variable_registry.pop(key, None)
+            self._variable_registry.pop(key, None)

@@ -38,7 +38,7 @@ class MCOParameterView(BaseMCOOptionsView):
     #: that could become a MCO parameter
     parameter_name_options = Property(
         List(Variable),
-        depends_on='variable_names_registry.variable_registry'
+        depends_on='variable_names_registry.available_variables'
     )
 
     # ------------------
@@ -153,10 +153,10 @@ class MCOParameterView(BaseMCOOptionsView):
          possible names for new MCO parameters"""
         parameter_name_options = []
         if self.variable_names_registry is not None:
-            registry = self.variable_names_registry.variable_registry
-            for key, value in registry.items():
-                if value.origin is None:
-                    parameter_name_options.append(value)
+            variables = self.variable_names_registry.available_variables
+            for variable in variables:
+                if variable.origin is None:
+                    parameter_name_options.append(variable)
 
         return parameter_name_options
 

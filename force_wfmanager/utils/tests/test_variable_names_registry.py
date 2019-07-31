@@ -73,6 +73,14 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.data_source4 = self.workflow.execution_layers[2].data_sources[0]
 
     def test_available_variables(self):
+        self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
+        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+
+        self.assertEqual(2, len(self.registry.available_variables))
+        self.assertEqual('V1', self.registry.available_variables[0].name)
+        self.assertEqual('T1', self.registry.available_variables[1].name)
+
+    def test_available_variable_names(self):
 
         self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
         self.data_source2.input_slot_info = [InputSlotInfo(name='V2')]
@@ -83,12 +91,15 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.data_source3.output_slot_info = [OutputSlotInfo(name='P1')]
 
         self.assertEqual(
-            3,
-            len(self.registry.available_variables)
+            4,
+            len(self.registry.available_variable_names)
         )
         self.assertEqual(
-            [['V1', 'V2', 'T1', 'T2'], ['T1', 'P1'], []],
-            self.registry.available_variables
+            [['V1', 'V2'],
+             ['V1', 'V2', 'T1', 'T2'],
+             ['V1', 'V2', 'T1', 'T2', 'P1'],
+             ['V1', 'V2', 'T1', 'T2', 'P1']],
+            self.registry.available_variable_names
         )
 
     def test_available_variables_by_type(self):
@@ -102,7 +113,7 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.data_source3.output_slot_info = [OutputSlotInfo(name='P1')]
 
         self.assertEqual(
-            3,
+            4,
             len(self.registry.available_variables_by_type)
         )
         self.assertEqual(
@@ -110,12 +121,28 @@ class VariableNamesRegistryTest(unittest.TestCase):
             self.registry.available_variables_by_type[0].keys()
         )
         self.assertEqual(
+            2,
+            len(self.registry.available_variables_by_type[0]["PRESSURE"])
+        )
+        self.assertEqual(
             {'PRESSURE'},
             self.registry.available_variables_by_type[1].keys()
         )
+        self.assertEqual(
+            2,
+            len(self.registry.available_variables_by_type[1]["PRESSURE"])
+        )
+        self.assertEqual(
+            {'PRESSURE'},
+            self.registry.available_variables_by_type[2].keys()
+        )
+        self.assertEqual(
+            1,
+            len(self.registry.available_variables_by_type[2]["PRESSURE"])
+        )
 
     def test_update_variable_registry(self):
-        database = self.registry.variable_registry
+        database = self.registry._variable_registry
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         self.data_source3.input_slot_info = [InputSlotInfo(name='T1')]
