@@ -48,7 +48,7 @@ class ContributedUI(HasTraits):
     )
 
     #: Event to update a workflow. Listened to by
-    #: :meth:`force_wfmanager.wfmanager_setup_task.update_workflow_custom_ui`
+    #: :class:`WFManagerSetupTask`
     update_workflow = Event()
 
     update_workflow_action = Action(
