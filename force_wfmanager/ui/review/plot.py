@@ -188,6 +188,15 @@ class BasePlot(BaseDataView):
         return plot
 
     def __plot_data_default(self):
+        """ Default trait setter for _plot_data. Here it only uses an
+        auxiliary method, but it can be overridden by inheriting classes
+        to deal with more complex plot data.
+        """
+        return self._get_plot_data_default()
+
+    def _get_plot_data_default(self):
+        """ Creates empty plot data in three colums: x, y, color_by.
+        """
         plot_data = ArrayPlotData()
         plot_data.set_data('x', [])
         plot_data.set_data('y', [])
