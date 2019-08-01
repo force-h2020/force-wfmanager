@@ -34,8 +34,11 @@ class TestBaseMCOOptionsView(unittest.TestCase, UnittestTools):
         self.assertEqual('MCO Options', self.mco_options_view.label)
         self.assertTrue(self.mco_options_view.valid)
 
-    def test___model_views_default_error(self):
+    def test___not_implemented_error(self):
+        mco_options_view = BaseMCOOptionsView()
 
         with self.assertRaises(NotImplementedError):
-            mco_options_view = BaseMCOOptionsView()
-            self.assertEqual(0, len(mco_options_view.model_views))
+            mco_options_view._model_views_default()
+
+        with self.assertRaises(NotImplementedError):
+            mco_options_view._create_model_view()

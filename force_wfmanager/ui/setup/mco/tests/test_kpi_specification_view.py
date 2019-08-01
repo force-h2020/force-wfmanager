@@ -76,10 +76,12 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         self.assertEqual(1, len(self.kpi_view.kpi_name_options))
+        kpi_model_view = self.kpi_view.model_views[0]
 
         self.kpi_view._add_kpi_button_fired()
         self.assertEqual(2, len(self.workflow.mco.kpis))
         self.assertEqual(2, len(self.kpi_view.model_views))
+        self.assertEqual(kpi_model_view, self.kpi_view.model_views[0])
 
         kpi_model_view = self.kpi_view.model_views[1]
         variable = kpi_model_view.available_variables[0]
@@ -106,7 +108,10 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
                          self.kpi_view.selected_model_view)
 
         self.kpi_view.selected_model_view = self.kpi_view.model_views[0]
+        kpi_model_view = self.kpi_view.model_views[1]
         self.kpi_view._remove_kpi_button_fired()
+        self.assertEqual(self.kpi_view.model_views[0],
+                         kpi_model_view)
         self.assertEqual(self.kpi_view.model_views[0],
                          self.kpi_view.selected_model_view)
         self.kpi_view._remove_kpi_button_fired()

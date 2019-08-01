@@ -100,13 +100,7 @@ class KPISpecificationView(BaseMCOOptionsView):
         if self.model is not None:
             # Add all MCO KPIs as ModelViews
             for kpi in self.model.kpis:
-                model_view = KPISpecificationModelView(
-                        model=kpi,
-                        available_variables=self.kpi_name_options
-                    )
-                for var in self.kpi_name_options:
-                    if var.name == kpi.name:
-                        model_view.selected_variable = var
+                model_view = self._create_model_view(kpi)
                 model_views.append(model_view)
 
         return model_views
@@ -138,7 +132,10 @@ class KPISpecificationView(BaseMCOOptionsView):
     def update_kpi_model_views(self):
         """ Triggers the base method update_model_views when
         KPISpecifications are updated"""
-        self.update_model_views()
+        if self.model is not None:
+            self.update_model_views(self.model.kpis)
+        else:
+            self.update_model_views()
 
     def _add_kpi_button_fired(self):
         """Call add_kpi to insert a blank KPI to the model"""
@@ -150,6 +147,24 @@ class KPISpecificationView(BaseMCOOptionsView):
     def _remove_kpi_button_fired(self):
         """Call remove_kpi to delete selected kpi from model"""
         self._remove_button_action(self.remove_kpi)
+
+    # -------------------
+    #   Private Methods
+    # -------------------
+
+    def _create_model_view(self, kpi):
+        """Overloaded method to create a MCOParameterModelView from a
+        MCOParameter"""
+
+        model_view = KPISpecificationModelView(
+            model=kpi,
+            available_variables=self.kpi_name_options
+        )
+        for var in self.kpi_name_options:
+            if var.name == kpi.name:
+                model_view.selected_variable = var
+
+        return model_view
 
     # -------------------
     #   Public methods

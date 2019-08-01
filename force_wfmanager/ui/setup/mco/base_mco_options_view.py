@@ -128,6 +128,13 @@ class BaseMCOOptionsView(HasTraits):
     #   Private Methods
     # ------------------
 
+    def _create_model_view(self, model=None):
+        """A method to return a model view for a given model trait
+        needs to be implemented"""
+        raise NotImplementedError(
+            "_create_model_view was not implemented in {}".format(
+                self.__class__))
+
     def _remove_button_action(self, remove_function):
         """A default set of actions to perform on firing of a button
         to remove selected_model_view"""
@@ -146,13 +153,27 @@ class BaseMCOOptionsView(HasTraits):
     #   Public Methods
     # ------------------
 
-    def update_model_views(self):
+    def update_model_views(self, mco_options=None):
         """Regenerates the model_views from the model and sets the
          default selected_model_view. This method can be combined with an
          on_trait_change decorator in a child class"""
 
         # Update the list of ModelView(s)
-        self.model_views = self._model_views_default()
+        new_model_views = []
+        if mco_options is not None:
+            # Check in case a model has been deleted from mco_options
+            for model_view in self.model_views:
+                if model_view.model in mco_options:
+                    new_model_views.append(model_view)
+
+            # Check in case a model has been added to mco_options
+            models = [model_view.model for model_view in self.model_views]
+            for model in mco_options:
+                if model not in models:
+                    model_view = self._create_model_view(model)
+                    new_model_views.append(model_view)
+
+        self.model_views = new_model_views
 
         # Update the selected_model_view
         self.selected_model_view = self._selected_model_view_default()

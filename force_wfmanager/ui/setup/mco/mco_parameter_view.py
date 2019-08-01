@@ -130,15 +130,7 @@ class MCOParameterView(BaseMCOOptionsView):
         if self.model is not None:
             # Add all MCO parameters as ModelViews
             for parameter in self.model.parameters:
-                model_view = MCOParameterModelView(
-                        model=parameter,
-                        available_variables=self.parameter_name_options
-                    )
-                for var in self.parameter_name_options:
-                    name_check = var.name == parameter.name
-                    type_check = var.type == parameter.type
-                    if name_check and type_check:
-                        model_view.selected_variable = var
+                model_view = self._create_model_view(parameter)
                 model_views.append(model_view)
 
         return model_views
@@ -172,11 +164,14 @@ class MCOParameterView(BaseMCOOptionsView):
     def update_parameter_model_views(self):
         """ Triggers the base method update_model_views when
         MCOParameters are updated"""
-        self.update_model_views()
+        if self.model is not None:
+            self.update_model_views(self.model.parameters)
+        else:
+            self.update_model_views()
 
     # Workflow Validation
     @on_trait_change('parameter_name_options')
-    def update_model_views__combobox(self):
+    def update_model_views_available_variables(self):
         """Update the parameter model view name options"""
         for parameter_view in self.model_views:
             parameter_view.available_variables = self.parameter_name_options
@@ -197,6 +192,22 @@ class MCOParameterView(BaseMCOOptionsView):
     # -------------------
     #   Private Methods
     # -------------------
+
+    def _create_model_view(self, parameter):
+        """Overloaded method to create a MCOParameterModelView from a
+        MCOParameter"""
+
+        model_view = MCOParameterModelView(
+            model=parameter,
+            available_variables=self.parameter_name_options
+        )
+        for var in self.parameter_name_options:
+            name_check = var.name == parameter.name
+            type_check = var.type == parameter.type
+            if name_check and type_check:
+                model_view.selected_variable = var
+
+        return model_view
 
     def _dclick_add_parameter(self, ui_info):
         """Called when a parameter factory is double clicked in the entity
