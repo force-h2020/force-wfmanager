@@ -1,4 +1,4 @@
-from envisage.api import Plugin
+from envisage.api import ExtensionPoint, Plugin
 from envisage.ui.tasks.api import TaskFactory
 from traits.api import Either, List, Unicode
 
@@ -6,6 +6,7 @@ from force_bdss.api import IFactoryRegistry
 
 from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
+from force_wfmanager.ui.contributed_ui.i_contributed_ui import IContributedUI
 
 
 class WfManagerPlugin(Plugin):
@@ -18,6 +19,9 @@ class WfManagerPlugin(Plugin):
     name = 'Workflow Manager'
 
     tasks = List(contributes_to=TASKS)
+
+    #: Plugin contributed Workflow and Modal UI(s)
+    plugin_ui = ExtensionPoint(List(IContributedUI), id='plugin_ui')
 
     workflow_file = Either(None, Unicode())
 
@@ -42,8 +46,10 @@ class WfManagerPlugin(Plugin):
         factory_registry = self.application.get_service(
             IFactoryRegistry
         )
+        print(self)
         wf_manager_setup_task = WfManagerSetupTask(
             factory_registry=factory_registry,
+            contributed_UIs=self.plugin_ui
         )
         if self.workflow_file is not None:
             wf_manager_setup_task.load_workflow(self.workflow_file)
