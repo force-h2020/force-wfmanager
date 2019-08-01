@@ -141,7 +141,7 @@ class VariableNamesRegistryTest(unittest.TestCase):
             len(self.registry.available_variables_by_type[2]["PRESSURE"])
         )
 
-    def test_update_variable_registry(self):
+    def test_update__variable_registry(self):
         registry = self.registry._variable_registry
         self.assertEqual(2, len(registry))
 
@@ -187,6 +187,28 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.assertEqual('PRESSURE C1', variable_list[3].label)
         self.assertIsNone(variable_list[3].output_slot)
         self.assertEqual(0, len(variable_list[0].input_slots))
+
+        # Clean an output variable name
+        self.data_source1.output_slot_info[0].name = ''
+        variable_list = self.registry.available_variables
+
+        self.assertEqual(3, len(variable_list))
+        self.assertEqual('PRESSURE P1', variable_list[0].label)
+        self.assertEqual('PRESSURE V1', variable_list[1].label)
+        self.assertEqual('PRESSURE C1', variable_list[2].label)
+        self.assertIsNotNone(variable_list[0].output_slot)
+        self.assertIsNone(variable_list[1].output_slot)
+        self.assertIsNone(variable_list[2].output_slot)
+
+        # Clean an input variable name
+        self.data_source3.input_slot_info[0].name = ''
+        variable_list = self.registry.available_variables
+
+        self.assertEqual(2, len(variable_list))
+        self.assertEqual('PRESSURE P1', variable_list[0].label)
+        self.assertEqual('PRESSURE V1', variable_list[1].label)
+        self.assertIsNotNone(variable_list[0].output_slot)
+        self.assertIsNone(variable_list[1].output_slot)
 
 
 class VariableTest(unittest.TestCase):
