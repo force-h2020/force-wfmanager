@@ -155,7 +155,7 @@ class MCOParameterView(BaseMCOOptionsView):
         if self.variable_names_registry is not None:
             variables = self.variable_names_registry.available_variables
             for variable in variables:
-                if variable.origin is None:
+                if variable.output_slot is None:
                     parameter_name_options.append(variable)
 
         return parameter_name_options

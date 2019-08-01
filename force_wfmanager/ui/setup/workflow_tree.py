@@ -429,6 +429,9 @@ class WorkflowTree(ModelView):
                 self.workflow_view.mco_view[0]
                 .kpi_view.verify_model_names()
             )
+        if self.workflow_view.variable_names_registry is not None:
+            errors += self.workflow_view.variable_names_registry.verify()
+
         # Communicate the verification errors to each level of the
         # workflow tree
         self.verify_tree(errors)

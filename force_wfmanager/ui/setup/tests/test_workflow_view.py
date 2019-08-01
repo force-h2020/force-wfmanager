@@ -114,7 +114,7 @@ class TestWorkflowView(WfManagerBaseTestCase, UnittestTools):
         self.assertEqual(
             1, len(process_view.execution_layer_views[1]
                    .data_source_views))
-        self.assertEqual(0, len(kpi_view.kpi_name_options))
+        self.assertEqual(3, len(kpi_view.kpi_name_options))
 
     def test_add_output_variable(self):
 
@@ -135,7 +135,7 @@ class TestWorkflowView(WfManagerBaseTestCase, UnittestTools):
         data_source.output_slot_info = [OutputSlotInfo(name='outputD')]
 
         with self.assertTraitChanges(
-                kpi_view, 'kpi_name_options', count=2):
+                kpi_view, 'kpi_name_options', count=1):
             execution_layer_view.add_data_source(data_source)
 
         self.assertEqual(
@@ -143,5 +143,5 @@ class TestWorkflowView(WfManagerBaseTestCase, UnittestTools):
         )
 
         self.assertEqual(
-            5, len(kpi_view.kpi_name_options)
+            4, len(kpi_view.kpi_name_options)
         )

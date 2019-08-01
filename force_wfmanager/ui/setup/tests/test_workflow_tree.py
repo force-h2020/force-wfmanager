@@ -384,6 +384,39 @@ class TestWorkflowTree(WfManagerBaseTestCase):
                       self.workflow_tree.selected_error)
         self.assertFalse(mco_view.parameter_view.valid)
 
+    def test_variable_error_messaging(self):
+
+        data_source1 = (
+            self.workflow.execution_layers[1].data_sources[0]
+        )
+        data_source1.output_slot_info[0].name = 'D1'
+
+        data_source2 = (
+            self.workflow.execution_layers[1].data_sources[1]
+        )
+        data_source2.input_slot_info[0].name = 'D1'
+
+        self.system_state.selected_view = self.workflow_tree.workflow_view
+        self.assertIn(
+            "A variable is being used as an input before being generated"
+            " as an output",
+            self.workflow_tree.selected_error
+        )
+
+        data_source2.input_slot_info[0].name = ''
+        data_source2.output_slot_info[0].name = 'D1'
+
+        self.assertNotIn(
+            "A variable is being used as an input before being generated"
+            " as an output",
+            self.workflow_tree.selected_error
+        )
+        self.assertIn(
+            'Two or more output slots share the same '
+            'name / type combination',
+            self.workflow_tree.selected_error
+        )
+
 
 class TestProcessElementNode(TestCase):
 

@@ -36,7 +36,7 @@ class Variable(HasTraits):
     origin = Instance(BaseDataSourceModel)
 
     # DataSource output slot that is used to update Variable name
-    origin_slot = Instance(OutputSlotInfo)
+    output_slot = Instance(OutputSlotInfo)
 
     # DataSources where Variable is used as an input
     input_slots = List(Tuple(Int, InputSlotInfo))
@@ -45,50 +45,76 @@ class Variable(HasTraits):
     # Dependent Attributes
     # ---------------------
 
-    # Name of Variable, listens to origin_slot if updated by UI
+    # Name of Variable, listens to output_slot if updated by UI
     name = Identifier()
 
     # ------------------
     #     Properties
     # ------------------
 
-    label = Property(Unicode, depends_on='origin_slot.name,type')
+    label = Property(Unicode, depends_on='output_slot.name,type')
+
+    # ------------------
+    #     Listeners
+    # ------------------
 
     def _get_label(self):
         return f'{self.type} {self.name}'
 
-    @on_trait_change('origin_slot.name')
+    @on_trait_change('output_slot.name')
     def update_name(self):
         """If the origin output slot name is changed, update the
         variable name and all linked input slots"""
-        self.name = self.origin_slot.name
+
+        self.name = self.output_slot.name
+
         for input_slot in self.input_slots:
             input_slot[1].name = self.name
 
-    @on_trait_change('input_slots,layer')
-    def verify_generation(self):
+    # ------------------
+    #   Public Methods
+    # ------------------
+
+    def check_input_slot_hook(self, input_slot, type, index):
+        """Check whether an input slot should be hooked up or removed from the
+        Variable"""
+
+        name_check = self.name == input_slot.name
+        type_check = self.type == type
+
+        # If the input slot name and type matches the Variablem, hooked it up
+        if name_check and type_check:
+            if (index, input_slot) not in self.input_slots:
+                self.input_slots.append((index, input_slot))
+            return True
+
+        # Else remove it if it has been hooked up previously
+        if (index, input_slot) in self.input_slots:
+            self.input_slots.remove((index, input_slot))
+            return False
+
+    def verify(self):
         """Reports a validation warning if variable is used as
         an input before being generated
         """
         errors = []
-        layer_check = True
 
         # Only perform check if Variable is being created by a
-        # DataSource
-        if self.origin is not None:
-            for value in self.input_slots:
-                if value[0] <= self.layer:
-                    layer_check = False
-                    break
-
-        if not layer_check:
-            errors.append(
-                VerifierError(
-                    subject=self,
-                    global_error=('Variable is being used as an input'
-                                  ' before being generated'),
-                )
-            )
+        # DataSource and has a defined name
+        if self.output_slot is not None:
+            for layer, slot in self.input_slots:
+                if layer <= self.layer:
+                    errors.append(
+                        VerifierError(
+                            subject=slot,
+                            local_error=('Variable is being used as an '
+                                         'input before being generated as'
+                                         ' an output'),
+                            global_error=('A variable is being used as an '
+                                          'input before being generated as'
+                                          ' an output')
+                        )
+                    )
 
         return errors
 
@@ -121,7 +147,7 @@ class VariableNamesRegistry(HasStrictTraits):
     #: dictionary are referred to externally, using the properties
     #: available_variables, available_variable_names and
     #: available_variables_by_type
-    _variable_registry = Dict(Unicode, Variable)
+    _variable_registry = Dict(Unicode, Dict(Unicode, Variable))
 
     # -------------
     #   Properties
@@ -133,23 +159,35 @@ class VariableNamesRegistry(HasStrictTraits):
         depends_on='_variable_registry'
     )
 
+    #: A list containing a reference to each variable available_variables
+    variable_refs = Property(
+        List(Unicode),
+        depends_on='available_variables.[name,type]')
+
     #: Same structure as available_output_variables_stack, but this contains
     #: the cumulated information.
     available_variable_names = Property(
         List(List(Identifier)),
-        depends_on="_variable_registry"
+        depends_on="available_variables"
     )
 
     #: A list of type lookup dictionaries, with one dictionary for each
     #: execution layer
     available_variables_by_type = Property(
         List(exec_layer_by_type),
-        depends_on="_variable_registry"
+        depends_on="available_variables"
         )
 
     def __init__(self, workflow, *args, **kwargs):
         super(VariableNamesRegistry, self).__init__(*args, **kwargs)
         self.workflow = workflow
+
+    def __variable_registry_default(self):
+        """Default value for _variable_registry dictionary: split into two inner
+        dictionaries, holding defined (created by a DataSource output slot
+        and undefined (requiring to be created by a MCOParameter) Variables"""
+        return {'defined': {},
+                'undefined': {}}
 
     # ---------------
     #    Listeners
@@ -158,9 +196,27 @@ class VariableNamesRegistry(HasStrictTraits):
     @cached_property
     def _get_available_variables(self):
         """Returns a list containing the values of _variable_registry"""
-        available_variables = list(self._variable_registry.values())
+
+        available_variables = list(
+            self._variable_registry['defined'].values()
+        )
+        available_variables += list(
+            self._variable_registry['undefined'].values()
+        )
 
         return available_variables
+
+    @cached_property
+    def _get_variable_refs(self):
+        """Returns a list containing a reference to the names and type of
+        each variable in available_variables"""
+
+        variable_refs = [
+            f'{variable.name}:{variable.type}'
+            for variable in self.available_variables
+        ]
+
+        return variable_refs
 
     @cached_property
     def _get_available_variable_names(self):
@@ -228,7 +284,7 @@ class VariableNamesRegistry(HasStrictTraits):
 
         for variable in self.available_variables:
             # Reserve the first list for variables from the MCO
-            if variable.origin is None:
+            if variable.output_slot is None:
                 layer = 0
             else:
                 layer = variable.layer + 1
@@ -250,13 +306,12 @@ class VariableNamesRegistry(HasStrictTraits):
         """Method takes information from DataSourceModel input and
         output slots, and compiles it into a dictionary containing a
         set of Variable objects. The keys to each Variable are mainly
-        used for persistence checking cleanup purposes"""
+        used for persistence checking and cleanup purposes"""
 
-        # List of keys referring to existing variables
-        existing_variable_keys = []
-
-        # List of references to variables with a defined origin
-        output_variables = []
+        # Create references to the defined and undefined variable
+        # registries (purely for flake8 ease due to long names)
+        defined_registry = self._variable_registry['defined']
+        undefined_registry = self._variable_registry['undefined']
 
         for index, layer in enumerate(self.workflow.execution_layers):
             for data_source_model in layer.data_sources:
@@ -285,78 +340,108 @@ class VariableNamesRegistry(HasStrictTraits):
 
                 for info, slot in zip(data_source_model.output_slot_info,
                                       output_slots):
-                    # Key is reference to slot attribute on data_source_model.
-                    # Therefore it is unique and exists as long as the slot
-                    # exists
-                    key = f'{id(info)}:{slot.type}'
-                    existing_variable_keys.append(key)
+                    # Key is a direct reference an output slot on
+                    # data_source_model. Therefore it is unique and exists
+                    # as long as the slot exists
+                    key = f'{id(info)}'
 
-                    # Only create the Variable if it has not been defined
-                    # before this update
-                    if key not in self._variable_registry.keys():
+                    # If slot is unnamed, continue and do not register it as
+                    # a Variable. If the output slot has existed as a named
+                    # Variable before, remove it from the registry
+                    if info.name == '':
+                        if key in defined_registry:
+                            defined_registry.pop(key, None)
+                        continue
+
+                    # Only create a new Variable if it has not been defined
+                    # from an output slot before this update
+                    if key not in defined_registry:
                         data = Variable(
                             type=slot.type,
                             layer=index,
-                            origin_slot=info,
-                            origin=data_source_model
+                            output_slot=info,
                         )
-                        self._variable_registry[key] = data
-
-                    # Store a reference to the existing name and type of the
-                    # Variable - this is used to cross check against possible
-                    # input slots
-                    ref = f'{info.name}:{slot.type}'
-                    output_variables.append(ref)
+                        defined_registry[key] = data
 
                 for info, slot in zip(data_source_model.input_slot_info,
                                       input_slots):
-                    # Check whether an existing output variable could be passed
-                    # to this input slot
-                    ref = f'{info.name}:{slot.type}'
-                    if ref not in output_variables:
-                        # Perform a check through existing output variables to
-                        # unhook input slot if it has been renamed
-                        for key in existing_variable_keys:
-                            variable = self._variable_registry[key]
-                            if (index, info) in variable.input_slots:
-                                variable.input_slots.remove((index, info))
 
-                        # Store the reference to retain the Variable during
-                        # cleanup
-                        existing_variable_keys.append(ref)
+                    # Reference to the variable that an input slot on
+                    # data_source_model points to. Multiple input slots
+                    # can refer to the same output slot, so they do not
+                    # possess a unique reference
+                    key = f'{info.name}:{slot.type}'
 
-                        # If another input slot has referenced this Variable,
-                        # then simply add the data_source to the input_slots
-                        # list, otherwise create a new Variable
-                        if ref not in self._variable_registry.keys():
+                    # Check whether input slot can be hooked up to a
+                    # existing Variable defined by an output slot
+                    hooked_up = False
+                    for variable in defined_registry.values():
+                        hooked_up = (
+                                hooked_up or variable.check_input_slot_hook(
+                                    info, slot.type, index)
+                        )
+
+                    if not hooked_up:
+                        # If not hooked up to an output slot, check whether
+                        # input slot can be assigned to an existing undefined
+                        # Variable. This will also remove the slot from any
+                        # Variable if it is unnamed
+                        for variable in undefined_registry.values():
+                            variable.check_input_slot_hook(
+                                info, slot.type, index)
+
+                        # If slot is unnamed, continue and do not register it
+                        # as a new Variable.
+                        if info.name == '':
+                            continue
+
+                        if key not in undefined_registry:
+                            # If no existing Variable could refer to input
+                            # slot, create a new one
                             data = Variable(
                                 type=slot.type,
                                 layer=index,
-                                name=info.name
+                                name=info.name,
+                                input_slots=[(index, info)]
                             )
-                            self._variable_registry[ref] = data
-                        else:
-                            self._variable_registry[ref].input_slots.append(
-                                (index, info)
-                            )
+                            undefined_registry[key] = data
 
-                    # Search through existing variables to find a name and
-                    # type match
                     else:
-                        for variable in self._variable_registry.values():
-                            name_check = variable.name == info.name
-                            type_check = variable.type == slot.type
-                            if name_check and type_check:
-                                if (index, info) not in variable.input_slots:
-                                    variable.input_slots.append(
-                                        (index, info)
-                                    )
+                        # If hooked up to an output slot, remove input slot
+                        # from any undefined Variable
+                        for variable in undefined_registry.values():
+                            if (index, info) in variable.input_slots:
+                                variable.input_slots.remove((index, info))
 
-        # Clean up any Variable that no longer have slots that exist
-        # in the workflow
+        # Clean up any Variables that no longer refer to any output or input
+        # slots that exist in the workflow
         non_existing_variables = [
-            ref for ref in self._variable_registry.keys()
-            if ref not in existing_variable_keys
+            key for key, variable in undefined_registry.items()
+            if len(variable.input_slots) == 0
         ]
         for key in non_existing_variables:
-            self._variable_registry.pop(key, None)
+            undefined_registry.pop(key, None)
+
+    def verify(self):
+        """Check all Variable output slots have a unique name / type and
+        report any errors raised by each Variable"""
+
+        errors = []
+
+        for index, value in enumerate(self.variable_refs):
+            if self.variable_refs.count(value) > 1:
+                variable = self.available_variables[index]
+                errors.append(
+                   VerifierError(
+                       subject=variable.output_slot,
+                       local_error=('Output slot does not have a unique name'
+                                    ' / type combination'),
+                       global_error=('Two or more output slots share the same '
+                                     'name / type combination')
+                   )
+                )
+
+        for variable in self.available_variables:
+            errors += variable.verify()
+
+        return errors

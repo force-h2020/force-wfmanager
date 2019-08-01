@@ -77,8 +77,8 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
 
         self.assertEqual(2, len(self.registry.available_variables))
-        self.assertEqual('V1', self.registry.available_variables[0].name)
-        self.assertEqual('T1', self.registry.available_variables[1].name)
+        self.assertEqual('T1', self.registry.available_variables[0].name)
+        self.assertEqual('V1', self.registry.available_variables[1].name)
 
     def test_available_variable_names(self):
 
@@ -96,9 +96,9 @@ class VariableNamesRegistryTest(unittest.TestCase):
         )
         self.assertEqual(
             [['V1', 'V2'],
-             ['V1', 'V2', 'T1', 'T2'],
-             ['V1', 'V2', 'T1', 'T2', 'P1'],
-             ['V1', 'V2', 'T1', 'T2', 'P1']],
+             ['T1', 'T2', 'V1', 'V2'],
+             ['T1', 'T2', 'P1', 'V1', 'V2'],
+             ['T1', 'T2', 'P1', 'V1', 'V2']],
             self.registry.available_variable_names
         )
 
@@ -142,47 +142,50 @@ class VariableNamesRegistryTest(unittest.TestCase):
         )
 
     def test_update_variable_registry(self):
-        database = self.registry._variable_registry
+        registry = self.registry._variable_registry
+        self.assertEqual(2, len(registry))
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         self.data_source3.input_slot_info = [InputSlotInfo(name='T1')]
+        variable_list = self.registry.available_variables
 
-        variable_list = list(database.values())
         self.assertEqual(1, len(variable_list))
         self.assertEqual('PRESSURE T1', variable_list[0].label)
-        self.assertIsNotNone(variable_list[0].origin)
+        self.assertIsNotNone(variable_list[0].output_slot)
         self.assertEqual(1, len(variable_list[0].input_slots))
 
         self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
+        variable_list = self.registry.available_variables
 
-        variable_list = list(database.values())
+        self.assertEqual(2, len(variable_list))
         self.assertEqual('PRESSURE V1', variable_list[1].label)
-        self.assertIsNone(variable_list[1].origin)
-        self.assertIn('V1:PRESSURE', database.keys())
+        self.assertIsNone(variable_list[1].output_slot)
+        self.assertIn('V1:PRESSURE', registry['undefined'])
 
         self.data_source3.output_slot_info = [OutputSlotInfo(name='P1')]
+        variable_list = self.registry.available_variables
 
-        variable_list = list(database.values())
-        self.assertEqual('PRESSURE P1', variable_list[2].label)
-        self.assertIsNotNone(variable_list[2].origin)
+        self.assertEqual('PRESSURE P1', variable_list[1].label)
+        self.assertIsNotNone(variable_list[1].output_slot)
+        self.assertIn('V1:PRESSURE', registry['undefined'])
 
         # Rename an output variable
         self.data_source1.output_slot_info[0].name = 'B1'
+        variable_list = self.registry.available_variables
 
-        variable_list = list(database.values())
         self.assertEqual(3, len(variable_list))
         self.assertEqual('PRESSURE B1', variable_list[0].label)
-        self.assertEqual('PRESSURE P1', variable_list[2].label)
-        self.assertIsNotNone(variable_list[2].origin)
-        self.assertIsNone(variable_list[1].origin)
+        self.assertEqual('PRESSURE P1', variable_list[1].label)
+        self.assertIsNotNone(variable_list[0].output_slot)
+        self.assertIsNone(variable_list[2].output_slot)
 
         # Rename an input variable
         self.data_source3.input_slot_info[0].name = 'C1'
+        variable_list = self.registry.available_variables
 
-        variable_list = list(database.values())
         self.assertEqual(4, len(variable_list))
         self.assertEqual('PRESSURE C1', variable_list[3].label)
-        self.assertIsNone(variable_list[3].origin)
+        self.assertIsNone(variable_list[3].output_slot)
         self.assertEqual(0, len(variable_list[0].input_slots))
 
 
@@ -202,35 +205,47 @@ class VariableTest(unittest.TestCase):
             type='PRESSURE',
             layer=0,
             origin=data_source,
-            origin_slot=data_source.output_slot_info[0],
+            output_slot=data_source.output_slot_info[0],
         )
 
     def test_label(self):
         self.assertEqual('PRESSURE T1', self.variable.label)
         self.variable.name = 'P1'
         self.assertEqual('PRESSURE P1', self.variable.label)
-        self.variable.origin_slot.name = 'B1'
+        self.variable.output_slot.name = 'B1'
         self.assertEqual('PRESSURE B1', self.variable.label)
 
-    def test_verify_generation(self):
-        errors = self.variable.verify_generation()
+    def test_verify(self):
+        errors = self.variable.verify()
         self.assertEqual(0, len(errors))
 
         self.variable.input_slots.append((1, InputSlotInfo()))
 
-        errors = self.variable.verify_generation()
+        errors = self.variable.verify()
         self.assertEqual(0, len(errors))
 
         self.variable.input_slots.append((0, InputSlotInfo()))
 
-        errors = self.variable.verify_generation()
+        errors = self.variable.verify()
         self.assertEqual(1, len(errors))
         self.assertIn(
             'Variable is being used as an input before being generated',
-            errors[0].global_error)
+            errors[0].local_error)
 
     def test_update_name(self):
         self.variable.input_slots.append((1, InputSlotInfo(name='T1')))
-        self.variable.origin_slot.name = 'V1'
+        self.variable.output_slot.name = 'V1'
 
         self.assertEqual('V1', self.variable.input_slots[0][1].name)
+
+    def test_check_input_slot_hook(self):
+        input_slot = InputSlotInfo(name='T1')
+
+        self.assertTrue(self.variable.check_input_slot_hook(
+            input_slot, 'PRESSURE', 0)
+        )
+        input_slot = InputSlotInfo(name='C1')
+        self.assertFalse(self.variable.check_input_slot_hook(
+            input_slot, 'VOLUME', 0)
+        )
+        self.assertEqual(1, len(self.variable.input_slots))
