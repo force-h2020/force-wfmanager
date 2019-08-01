@@ -37,10 +37,10 @@ class BasePlot(BaseDataView):
     #: is *True* and inactive if it is *False*.
     reset_plot = Button('Reset View')
 
-    #: First parameter used for the plot
+    #: First parameter used for the plot (abscissa)
     x = Enum(values='_value_names')
 
-    #: Second parameter used for the plot
+    #: Second parameter used for the plot (ordinate)
     y = Enum(values='_value_names')
 
     #: Optional third parameter used to set colour of points
@@ -60,12 +60,6 @@ class BasePlot(BaseDataView):
 
     #: Boolean indicating whether the plot view can be reset or not.
     reset_enabled = Property(Bool(), depends_on="_plot_data")
-
-    #: Timer to check on required updates
-    plot_updater = Instance(CallbackTimer)
-
-    #: Schedule a refresh of plot data and axes
-    update_required = Bool(False)
 
     # --------------------
     # Dependent Attributes
@@ -94,6 +88,12 @@ class BasePlot(BaseDataView):
     #: Listens to: :attr:`x`, :attr:`y`
     _plot_data = Instance(ArrayPlotData)
 
+    #: Timer to check on required updates
+    plot_updater = Instance(CallbackTimer)
+
+    #: Schedule a refresh of plot data and axes
+    update_required = Bool(False)
+
     # ------------------
     # Regular Attributes
     # ------------------
@@ -117,6 +117,10 @@ class BasePlot(BaseDataView):
             )
         )
     )
+
+    # --------------------
+    # Defaults and getters
+    # --------------------
 
     def _plot_updater_default(self):
         return CallbackTimer.timer(
@@ -184,9 +188,6 @@ class BasePlot(BaseDataView):
         return plot
 
     def __plot_data_default(self):
-        return self._get_plot_data_default()
-
-    def _get_plot_data_default(self):
         plot_data = ArrayPlotData()
         plot_data.set_data('x', [])
         plot_data.set_data('y', [])
@@ -196,7 +197,10 @@ class BasePlot(BaseDataView):
     def __data_arrays_default(self):
         return [[] for _ in range(len(self.analysis_model.value_names))]
 
+    # ----------
     # Properties
+    # ----------
+
     #: NOTE: appears to be updated very often (could do with caching?)
     def _get_reset_enabled(self):
         x_data = self._plot_data.get_data('x')
@@ -204,7 +208,12 @@ class BasePlot(BaseDataView):
             return True
         return False
 
+    # ---------
+    # Listeners
+    # ---------
+
     # Response to analysis model changes
+
     @on_trait_change('analysis_model.value_names')
     def update_value_names(self):
         """ Sets the value names in the plot to match those it the analysis
@@ -229,7 +238,39 @@ class BasePlot(BaseDataView):
 
         self._update_plot()
 
-    @on_trait_change('analysis_model.evaluation_steps[]')
+    @on_trait_change('analysis_model.evaluation_steps[]', dispatch="ui")
+    def request_update(self):
+        # Update plot data at the next cycle
+        self.update_required = True
+
+    # Response to user input
+
+    @on_trait_change('x,y')
+    def _update_plot(self):
+        """Refresh the plot's axes and data. """
+        if self.x is None or self.y is None \
+                or self.color_by is None or self._data_arrays == []:
+            self._plot_data.set_data('x', [])
+            self._plot_data.set_data('y', [])
+            self.recenter_plot()
+            return
+
+        x_index = self.analysis_model.value_names.index(self.x)
+        y_index = self.analysis_model.value_names.index(self.y)
+        c_index = self.analysis_model.value_names.index(self.color_by)
+
+        # Set the axis labels
+        self._plot.x_axis.title = self.x
+        self._plot.y_axis.title = self.y
+
+        data_arrays = self._data_arrays
+
+        self._plot_data.set_data('x', data_arrays[x_index])
+        self._plot_data.set_data('y', data_arrays[y_index])
+        self._plot_data.set_data('color_by', data_arrays[c_index])
+
+        self.recenter_plot()
+
     def update_data_arrays(self):
         """ Update the data arrays used by the plot. It assumes that the
         AnalysisModel object is valid. Which means that the number of
@@ -254,7 +295,7 @@ class BasePlot(BaseDataView):
             self._update_plot()
             return
 
-        evaluation_steps = self.analysis_model.evaluation_steps
+        evaluation_steps = self.analysis_model.evaluation_steps.copy()
 
         # In this case, the value_names have changed, so we need to
         # synchronize the number of data arrays to the newly found data
@@ -279,40 +320,14 @@ class BasePlot(BaseDataView):
             for index in range(data_dim):
                 self._data_arrays[index].append(evaluation_step[index])
 
-        # Update plot data at the next cycle
-        self.update_required = True
-
     def _check_scheduled_updates(self):
         """ Update the plot if an update was required. This function is a
         callback for the _plot_updater timer.
         """
         if self.update_required:
+            self.update_data_arrays()
             self._update_plot()
             self.update_required = False
-
-    @on_trait_change('x,y')
-    def _update_plot(self):
-        """Refresh the plot's axes and data. """
-        if self.x is None or self.y is None \
-                or self.color_by is None or self._data_arrays == []:
-            self._plot_data.set_data('x', [])
-            self._plot_data.set_data('y', [])
-            self.recenter_plot()
-            return
-
-        x_index = self.analysis_model.value_names.index(self.x)
-        y_index = self.analysis_model.value_names.index(self.y)
-        c_index = self.analysis_model.value_names.index(self.color_by)
-
-        # Set the axis labels
-        self._plot.x_axis.title = self.x
-        self._plot.y_axis.title = self.y
-
-        self._plot_data.set_data('x', self._data_arrays[x_index])
-        self._plot_data.set_data('y', self._data_arrays[y_index])
-        self._plot_data.set_data('color_by', self._data_arrays[c_index])
-
-        self.recenter_plot()
 
     def _reset_plot_fired(self):
         """ Event handler for :attr:`reset_plot`"""
