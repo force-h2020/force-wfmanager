@@ -238,9 +238,9 @@ class BasePlot(BaseDataView):
 
         self._update_plot()
 
-    @on_trait_change('analysis_model.evaluation_steps[]', dispatch="ui")
+    @on_trait_change('analysis_model:evaluation_steps[]')
     def request_update(self):
-        # Update plot data at the next cycle
+        # Data points are being added: update plot data at the next cycle
         self.update_required = True
 
     # Response to user input
