@@ -428,6 +428,28 @@ class VariableNamesRegistry(HasStrictTraits):
 
         errors = []
 
+        refs = []
+        if self.workflow.mco is not None:
+            refs += [
+                f'{parameter.name}:{parameter.type}'
+                for parameter in self.workflow.mco.parameters
+            ]
+
+        for key, variable in self._variable_registry['undefined'].items():
+            if key not in refs:
+                for _, input_slot in variable.input_slots:
+                    errors.append(
+                        VerifierError(
+                            subject=input_slot,
+                            local_error=('Input slot does not have either a'
+                                         ' corresponding Output slot or MCO'
+                                         ' Parameter'),
+                            global_error=('An Input slot requires a '
+                                          'corresponding Output slot or MCO '
+                                          'Parameter')
+                        )
+                    )
+
         for index, value in enumerate(self.variable_refs):
             if self.variable_refs.count(value) > 1:
                 variable = self.available_variables[index]
