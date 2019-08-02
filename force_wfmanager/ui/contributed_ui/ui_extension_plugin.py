@@ -5,6 +5,7 @@ from force_wfmanager.ui.contributed_ui.i_contributed_ui import IContributedUI
 
 
 class UIExtensionPlugin(BaseExtensionPlugin):
+    """A plugin which also contributes one or more custom UIs"""
     contributed_UIs = List(
         IContributedUI, contributes_to='plugin_ui'
     )

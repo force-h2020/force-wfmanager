@@ -684,9 +684,10 @@ class WfManagerSetupTask(Task):
 
     # Custom UI Methods
     def ui_select(self):
-        plugins = [plugin
-                   for plugin in self.window.application.plugin_manager
-                   if isinstance(plugin, BaseExtensionPlugin)]
+        plugins = [
+            plugin for plugin in self.window.application.plugin_manager
+            if isinstance(plugin, BaseExtensionPlugin)
+        ]
 
         # Plugins guaranteed to have an id, so sort by that if name is not set
         plugins.sort(

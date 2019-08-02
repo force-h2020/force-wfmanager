@@ -47,8 +47,6 @@ class UISelectModal(HasRequiredTraits):
     #: The description for the currently selected UI
     selected_ui_desc = Unicode()
 
-    workflow_view = View()
-
     traits_view = View(VGroup(
         HGroup(
             Spring(),

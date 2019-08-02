@@ -39,16 +39,14 @@ class ContributedUI(HasTraits):
     #: A Group of Item(s) to show in the UI for this workflow
     workflow_group = Instance(Group)
 
-    #: Event to request a workflow run. Listened to by
-    #: :meth:`force_wfmanager.wfmanager_setup_task.run_bdss_custom_ui`
+    #: Event to request a workflow run.
     run_simulation = Event()
 
     run_simulation_action = Action(
         name="Run Simulation", action="run_simulation"
     )
 
-    #: Event to update a workflow. Listened to by
-    #: :class:`WFManagerSetupTask`
+    #: Event to update a workflow.
     update_workflow = Event()
 
     update_workflow_action = Action(

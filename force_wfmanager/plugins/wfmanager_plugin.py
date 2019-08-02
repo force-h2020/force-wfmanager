@@ -46,7 +46,6 @@ class WfManagerPlugin(Plugin):
         factory_registry = self.application.get_service(
             IFactoryRegistry
         )
-        print(self)
         wf_manager_setup_task = WfManagerSetupTask(
             factory_registry=factory_registry,
             contributed_UIs=self.plugin_ui
