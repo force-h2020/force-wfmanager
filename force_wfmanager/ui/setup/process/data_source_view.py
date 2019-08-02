@@ -237,6 +237,7 @@ class DataSourceView(HasTraits):
         change on the shape of the input/output slots"""
         #: This synchronization maybe is something that should be moved to the
         #: model.
+
         self.input_slots_representation[:] = []
         self.output_slots_representation[:] = []
 
@@ -244,8 +245,8 @@ class DataSourceView(HasTraits):
 
         #: Initialize the input slots
         self.model.input_slot_info = [
-            InputSlotInfo(model=slot)
-            for slot in input_slots
+            InputSlotInfo(name='')
+            for _ in input_slots
         ]
 
         #: Initialize the output slots
@@ -270,6 +271,7 @@ class DataSourceView(HasTraits):
             If the input slots or output slots in the model are not of the
             right length. This can come from a corrupted file.
         """
+
         input_slots, output_slots = self._data_source.slots(self.model)
 
         # Initialize model.input_slot_info if not initialized yet

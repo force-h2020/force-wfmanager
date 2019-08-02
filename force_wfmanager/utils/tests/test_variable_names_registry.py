@@ -160,14 +160,14 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.assertEqual(2, len(variable_list))
         self.assertEqual('PRESSURE V1', variable_list[1].label)
         self.assertIsNone(variable_list[1].output_slot)
-        self.assertIn('V1:PRESSURE', registry['undefined'])
+        self.assertIn(('V1', 'PRESSURE'), registry['undefined'])
 
         self.data_source3.output_slot_info = [OutputSlotInfo(name='P1')]
         variable_list = self.registry.available_variables
 
         self.assertEqual('PRESSURE P1', variable_list[1].label)
         self.assertIsNotNone(variable_list[1].output_slot)
-        self.assertIn('V1:PRESSURE', registry['undefined'])
+        self.assertIn(('V1', 'PRESSURE'), registry['undefined'])
 
     def test_rename_variables(self):
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]

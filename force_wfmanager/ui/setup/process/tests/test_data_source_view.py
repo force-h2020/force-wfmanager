@@ -65,7 +65,7 @@ class TestDataSourceView(WfManagerBaseTestCase):
 
         self.model_1.output_slot_info = [
             OutputSlotInfo(name='')
-            for slot in range(len(output_slots) + 1)]
+            for _ in range(len(output_slots) + 1)]
 
         with self.assertRaisesRegex(RuntimeError, "output slots"):
             DataSourceView(
@@ -106,3 +106,14 @@ class TestDataSourceView(WfManagerBaseTestCase):
                       self.data_source_view.selected_slot_description)
         self.assertIn("PRESSURE",
                       self.data_source_view.selected_slot_description)
+
+    def test__update_slots_tables(self):
+
+        self.model_1.changes_slots = True
+
+        self.assertEqual(
+            2,
+            len(self.data_source_view.output_slots_representation))
+        self.assertEqual(
+            len(self.data_source_view.output_slots_representation),
+            len(self.model_1.output_slot_info))
