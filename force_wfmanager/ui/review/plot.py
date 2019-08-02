@@ -1,9 +1,9 @@
 """ This submodule implements the following :class:`BaseDataView` subclasses:
 
-* :class:`BasePlot` provides a simple 2D scatter plot over
-  the columns from the analysis model, with x and y
-  selectable with a dropdown. It is not selected and is meant
-  as a template for subclassing.
+* :class:`BasePlot` provides a simple 2D scatter plot over the columns from
+  the analysis model, with x and y selectable with a dropdown. It updates when
+  new data is incoming, with a 1 second timer to avoid continuous updates.
+  It is not selectable and is meant as a template for subclassing.
 * :class:`Plot` extends :class:`BasePlot` to allow for an
   optional colourmap to be applied to a third variable.
 
@@ -253,6 +253,18 @@ class BasePlot(BaseDataView):
         self.update_required = True
 
     # Response to user input
+
+    @on_trait_change('is_active_view')
+    def toggle_updater_with_visibility(self):
+        """Start/stop the update if this data view is not being used. """
+        if self.is_active_view:
+            if not self.plot_updater.active:
+                self.plot_updater.start()
+            self.update_required = True
+            self._check_scheduled_updates()
+        else:
+            if self.plot_updater.active:
+                self.plot_updater.stop()
 
     @on_trait_change('x,y')
     def _update_plot(self):
