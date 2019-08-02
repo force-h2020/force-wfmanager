@@ -176,10 +176,13 @@ class MCOParameterView(BaseMCOOptionsView):
 
     # Workflow Validation
     @on_trait_change('parameter_name_options')
-    def update_model_views__combobox(self):
-        """Update the parameter model view name options"""
-        for parameter_view in self.model_views:
-            parameter_view.available_variables = self.parameter_name_options
+    def update_model_views_available_variables(self):
+        """Updates all model_view available_variables when
+        parameter_name_options is updated"""
+
+        # Update the model_views with the new parameter_name_options
+        for model_view in self.model_views:
+            model_view.update_available_variables(self.parameter_name_options)
 
     def _add_parameter_button_fired(self):
         """Call add_parameter to create a new empty parameter using
