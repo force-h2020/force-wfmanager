@@ -40,6 +40,9 @@ class TableRow(HasStrictTraits):
     #: A human readable description of the slot
     description = Unicode()
 
+    #: Current UI status of the slot (alters user to Variable hook-ups)
+    status = Unicode()
+
 
 class InputSlotRow(TableRow):
     """Row in the UI representing DataSource input_slots. """
@@ -66,7 +69,7 @@ class OutputSlotRow(TableRow):
     model = Instance(OutputSlotInfo)
 
 
-#: The TraitsUI editor used for :object:`TableRow.model.name`
+#: The TraitsUI editor used for :attr:`TableRow.model.name`
 name_editor = TextEditor(auto_set=False,
                          enter_set=True)
 
@@ -80,7 +83,7 @@ slots_editor = TableEditor(
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
         ObjectColumn(name="model.name", label="Variable Name",
-                     editable=True, editor=name_editor),
+                     editable=True, editor=name_editor)
     ]
 )
 
