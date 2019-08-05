@@ -24,6 +24,9 @@ class TableRow(HasStrictTraits):
     # Required Attributes
     # -------------------
 
+    #: Model of the evaluator
+    model = Instance(HasStrictTraits)
+
     #: Type of the slot
     type = Unicode()
 
@@ -45,7 +48,7 @@ class InputSlotRow(TableRow):
     # Required Attributes
     # -------------------
 
-    #: Model of the evaluator
+    #: InputSlotInfo model of the evaluator
     model = Instance(InputSlotInfo)
 
     # Available names for input variables
@@ -59,25 +62,17 @@ class OutputSlotRow(TableRow):
     # Required Attributes
     # -------------------
 
-    #: Model of the evaluator
+    #: OutputSlotInfo model of the evaluator
     model = Instance(OutputSlotInfo)
 
 
-#: The TraitsUI editor used for :class:`InputSlotRow`
-input_slots_editor = TableEditor(
-    sortable=False,
-    configurable=False,
-    selected="selected_slot_row",
-    columns=[
-        ObjectColumn(name="index", label="", editable=False),
-        ObjectColumn(name="type", label="Type", editable=False),
-        ObjectColumn(name="model.name", label="Variable Name",
-                     editable=True),
-    ]
-)
+#: The TraitsUI editor used for :object:`TableRow.model.name`
+name_editor = TextEditor(auto_set=False,
+                         enter_set=True)
 
-#: The TraitsUI editor used for :class:`OutputSlotRow`
-output_slots_editor = TableEditor(
+#: The TraitsUI editor used for :class:`InputSlotRow`
+#: and :class:`OutputSlotRow`
+slots_editor = TableEditor(
     sortable=False,
     configurable=False,
     selected="selected_slot_row",
@@ -85,7 +80,7 @@ output_slots_editor = TableEditor(
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
         ObjectColumn(name="model.name", label="Variable Name",
-                     editable=True),
+                     editable=True, editor=name_editor),
     ]
 )
 
@@ -168,19 +163,19 @@ class DataSourceView(HasTraits):
                 Item(
                     "input_slots_representation",
                     label="Input variables",
-                    editor=input_slots_editor,
+                    editor=slots_editor,
                 ),
                 Item(
                     "output_slots_representation",
                     label="Output variables",
-                    editor=output_slots_editor,
-                )
+                    editor=slots_editor,
+                ),
             ),
             VGroup(
                 UReadonly(
                     "selected_slot_description",
                     editor=TextEditor(),
-                    ),
+                ),
                 label="Selected parameter description",
                 show_border=True
             ),
