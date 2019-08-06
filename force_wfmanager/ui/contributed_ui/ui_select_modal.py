@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from traits.api import (
     Dict, Enum, HasRequiredTraits, Instance, List, Unicode, on_trait_change
 )
@@ -69,8 +71,8 @@ class UISelectModal(HasRequiredTraits):
     )
 
     def __contributed_ui_names_default(self):
-        return [''] + [ui.name for ui in self.contributed_uis
-                       if self._check_ui_plugins_available(ui)]
+
+        return [''] + [ui_name for ui_name in self.ui_name_map]
 
     @on_trait_change("selected_ui_name")
     def select_ui(self):
@@ -88,7 +90,19 @@ class UISelectModal(HasRequiredTraits):
         """Convenience mapping from user friendly UI names to the
         ContributedUI object itself
         """
-        return {ui.name: ui for ui in self.contributed_uis}
+        duplicate_ui_name_count = defaultdict(lambda: 1)
+        ui_name_map = {}
+        for ui in self.contributed_uis:
+            if self._check_ui_plugins_available(ui):
+                if ui.name not in ui_name_map:
+                    ui_name_map[ui.name] = ui
+                else:
+                    duplicate_ui_name_count[ui.name] += 1
+                    ui_name_and_index = (
+                            ui.name + f' ({duplicate_ui_name_count[ui.name]})'
+                    )
+                    ui_name_map[ui_name_and_index] = ui
+        return ui_name_map
 
     def _avail_plugin_info_default(self):
         return {

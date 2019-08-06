@@ -48,7 +48,7 @@ class WfManagerPlugin(Plugin):
         )
         wf_manager_setup_task = WfManagerSetupTask(
             factory_registry=factory_registry,
-            contributed_UIs=contributed_uis
+            contributed_uis=contributed_uis
         )
         if self.workflow_file is not None:
             wf_manager_setup_task.load_workflow(self.workflow_file)

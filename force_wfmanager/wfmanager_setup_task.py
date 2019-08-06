@@ -25,7 +25,7 @@ from force_wfmanager.ui.setup.system_state import SystemState
 from force_wfmanager.ui.contributed_ui.contributed_ui import (
     ContributedUI, ContributedUIHandler
 )
-from force_wfmanager.ui.contributed_ui.ui_select_modal import UISelectModal
+from force_wfmanager.ui import UISelectModal
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.wfmanager import (
@@ -101,7 +101,7 @@ class WfManagerSetupTask(Task):
     review_task = Instance(Task)
 
     #: A list of plugin contributed UIs
-    contributed_UIs = List(ContributedUI)
+    contributed_uis = List(ContributedUI)
 
     #: Selected contributed UI
     selected_contributed_ui = Instance(ContributedUI)
@@ -694,7 +694,7 @@ class WfManagerSetupTask(Task):
             key=lambda s: s.name if s.name not in ('', None) else s.id
         )
         ui_modal = UISelectModal(
-            contributed_uis=self.contributed_UIs,
+            contributed_uis=self.contributed_uis,
             available_plugins=plugins
         )
         ui_modal.edit_traits()

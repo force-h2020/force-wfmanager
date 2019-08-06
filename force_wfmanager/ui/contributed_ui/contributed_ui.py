@@ -125,6 +125,10 @@ def parse_id(id):
 
     """
     result = re.search(r'(.*)\.v(\d+).*', id)
+    if result is None:
+        raise ValueError(
+            f"Unexpected plugin id: {id}\n Plugin ids should have the form:"
+            "${plugin_id}.v${version_number}.factory.${factory_name}")
     plugin_name, plugin_version = result.groups()
     plugin_id = '.'.join([plugin_name, f'v{plugin_version}'])
     return plugin_id, int(plugin_version)

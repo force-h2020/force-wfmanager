@@ -9,6 +9,7 @@ from pyface.tasks.api import TaskWindow
 from force_bdss.tests.probe_classes.factory_registry import \
     ProbeFactoryRegistry
 from force_bdss.api import Workflow
+from force_wfmanager.tests.dummy_classes import DummyContributedUI
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.side_pane import SidePane
@@ -49,12 +50,14 @@ def get_probe_wfmanager_tasks(wf_manager=None):
     analysis_model = AnalysisModel()
     workflow_model = Workflow()
     factory_registry_plugin = ProbeFactoryRegistry()
+    contributed_uis = [DummyContributedUI()]
 
     wf_manager.factory_registry = factory_registry_plugin
 
     setup_test = WfManagerSetupTask(
         analysis_model=analysis_model, workflow_model=workflow_model,
-        factory_registry=factory_registry_plugin
+        factory_registry=factory_registry_plugin,
+        contributed_uis=contributed_uis
     )
 
     review_task = WfManagerReviewTask(

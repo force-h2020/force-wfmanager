@@ -4,7 +4,7 @@ from traits.api import HasTraits, Instance
 from traitsui.api import VGroup, View
 
 from force_bdss.api import (
-    BaseDataSourceFactory
+    BaseDataSourceFactory, plugin_id
 )
 from force_bdss.tests.dummy_classes.data_source import (
     DummyDataSource, DummyDataSourceModel
@@ -12,7 +12,7 @@ from force_bdss.tests.dummy_classes.data_source import (
 from force_bdss.tests.dummy_classes.extension_plugin import (
     DummyExtensionPlugin
 )
-
+from force_wfmanager.ui import ContributedUI, UIExtensionPlugin
 from force_wfmanager.ui.review.data_view import BaseDataView
 from force_wfmanager.wfmanager import WfManager
 
@@ -90,3 +90,44 @@ class DummyFactory(BaseDataSourceFactory):
 
     def get_name(self):
         return '   Really cool factory  '
+
+
+class DummyContributedUI(ContributedUI):
+
+    name = "DummyUI"
+
+    desc = "Dummy UI"
+
+    workflow_data = {
+        "mco":
+            {"id": "force.bdss.enthought.plugin.test.v0.factory.mco"}
+    }
+
+
+class DummyContributedUI2(ContributedUI):
+
+    name = "DummyUI"
+
+    desc = "Dummy UI 2"
+
+    workflow_data = {
+        "mco":
+            {"id": "force.bdss.enthought.plugin.uitest.v2.factory.mco"}
+    }
+
+
+class DummyUIPlugin(UIExtensionPlugin):
+
+    id = plugin_id("enthought", "uitest", 2)
+
+    def get_name(self):
+        return "Example"
+
+    def get_version(self):
+        return 2
+
+    def get_factory_classes(self):
+        return [DummyFactory]
+
+    def get_contributed_uis(self):
+        return [DummyContributedUI, DummyContributedUI2]
