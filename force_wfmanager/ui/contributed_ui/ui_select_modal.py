@@ -9,7 +9,7 @@ from traitsui.api import (
 )
 
 from force_bdss.api import BaseExtensionPlugin
-from force_wfmanager.ui.contributed_ui.contributed_ui import ContributedUI
+from force_wfmanager.ui import ContributedUI
 
 
 class UISelectHandler(Handler):

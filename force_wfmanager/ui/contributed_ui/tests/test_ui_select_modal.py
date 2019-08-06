@@ -6,13 +6,14 @@ from force_bdss.tests.dummy_classes.extension_plugin import (
 from force_wfmanager.tests.dummy_classes import (
     DummyContributedUI, DummyContributedUI2, DummyUIPlugin
 )
-from force_wfmanager.ui import UISelectModal, ContributedUI
+from force_wfmanager.ui import UISelectModal, ContributedUI, UISelectHandler
 from force_wfmanager.ui.contributed_ui.ui_select_modal import (
     DESCRIPTION_TEMPLATE
 )
+from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 
-class DummyBrokenContributedUI(ContributedUI):
+class DummyBrokenContributedUI(ContributedUI, GuiTestAssistant):
 
     name = "DummyUI"
 
@@ -24,10 +25,11 @@ class DummyBrokenContributedUI(ContributedUI):
     }
 
 
-class TestUISelectModal(unittest.TestCase):
+class TestUISelectModal(GuiTestAssistant, unittest.TestCase):
 
-    def setUp(self) -> None:
+    def setUp(self):
         self.plugins = [DummyExtensionPlugin(), DummyUIPlugin()]
+        super(TestUISelectModal, self).setUp()
 
     def test_ui_modal_init(self):
         contributed_ui = DummyContributedUI()
@@ -89,3 +91,23 @@ class TestUISelectModal(unittest.TestCase):
             ui_modal.selected_ui_desc,
             DESCRIPTION_TEMPLATE.format("DummyUI", "Dummy UI 2")
         )
+
+    def test_ok_cancel_selection(self):
+        contributed_ui = DummyContributedUI()
+        other_contributed_ui = DummyContributedUI2()
+        self.ui_modal = UISelectModal(
+            contributed_uis=[contributed_ui, other_contributed_ui],
+            available_plugins=self.plugins
+        )
+        # OK
+        self.ui_modal.selected_ui_name = "DummyUI"
+        ui = self.ui_modal.edit_traits(kind="live")
+        with self.event_loop(repeat=5):
+            self.gui.invoke_later(ui.handler.close, ui.info, True)
+        self.assertIsInstance(self.ui_modal.selected_ui, DummyContributedUI)
+        # Cancel
+        self.ui_modal.selected_ui_name = "DummyUI"
+        ui = self.ui_modal.edit_traits(kind="live")
+        with self.event_loop(repeat=5):
+            self.gui.invoke_later(ui.handler.close, ui.info, False)
+        self.assertIsNone(self.ui_modal.selected_ui)
