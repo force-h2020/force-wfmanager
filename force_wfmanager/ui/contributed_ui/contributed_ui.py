@@ -6,7 +6,7 @@ from traits.api import (
 from traitsui.api import Action, Group, Handler, View
 
 from force_bdss.api import WorkflowReader
-from force_wfmanager.ui import IContributedUI
+from force_wfmanager.ui.contributed_ui.i_contributed_ui import IContributedUI
 
 
 class ContributedUIHandler(Handler):

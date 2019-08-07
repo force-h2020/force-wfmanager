@@ -473,5 +473,5 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         # Press the 'run simulation' button
         with mock.patch(RUN_BDSS_PATH) as _mock_run:
             with self.assertTraitChanges(setup_task, 'workflow_model'):
-                setup_task.selected_contributed_ui.run_simulation = True
+                setup_task.selected_contributed_ui.run_workflow = True
         _mock_run.assert_called()
