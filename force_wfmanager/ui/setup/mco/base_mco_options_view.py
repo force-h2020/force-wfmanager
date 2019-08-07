@@ -89,10 +89,6 @@ class BaseMCOOptionsView(HasTraits):
             return f'MCO {self.name}'
 
     # Workflow Validation
-    @on_trait_change('model')
-    def update_model(self):
-        self.update_model_views()
-
     @on_trait_change('model_views.verify_workflow_event')
     def received_verify_request(self):
         """Pass on call for verify_workflow_event"""

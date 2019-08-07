@@ -114,7 +114,6 @@ class KPISpecificationView(BaseMCOOptionsView):
     def update_model_views_available_variables(self):
         """Updates all model_view available_variables when kpi_name_options
          is updated"""
-
         # Update the model_views with the new kpi_name_options
         for model_view in self.model_views:
             model_view.update_available_variables(self.kpi_name_options)
@@ -137,7 +136,6 @@ class KPISpecificationView(BaseMCOOptionsView):
     def _create_model_view(self, kpi):
         """Overloaded method to create a MCOParameterModelView from a
         MCOParameter"""
-
         model_view = KPISpecificationModelView(
             model=kpi,
             available_variables=self.kpi_name_options

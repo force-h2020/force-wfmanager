@@ -39,4 +39,4 @@ class TestBaseMCOOptionsView(unittest.TestCase, UnittestTools):
             mco_options_view._model_views_default()
 
         with self.assertRaises(NotImplementedError):
-            mco_options_view._create_model_view()
+            mco_options_view._create_model_view(None)

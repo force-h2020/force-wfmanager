@@ -77,7 +77,9 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
         model can be synced to any variable in available_variables.
         This is required upon instantiation, """
 
-        super().update_available_variables(available_variables)
+        super(KPISpecificationModelView, self).update_available_variables(
+            available_variables
+        )
 
         # Check whether model can be assigned to a variable
         for variable in self.available_variables:

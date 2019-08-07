@@ -33,6 +33,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         )
 
     def test_kpi_view_init(self):
+        self.assertEqual(2, len(self.workflow.mco.kpis))
         self.assertEqual(2, len(self.kpi_view.model_views))
         self.assertEqual(
             self.kpi_view.model_views[0].selected_variable,
