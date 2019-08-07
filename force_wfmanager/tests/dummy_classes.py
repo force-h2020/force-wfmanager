@@ -1,7 +1,8 @@
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
+from force_bdss.core.workflow import Workflow
 from traits.api import HasTraits, Instance
-from traitsui.api import VGroup, View
+from traitsui.api import Item, VGroup, View
 
 from force_bdss.api import (
     BaseDataSourceFactory, plugin_id
@@ -115,6 +116,13 @@ class DummyContributedUI2(ContributedUI):
             {"id": "force.bdss.enthought.plugin.uitest.v2.factory.mco"}
     }
 
+    workflow_group = VGroup(Item("name"))
+
+    def create_workflow(self, factory_registry):
+        """Return an empty workflow as a placeholder, since the factories
+        referenced in workflow_data don't actually exist"""
+        return Workflow()
+
 
 class DummyUIPlugin(UIExtensionPlugin):
 
@@ -131,3 +139,32 @@ class DummyUIPlugin(UIExtensionPlugin):
 
     def get_contributed_uis(self):
         return [DummyContributedUI, DummyContributedUI2]
+
+
+class DummyUIPluginOld(UIExtensionPlugin):
+
+    id = plugin_id("enthought", "uitest", 1)
+
+    def get_name(self):
+        return "An Older Example"
+
+    def get_version(self):
+        return 1
+
+    def get_factory_classes(self):
+        return [DummyFactory]
+
+    def get_contributed_uis(self):
+        return [DummyContributedUI, DummyContributedUI2]
+
+
+class DummyUIWfManager(WfManager):
+    """A workflow manager with a plugin contributing a UI"""
+    def __init__(self):
+        plugins = [
+            CorePlugin(), TasksPlugin(), DummyUIPlugin(), DummyUIPluginOld()
+        ]
+        super(DummyUIWfManager, self).__init__(plugins=plugins)
+
+    def run(self):
+        pass

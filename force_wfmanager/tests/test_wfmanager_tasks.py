@@ -40,7 +40,7 @@ ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.' \
 ANALYSIS_FILE_OPEN_PATH = 'force_wfmanager.io.analysis_model_io.open'
 
 
-def get_probe_wfmanager_tasks(wf_manager=None):
+def get_probe_wfmanager_tasks(wf_manager=None, contributed_uis=None):
     # Returns the Setup and Review Tasks, with a mock TaskWindow and dummy
     # Application which does not have an event loop.
 
@@ -50,7 +50,8 @@ def get_probe_wfmanager_tasks(wf_manager=None):
     analysis_model = AnalysisModel()
     workflow_model = Workflow()
     factory_registry_plugin = ProbeFactoryRegistry()
-    contributed_uis = [DummyContributedUI()]
+    if contributed_uis is None:
+        contributed_uis = [DummyContributedUI()]
 
     wf_manager.factory_registry = factory_registry_plugin
 

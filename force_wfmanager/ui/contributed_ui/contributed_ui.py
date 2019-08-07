@@ -6,13 +6,13 @@ from traits.api import (
 from traitsui.api import Action, Group, Handler, View
 
 from force_bdss.api import WorkflowReader
-from force_wfmanager.ui.contributed_ui.i_contributed_ui import IContributedUI
+from force_wfmanager.ui import IContributedUI
 
 
 class ContributedUIHandler(Handler):
 
-    def run_simulation(self, info):
-        info.object.run_simulation = True
+    def run_workflow(self, info):
+        info.object.run_workflow = True
         self._on_close(info)
 
     def update_workflow(self, info):
@@ -40,10 +40,10 @@ class ContributedUI(HasTraits):
     workflow_group = Instance(Group)
 
     #: Event to request a workflow run.
-    run_simulation = Event()
+    run_workflow = Event()
 
-    run_simulation_action = Action(
-        name="Run Simulation", action="run_simulation"
+    run_workflow_action = Action(
+        name="Run Workflow", action="run_workflow"
     )
 
     #: Event to update a workflow.
@@ -59,7 +59,7 @@ class ContributedUI(HasTraits):
         return View(
             self.workflow_group,
             buttons=[
-                self.run_simulation_action, self.update_workflow_action,
+                self.run_workflow_action, self.update_workflow_action,
                 'Cancel'
             ]
         )

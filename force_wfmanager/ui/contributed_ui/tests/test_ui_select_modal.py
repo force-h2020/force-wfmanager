@@ -1,16 +1,18 @@
 import unittest
 
+from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+from pyface.ui.qt4.util.modal_dialog_tester import ModalDialogTester
+
 from force_bdss.tests.dummy_classes.extension_plugin import (
     DummyExtensionPlugin
 )
 from force_wfmanager.tests.dummy_classes import (
     DummyContributedUI, DummyContributedUI2, DummyUIPlugin
 )
-from force_wfmanager.ui import UISelectModal, ContributedUI, UISelectHandler
+from force_wfmanager.ui import UISelectModal, ContributedUI
 from force_wfmanager.ui.contributed_ui.ui_select_modal import (
     DESCRIPTION_TEMPLATE
 )
-from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 
 class DummyBrokenContributedUI(ContributedUI, GuiTestAssistant):
@@ -101,13 +103,11 @@ class TestUISelectModal(GuiTestAssistant, unittest.TestCase):
         )
         # OK
         self.ui_modal.selected_ui_name = "DummyUI"
-        ui = self.ui_modal.edit_traits(kind="live")
-        with self.event_loop(repeat=5):
-            self.gui.invoke_later(ui.handler.close, ui.info, True)
+        tester = ModalDialogTester(self.ui_modal.edit_traits)
+        tester.open_and_run(when_opened=lambda x: x.close(accept=True))
         self.assertIsInstance(self.ui_modal.selected_ui, DummyContributedUI)
         # Cancel
         self.ui_modal.selected_ui_name = "DummyUI"
-        ui = self.ui_modal.edit_traits(kind="live")
-        with self.event_loop(repeat=5):
-            self.gui.invoke_later(ui.handler.close, ui.info, False)
+        tester = ModalDialogTester(self.ui_modal.edit_traits)
+        tester.open_and_run(when_opened=lambda x: x.close(accept=False))
         self.assertIsNone(self.ui_modal.selected_ui)

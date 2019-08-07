@@ -19,15 +19,15 @@ from force_bdss.api import (
     MCOProgressEvent, MCOStartEvent, InvalidFileException, Workflow
 )
 from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.plugins.plugin_dialog import PluginDialog
+from force_wfmanager.server.zmq_server import ZMQServer
+from force_wfmanager.ui import (
+    ContributedUI, ContributedUIHandler, UISelectModal
+)
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.setup.system_state import SystemState
-from force_wfmanager.ui.contributed_ui.contributed_ui import (
-    ContributedUI, ContributedUIHandler
-)
-from force_wfmanager.ui import UISelectModal
-from force_wfmanager.plugins.plugin_dialog import PluginDialog
-from force_wfmanager.server.zmq_server import ZMQServer
+
 from force_wfmanager.wfmanager import (
     TaskToggleGroupAccelerator
 )
@@ -697,14 +697,13 @@ class WfManagerSetupTask(Task):
             contributed_uis=self.contributed_uis,
             available_plugins=plugins
         )
-        ui_modal.edit_traits()
         self.selected_contributed_ui = ui_modal.selected_ui
         if self.selected_contributed_ui:
             self.selected_contributed_ui.on_trait_event(
                 self.update_workflow_custom_ui, 'update_workflow'
             )
             self.selected_contributed_ui.on_trait_event(
-                self.run_bdss_custom_ui, 'run_simulation'
+                self.run_bdss_custom_ui, 'run_workflow'
             )
             self.selected_contributed_ui.edit_traits(
                 handler=ContributedUIHandler()
