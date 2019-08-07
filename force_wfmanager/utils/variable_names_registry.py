@@ -274,7 +274,7 @@ class VariableNamesRegistry(HasStrictTraits):
                         # from any undefined Variable
                         for variable in undefined_registry.values():
                             if input_slot in variable.input_slot_rows:
-                                variable.input_slots.remove(input_slot)
+                                variable.input_slot_rows.remove(input_slot)
 
         # Clean up any Variables that no longer refer to any output or input
         # slots that exist in the workflow

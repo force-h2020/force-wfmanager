@@ -210,16 +210,34 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.assertIsNone(variable_list[2].output_slot_info)
         self.assertEqual(0, len(variable_list[0].input_slot_rows))
 
-        # Clean an output variable name
-        self.data_source1.output_slot_info[0].name = ''
+        # Revert to original input variable name
+        self.data_source3.input_slot_info[0].name = 'B1'
+        variable_list = self.registry.available_variables
+
+        self.assertEqual(2, len(variable_list))
+        self.assertEqual('PRESSURE B1', variable_list[0].label)
+        self.assertEqual('PRESSURE P1', variable_list[1].label)
+        self.assertIsNotNone(variable_list[0].output_slot_info)
+        self.assertIsNotNone(variable_list[1].output_slot_info)
+        self.assertEqual(
+            'B1', self.data_source3.input_slot_info[0].name
+        )
+
+    def test_clear_variable_names(self):
+        self.data_source1.output_slot_info[0].name = 'T1'
+        self.data_source3.input_slot_info[0].name = 'T1'
+        self.data_source3.output_slot_info[0].name = 'P1'
         variable_list = self.registry.available_variables
         self.assertEqual(2, len(variable_list))
-        self.assertEqual('PRESSURE P1', variable_list[0].label)
-        self.assertEqual('PRESSURE C1', variable_list[1].label)
-        self.assertIsNotNone(variable_list[0].output_slot_info)
-        self.assertIsNone(variable_list[1].output_slot_info)
 
-        # Clean an input variable name
+        # Clear an output variable name
+        self.data_source1.output_slot_info[0].name = ''
+        variable_list = self.registry.available_variables
+        self.assertEqual(1, len(variable_list))
+        self.assertEqual('PRESSURE P1', variable_list[0].label)
+        self.assertIsNotNone(variable_list[0].output_slot_info)
+
+        # Clear an input variable name
         self.data_source3.input_slot_info[0].name = ''
         variable_list = self.registry.available_variables
         self.assertEqual(1, len(variable_list))
