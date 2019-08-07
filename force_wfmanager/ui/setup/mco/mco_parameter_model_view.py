@@ -79,6 +79,13 @@ class MCOParameterModelView(BaseMCOOptionsModelView):
         if self.model.type != '':
             self.model.type = self.selected_variable.type
 
+    def check_variable(self, variable):
+
+        name_check = variable.name == self.model.name
+        type_check = variable.type == self.model.type
+
+        return name_check and type_check
+
     def update_available_variables(self, available_variables):
         """Overloads parent class method to update selected_variable
         model selection upon update of available_variables"""
@@ -87,7 +94,5 @@ class MCOParameterModelView(BaseMCOOptionsModelView):
             available_variables)
 
         for variable in self.available_variables:
-            name_check = variable.name == self.model.name
-            type_check = variable.type == self.model.type
-            if name_check and type_check:
+            if self.check_variable(variable):
                 self.selected_variable = variable

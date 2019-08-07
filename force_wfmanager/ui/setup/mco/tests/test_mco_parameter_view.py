@@ -33,6 +33,8 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
         )
 
     def test_mco_parameter_view_init(self):
+
+        self.assertEqual(3, len(self.parameter_view.model_views))
         self.assertEqual(
             "Probe parameter: PRESSURE T1",
             self.parameter_view.model_views[0].label,
@@ -74,8 +76,11 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
             self.parameter_view.parameter_entity_creator.factories[0]
         )
 
+        parameter_model_view = self.parameter_view.model_views[2]
         self.parameter_view._add_parameter_button_fired()
 
+        self.assertEqual(parameter_model_view,
+                         self.parameter_view.model_views[2])
         self.assertEqual(4, len(self.workflow.mco.parameters))
         self.assertEqual(4, len(self.parameter_view.model_views))
 
@@ -98,11 +103,16 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
     def test_remove_parameter(self):
 
         parameter_model_view = self.parameter_view.model_views[1]
+        keep_model_view = self.parameter_view.model_views[0]
         self.parameter_view.selected_model_view = parameter_model_view
         self.parameter_view._remove_parameter_button_fired()
 
         self.assertEqual(2, len(self.workflow.mco.parameters))
         self.assertEqual(2, len(self.parameter_view.model_views))
+        self.assertEqual(
+            keep_model_view,
+            self.parameter_view.model_views[0]
+        )
         self.assertEqual(
             self.parameter_view.selected_model_view,
             self.parameter_view.model_views[0]

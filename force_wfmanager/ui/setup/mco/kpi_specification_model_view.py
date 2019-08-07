@@ -66,6 +66,12 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
         if self.model.name != '':
             self.model.name = self.selected_variable.name
 
+    def check_variable(self, variable):
+
+        name_check = variable.name == self.model.name
+
+        return name_check
+
     def update_available_variables(self, available_variables):
         """Overloads parent class method to check whether existing
         model can be synced to any variable in available_variables.
@@ -75,5 +81,5 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
 
         # Check whether model can be assigned to a variable
         for variable in self.available_variables:
-            if variable.name == self.model.name:
+            if self.check_variable(variable):
                 self.selected_variable = variable
