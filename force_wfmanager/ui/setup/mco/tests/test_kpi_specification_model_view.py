@@ -19,16 +19,20 @@ class TestKPISpecificationModelView(unittest.TestCase, UnittestTools):
             name='T1'
         )
         self.kpi_model_view = KPISpecificationModelView(
-            model=KPISpecification(),
-            available_variables=[self.variable],
-            selected_variable=self.variable
+            model=KPISpecification(name='T1'),
+            selected_variable=self.variable,
+            available_variables=[self.variable]
         )
 
     def test_kpi_model_view_init(self):
+
         self.assertIsNotNone(self.kpi_model_view.model)
+        self.assertEqual(2, len(self.kpi_model_view.available_variables))
         self.assertIsNotNone(self.kpi_model_view.selected_variable)
 
+        self.assertEqual('T1', self.kpi_model_view.selected_variable.name)
         self.assertEqual('T1', self.kpi_model_view.model.name)
+
         self.assertEqual(
             "KPI: T1 (MINIMISE)",
             self.kpi_model_view.label
@@ -71,20 +75,24 @@ class TestKPISpecificationModelView(unittest.TestCase, UnittestTools):
             new_variable
         )
         with self.assertTraitChanges(
-                self.kpi_model_view, 'verify_workflow_event', count=2):
+                self.kpi_model_view, 'verify_workflow_event', count=1):
             self.kpi_model_view.selected_variable = new_variable
             self.assertEqual('T2', self.kpi_model_view.model.name)
         with self.assertTraitChanges(
-                self.kpi_model_view, 'verify_workflow_event', count=2):
+                self.kpi_model_view, 'verify_workflow_event', count=0):
             self.kpi_model_view.model.name = 'T1'
             self.assertEqual('T2', self.kpi_model_view.model.name)
 
     def test__check_kpi_name(self):
+
         self.assertTrue(self.kpi_model_view.valid)
         self.kpi_model_view.available_variables.remove(
             self.kpi_model_view.selected_variable
         )
-        self.assertIsNone(self.kpi_model_view.selected_variable)
+        self.assertTrue(self.kpi_model_view.selected_variable.empty)
+        self.assertIsNotNone(self.kpi_model_view.model)
+        self.assertEqual('', self.kpi_model_view.model.name)
+
         self.assertEqual(
             "KPI",
             self.kpi_model_view.label
@@ -99,3 +107,10 @@ class TestKPISpecificationModelView(unittest.TestCase, UnittestTools):
     def test_traits_view(self):
         info = model_info(self.kpi_model_view)
         self.assertIn('selected_variable', info)
+
+    def test_selected_variable_change(self):
+        self.kpi_model_view.selected_variable = (
+            self.kpi_model_view._empty_variable
+        )
+        self.assertEqual('', self.kpi_model_view.selected_variable.name)
+        self.assertEqual('', self.kpi_model_view.model.name)

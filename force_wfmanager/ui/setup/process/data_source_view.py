@@ -8,13 +8,14 @@ from traitsui.api import (
 )
 from traitsui.table_column import ObjectColumn
 
-from force_bdss.api import (BaseDataSourceModel, BaseDataSource,
-                            InputSlotInfo, OutputSlotInfo, Identifier)
+from force_bdss.api import (
+    BaseDataSourceModel, BaseDataSource, InputSlotInfo, OutputSlotInfo,
+    Identifier
+)
+from force_bdss.local_traits import CUBAType
 
 from force_wfmanager.ui.ui_utils import (
     get_factory_name, get_default_background_color)
-from force_wfmanager.utils.variable_names_registry import (
-    VariableNamesRegistry)
 
 
 class TableRow(HasStrictTraits):
@@ -28,7 +29,7 @@ class TableRow(HasStrictTraits):
     model = Instance(HasStrictTraits)
 
     #: Type of the slot
-    type = Unicode()
+    type = CUBAType()
 
     #: Index of the slot in the slot list
     index = Int()
@@ -45,7 +46,7 @@ class TableRow(HasStrictTraits):
 
 
 class InputSlotRow(TableRow):
-    """Row in the UI representing DataSource input_slots. """
+    """Row in the UI representing DataSource input_slot_rows. """
 
     # -------------------
     # Required Attributes
@@ -103,9 +104,6 @@ class DataSourceView(HasTraits):
 
     #: The index of the layer this data source belongs to.
     layer_index = Int()
-
-    #: Registry of the available variables
-    variable_names_registry = Instance(VariableNamesRegistry)
 
     # ------------------
     # Regular Attributes
@@ -307,7 +305,7 @@ class DataSourceView(HasTraits):
         self._fill_slot_rows(input_slots, output_slots)
 
     def _fill_slot_rows(self, input_slots, output_slots):
-        """ Fill the tables rows according to input_slots and output_slots
+        """ Fill the tables rows according to input_slot_rows and output_slots
         needed by the evaluator and the model slot values """
 
         input_representations = []

@@ -7,14 +7,13 @@ from force_wfmanager.tests.dummy_classes.dummy_mco_options_view import \
 from force_wfmanager.ui.setup.mco.base_mco_options_view import \
     BaseMCOOptionsView
 from force_wfmanager.utils.tests.test_variable_names_registry import \
-    get_basic_variable_names_registry
+    get_basic_workflow
 
 
 class TestBaseMCOOptionsView(unittest.TestCase, UnittestTools):
 
     def setUp(self):
-        self.registry = get_basic_variable_names_registry()
-        self.workflow = self.registry.workflow
+        self.workflow = get_basic_workflow()
         self.param1 = self.workflow.mco.parameters[0]
         self.param2 = self.workflow.mco.parameters[1]
         self.param3 = self.workflow.mco.parameters[2]
@@ -23,7 +22,6 @@ class TestBaseMCOOptionsView(unittest.TestCase, UnittestTools):
 
         self.mco_options_view = DummyBaseMCOOptionsView(
             model=self.workflow.mco,
-            variable_names_registry=self.registry
         )
 
     def test_mco_options_view_init(self):

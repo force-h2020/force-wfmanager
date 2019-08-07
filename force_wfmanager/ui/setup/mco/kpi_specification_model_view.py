@@ -20,7 +20,7 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
 
     # -----------
     #     View
-    # ----------
+    # -----------
 
     # The traits_view only displays possible options for
     # model.name listed in kpi_names. However, it is possible
@@ -39,7 +39,10 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
         kind="subpanel",
     )
 
-    #: Property getters
+    # -----------
+    #  Listeners
+    # -----------
+
     def _get_label(self):
         """Gets the label from the model object"""
         if self.model.name == '':
@@ -48,13 +51,29 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
             self.model.name, self.model.objective
         )
 
-    #: Listeners
-    @on_trait_change('model.name,'
-                     'selected_variable.name')
+    @on_trait_change('selected_variable.name', post_init=True)
     def selected_variable_change(self):
+        """Syncs the model name with the selected variable name"""
+
+        self.model.name = self.selected_variable.name
+        self.verify_workflow_event = True
+
+    @on_trait_change('model:name', post_init=True)
+    def model_change(self):
         """Syncs the model name with the selected variable name
         (prevents direct changes to the KPISpecifications model)"""
-        if self.model is not None:
-            if self.selected_variable is not None:
-                self.model.name = self.selected_variable.name
-            self.model_change()
+
+        if self.model.name != '':
+            self.model.name = self.selected_variable.name
+
+    def update_available_variables(self, available_variables):
+        """Overloads parent class method to check whether existing
+        model can be synced to any variable in available_variables.
+        This is required upon instantiation, """
+
+        super().update_available_variables(available_variables)
+
+        # Check whether model can be assigned to a variable
+        for variable in self.available_variables:
+            if variable.name == self.model.name:
+                self.selected_variable = variable

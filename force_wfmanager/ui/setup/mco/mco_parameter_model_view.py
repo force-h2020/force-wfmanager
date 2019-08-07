@@ -54,21 +54,40 @@ class MCOParameterModelView(BaseMCOOptionsModelView):
     def _get_label(self):
         """Return a label appending both the parameter name and type to the
         default"""
-        if self.model is None:
-            return self._label_default()
-        if self.selected_variable is None:
+        if self.model.name == '' and self.model.type == '':
             return self._label_default()
         return self._label_default()+': {type} {name}'.format(
             type=self.model.type, name=self.model.name
         )
 
-    @on_trait_change('model.[name,type],'
-                     'selected_variable.[name,type]')
+    @on_trait_change('selected_variable.[name,type]', post_init=True)
     def selected_variable_change(self):
-        """Syncs the model name and type with the selected variable name
-        and type (prevents direct changes to the MCOParameter model)"""
-        if self.model is not None:
-            if self.selected_variable is not None:
-                self.model.name = self.selected_variable.name
-                self.model.type = self.selected_variable.type
-            self.model_change()
+        """Syncs the model name with the selected variable name
+        (prevents direct changes to the KPISpecifications model)"""
+
+        self.model.name = self.selected_variable.name
+        self.model.type = self.selected_variable.type
+        self.verify_workflow_event = True
+
+    @on_trait_change('model:[name,type]', post_init=True)
+    def model_change(self):
+        """Syncs the model name with the selected variable name
+        (prevents direct changes to the KPISpecifications model)"""
+
+        if self.model.name != '':
+            self.model.name = self.selected_variable.name
+        if self.model.type != '':
+            self.model.type = self.selected_variable.type
+
+    def update_available_variables(self, available_variables):
+        """Overloads parent class method to update selected_variable
+        model selection upon update of available_variables"""
+
+        super(MCOParameterModelView, self).update_available_variables(
+            available_variables)
+
+        for variable in self.available_variables:
+            name_check = variable.name == self.model.name
+            type_check = variable.type == self.model.type
+            if name_check and type_check:
+                self.selected_variable = variable

@@ -5,10 +5,7 @@ from traits.api import (
 
 from force_bdss.api import ExecutionLayer
 
-from force_wfmanager.utils.variable_names_registry import \
-    VariableNamesRegistry
-from .data_source_view import \
-    DataSourceView
+from .data_source_view import DataSourceView
 
 
 class ExecutionLayerView(HasTraits):
@@ -23,9 +20,6 @@ class ExecutionLayerView(HasTraits):
 
     #: The index of this execution layer.
     layer_index = Int()
-
-    #: Registry of the available variables
-    variable_names_registry = Instance(VariableNamesRegistry)
 
     #: The label to display in the list
     label = Unicode()
@@ -57,12 +51,6 @@ class ExecutionLayerView(HasTraits):
     #: DataSourceModelView.verify_workflow_event>`
     verify_workflow_event = Event()
 
-    def __init__(self, model, *args, **kwargs):
-        super(ExecutionLayerView, self).__init__(*args, **kwargs)
-        # Assigns model after super instantiation in order to ensure
-        # variable_names_registry has been assigned first
-        self.model = model
-
     # -------------------
     #     Listeners
     # -------------------
@@ -75,8 +63,7 @@ class ExecutionLayerView(HasTraits):
         self.data_source_views = [
             DataSourceView(
                 layer_index=self.layer_index,
-                model=data_source,
-                variable_names_registry=self.variable_names_registry
+                model=data_source
             ) for data_source in self.model.data_sources]
 
     # Workflow Verification

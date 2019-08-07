@@ -1,6 +1,5 @@
 from traits.api import (
-    List, Property, Unicode, cached_property,
-    on_trait_change, Button
+    List, Unicode, on_trait_change, Button
 )
 from traitsui.api import (
     Item, View, ListEditor,
@@ -14,7 +13,7 @@ from force_wfmanager.ui.setup.mco.base_mco_options_view import \
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import (
     KPISpecificationModelView
 )
-from force_wfmanager.utils.variable_names_registry import Variable
+from force_wfmanager.utils.variable import Variable
 
 
 class KPISpecificationView(BaseMCOOptionsView):
@@ -26,16 +25,9 @@ class KPISpecificationView(BaseMCOOptionsView):
     #: The human readable name of the KPI View
     name = Unicode('KPIs')
 
-    # ------------------
-    #     Properties
-    # ------------------
-
     #: A list names, each representing a variable
     #: that could become a KPI
-    kpi_name_options = Property(
-        List(Variable),
-        depends_on='variable_names_registry.available_variables'
-    )
+    kpi_name_options = List(Variable)
 
     # ------------------
     #      Buttons
@@ -100,13 +92,11 @@ class KPISpecificationView(BaseMCOOptionsView):
         if self.model is not None:
             # Add all MCO KPIs as ModelViews
             for kpi in self.model.kpis:
+
                 model_view = KPISpecificationModelView(
-                        model=kpi,
-                        available_variables=self.kpi_name_options
+                    model=kpi,
+                    available_variables=self.kpi_name_options
                     )
-                for var in self.kpi_name_options:
-                    if var.name == kpi.name:
-                        model_view.selected_variable = var
                 model_views.append(model_view)
 
         return model_views
@@ -115,26 +105,13 @@ class KPISpecificationView(BaseMCOOptionsView):
     #     Listeners
     # -------------------
 
-    @cached_property
-    def _get_kpi_name_options(self):
-        """Listens to variable_names_registry to extract
-         possible names for new KPIs"""
-        kpi_name_options = []
-        if self.variable_names_registry is not None:
-            variables = self.variable_names_registry.available_variables
-            for variable in variables:
-                if len(variable.input_slots) == 0:
-                    kpi_name_options.append(variable)
-
-        return kpi_name_options
-
     @on_trait_change('model.kpis')
     def update_kpi_model_views(self):
         """Triggers the base method update_model_views when
         KPISpecifications are updated"""
         self.update_model_views()
 
-    @on_trait_change('kpi_name_options')
+    @on_trait_change('kpi_name_options[]')
     def update_model_views_available_variables(self):
         """Updates all model_view available_variables when kpi_name_options
          is updated"""

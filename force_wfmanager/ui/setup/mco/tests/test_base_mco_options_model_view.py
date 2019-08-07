@@ -24,6 +24,10 @@ class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
         self.assertEqual(
             1, len(self.mco_options_model_view.available_variables)
         )
+        self.assertIsInstance(
+            self.mco_options_model_view.available_variables[0],
+            Variable
+        )
         self.assertTrue(self.mco_options_model_view.valid)
 
     def test__check_selected_model(self):
@@ -31,14 +35,22 @@ class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
             name='T1',
             type='PRESSURE'
         )
-        self.mco_options_model_view.selected_variable = variable1
-        self.assertIsNone(self.mco_options_model_view.selected_variable)
 
-        self.mco_options_model_view.available_variables = (
-            [variable1]
+        self.mco_options_model_view.selected_variable = variable1
+        self.assertEqual(
+            self.mco_options_model_view._empty_variable,
+            self.mco_options_model_view.selected_variable
+        )
+
+        self.mco_options_model_view.update_available_variables([variable1])
+        self.assertEqual(
+            2, len(self.mco_options_model_view.available_variables)
         )
         self.mco_options_model_view.selected_variable = variable1
         self.assertIsNotNone(self.mco_options_model_view.selected_variable)
 
         self.mco_options_model_view.available_variables = []
-        self.assertIsNone(self.mco_options_model_view.selected_variable)
+        self.assertEqual(
+            self.mco_options_model_view._empty_variable,
+            self.mco_options_model_view.selected_variable
+        )

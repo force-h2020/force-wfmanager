@@ -12,8 +12,12 @@ from force_wfmanager.ui.setup.mco.mco_parameter_view import (
 from force_wfmanager.ui.setup.mco.kpi_specification_view import (
     KPISpecificationView
 )
+from force_wfmanager.ui.setup.process.process_view import ProcessView
 from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import \
     WfManagerBaseTestCase
+from force_wfmanager.utils.variable_names_registry import (
+    VariableNamesRegistry
+)
 
 
 class TestMCOView(WfManagerBaseTestCase, UnittestTools):
@@ -29,9 +33,14 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
             name='outputA')
         )
 
+        self.process_view = ProcessView(model=self.workflow)
+        self.registry = VariableNamesRegistry(
+            process_view=self.process_view
+        )
+
         self.mco_view = MCOView(
             model=self.workflow.mco,
-            variable_names_registry=self.variable_names_registry
+            variable_names_registry=self.registry
         )
 
         self.kpi_view = self.mco_view.kpi_view
@@ -46,10 +55,6 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
         self.assertEqual(
             self.mco_view.mco_options[1],
             self.kpi_view
-        )
-        self.assertEqual(
-            self.variable_names_registry,
-            self.kpi_view.variable_names_registry
         )
 
         self.assertEqual(1, len(self.kpi_view.model_views))
@@ -108,15 +113,33 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
         parameter_model_view = self.parameter_view.model_views[0]
 
         with self.assertTraitChanges(
-                self.mco_view, 'verify_workflow_event', count=2):
-            variable = parameter_model_view.available_variables[1]
+                self.mco_view, 'verify_workflow_event', count=1):
+            variable = parameter_model_view.available_variables[2]
             parameter_model_view.selected_variable = variable
             self.assertEqual('P2', parameter_model_view.model.name)
 
         kpi_model_view = self.kpi_view.model_views[0]
         with self.assertTraitChanges(
-                self.mco_view, 'verify_workflow_event', count=2):
+                self.mco_view, 'verify_workflow_event', count=0):
+            variable = kpi_model_view.available_variables[1]
+            kpi_model_view.selected_variable = variable
             kpi_model_view.model.name = 'another'
+            self.assertNotEqual('another', kpi_model_view.model.name)
+
+    def test_verify(self):
+
+        errors = self.mco_view.verify()
+        self.assertEqual(0, len(errors))
+
+        model_view = self.mco_view.parameter_view.model_views[0]
+        model_view.selected_variable = model_view.available_variables[2]
+
+        errors = self.mco_view.verify()
+        self.assertEqual(1, len(errors))
+        self.assertIn(
+            'Two or more Parameters have a duplicate name',
+            errors[0].local_error,
+        )
 
     def test_sync_mco_options(self):
 

@@ -12,9 +12,6 @@ from force_bdss.tests.probe_classes.mco import ProbeParameter
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 
-from force_wfmanager.utils.variable_names_registry import \
-    VariableNamesRegistry
-
 
 def get_run_function(nb_outputs):
     def run(*args, **kwargs):
@@ -83,5 +80,3 @@ class WfManagerBaseTestCase(unittest.TestCase):
             execution_layers=[self.execution_layer],
             notification_listeners=[self.notification_listener]
         )
-        self.variable_names_registry = VariableNamesRegistry(
-            workflow=self.workflow)

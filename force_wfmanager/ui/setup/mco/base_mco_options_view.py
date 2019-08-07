@@ -9,9 +9,6 @@ from force_bdss.core.verifier import VerifierError
 from force_wfmanager.ui.setup.mco.base_mco_options_model_view import (
     BaseMCOOptionsModelView
 )
-from force_wfmanager.utils.variable_names_registry import (
-    VariableNamesRegistry
-)
 
 
 class BaseMCOOptionsView(HasTraits):
@@ -24,9 +21,6 @@ class BaseMCOOptionsView(HasTraits):
 
     #: MCO model (More restrictive than the ModelView model attribute)
     model = Instance(BaseMCOModel)
-
-    #: Registry of the available variables
-    variable_names_registry = Instance(VariableNamesRegistry)
 
     # -----------------------
     #    Regular Attributes
@@ -95,34 +89,14 @@ class BaseMCOOptionsView(HasTraits):
             return f'MCO {self.name}'
 
     # Workflow Validation
+    @on_trait_change('model')
+    def update_model(self):
+        self.update_model_views()
+
     @on_trait_change('model_views.verify_workflow_event')
     def received_verify_request(self):
         """Pass on call for verify_workflow_event"""
         self.verify_workflow_event = True
-
-    @on_trait_change('model_views.model.name')
-    def verify_model_names(self):
-        """Reports a validation warning if duplicate KPI names exist
-        """
-        model_names = []
-        errors = []
-        unique_check = True
-
-        for model_view in self.model_views:
-            if model_view.model.name in model_names:
-                unique_check = False
-            model_names.append(model_view.model.name)
-
-        if not unique_check:
-            errors.append(
-                VerifierError(
-                    subject=self,
-                    global_error=(f'Two or more {self.name} have'
-                                  ' a duplicate name'),
-                )
-            )
-
-        return errors
 
     # ------------------
     #   Private Methods
@@ -158,3 +132,29 @@ class BaseMCOOptionsView(HasTraits):
 
         # Update the selected_model_view
         self.selected_model_view = self._selected_model_view_default()
+
+    def verify(self):
+        """Reports a validation warning if duplicate KPI or Parameter
+         names exist the the model_view MCOOptionModelView list
+        """
+
+        errors = []
+
+        model_names = []
+        unique_check = True
+
+        for model_view in self.model_views:
+            if model_view.model.name in model_names:
+                unique_check = False
+            model_names.append(model_view.model.name)
+
+        if not unique_check:
+            errors.append(
+                VerifierError(
+                    subject=self,
+                    global_error=(f'Two or more {self.name} have'
+                                  ' a duplicate name'),
+                )
+            )
+
+        return errors

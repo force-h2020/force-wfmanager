@@ -14,8 +14,7 @@ class TestDataSourceView(WfManagerBaseTestCase):
         factory = self.factory_registry.data_source_factories[1]
         self.data_source = factory.create_data_source()
         self.data_source_view = DataSourceView(
-            model=self.model_1,
-            variable_names_registry=self.variable_names_registry
+            model=self.model_1
         )
 
     def test_init_data_source_view(self):
@@ -57,8 +56,8 @@ class TestDataSourceView(WfManagerBaseTestCase):
 
         with self.assertRaisesRegex(RuntimeError, "input slots"):
             DataSourceView(
-                model=self.model_1,
-                variable_names_registry=self.variable_names_registry)
+                model=self.model_1
+            )
 
     def test_bad_output_slots(self):
         _, output_slots = self.data_source.slots(self.model_1)
@@ -69,8 +68,8 @@ class TestDataSourceView(WfManagerBaseTestCase):
 
         with self.assertRaisesRegex(RuntimeError, "output slots"):
             DataSourceView(
-                model=self.model_1,
-                variable_names_registry=self.variable_names_registry)
+                model=self.model_1
+            )
 
     def test_update_table(self):
         self.model_1.output_slot_info[0].name = 'p1'

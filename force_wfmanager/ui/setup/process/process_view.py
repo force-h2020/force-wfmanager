@@ -4,9 +4,6 @@ from traits.api import (
 
 from force_bdss.api import Workflow
 
-from force_wfmanager.utils.variable_names_registry import (
-    VariableNamesRegistry
-)
 from .execution_layer_view import ExecutionLayerView
 
 
@@ -21,9 +18,6 @@ class ProcessView(HasTraits):
 
     #: The Process model
     model = Instance(Workflow)
-
-    #: The Variable Names Registry
-    variable_names_registry = Instance(VariableNamesRegistry)
 
     # ------------------
     # Regular Attributes
@@ -56,24 +50,17 @@ class ProcessView(HasTraits):
     #: Listens to: :func:`execution_layer_views.verify_workflow_event`
     verify_workflow_event = Event()
 
-    def __init__(self, model, *args, **kwargs):
-        super(ProcessView, self).__init__(*args, **kwargs)
-        # Assigns model after super instantiation in order to ensure
-        # variable_names_registry has been assigned first
-        self.model = model
-
     # -------------------
     #     Listeners
     # -------------------
 
     @on_trait_change('model.execution_layers[]')
-    def update_execution_layers_views(self):
+    def update_execution_layer_views(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
         self.execution_layer_views = [
             ExecutionLayerView(
                 model=execution_layer,
                 layer_index=idx,
-                variable_names_registry=self.variable_names_registry,
                 label="Layer {}".format(idx)
             )
             for idx, execution_layer in enumerate(

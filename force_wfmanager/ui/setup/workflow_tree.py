@@ -420,17 +420,7 @@ class WorkflowTree(ModelView):
 
         # Update the error list with verification checks that occur
         # outside the foce_bdss
-        if self.workflow_view.model.mco is not None:
-            errors += (
-                self.workflow_view.mco_view[0]
-                .parameter_view.verify_model_names()
-            )
-            errors += (
-                self.workflow_view.mco_view[0]
-                .kpi_view.verify_model_names()
-            )
-
-        errors += self.workflow_view.variable_names_registry.verify()
+        errors += verify_workflow(self.workflow_view)
 
         # Communicate the verification errors to each level of the
         # workflow tree

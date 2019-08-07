@@ -57,12 +57,10 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         )
         self.assertEqual(2, len(process_view.execution_layer_views))
         self.assertEqual(
-            2, len(process_view.model.execution_layers[0]
-                   .data_sources))
+            2, len(process_view.model.execution_layers[0].data_sources))
         self.assertEqual(
             2,
-            len(process_view.execution_layer_views[0]
-                .data_source_views))
+            len(process_view.execution_layer_views[0].data_source_views))
 
         self.assertEqual(
             self.system_state,
@@ -377,7 +375,10 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         self.system_state.selected_view = mco_view.parameter_view
         self.assertIn("No errors", self.workflow_tree.selected_error)
 
-        mco_view.parameter_view.model_views[0].selected_variable = None
+        mco_view.parameter_view.model_views[0].selected_variable = (
+            mco_view.parameter_view.model_views[0].available_variables[0]
+        )
+
         self.assertIn("An MCO parameter is not named",
                       self.workflow_tree.selected_error)
         self.assertIn("An MCO parameter has no type set",
@@ -389,11 +390,13 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         data_source1 = (
             self.workflow.execution_layers[1].data_sources[0]
         )
+
         data_source1.output_slot_info[0].name = 'D1'
 
         data_source2 = (
             self.workflow.execution_layers[1].data_sources[1]
         )
+
         data_source2.input_slot_info[0].name = 'D1'
 
         self.system_state.selected_view = self.workflow_tree.workflow_view

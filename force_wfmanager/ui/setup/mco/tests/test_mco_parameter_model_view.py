@@ -19,7 +19,6 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
         self.parameter_factory = ProbeParameterFactory(self.mco_factory)
         self.variable = Variable(
             type='PRESSURE',
-            layer=0,
             name='P1'
         )
         self.parameter_model_view = MCOParameterModelView(
@@ -34,6 +33,12 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
 
         self.assertEqual('P1', self.parameter_model_view.model.name)
         self.assertEqual('PRESSURE', self.parameter_model_view.model.type)
+
+        self.assertEqual(
+            'P1', self.parameter_model_view.selected_variable.name)
+        self.assertEqual(
+            'PRESSURE', self.parameter_model_view.selected_variable.type)
+
         self.assertEqual(
             "Probe parameter: PRESSURE P1",
             self.parameter_model_view.label,
@@ -72,11 +77,11 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
             new_variable
         )
         with self.assertTraitChanges(
-                self.parameter_model_view, 'verify_workflow_event', count=2):
+                self.parameter_model_view, 'verify_workflow_event', count=1):
             self.parameter_model_view.selected_variable = new_variable
             self.assertEqual('T2', self.parameter_model_view.model.name)
         with self.assertTraitChanges(
-                self.parameter_model_view, 'verify_workflow_event', count=2):
+                self.parameter_model_view, 'verify_workflow_event', count=0):
             self.parameter_model_view.model.name = 'T1'
             self.assertEqual('T2', self.parameter_model_view.model.name)
 
@@ -84,3 +89,15 @@ class TestMCOParameterModelView(unittest.TestCase, UnittestTools):
         info = model_info(self.parameter_model_view)
         self.assertIn('selected_variable', info)
         self.assertIn('model', info)
+
+    def test_selected_variable_change(self):
+        self.parameter_model_view.selected_variable = (
+            self.parameter_model_view._empty_variable
+        )
+        self.assertEqual(
+            '', self.parameter_model_view.selected_variable.name)
+        self.assertEqual('', self.parameter_model_view.model.name)
+
+        self.assertEqual(
+            '', self.parameter_model_view.selected_variable.type)
+        self.assertEqual('', self.parameter_model_view.model.type)

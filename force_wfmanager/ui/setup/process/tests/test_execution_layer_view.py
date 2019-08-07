@@ -11,8 +11,8 @@ class TestExecutionLayerView(WfManagerBaseTestCase):
     def setUp(self):
         super(TestExecutionLayerView, self).setUp()
         self.execution_layer_view = ExecutionLayerView(
-            model=self.execution_layer,
-            variable_names_registry=self.variable_names_registry,
+            layer_index=1,
+            model=self.execution_layer
         )
 
     def test_init_with_data_sources(self):
@@ -24,6 +24,9 @@ class TestExecutionLayerView(WfManagerBaseTestCase):
         self.assertEqual(
             2, len(self.execution_layer_view.data_source_views)
         )
+        for data_source_view in \
+                self.execution_layer_view.data_source_views:
+            self.assertEqual(1, data_source_view.layer_index)
 
     def test_add_data_source(self):
         factory = self.factory_registry.data_source_factories[1]
@@ -34,6 +37,7 @@ class TestExecutionLayerView(WfManagerBaseTestCase):
             2,
             len(self.execution_layer_view.data_source_views)
         )
+
         self.execution_layer_view.add_data_source(model)
         self.assertEqual(3, len(self.execution_layer.data_sources))
         self.assertEqual(

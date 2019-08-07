@@ -14,8 +14,9 @@ from force_wfmanager.ui.setup.mco.mco_parameter_view import (
     MCOParameterView
 )
 from force_wfmanager.ui.ui_utils import get_factory_name
-from force_wfmanager.utils.variable_names_registry import \
+from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
+)
 
 
 class MCOView(HasTraits):
@@ -28,7 +29,7 @@ class MCOView(HasTraits):
     #: MCO model (More restrictive than the ModelView model attribute)
     model = Instance(BaseMCOModel)
 
-    #: Registry of the available variables
+    #: The Variable Names Registry
     variable_names_registry = Instance(VariableNamesRegistry)
 
     # ------------------
@@ -84,14 +85,12 @@ class MCOView(HasTraits):
 
     def _parameter_view_default(self):
         return MCOParameterView(
-            model=self.model,
-            variable_names_registry=self.variable_names_registry
+            model=self.model
         )
 
     def _kpi_view_default(self):
         return KPISpecificationView(
-            model=self.model,
-            variable_names_registry=self.variable_names_registry
+            model=self.model
         )
 
     def _mco_options_default(self):
@@ -99,8 +98,23 @@ class MCOView(HasTraits):
         return [self.parameter_view, self.kpi_view]
 
     # -------------------
-    #     Listeners
+    #      Listeners
     # -------------------
+
+    @on_trait_change('variable_names_registry.available_variables')
+    def update_mco_name_options(self):
+
+        kpi_name_options = []
+        parameter_name_options = []
+
+        for variable in self.variable_names_registry.available_variables:
+            if len(variable.input_slot_rows) == 0:
+                kpi_name_options.append(variable)
+            if variable.output_slot_row is None:
+                parameter_name_options.append(variable)
+
+        self.kpi_view.kpi_name_options = kpi_name_options
+        self.parameter_view.parameter_name_options = parameter_name_options
 
     # Workflow Verification
     @on_trait_change('parameter_view.verify_workflow_event,'
@@ -115,3 +129,23 @@ class MCOView(HasTraits):
     @on_trait_change('kpi_view')
     def sync_mco_options_kpi_view(self):
         self.mco_options[1] = self.kpi_view
+
+    # -------------------
+    #    Public Methods
+    # -------------------
+
+    def verify(self):
+        """Reports errors in the MCOView, including the MCOParameterView
+        and KPISpecificationView attributes.
+        These checks ensure sure that:
+        - All MCO KPIs and Parameters are uniquely defined
+        """
+        errors = []
+
+        # Checks MCOParameterView errors
+        errors += self.parameter_view.verify()
+
+        # Checks KPISpecificationView errors
+        errors += self.kpi_view.verify()
+
+        return errors
