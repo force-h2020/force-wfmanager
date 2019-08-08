@@ -6,7 +6,7 @@ from pyface.ui.qt4.util.modal_dialog_tester import ModalDialogTester
 from force_bdss.tests.dummy_classes.extension_plugin import (
     DummyExtensionPlugin
 )
-from force_wfmanager.tests.dummy_classes import (
+from force_wfmanager.tests.dummy_classes.dummy_contributed_ui import (
     DummyContributedUI, DummyContributedUI2, DummyUIPlugin
 )
 from force_wfmanager.ui import UISelectModal, ContributedUI

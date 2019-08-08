@@ -90,6 +90,7 @@ class ProcessView(HasTraits):
     # -------------------
     #   Public Methods
     # -------------------
+
     def add_execution_layer(self, execution_layer):
         """Adds a new empty execution layer"""
         self.model.execution_layers.append(execution_layer)
@@ -97,6 +98,7 @@ class ProcessView(HasTraits):
     def remove_execution_layer(self, layer):
         """Removes the execution layer from the model."""
         self.model.execution_layers.remove(layer)
+        self.verify_workflow_event = True
 
     # NOTE: Currently needed by TreeEditor as a reference point
     def remove_data_source(self, data_source):

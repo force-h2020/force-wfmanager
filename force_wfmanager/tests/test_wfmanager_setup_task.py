@@ -15,8 +15,11 @@ from force_bdss.tests.probe_classes.factory_registry import (
 )
 
 from force_wfmanager.server.zmq_server import ZMQServer
-from force_wfmanager.tests.dummy_classes import (
-    DummyUIWfManager, DummyContributedUI2
+from force_wfmanager.tests.dummy_classes.dummy_contributed_ui import (
+    DummyContributedUI2
+)
+from force_wfmanager.tests.dummy_classes.dummy_wfmanager import (
+    DummyUIWfManager
 )
 from force_wfmanager.tests.utils import wait_condition
 

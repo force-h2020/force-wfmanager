@@ -5,7 +5,7 @@ from envisage.ui.tasks.tasks_plugin import TasksPlugin
 from force_bdss.api import plugin_id
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
-from force_wfmanager.tests.dummy_classes import DummyFactory
+from force_wfmanager.tests.dummy_classes.dummy_factory import DummyFactory
 from force_wfmanager.ui import ContributedUI, IContributedUI, UIExtensionPlugin
 from force_wfmanager.wfmanager import WfManager
 

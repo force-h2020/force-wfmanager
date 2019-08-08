@@ -6,10 +6,13 @@ from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from pyface.tasks.api import TaskWindow
 
-from force_bdss.tests.probe_classes.factory_registry import \
+from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
+)
 from force_bdss.api import Workflow
-from force_wfmanager.tests.dummy_classes import DummyContributedUI
+from force_wfmanager.tests.dummy_classes.dummy_contributed_ui import (
+    DummyContributedUI
+)
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.side_pane import SidePane
@@ -19,7 +22,7 @@ from force_wfmanager.model.analysis_model import AnalysisModel
 from .mock_methods import (
     mock_file_reader, mock_file_writer, mock_dialog, mock_return_args
 )
-from .dummy_classes import DummyWfManager
+from force_wfmanager.tests.dummy_classes.dummy_wfmanager import DummyWfManager
 
 from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask

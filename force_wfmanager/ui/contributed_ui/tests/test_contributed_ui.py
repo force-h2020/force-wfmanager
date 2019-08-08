@@ -4,7 +4,9 @@ from functools import partial
 from pyface.ui.qt4.util.modal_dialog_tester import ModalDialogTester
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
-from force_wfmanager.tests.dummy_classes import DummyContributedUI2
+from force_wfmanager.tests.dummy_classes.dummy_contributed_ui import (
+    DummyContributedUI2
+)
 from force_wfmanager.ui import ContributedUIHandler
 from force_wfmanager.ui.contributed_ui.contributed_ui import search, parse_id
 

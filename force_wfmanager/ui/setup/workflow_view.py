@@ -14,11 +14,6 @@ from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
 
-# VerifierError severity constants
-_ERROR = "error"
-_WARNING = "warning"
-_INFO = "information"
-
 
 class WorkflowView(HasTraits):
     """A view containing information on certain aspects of the workflow
@@ -56,7 +51,7 @@ class WorkflowView(HasTraits):
     communicator_view = List(Instance(CommunicatorView))
 
     #: Defines if the Workflow is valid or not. Set by the
-    #: function map_verify_workflow
+    #: function verify_tree
     valid = Bool(True)
 
     #: Event to request a verification check on the workflow

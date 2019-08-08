@@ -4,15 +4,15 @@ from force_bdss.api import (
 from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 
-from force_wfmanager.ui.setup.tests.template_test_case import (
-    BaseTest
+from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
+    WfManagerBaseTestCase
 )
 from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
 from force_wfmanager.ui.setup.workflow_view import \
     WorkflowView
 
 
-class TestWorkflowInfo(BaseTest):
+class TestWorkflowInfo(WfManagerBaseTestCase):
 
     def setUp(self):
         super(TestWorkflowInfo, self).setUp()
