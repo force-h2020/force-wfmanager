@@ -250,6 +250,7 @@ class DataSourceView(HasTraits):
         return SLOT_DESCRIPTION.format(row_type, type_text, idx, description)
 
     @on_trait_change(
+        'model.+verify',
         'input_slots_representation.[name,type],'
         'output_slots_representation.[name,type]'
     )
