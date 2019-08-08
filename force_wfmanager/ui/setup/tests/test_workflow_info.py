@@ -10,6 +10,7 @@ from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
 from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
 from force_wfmanager.ui.setup.workflow_view import \
     WorkflowView
+from force_wfmanager.ui.ui_utils import model_info
 
 
 class TestWorkflowInfo(WfManagerBaseTestCase):
@@ -36,12 +37,16 @@ class TestWorkflowInfo(WfManagerBaseTestCase):
         self.workflow_info = WorkflowInfo(
             plugins=plugin_list,
             workflow_filename='workflow.json',
-            selected_factory='Workflow',
+            selected_factory_name='Workflow',
             error_message=self.workflow_view.error_message
         )
 
     def test_init(self):
         self.assertEqual(len(self.workflow_info.plugin_names), 2)
+        self.assertListEqual(
+            ['plugin_names', 'workflow_filename_message', 'error_message'],
+            model_info(self.workflow_info)
+        )
 
     def test_plugin_list(self):
         self.assertEqual(self.workflow_info.plugin_names,
