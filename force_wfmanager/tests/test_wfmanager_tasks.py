@@ -9,16 +9,16 @@ from pyface.tasks.api import TaskWindow
 from force_bdss.tests.probe_classes.factory_registry import \
     ProbeFactoryRegistry
 from force_bdss.api import Workflow
-from force_wfmanager.ui.review.graph_pane import GraphPane
+from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.setup.setup_pane import SetupPane
-from force_wfmanager.ui.setup.tree_pane import TreePane
+from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
 from .mock_methods import (
     mock_file_reader, mock_file_writer, mock_dialog, mock_return_args
 )
-from .dummy_classes import DummyWfManager
+from force_wfmanager.tests.dummy_classes.dummy_wfmanager import DummyWfManager
 
 from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
@@ -39,11 +39,12 @@ ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.' \
 ANALYSIS_FILE_OPEN_PATH = 'force_wfmanager.io.analysis_model_io.open'
 
 
-def get_probe_wfmanager_tasks():
+def get_probe_wfmanager_tasks(wf_manager=None):
     # Returns the Setup and Review Tasks, with a mock TaskWindow and dummy
     # Application which does not have an event loop.
 
-    wf_manager = DummyWfManager()
+    if wf_manager is None:
+        wf_manager = DummyWfManager()
 
     analysis_model = AnalysisModel()
     workflow_model = Workflow()
@@ -69,6 +70,13 @@ def get_probe_wfmanager_tasks():
     for task in tasks:
         task.window = mock_window
         task.create_central_pane()
+
+        # A Task's central pane is generally aware of its task in normal
+        # operations, but it doesn't seem to be so in this mock situation;
+        # so we "make" it aware.
+        if hasattr(task, "central_pane") and task.central_pane is not None:
+            task.central_pane.task = task
+
         task.create_dock_panes()
 
     return tasks[0], tasks[1]
@@ -83,14 +91,14 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         self.assertIsInstance(self.setup_task.create_central_pane(),
                               SetupPane)
         self.assertEqual(len(self.setup_task.create_dock_panes()), 1)
-        self.assertIsInstance(self.setup_task.side_pane, TreePane)
+        self.assertIsInstance(self.setup_task.side_pane, SidePane)
 
         self.assertEqual(len(self.review_task.create_dock_panes()),
                          1)
         self.assertIsInstance(self.review_task.side_pane,
                               ResultsPane)
         self.assertIsInstance(self.review_task.create_central_pane(),
-                              GraphPane)
+                              DataViewPane)
         self.assertIsInstance(self.review_task.workflow_model, Workflow)
         self.assertIsInstance(self.setup_task.workflow_model, Workflow)
         self.assertIsInstance(self.review_task.analysis_model, AnalysisModel)

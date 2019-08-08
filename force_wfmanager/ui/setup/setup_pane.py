@@ -1,14 +1,15 @@
 from pyface.tasks.api import TraitsTaskPane
 from traits.api import (
-    Bool, Button, Callable, Instance, Property, Unicode,
-    on_trait_change
+    Bool, Button, Instance, Property, Unicode,
+    on_trait_change, cached_property
 )
 from traitsui.api import (
-    ButtonEditor, InstanceEditor, HGroup, ModelView, UItem, View, VGroup
+    ButtonEditor, InstanceEditor, HGroup, UItem, View, VGroup
 )
 
-from force_bdss.api import BaseExtensionPlugin, BaseModel, Workflow
-from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
+from force_bdss.api import BaseModel
+
+from force_wfmanager.ui.setup.system_state import SystemState
 from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
 
 
@@ -20,8 +21,7 @@ class SetupPane(TraitsTaskPane):
     # Required Attributes
     # -------------------
 
-    #: The Workflow currently displayed in the WorkflowTree.
-    workflow_model = Instance(Workflow)
+    system_state = Instance(SystemState, allow_none=False)
 
     # ------------------
     # Regular Attributes
@@ -33,62 +33,35 @@ class SetupPane(TraitsTaskPane):
     #: Name displayed as the title of this pane
     name = 'Setup Pane'
 
+    # ------------------
+    # Derived Attributes
+    # ------------------
+
+    #: The model from selected_view.
+    #: Listens to: :attr:`models.workflow_tree.selected_view
+    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.selected_view>`
+    selected_model = Instance(BaseModel)
+
+    #: An error message for the entire workflow
+    error_message = Unicode()
+
+    # --------------------
+    #  Button Attributes
+    # --------------------
+
     #: A Button which calls add_new_entity when pressed.
     add_new_entity_btn = Button()
 
     #: A Button which calls remove_entity when pressed.
     remove_entity_btn = Button()
 
-    # ------------------
-    # Derived Attributes
-    # ------------------
-
-    #: The currently selected ModelView in the WorkflowTree.
-    #: Listens to: :attr:`models.workflow_tree.selected_mv
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.selected_mv>`
-    selected_mv = Instance(ModelView)
-
-    #: The model from selected_mv.
-    #: Listens to: :attr:`models.workflow_tree.selected_mv
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.selected_mv>`
-    selected_model = Instance(BaseModel)
-
-    #: The name of the currently selected factory. If no factory is selected,
-    #: this is set to 'None' (with type Unicode, not NoneType!)
-    #: Listens to: :attr:`models.workflow_tree.selected_factory_name
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
-    #: selected_factory_name>`
-    selected_factory_name = Unicode('Workflow')
-
-    #: A function which adds a new entity to the workflow tree, using the
-    #: currently selected factory. For example, if the 'DataSources' factory
-    #: is selected, this function would be ``new_data_source()``.
-    #: Listens to: :attr:`models.workflow_tree.add_new_entity
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
-    #: add_new_entity>`
-    add_new_entity = Callable()
-
-    #: A function to remove the currently selected modelview from the
-    #: workflow tree.
-    #: Listens to: :attr:`models.workflow_tree.remove_entity
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
-    #: remove_entity>`
-    remove_entity = Callable()
-
-    #: A NewEntityModal object displaying the factories of the currently
-    #: selected group.
-    #: Listens to: :attr:`models.workflow_tree.entity_creator
-    #: <force_wfmanager.models.workflow_tree.WorkflowTree.\
-    #: entity_creator>`
-    entity_creator = Instance(NewEntityCreator)
-
-    # ----------
-    # Properties
-    # ----------
+    # ----------------
+    #    Properties
+    # ----------------
 
     #: The string displayed on the 'add new entity' button.
     add_new_entity_label = Property(
-        Unicode(), depends_on='selected_factory_name'
+        Unicode(), depends_on='system_state:selected_factory_name'
     )
 
     #: A Boolean indicating whether the currently selected modelview is
@@ -96,102 +69,275 @@ class SetupPane(TraitsTaskPane):
     #: displaying a default view when a model does not have a View defined for
     #: it. If a modelview has a View defining how it is represented in the UI
     #: then this is used.
-    selected_mv_editable = Property(Bool, depends_on='selected_mv')
+    selected_view_editable = Property(
+        Bool, depends_on='system_state:selected_view'
+    )
+
+    #: A Boolean indicating whether the currently selected view is the main
+    #: view containing the FORCE logo
+    main_view_visible = Property(
+        Bool, depends_on='system_state:selected_factory_name'
+    )
+
+    #: A Boolean indicating whether the currently selected view represents
+    #: either a KPI or Parameter.
+    mco_view_visible = Property(
+        Bool, depends_on='system_state:[selected_view,selected_factory_name]'
+    )
+
+    #: A Boolean indicating whether the currently selected view represents
+    #: a factory view.
+    factory_view_visible = Property(
+        Bool, depends_on='system_state:selected_factory_name'
+    )
+
+    #: A Boolean indicating whether the currently selected view represents
+    #: an instance view.
+    instance_view_visible = Property(
+        Bool, depends_on='system_state:selected_factory_name'
+    )
+
+    #: A Boolean indicating whether the entity creator view should be displayed
+    entity_creator_visible = Property(
+        Bool, depends_on='system_state:entity_creator'
+    )
 
     #: A panel displaying extra information about the workflow: Available
     #: Plugins, non-KPI variables, current filenames and any error messages.
     #: Displayed for factories which have a lot of empty screen space.
     current_info = Property(
         Instance(WorkflowInfo),
-        depends_on='selected_factory_name,selected_mv,task.current_file'
+        depends_on='system_state:[selected_factory_name,selected_view],'
+                   'task.current_file'
     )
 
-    #: Determines if the add button should be active. KPI and Execution
-    #: Layers can always be added, but other workflow items need a specific
-    #: factory to be selected.
-    enable_add_button = Property(
-        Bool, depends_on='entity_creator,entity_creator.model'
+    #: Determines if the add button should be enabled/visible.
+    #  KPI and Execution Layers can always be added, but other workflow items
+    #  need a specific factory to be selected.
+    add_button_enabled = Property(
+        Bool, depends_on='system_state:[selected_factory_name,'
+                         'entity_creator.model]'
     )
+    add_button_visible = Property(
+        Bool, depends_on='system_state:selected_factory_name'
+    )
+
+    #: Determines if the remove button should be visible.
+    remove_button_visible = Property(
+        Bool, depends_on='system_state:selected_factory_name'
+    )
+
+    # -------------------
+    #        View
+    # -------------------
 
     #: The view when editing an existing instance within the workflow tree
     def default_traits_view(self):
         """ Sets up a TraitsUI view which displays the details
-        (parameters etc.) of the currently selected modelview. This varies
-        depending on what type of modelview is selected."""
-        view = View(VGroup(
-            # Main view with Force logo
+        (parameters etc.) of the currently selected view. This varies
+        depending on what type of view is selected."""
+        view = View(
             VGroup(
-                UItem(
-                    "current_info",
-                    editor=InstanceEditor(),
-                    style="custom",
-                    visible_when=(
-                        "selected_factory_name in ['Workflow', 'KPI',"
-                        "'Execution Layer']"
-                    )
-                )
-            ),
-            HGroup(
-                # Instance View
+                # Main View with FORCE Logo
                 VGroup(
                     UItem(
-                        "selected_mv", editor=InstanceEditor(),
-                        style="custom", visible_when="selected_mv_editable"
-                    ),
-                    UItem(
-                        "selected_model", editor=InstanceEditor(),
+                        "current_info",
+                        editor=InstanceEditor(),
                         style="custom",
-                        visible_when="selected_model is not None"
-                    ),
-                    # Remove Buttons
-                    HGroup(
-                        UItem('remove_entity_btn', label='Delete'),
                         ),
-                    label="Item Details",
-                    visible_when="selected_factory_name=='None'",
-                    show_border=True,
-                    ),
-                # Factory View
+                    visible_when="main_view_visible"
+                ),
+                # MCO Parameter and KPI views
                 VGroup(
-                    HGroup(
-                        UItem(
-                            "entity_creator", editor=InstanceEditor(),
-                            style="custom",
-                            visible_when="entity_creator is not None",
-                            width=825
-                        ),
-                        springy=True,
+                    UItem(
+                        "object.system_state.selected_view",
+                        editor=InstanceEditor(),
+                        style="custom",
                     ),
-                    HGroup(
+                    visible_when="mco_view_visible"
+
+                ),
+                # Process Tree Views
+                HGroup(
+                    # Instance View
+                    VGroup(
                         UItem(
-                            'add_new_entity_btn',
-                            editor=ButtonEditor(
-                                label_value='add_new_entity_label'
-                            ),
-                            enabled_when='enable_add_button',
-                            visible_when="selected_factory_name != 'None'",
-                            springy=True
+                            "object.system_state.selected_view",
+                            editor=InstanceEditor(),
+                            style="custom",
+                            visible_when="selected_view_editable"
+                        ),
+                        UItem(
+                            "selected_model", editor=InstanceEditor(),
+                            style="custom",
+                            visible_when="selected_model is not None"
                         ),
                         # Remove Buttons
-                        UItem(
-                            'remove_entity_btn',
-                            label='Delete Layer',
-                            visible_when=(
-                                "selected_factory_name == 'Data Source'"
-                            ),
+                        HGroup(
+                            UItem('remove_entity_btn', label='Delete'),
                         ),
-                        label="New Item Details",
-                        visible_when="selected_factory_name not in "
-                                     "['None', 'Workflow']",
+                        label="Item Details",
+                        visible_when="instance_view_visible",
                         show_border=True,
+                    ),
+                    # Factory View
+                    VGroup(
+                        HGroup(
+                            UItem(
+                                "object.system_state.entity_creator",
+                                editor=InstanceEditor(),
+                                style="custom",
+                                visible_when="entity_creator_visible",
+                                width=825
+                            ),
+                            springy=True,
+                        ),
+                        HGroup(
+                            UItem(
+                                'add_new_entity_btn',
+                                editor=ButtonEditor(
+                                    label_value='add_new_entity_label'
+                                ),
+                                enabled_when='add_button_enabled',
+                                visible_when="add_button_visible",
+                                springy=True
+                            ),
+                            # Remove Buttons
+                            UItem(
+                                'remove_entity_btn',
+                                label='Delete Layer',
+                                visible_when='remove_button_visible'
+                            ),
+                            label="New Item Details",
+                            visible_when="factory_view_visible",
+                            show_border=True,
+                        ),
                     ),
                 ),
             ),
-        ),
             width=500,
         )
 
         return view
+
+    # -------------------
+    #      Listeners
+    # -------------------
+
+    @cached_property
+    def _get_selected_view_editable(self):
+        """ Determines if the selected modelview in the WorkflowTree has a
+        default or non-default view associated. A default view should not
+        be editable by the user, a non-default one should be.
+
+        Parameters
+        ----------
+        self.selected_view.trait_views(): List of View
+            The list of Views associated with self.selected_view. The default
+            view is not included in this list.
+
+        Returns
+        -------
+        Bool
+            Returns True if selected_view has a User Editable/Non-Default View,
+            False if it only has a default View or no modelview is
+            currently selected
+        """
+        if self.system_state.selected_view is None:
+            return False
+        elif len(self.system_state.selected_view.trait_views()) == 0:
+            return False
+        return True
+
+    @cached_property
+    def _get_main_view_visible(self):
+        return self.system_state.selected_factory_name == 'Workflow'
+
+    @cached_property
+    def _get_mco_view_visible(self):
+        if self.system_state.selected_view is not None:
+            mco_factories = ['MCO Parameters', 'MCO KPIs']
+            return (
+                    self.system_state.selected_factory_name in mco_factories
+            )
+        return False
+
+    @cached_property
+    def _get_factory_view_visible(self):
+        factories = ['None', 'Workflow', 'MCO Parameters', 'MCO KPIs']
+        return (
+            self.system_state.selected_factory_name not in factories
+        )
+
+    @cached_property
+    def _get_instance_view_visible(self):
+        return self.system_state.selected_factory_name == 'None'
+
+    @cached_property
+    def _get_entity_creator_visible(self):
+        return self.system_state.entity_creator is not None
+
+    @cached_property
+    def _get_add_button_enabled(self):
+        """ Determines if the add button in the UI should be enabled."""
+        simple_factories = ['Execution Layer', 'MCO']
+        if self.system_state.selected_factory_name in simple_factories:
+            return True
+        if self.system_state.entity_creator is None \
+                or self.system_state.entity_creator.model is None:
+            return False
+        return True
+
+    @cached_property
+    def _get_add_button_visible(self):
+        """ Determines if the add button in the UI should be enabled"""
+        return self.system_state.selected_factory_name != 'None'
+
+    @cached_property
+    def _get_remove_button_visible(self):
+        """ Determines if the add button in the UI should be visible"""
+        return self.system_state.selected_factory_name == 'Data Source'
+
+    @cached_property
+    def _get_add_new_entity_label(self):
+        """Returns the label displayed on add_new_entity_btn"""
+        return 'Add New {!s}'.format(self.system_state.selected_factory_name)
+
+    @cached_property
+    def _get_current_info(self):
+        return WorkflowInfo(
+            workflow_filename=self.task.current_file,
+            plugins=self.task.lookup_plugins(),
+            selected_factory_name=self.system_state.selected_factory_name,
+            error_message=self.error_message
+        )
+
+    # Synchronisation with WorkflowTree
+    @on_trait_change('system_state:selected_view.error_message')
+    def sync_selected_view(self):
+        """ Synchronise selected_view with the selected modelview in the tree
+        editor. Checks if the model held by the modelview needs to be displayed
+        in the UI."""
+        if self.system_state.selected_view is not None:
+            if isinstance(self.system_state.selected_view.model, BaseModel):
+                self.selected_model = self.system_state.selected_view.model
+            else:
+                self.selected_model = None
+
+            self.error_message = self.system_state.selected_view.error_message
+
+    # Button event handlers for creating and deleting workflow items
+    def _add_new_entity_btn_fired(self):
+        """Calls add_new_entity when add_new_entity_btn is clicked"""
+        self.system_state.add_new_entity()
+
+    def _remove_entity_btn_fired(self):
+        """Calls remove_entity when remove_entity_btn is clicked"""
+        self.system_state.remove_entity()
+
+    # -------------------
+    #   Private Methods
+    # -------------------
 
     def _console_ns_default(self):
         namespace = {
@@ -203,129 +349,3 @@ class SetupPane(TraitsTaskPane):
             namespace["app"] = None
 
         return namespace
-
-    # Property getters
-
-    def _get_selected_mv_editable(self):
-        """ Determines if the selected modelview in the WorkflowTree has a
-        default or non-default view associated. A default view should not
-        be editable by the user, a non-default one should be.
-
-        Parameters
-        ----------
-        self.selected_mv.trait_views(): List of View
-            The list of Views associated with self.selected_mv. The default
-            view is not included in this list.
-
-        Returns
-        -------
-        Bool
-            Returns True if selected_mv has a User Editable/Non-Default View,
-            False if it only has a default View or no modelview is
-            currently selected
-        """
-        if self.selected_mv is None or self.selected_mv.trait_views() == []:
-            return False
-        return True
-
-    def _get_enable_add_button(self):
-        """ Determines if the add button in the UI should be enabled.
-
-        Parameters
-        ----------
-        self.entity_creator.model: BaseModel
-            The result of calling `create_model()` on the selected factory.
-            This occurs automatically when a factory is selected in the UI.
-
-        Returns
-        -------
-        Bool
-            Returns True if the selected factory can create a new instance.
-            Returns False otherwise.
-        """
-        simple_factories = ['KPI', 'Execution Layer']
-        if self.selected_factory_name in simple_factories:
-            return True
-        if self.entity_creator is None or self.entity_creator.model is None:
-            return False
-        return True
-
-    def _get_current_info(self):
-        """Returns a WorkflowInfo object, which displays general information
-        about the workflow and plugins installed. This is displayed when
-        nodes with less visual content are selected."""
-        workflow_mv = self.task.side_pane.workflow_tree.workflow_mv
-        plugins = [
-            plugin for plugin in self.task.window.application.plugin_manager
-            if isinstance(plugin, BaseExtensionPlugin)
-        ]
-
-        # Plugins guaranteed to have an id, so sort by that if name is not set
-        plugins.sort(
-            key=lambda s: s.name if s.name not in ('', None) else s.id
-        )
-
-        return WorkflowInfo(
-            plugins=plugins, workflow_mv=workflow_mv,
-            workflow_filename=self.task.current_file,
-            selected_factory_name=self.selected_factory_name
-        )
-
-    def _get_add_new_entity_label(self):
-        """Returns the label displayed on add_new_entity_btn"""
-        return 'Add New {!s}'.format(self.selected_factory_name)
-
-    # Synchronisation with WorkflowTree
-
-    @on_trait_change('task.side_pane.workflow_tree.add_new_entity')
-    def sync_add_new_entity(self):
-        """Synchronises add_new_entity with WorkflowTree"""
-        self.add_new_entity = (
-            self.task.side_pane.workflow_tree.add_new_entity
-        )
-
-    @on_trait_change('task.side_pane.workflow_tree.remove_entity')
-    def sync_remove_entity(self):
-        """Synchronises remove_entity with WorkflowTree"""
-        self.remove_entity = (
-            self.task.side_pane.workflow_tree.remove_entity
-        )
-
-    @on_trait_change('task.side_pane.workflow_tree.selected_mv')
-    def sync_selected_mv(self):
-        """ Synchronise selected_mv with the selected modelview in the tree
-        editor. Checks if the model held by the modelview needs to be displayed
-        in the UI."""
-        self.selected_mv = self.task.side_pane.workflow_tree.selected_mv
-        if self.selected_mv is not None:
-            if isinstance(self.selected_mv.model, BaseModel):
-                #: FIXME - this will raise an AttributeError if
-                #: self.selected_mv.model has not initialised a traits_view
-                #: object
-                self.selected_model = self.selected_mv.model
-            else:
-                self.selected_model = None
-
-    @on_trait_change('task.side_pane.workflow_tree.selected_factory_name')
-    def sync_selected_factory_name(self):
-        """Synchronises selected_factory_name with WorkflowTree"""
-        self.selected_factory_name = (
-            self.task.side_pane.workflow_tree.selected_factory_name
-        )
-
-    @on_trait_change('task.side_pane.workflow_tree.entity_creator')
-    def sync_entity_creator(self):
-        """Synchronises entity_creator with WorkflowTree"""
-        self.entity_creator = self.task.side_pane.workflow_tree.entity_creator
-
-    # Button event handlers for creating and deleting workflow items
-
-    @on_trait_change('add_new_entity_btn')
-    def create_new_workflow_item(self, parent):
-        """Calls add_new_entity when add_new_entity_btn is clicked"""
-        self.add_new_entity()
-
-    @on_trait_change('remove_entity_btn')
-    def delete_selected_workflow_item(self, parent):
-        """Calls remove_entity when remove_entity_btn is clicked"""
-        self.remove_entity()

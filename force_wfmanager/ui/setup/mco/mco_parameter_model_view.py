@@ -1,72 +1,70 @@
 from traits.api import (
-    Instance, Unicode, Bool, on_trait_change, Event, Property)
-from traitsui.api import View, Item, ModelView
+    cached_property, Property, Instance, Unicode, on_trait_change
+)
+from traitsui.api import (
+    View, Item, InstanceEditor, Readonly,
+    EnumEditor
+)
 
-from force_bdss.api import BaseMCOParameter
-
+from force_wfmanager.ui.setup.mco.base_mco_options_model_view import \
+    BaseMCOOptionsModelView
 from force_wfmanager.ui.ui_utils import get_factory_name
 
 
-class MCOParameterModelView(ModelView):
+class MCOParameterModelView(BaseMCOOptionsModelView):
 
-    # -------------------
-    # Required Attributes
-    # -------------------
+    # -------------
+    #  Properties
+    # -------------
 
-    #: MCO parameter model
-    model = Instance(BaseMCOParameter, allow_none=False)
-
-    # ------------------
-    # Dependent Attributes
-    # ------------------
-
-    #: Defines if the MCO parameter is valid or not. Updated by
-    #: :func:`verify_tree
-    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    valid = Bool(True)
-
-    #: An error message for issues in this modelview. Updated by
-    #: :func:`verify_tree
-    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    error_message = Unicode()
-
-    #: Event to request a verification check on the workflow
-    #: Listens to: :attr:`model.name <model>` and :attr:`model.type <model>`
-    verify_workflow_event = Event
+    label = Property(Instance(Unicode),
+                     depends_on='model.[name,type]')
 
     # ----------
-    # Properties
+    #    View
     # ----------
 
-    #: The human readable name of the MCO parameter class
-    label = Property(Unicode(), depends_on="model.name,model.type")
+    def default_traits_view(self):
+        """Default view containing both traits from the base class and
+        any additional user-defined traits"""
 
-    # ----
-    # View
-    # ----
+        return View(Item('name', object='model',
+                         editor=EnumEditor(name='object._combobox_values')),
+                    Readonly('type', object='model'),
+                    Item('model',
+                         editor=InstanceEditor(),
+                         style='custom')
+                    )
 
-    traits_view = View(
-        Item("model.name"),
-        Item("model.type"),
-        kind="subpanel"
-    )
+    # -------------
+    #    Defaults
+    # -------------
 
-    # Workflow Validation
+    def _label_default(self):
+        """Return a default label corresponding to the MCO parameter factory"""
+        return get_factory_name(self.model.factory)
 
-    @on_trait_change('model.name,model.type')
-    def parameter_change(self):
-        self.verify_workflow_event = True
+    # -------------
+    #   Listeners
+    # -------------
 
-    # Properties
-
+    @cached_property
     def _get_label(self):
+        """Return a label appending both the parameter name and type to the
+        default"""
         if self.model.name == '' and self.model.type == '':
             return self._label_default()
         return self._label_default()+': {type} {name}'.format(
             type=self.model.type, name=self.model.name
         )
 
-    # Defaults
+    @on_trait_change('model.[name,type]')
+    def parameter_model_change(self):
+        if self.model is not None:
+            try:
+                index = self._combobox_values.index(self.model.name)
+                self.model.type = self.available_variables[index][1]
+            except ValueError:
+                self.model.type = ''
 
-    def _label_default(self):
-        return get_factory_name(self.model.factory)
+        self.model_change()

@@ -16,7 +16,6 @@ from force_bdss.io.workflow_writer import WorkflowWriter
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.tests.utils import wait_condition
 
-
 from .mock_methods import (
     mock_file_reader, mock_file_writer, mock_dialog, mock_return_args,
     mock_file_reader_failure, mock_confirm_function,
@@ -188,6 +187,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_reader.side_effect = mock_file_reader
+
             old_workflow = self.setup_task.workflow_model
             self.assertEqual(
                 old_workflow,
@@ -201,7 +201,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertTrue(mock_open.called)
             self.assertTrue(mock_reader.called)
 
-            self.assertNotEqual(old_workflow, self.setup_task.workflow_model)
             self.assertNotEqual(
                 old_workflow,
                 self.setup_task.workflow_model)

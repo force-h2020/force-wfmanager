@@ -1,3 +1,5 @@
+import mock
+import time
 import unittest
 import warnings
 
@@ -6,16 +8,15 @@ from chaco.api import ColormappedScatterPlot, ScatterPlot
 from chaco.abstract_colormap import AbstractColormap
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.review.plot import Plot
+from force_wfmanager.ui.review.plot import BasePlot, Plot
 from traits.api import push_exception_handler, TraitError
 
 push_exception_handler(reraise_exceptions=True)
 
 
-class TestPlot(unittest.TestCase):
+class TestAnyPlot(object):
     def setUp(self):
         self.analysis_model = AnalysisModel()
-        self.plot = Plot(analysis_model=self.analysis_model)
 
     def test_init(self):
         self.assertEqual(len(self.analysis_model.value_names), 0)
@@ -24,11 +25,12 @@ class TestPlot(unittest.TestCase):
         self.assertIsNone(self.plot.x)
         self.assertIsNone(self.plot.y)
         self.assertIsNone(self.plot.update_data_arrays())
-        self.plot._update_plot_data()
+        self.plot._update_plot()
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(), [])
         self.assertEqual(
             self.plot._plot_data.get_data('y').tolist(), [])
+        self.assertTrue(self.plot.plot_updater.IsRunning())
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ('density', 'pressure')
@@ -44,34 +46,41 @@ class TestPlot(unittest.TestCase):
             self.assertIsInstance(self.plot._plot, ChacoPlot)
             self.assertIsInstance(self.plot._axis, ScatterPlot)
 
-    def test_cmapped_plot(self):
-        self.analysis_model.value_names = ('density', 'pressure', 'color')
-        self.plot.color_plot = True
-        self.plot.color_by = 'color'
-        self.analysis_model.add_evaluation_step((1.010, 101325, 1))
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            self.assertEqual(self.plot.color_by, 'color')
-            self.assertIsInstance(self.plot._plot, ChacoPlot)
-            self.assertIsInstance(self.plot._axis, ColormappedScatterPlot)
-            self.assertIsInstance(self.plot._axis.color_mapper,
-                                  AbstractColormap)
-            old_cmap = self.plot._axis.color_mapper
-            self.plot.colormap = 'seismic'
-            self.assertIsInstance(self.plot._axis.color_mapper,
-                                  AbstractColormap)
-            self.assertNotEqual(old_cmap, self.plot._axis.color_mapper)
-            self.assertEqual(old_cmap.range,
-                             self.plot._axis.color_mapper.range)
+    def test_plot_updater(self):
+        self.assertTrue(self.plot.plot_updater.IsRunning())
+        with mock.patch(
+                "force_wfmanager.ui.review.plot."
+                + self.plot.__class__.__name__
+                + "._update_plot") as mock_update_plot:
 
-        with self.assertRaises(TraitError):
-            self.plot.colormap = 'not_viridis'
+            self.assertFalse(self.plot.update_required)
 
-        self.plot.colormap = 'viridis'
-        self.plot.colormap = 'CoolWarm'
+            # check that after a cycle no update is done
+            time.sleep(1.1)
+            mock_update_plot.assert_not_called()
 
-        self.plot.color_plot = False
-        self.assertIsInstance(self.plot._axis, ScatterPlot)
+            self.analysis_model.value_names = ('density', 'pressure')
+            self.analysis_model.add_evaluation_step((1.010, 101325))
+            self.analysis_model.add_evaluation_step((1.100, 101423))
+            self.assertTrue(self.plot.update_required)
+
+            # wait a cycle for the update
+            time.sleep(1.1)
+            mock_update_plot.assert_called()
+
+    def test_check_scheduled_updates(self):
+        with mock.patch(
+                "force_wfmanager.ui.review.plot."
+                + self.plot.__class__.__name__
+                + "._update_plot") as mock_update_plot:
+            self.assertFalse(self.plot.update_required)
+            self.plot._check_scheduled_updates()
+            mock_update_plot.assert_not_called()
+
+            self.plot.update_required = True
+            self.plot._check_scheduled_updates()
+            mock_update_plot.assert_called()
+            self.assertFalse(self.plot.update_required)
 
     def test_push_new_evaluation_steps(self):
         self.analysis_model.value_names = ('density', 'pressure')
@@ -123,6 +132,7 @@ class TestPlot(unittest.TestCase):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
+        self.plot._update_plot()
 
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(),
@@ -149,6 +159,7 @@ class TestPlot(unittest.TestCase):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
+        self.plot._update_plot()
 
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(),
@@ -207,25 +218,85 @@ class TestPlot(unittest.TestCase):
         self.analysis_model.selected_step_indices = None
         self.assertEqual(plot_metadata['selections'], [])
 
-    def test_resize_plot(self):
+    def test_recenter_plot(self):
 
         # No data
-        result = self.plot.resize_plot()
+        result = self.plot.recenter_plot()
         self.assertIsNone(result)
         self.assertFalse(self.plot._get_reset_enabled())
 
         # One data point
         self.analysis_model.value_names = ('x', 'y')
         self.analysis_model.add_evaluation_step((2, 3))
-        result = self.plot.resize_plot()
-        self.assertEqual(result, (1.5, 2.5, 2.5, 3.5))
+        self.plot._update_plot()
+        committed_range = self.plot.recenter_plot()
+        actual_range = self.plot._get_plot_range()
+        self.assertEqual(committed_range, (1.5, 2.5, 2.5, 3.5))
+        self.assertEqual(committed_range, actual_range)
         self.assertTrue(self.plot._get_reset_enabled())
 
         # More than 1 data point
         self.analysis_model.add_evaluation_step((3, 4))
-        result = self.plot.resize_plot()
-        self.assertEqual(result, (1.9, 3.1, 2.9, 4.1))
+        self.plot._update_plot()
+        self.plot.recenter_plot()
+        committed_range = self.plot.recenter_plot()
+        actual_range = self.plot._get_plot_range()
+        self.assertEqual(committed_range, (1.9, 3.1, 2.9, 4.1))
+        self.assertEqual(committed_range, actual_range)
         self.assertTrue(self.plot._get_reset_enabled())
         self.plot._plot.range2d.x_range.low = -10
         self.plot.reset_plot = True
         self.assertEqual(self.plot._plot.range2d.x_range.low, 1.9)
+
+
+class TestBasePlot(TestAnyPlot, unittest.TestCase):
+
+    def setUp(self):
+        super(TestBasePlot, self).setUp()
+        self.plot = BasePlot(analysis_model=self.analysis_model)
+
+
+class TestPlot(TestAnyPlot, unittest.TestCase):
+
+    def setUp(self):
+        super(TestPlot, self).setUp()
+        self.plot = Plot(analysis_model=self.analysis_model)
+
+    def test_cmapped_plot(self):
+        self.analysis_model.value_names = ('density', 'pressure', 'color')
+        self.plot.color_plot = True
+        self.plot.color_by = 'color'
+        self.analysis_model.add_evaluation_step((1.010, 101325, 1))
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.assertEqual(self.plot.color_by, 'color')
+            self.assertIsInstance(self.plot._plot, ChacoPlot)
+            self.assertIsInstance(self.plot._axis, ColormappedScatterPlot)
+            self.assertIsInstance(self.plot._axis.color_mapper,
+                                  AbstractColormap)
+            old_cmap = self.plot._axis.color_mapper
+            self.plot.colormap = 'seismic'
+            self.assertIsInstance(self.plot._axis.color_mapper,
+                                  AbstractColormap)
+            self.assertNotEqual(old_cmap, self.plot._axis.color_mapper)
+            self.assertEqual(old_cmap.range,
+                             self.plot._axis.color_mapper.range)
+
+        with self.assertRaises(TraitError):
+            self.plot.colormap = 'not_viridis'
+
+        self.plot.colormap = 'viridis'
+        self.plot.colormap = 'CoolWarm'
+
+        self.plot.color_plot = False
+        self.assertIsInstance(self.plot._axis, ScatterPlot)
+
+    def test_ranges_are_kept(self):
+        self.analysis_model.value_names = ('density', 'pressure', 'color')
+        self.analysis_model.add_evaluation_step((1.010, 101325, 1))
+        self.plot._set_plot_range(0.5, 2, 100000, 103000)
+        self.plot.color_plot = True
+        self.plot.color_by = 'color'
+        self.assertEqual(self.plot._get_plot_range(), (0.5, 2, 100000, 103000))
+        self.assertEqual(self.plot._plot.x_axis.title, "density")
+        self.assertEqual(self.plot._plot.y_axis.title, "pressure")

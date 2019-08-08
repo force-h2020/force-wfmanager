@@ -1,3 +1,4 @@
+from envisage.plugin import Plugin
 from traits.api import (
     Bool, Callable, Dict, Either, HasStrictTraits, Instance, List, ReadOnly,
     Property, Unicode, on_trait_change
@@ -6,9 +7,9 @@ from traitsui.api import (
     HSplit, HTMLEditor, InstanceEditor, Menu, TreeEditor, TreeNode, UItem,
     VGroup, View
 )
-from envisage.plugin import Plugin
 
 from force_bdss.api import BaseFactory, BaseMCOParameter, BaseModel
+
 from force_wfmanager.ui.ui_utils import model_info
 
 no_view = View()
@@ -70,6 +71,13 @@ class NewEntityCreator(HasStrictTraits):
     #: A message to be displayed if there are no config options
     _no_config_options_msg = ReadOnly(Unicode)
 
+    #: Option for the user to manually control the visibility of the
+    #: configuration option display
+    config_visible = Bool(True)
+
+    # Factory name to be displayed in view_header
+    factory_name = Unicode()
+
     # --------------------
     # Dependent Attributes
     # --------------------
@@ -90,9 +98,12 @@ class NewEntityCreator(HasStrictTraits):
     #: Listens to :attr:`selected_factory`
     _cached_models = Dict()
 
-    # ----------
-    # Properties
-    # ----------
+    # --------------
+    #   Properties
+    # --------------
+
+    #: HTML header containing the factory name
+    view_header = Property(Instance(Unicode), depends_on='factory_name')
 
     #: HTML containing a model description, obtained from the model's
     #: get_name and get_description methods.
@@ -105,6 +116,10 @@ class NewEntityCreator(HasStrictTraits):
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityCreator, self).__init__(*args, **kwargs)
         self.factories = factories
+
+    # -------------------
+    #        View
+    # -------------------
 
     def default_traits_view(self):
         """ Sets up a view containing a TreeEditor for the currently loaded
@@ -132,43 +147,60 @@ class NewEntityCreator(HasStrictTraits):
         )
 
         view = View(
-            HSplit(
-                VGroup(
-                    UItem("plugins_root", editor=editor),
-                ),
-                VGroup(
+                HSplit(
                     VGroup(
-                        UItem(
-                            "model", style="custom", editor=InstanceEditor(),
-                            visible_when="_current_model_editable is True"
-                              ),
-                        UItem(
-                            "_no_config_options_msg", style="readonly",
-                            editor=HTMLEditor(),
-                            visible_when="_current_model_editable is False"
+                        VGroup(
+                            UItem("plugins_root",
+                                  editor=editor
+                                  ),
+                            style="custom",
+                            label=self.view_header,
+                            show_border=True,
+                            springy=True,
+                        )
+                    ),
+                    VGroup(
+                        VGroup(
+                            UItem(
+                                "model",
+                                style="custom",
+                                editor=InstanceEditor(),
+                                visible_when="_current_model_editable"
+                                  ),
+                            UItem(
+                                "_no_config_options_msg", style="readonly",
+                                editor=HTMLEditor(),
+                                visible_when="not _current_model_editable"
+                            ),
+                            visible_when="model is not None "
+                                         "and config_visible",
+                            style="custom",
+                            label="Configuration Options",
+                            show_border=True,
+                            springy=True,
                         ),
-                        visible_when="model is not None",
-                        style="custom",
-                        label="Configuration Options",
-                        show_border=True,
-                        springy=True,
+                        VGroup(
+                            UItem("model_description_HTML",
+                                  editor=HTMLEditor()),
+                            style="readonly",
+                            label="Description",
+                            show_border=True,
+                            springy=True,
+                        ),
                     ),
-                    VGroup(
-                        UItem("model_description_HTML", editor=HTMLEditor()),
-                        style="readonly",
-                        label="Description",
-                        show_border=True,
-                        springy=True,
-                    ),
-                )
-            ),
-            title="Add New Element",
-            width=500,
-            resizable=True,
-            kind="livemodal"
+                    springy=True,
+                ),
+                title="Add New Element",
+                width=500,
+                resizable=True,
+                kind="livemodal"
         )
 
         return view
+
+    # -------------------
+    #      Defaults
+    # -------------------
 
     def _plugins_root_default(self):
         """Create a root object for use in the root node of the tree editor.
@@ -202,6 +234,16 @@ class NewEntityCreator(HasStrictTraits):
         return htmlformat(body="<p>No configuration options "
                           "available for this selection</p>")
 
+    # -------------------
+    #      Listeners
+    # -------------------
+
+    def _get_view_header(self):
+        """Return a header to the view clearly showing the factory name"""
+        if self.factory_name == '':
+            return "Available Factories"
+        return f"Available {self.factory_name} Factories"
+
     @on_trait_change("selected_factory")
     def update_current_model(self):
         """ Update the current editable model when the selected factory has
@@ -219,24 +261,9 @@ class NewEntityCreator(HasStrictTraits):
 
         self.model = cached_model
 
-    def reset_model(self):
-        """Helper function which 'resets' self.model to be a new un-edited
-        model for the currently selected factory"""
-        if self.selected_factory is None:
-            self.model = None
-        else:
-            self.model = self.selected_factory.create_model()
-
-    def get_plugin_from_factory(self, factory):
-        """Returns the plugin associated with a particular factory
-
-        Parameters
-        ----------
-        factory: BaseFactory
-            The factory to get plugin information for.
-        """
-        plugin = factory.plugin
-        return plugin
+    # -------------------
+    #   Private Methods
+    # -------------------
 
     def _get__current_model_editable(self):
         """A check which returns True if 1. A view with at least
@@ -286,6 +313,29 @@ class NewEntityCreator(HasStrictTraits):
 
         # Create a HTML string with all the model's parameters
         return htmlformat(model_name, model_desc, name_desc_pairs)
+
+    # -------------------
+    #    Public Methods
+    # -------------------
+
+    def reset_model(self):
+        """Helper function which 'resets' self.model to be a new un-edited
+        model for the currently selected factory"""
+        if self.selected_factory is None:
+            self.model = None
+        else:
+            self.model = self.selected_factory.create_model()
+
+    def get_plugin_from_factory(self, factory):
+        """Returns the plugin associated with a particular factory
+
+        Parameters
+        ----------
+        factory: BaseFactory
+            The factory to get plugin information for.
+        """
+        plugin = factory.plugin
+        return plugin
 
 
 # A generic HTML header and body with title and text

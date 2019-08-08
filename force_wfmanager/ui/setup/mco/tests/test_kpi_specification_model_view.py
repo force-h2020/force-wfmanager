@@ -1,77 +1,58 @@
 import unittest
 from traits.testing.unittest_tools import UnittestTools
 
-from force_bdss.api import OutputSlotInfo
-from force_wfmanager.utils.tests.test_variable_names_registry import \
-    get_basic_variable_names_registry
-
 from force_bdss.api import KPISpecification
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import \
     KPISpecificationModelView
 
 
-class TestKPISpecificationModelViewTest(unittest.TestCase, UnittestTools):
+class TestKPISpecificationModelView(unittest.TestCase, UnittestTools):
+
     def setUp(self):
-        self.registry = get_basic_variable_names_registry()
-        self.workflow = self.registry.workflow
-        self.param1 = self.workflow.mco.parameters[0]
-        self.param2 = self.workflow.mco.parameters[1]
-        self.param3 = self.workflow.mco.parameters[2]
-        self.data_source1 = self.workflow.execution_layers[0].data_sources[0]
-        self.data_source2 = self.workflow.execution_layers[0].data_sources[1]
 
-        self.kpi_specification_mv = KPISpecificationModelView(
-            model=KPISpecification(),
-            variable_names_registry=self.registry
-        )
-
-    def test_kpi_specification_mv_init(self):
-        self.assertEqual(self.kpi_specification_mv.label, "KPI")
-
-    def test_update_combobox_values(self):
-        self.assertEqual(self.kpi_specification_mv._combobox_values, [''])
-
-        self.param1.name = 'V1'
-        self.param2.name = 'V2'
-        self.param3.name = 'V3'
-
-        self.assertEqual(self.kpi_specification_mv._combobox_values, [''])
-
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
-        self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
-
-        self.assertEqual(self.kpi_specification_mv._combobox_values,
-                         ['', 'T1', 'T2'])
-
-    def test_label(self):
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
-
-        self.assertEqual(self.kpi_specification_mv.label, "KPI")
-        self.kpi_specification_mv_named = KPISpecificationModelView(
+        self.kpi_model_view = KPISpecificationModelView(
             model=KPISpecification(name='T1'),
-            variable_names_registry=self.registry
+            available_variables=[('T1', 'PRESSURE'),
+                                 ('T2', 'PRESSURE')]
         )
-        self.assertEqual(self.kpi_specification_mv_named.label,
-                         "KPI: T1 (MINIMISE)")
 
-        self.kpi_specification_objective = KPISpecification(
-            name='T1', objective='MAXIMISE')
-        self.kpi_specification_mv_objective = KPISpecificationModelView(
-            model=self.kpi_specification_objective,
-            variable_names_registry=self.registry)
-        self.assertEqual(self.kpi_specification_mv_objective.label,
-                         "KPI: T1 (MAXIMISE)")
+    def test_kpi_model_view_init(self):
+        self.assertEqual(
+            "KPI: T1 (MINIMISE)",
+            self.kpi_model_view.label
+        )
+        self.assertTrue(self.kpi_model_view.valid)
 
-    def test_name_change(self):
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
-        with self.assertTraitChanges(self.kpi_specification_mv, 'label',
-                                     count=0):
-            self.assertEqual(self.kpi_specification_mv.label, 'KPI')
-        with self.assertTraitChanges(self.kpi_specification_mv, 'label',
-                                     count=1):
-            self.kpi_specification_mv.model.name = 'T1'
-            self.assertEqual(self.kpi_specification_mv.label,
-                             'KPI: T1 (MINIMISE)')
-        self.kpi_specification_mv_nomodel = KPISpecificationModelView(
-            model=None, variable_names_registry=self.registry)
-        self.assertEqual(self.kpi_specification_mv_nomodel.name, '')
+    def test_kpi_label(self):
+        self.kpi_model_view.model.name = 'T2'
+        self.assertEqual(
+            "KPI: T2 (MINIMISE)",
+            self.kpi_model_view.label
+        )
+
+    def test_verify_workflow_event(self):
+        with self.assertTraitChanges(
+                self.kpi_model_view, 'verify_workflow_event', count=1):
+            self.kpi_model_view.model.name = 'T2'
+        with self.assertTraitChanges(
+                self.kpi_model_view, 'verify_workflow_event', count=2):
+            self.kpi_model_view.model.name = 'not_in__combobox'
+
+    def test__check_kpi_name(self):
+        self.kpi_model_view.available_variables.remove(
+            self.kpi_model_view.available_variables[-1]
+        )
+        self.assertTrue(self.kpi_model_view.valid)
+        self.kpi_model_view.available_variables.remove(
+            self.kpi_model_view.available_variables[-1]
+        )
+        self.assertEqual(
+            "KPI",
+            self.kpi_model_view.label
+        )
+        self.assertEqual('', self.kpi_model_view.model.name)
+        error_message = self.kpi_model_view.model.verify()
+        self.assertIn(
+            'KPI is not named',
+            error_message[0].local_error
+        )

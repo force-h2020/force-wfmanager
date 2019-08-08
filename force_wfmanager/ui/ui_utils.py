@@ -1,5 +1,5 @@
-from traitsui.api import Group, Item
 from pyface.qt import QtGui
+from traitsui.api import Group, Item
 
 
 def get_factory_name(factory):
@@ -57,3 +57,64 @@ def get_default_background_color():
         rgba_color[0], rgba_color[1], rgba_color[2]
     )
     return html_background_color
+
+
+def class_description(cl, maxlength=80, desc_attribute="description"):
+    """ Returns a short description of a class, based on a
+    description class attribute (if present) and the class path:
+
+    Examples (maxlength = 45)::
+
+        "Short description (path.to.the.class)"
+        "This is a longer description (path...class)"
+
+    Parameters
+    ----------
+    cl : class
+        The target class.
+    maxlength : int
+        Max length of the returned description.
+    desc_attribute : str
+        Name of the class attribute containing the description.
+    """
+    length = maxlength
+
+    def shorten(string, maxlength):
+        # Helper function that operates the truncation
+
+        if string.startswith("<class '"):
+
+            # Usual str(type) of the form <class 'foo.bar.baz'>:
+            # Remove wrapping and truncate, giving precedence to extremes.
+            words = string[8:-2].split(".")
+            num_words = len(words)
+            words_with_priority = [
+                # from the out inwards, precedence to the left: 0 2 ... 3 1
+                (words[i], min(2*i, 2*num_words - 2*i - 1))
+                for i in range(num_words)
+            ]
+            for threshold in range(num_words, 0, -1):
+                string = ".".join(
+                    (word if priority < threshold else "")
+                    for (word, priority) in words_with_priority
+                )
+                if len(string) <= maxlength:
+                    return string
+            # fallback when every dot-based truncation is too long.
+            return shorten(words[0], maxlength)
+
+        else:
+
+            # Custom description: just truncate.
+            return string if len(string) <= maxlength \
+                else string[:maxlength-3]+"..."
+
+    if getattr(cl, desc_attribute, None) is not None:
+        description = shorten(getattr(cl, desc_attribute), length)
+        # if there's enough room left, add the class name in brackets.
+        length -= len(description) + 3
+        if length >= 10:
+            description += " (" + shorten(str(cl), length) + ")"
+    else:
+        description = shorten(str(cl), length)
+    return description

@@ -1,12 +1,14 @@
 import logging
 
 import zmq
+
 from traits.api import Instance, String
 
 from force_bdss.api import (
     BaseNotificationListener,
     BaseDriverEvent,
 )
+
 from force_wfmanager.server.event_serializer import EventSerializer
 
 log = logging.getLogger(__name__)
@@ -33,6 +35,38 @@ class UINotification(BaseNotificationListener):
 
     #: The serializer for the event.
     _serializer = Instance(EventSerializer)
+
+    # ------------
+    #   Defaults
+    # ------------
+
+    def __serializer_default(self):
+        return EventSerializer()
+
+    # ----------------
+    #  Private Methods
+    # ----------------
+
+    def _close_and_clear_sockets(self):
+        if self._pub_socket:
+            self._pub_socket.close()
+
+        if self._sync_socket:
+            self._sync_socket.close()
+
+        if self._context:
+            self._context.term()
+
+        self._pub_socket = None
+        self._sync_socket = None
+        self._context = None
+
+    def _create_context(self):
+        return zmq.Context()
+
+    # ----------------
+    #  Public Methods
+    # ----------------
 
     def initialize(self, model):
         """ Sets up the zmq sockets and context to connects to the Workflow
@@ -126,25 +160,3 @@ class UINotification(BaseNotificationListener):
                     [x.decode('utf-8') for x in recv])))
 
         self._close_and_clear_sockets()
-
-    def _close_and_clear_sockets(self):
-        if self._pub_socket:
-            self._pub_socket.close()
-
-        if self._sync_socket:
-            self._sync_socket.close()
-
-        if self._context:
-            self._context.term()
-
-        self._pub_socket = None
-        self._sync_socket = None
-        self._context = None
-
-    def _create_context(self):
-        return zmq.Context()
-
-    # Defaults
-
-    def __serializer_default(self):
-        return EventSerializer()
