@@ -108,7 +108,7 @@ class MCOView(HasTraits):
         parameter_name_options = []
 
         for variable in self.variable_names_registry.available_variables:
-            if len(variable.input_slot_rows) == 0:
+            if variable.output_slot_row is not None:
                 kpi_name_options.append(variable)
             if variable.output_slot_row is None:
                 parameter_name_options.append(variable)
