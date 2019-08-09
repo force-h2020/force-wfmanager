@@ -123,7 +123,7 @@ class KPISpecificationView(BaseMCOOptionsView):
         if self.variable_names_registry is not None:
             variables = self.variable_names_registry.available_variables
             for variable in variables:
-                if len(variable.input_slots) == 0:
+                if variable.output_slot is not None:
                     kpi_name_options.append(variable)
 
         return kpi_name_options
