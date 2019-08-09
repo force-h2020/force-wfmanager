@@ -164,3 +164,13 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
             0, len(self.kpi_view.model_views[0].available_variables))
         self.assertIsNone(
             self.kpi_view.model_views[0].selected_variable)
+
+    def test_update_kpi_model_views(self):
+
+        self.kpi_view.model = None
+        self.assertEqual(0, len(self.kpi_view.model_views))
+        self.assertEqual(0, len(self.kpi_view.kpi_name_options))
+
+        self.kpi_view.model = self.workflow.mco
+        self.assertEqual(1, len(self.kpi_view.model_views))
+        self.assertEqual(0, len(self.kpi_view.kpi_name_options))

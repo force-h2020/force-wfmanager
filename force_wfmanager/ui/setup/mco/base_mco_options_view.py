@@ -128,7 +128,7 @@ class BaseMCOOptionsView(HasTraits):
     #   Private Methods
     # ------------------
 
-    def _create_model_view(self, model=None):
+    def _create_model_view(self, model):
         """A method to return a model view for a given model trait
         needs to be implemented"""
         raise NotImplementedError(
