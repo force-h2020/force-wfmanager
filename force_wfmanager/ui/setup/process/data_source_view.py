@@ -24,6 +24,9 @@ class TableRow(HasStrictTraits):
     # Required Attributes
     # -------------------
 
+    #: Model of the evaluator
+    model = Instance(HasStrictTraits)
+
     #: Type of the slot
     type = Unicode()
 
@@ -37,6 +40,9 @@ class TableRow(HasStrictTraits):
     #: A human readable description of the slot
     description = Unicode()
 
+    #: Current UI status of the slot (alters user to Variable hook-ups)
+    status = Unicode()
+
 
 class InputSlotRow(TableRow):
     """Row in the UI representing DataSource input_slots. """
@@ -45,7 +51,7 @@ class InputSlotRow(TableRow):
     # Required Attributes
     # -------------------
 
-    #: Model of the evaluator
+    #: InputSlotInfo model of the evaluator
     model = Instance(InputSlotInfo)
 
     # Available names for input variables
@@ -59,25 +65,17 @@ class OutputSlotRow(TableRow):
     # Required Attributes
     # -------------------
 
-    #: Model of the evaluator
+    #: OutputSlotInfo model of the evaluator
     model = Instance(OutputSlotInfo)
 
 
-#: The TraitsUI editor used for :class:`InputSlotRow`
-input_slots_editor = TableEditor(
-    sortable=False,
-    configurable=False,
-    selected="selected_slot_row",
-    columns=[
-        ObjectColumn(name="index", label="", editable=False),
-        ObjectColumn(name="type", label="Type", editable=False),
-        ObjectColumn(name="model.name", label="Variable Name",
-                     editable=True),
-    ]
-)
+#: The TraitsUI editor used for :attr:`TableRow.model.name`
+name_editor = TextEditor(auto_set=False,
+                         enter_set=True)
 
-#: The TraitsUI editor used for :class:`OutputSlotRow`
-output_slots_editor = TableEditor(
+#: The TraitsUI editor used for :class:`InputSlotRow`
+#: and :class:`OutputSlotRow`
+slots_editor = TableEditor(
     sortable=False,
     configurable=False,
     selected="selected_slot_row",
@@ -85,7 +83,7 @@ output_slots_editor = TableEditor(
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
         ObjectColumn(name="model.name", label="Variable Name",
-                     editable=True),
+                     editable=True, editor=name_editor)
     ]
 )
 
@@ -168,19 +166,19 @@ class DataSourceView(HasTraits):
                 Item(
                     "input_slots_representation",
                     label="Input variables",
-                    editor=input_slots_editor,
+                    editor=slots_editor,
                 ),
                 Item(
                     "output_slots_representation",
                     label="Output variables",
-                    editor=output_slots_editor,
-                )
+                    editor=slots_editor,
+                ),
             ),
             VGroup(
                 UReadonly(
                     "selected_slot_description",
                     editor=TextEditor(),
-                    ),
+                ),
                 label="Selected parameter description",
                 show_border=True
             ),
@@ -237,6 +235,7 @@ class DataSourceView(HasTraits):
         change on the shape of the input/output slots"""
         #: This synchronization maybe is something that should be moved to the
         #: model.
+
         self.input_slots_representation[:] = []
         self.output_slots_representation[:] = []
 
@@ -244,8 +243,8 @@ class DataSourceView(HasTraits):
 
         #: Initialize the input slots
         self.model.input_slot_info = [
-            InputSlotInfo(model=slot)
-            for slot in input_slots
+            InputSlotInfo(name='')
+            for _ in input_slots
         ]
 
         #: Initialize the output slots
@@ -270,6 +269,7 @@ class DataSourceView(HasTraits):
             If the input slots or output slots in the model are not of the
             right length. This can come from a corrupted file.
         """
+
         input_slots, output_slots = self._data_source.slots(self.model)
 
         # Initialize model.input_slot_info if not initialized yet

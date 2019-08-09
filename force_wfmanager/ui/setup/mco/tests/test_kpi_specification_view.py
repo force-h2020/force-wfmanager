@@ -42,13 +42,13 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         kpi_model_view = self.kpi_view.model_views[0]
 
         self.assertEqual(1, len(self.registry.available_variables))
-        self.assertEqual(1, len(kpi_model_view.available_variables))
+        self.assertEqual(2, len(kpi_model_view.available_variables))
         self.assertEqual(
-            'T1', kpi_model_view.available_variables[0].name
+            'T1', kpi_model_view.available_variables[1].name
         )
         self.assertEqual('KPI', kpi_model_view.label)
 
-        variable = kpi_model_view.available_variables[0]
+        variable = kpi_model_view.available_variables[1]
         kpi_model_view.selected_variable = variable
 
         self.assertEqual("KPI: T1 (MINIMISE)", kpi_model_view.label)
@@ -61,7 +61,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
         kpi_model_view = self.kpi_view.model_views[0]
-        variable = kpi_model_view.available_variables[0]
+        variable = kpi_model_view.available_variables[1]
         kpi_model_view.selected_variable = variable
 
         with self.assertTraitChanges(kpi_model_view, 'label', count=0):
@@ -124,7 +124,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         kpi_model_view = self.kpi_view.model_views[0]
         with self.assertTraitChanges(
                 self.kpi_view, 'verify_workflow_event', count=2):
-            variable = kpi_model_view.available_variables[0]
+            variable = kpi_model_view.available_variables[1]
             kpi_model_view.selected_variable = variable
         with self.assertTraitChanges(
                 self.kpi_view, 'verify_workflow_event', count=2):
@@ -161,7 +161,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         self.assertEqual(0, len(self.kpi_view.kpi_name_options))
         self.assertEqual(1, len(self.kpi_view.model_views))
         self.assertEqual(
-            0, len(self.kpi_view.model_views[0].available_variables))
+            1, len(self.kpi_view.model_views[0].available_variables))
         self.assertIsNone(
             self.kpi_view.model_views[0].selected_variable)
 

@@ -17,9 +17,12 @@ class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
     def test_mco_options_model_view_init(self):
 
         self.assertIsNone(self.mco_options_model_view.model)
-        self.assertIsNone(self.mco_options_model_view.selected_variable)
+        self.assertIsInstance(
+            self.mco_options_model_view.selected_variable,
+            Variable
+        )
         self.assertEqual(
-            0, len(self.mco_options_model_view.available_variables)
+            1, len(self.mco_options_model_view.available_variables)
         )
         self.assertTrue(self.mco_options_model_view.valid)
 

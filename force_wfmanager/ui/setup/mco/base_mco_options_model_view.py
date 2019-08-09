@@ -57,11 +57,24 @@ class BaseMCOOptionsModelView(ModelView):
             self.model = model
 
     # ------------------
+    #     Defaults
+    # ------------------
+
+    def _selected_variable_default(self):
+        return Variable()
+
+    def _available_variables_default(self):
+        """Create a default list containing an empty Variable object
+        to allow the user to manually unhook an mco option"""
+        return [Variable()]
+
+    # ------------------
     #     Listeners
     # ------------------
+
     @on_trait_change('selected_variable,available_variables')
     def _check_available_variables(self):
-
+        """"""
         if self.selected_variable is not None:
             if self.selected_variable not in self.available_variables:
                 self.selected_variable = None
@@ -80,3 +93,10 @@ class BaseMCOOptionsModelView(ModelView):
     def model_change(self):
         """Raise verify workflow event upon change in model"""
         self.verify_workflow_event = True
+
+    def update_available_variables(self, available_variables):
+        """Update the available_variables list, whilst keeping the
+        default values"""
+        self.available_variables = (
+            self._available_variables_default() + available_variables
+        )

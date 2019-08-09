@@ -117,25 +117,28 @@ class KPISpecificationView(BaseMCOOptionsView):
         if self.variable_names_registry is not None:
             variables = self.variable_names_registry.available_variables
             for variable in variables:
-                if len(variable.input_slots) == 0:
+                if variable.output_slot is not None:
                     kpi_name_options.append(variable)
 
         return kpi_name_options
 
-    @on_trait_change('kpi_name_options')
-    def update_model_views__combobox(self):
-        """Update the KPI model view name options"""
-        for kpi_view in self.model_views:
-            kpi_view.available_variables = self.kpi_name_options
-
     @on_trait_change('model.kpis')
     def update_kpi_model_views(self):
-        """ Triggers the base method update_model_views when
+        """Triggers the base method update_model_views when
         KPISpecifications are updated"""
         if self.model is not None:
             self.update_model_views(self.model.kpis)
         else:
             self.update_model_views()
+
+    @on_trait_change('kpi_name_options')
+    def update_model_views_available_variables(self):
+        """Updates all model_view available_variables when kpi_name_options
+         is updated"""
+
+        # Update the model_views with the new kpi_name_options
+        for model_view in self.model_views:
+            model_view.update_available_variables(self.kpi_name_options)
 
     def _add_kpi_button_fired(self):
         """Call add_kpi to insert a blank KPI to the model"""

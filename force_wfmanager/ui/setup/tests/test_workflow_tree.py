@@ -417,6 +417,14 @@ class TestWorkflowTree(WfManagerBaseTestCase):
             self.workflow_tree.selected_error
         )
 
+        self.workflow.mco.parameters = []
+
+        self.assertIn(
+            'An Input slot requires a corresponding '
+            'Output slot or MCO Parameter',
+            self.workflow_tree.selected_error
+        )
+
 
 class TestProcessElementNode(TestCase):
 
