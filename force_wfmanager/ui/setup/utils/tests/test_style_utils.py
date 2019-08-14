@@ -56,4 +56,84 @@ class TestTextStyle(TestCase):
 
     def setUp(self):
 
-        self.text_style = TextStyle()
+        self.text_style = TextStyle(
+            alignment=('top', 'left')
+        )
+
+    def test___init__(self):
+
+        self.assertEqual('black', self.text_style.color)
+        self.assertListEqual([0, 0, 0, 0], self.text_style.margin)
+        self.assertEqual(0, self.text_style.hmargin)
+        self.assertEqual(0, self.text_style.vmargin)
+        self.assertEqual(16, self.text_style.line_height)
+
+    def test_get_preferred_size(self):
+
+        size = self.text_style.get_preferred_size('some text')
+        self.assertEqual((62.0, 16), size)
+
+        self.text_style.line_height = 12
+        size = self.text_style.get_preferred_size('some text')
+        self.assertEqual((62.0, 12), size)
+
+        self.text_style.margin_bottom = 2
+        size = self.text_style.get_preferred_size('some text')
+        self.assertEqual((62.0, 14), size)
+
+        self.text_style.margin_top = 2
+        size = self.text_style.get_preferred_size('some text')
+        self.assertEqual((62.0, 16), size)
+
+        self.text_style.margin_left = 2
+        size = self.text_style.get_preferred_size('some text')
+        self.assertEqual((64.0, 16), size)
+
+        self.text_style.margin_right = 2
+        size = self.text_style.get_preferred_size('some text')
+        self.assertEqual((66.0, 16), size)
+
+    def test_align_text(self):
+
+        box = Component()
+        offsets = self.text_style.align_text(None, box, 'some text')
+        self.assertEqual((0, -12), offsets)
+
+        self.text_style.margin_left = 2
+        self.text_style.margin_top = 2
+        offsets = self.text_style.align_text(None, box, 'some text')
+        self.assertEqual((2, -14), offsets)
+
+        self.text_style.alignment = ('center', 'left')
+        offsets = self.text_style.align_text(None, box, 'some text')
+        self.assertEqual((2, -5.5), offsets)
+
+        self.text_style.margin_top = 0
+        offsets = self.text_style.align_text(None, box, 'some text')
+        self.assertEqual((2, -4.5), offsets)
+
+        self.text_style.alignment = ('bottom', 'left')
+        offsets = self.text_style.align_text(None, box, 'some text')
+        self.assertEqual((2, 4), offsets)
+
+        self.text_style.margin_bottom = 2
+        self.text_style.line_height += 2
+        offsets = self.text_style.align_text(None, box, 'some text')
+        self.assertEqual((2, 8), offsets)
+
+        self.text_style.alignment = ('bottom', 'center')
+        offsets = self.text_style.align_text(None, box, 'some text')
+        self.assertEqual((-30, 8), offsets)
+
+        self.text_style.margin_left += 2
+        offsets = self.text_style.align_text(None, box, 'some text')
+        self.assertEqual((-29, 8), offsets)
+
+        self.text_style.alignment = ('bottom', 'right')
+        offsets = self.text_style.align_text(None, box, 'some text')
+        self.assertEqual((-62, 8), offsets)
+
+        self.text_style.margin_right += 2
+        offsets = self.text_style.align_text(None, box, 'some text')
+        self.assertEqual((-64, 8), offsets)
+

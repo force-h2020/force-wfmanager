@@ -1,6 +1,6 @@
 from enable.api import Component, Container
 from traits.api import (
-    DelegatesTo, Instance, Int, Unicode
+    on_trait_change, Instance, Int, Unicode, List
 )
 
 from .style_utils import BoxStyle, TextStyle
@@ -11,11 +11,12 @@ class Box(Component):
     #: The style to use when drawing the box.
     box_style = Instance(BoxStyle, ())
 
-    #: The background color, prototyped from the style.
-    bgcolor = DelegatesTo('box_style', 'color')
-
-    #: The border color, prototyped from the style.
-    border_color = DelegatesTo('box_style', 'stroke_color')
+    @on_trait_change('box_style')
+    def update_colors(self):
+        """Delegate both the background color and border color to
+        the box_style trait"""
+        self.bgcolor = self.box_style.color
+        self.border_color = self.box_style.stroke_color
 
     def _draw_background(self, gc, view_bounds=None, mode="default"):
         self.box_style.draw_background(self, gc, view_bounds=None,
@@ -90,6 +91,79 @@ class HLayoutBox(TextBox, Container):
                     component.outer_y = y
 
                 x += component.outer_width + spacing
+
+    def _draw_container_mainlayer(self, gc, view_bounds=None, mode="normal"):
+        self._draw_mainlayer(gc, view_bounds=None, mode="normal")
+
+
+class InputOutputBox(TextBox, Container):
+
+    #: The inputs.
+    inputs = List(Instance(TextBox))
+
+    #: The inputs.
+    outputs = List(Instance(TextBox))
+
+    @on_trait_change('inputs[],outputs[]')
+    def _update_inputs_outputs(self):
+        self.remove(*self.components)
+        self.add(*self.inputs)
+        self.add(*self.outputs)
+
+    def get_preferred_size(self):
+        width, height = super(InputOutputBox, self).get_preferred_size()
+
+        if self.inputs:
+            max_input_width = max(
+                input.get_preferred_size()[0] for input in self.inputs
+            )
+            max_input_height = max(
+                input.get_preferred_size()[1] for input in self.inputs
+            )
+        else:
+            max_input_width = 0
+            max_input_height = 0
+        input_width = max_input_width * len(self.inputs)
+
+        if self.outputs:
+            max_output_width = max(
+                output.get_preferred_size()[0] for output in self.outputs
+            )
+            max_output_height = max(
+                output.get_preferred_size()[1] for output in self.outputs
+            )
+        else:
+            max_output_width = 0
+            max_output_height = 0
+        output_width = max_output_width * len(self.outputs)
+
+        width = max(width, input_width, output_width)
+        height = height + max_input_height + max_output_height
+        width += self.hpadding
+        height += self.vpadding
+        return width, height
+
+    def _do_layout(self):
+        if self.inputs:
+            width = self.width/len(self.inputs)
+            height = max(
+                input.get_preferred_size()[1] for input in self.inputs
+            )
+            for i, input in enumerate(self.inputs):
+                input.bounds = [width, height]
+                input.x = i * width
+                input.y2 = self.height - self.border_width
+
+        if self.outputs:
+            width = self.width/len(self.outputs)
+            height = max(
+                output.get_preferred_size()[1] for output in self.outputs
+            )
+            for i, output in enumerate(self.outputs):
+                _, height = output.get_preferred_size()
+                output.bounds = [width, height]
+                output.x = i * width
+                output.y = 0
 
     def _draw_container_mainlayer(self, gc, view_bounds=None, mode="normal"):
         self._draw_mainlayer(gc, view_bounds=None, mode="normal")

@@ -6,11 +6,13 @@ class LayeredGraph(VStackedContainer):
     def get_connections(self):
         connections = []
         sources = {}
+
         for component in reversed(self.components):
             base_x, base_y = component.position
             for node in component.components:
                 x = base_x + node.x
                 y = base_y + node.y
+
                 connections.extend(
                     (sources[input.text], (input, (x, y)))
                     for input in node.inputs
@@ -19,6 +21,7 @@ class LayeredGraph(VStackedContainer):
             for node in component.components:
                 x = base_x + node.x
                 y = base_y + node.y
+
                 sources.update(
                     (output.text, (output, (x, y)))
                     for output in node.outputs
