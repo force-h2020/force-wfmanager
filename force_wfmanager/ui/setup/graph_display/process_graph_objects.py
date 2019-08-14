@@ -24,7 +24,9 @@ class DataSourceBox(InputOutputBox):
     text = Unicode
 
     def _text_default(self):
-        return get_factory_name(self.view.model.factory)
+        return get_factory_name(
+            self.data_source_view.model.factory
+        )
 
     @on_trait_change('data_source_view.input_slots_representation[]')
     def _update_input_slots(self):
@@ -36,10 +38,10 @@ class DataSourceBox(InputOutputBox):
         if self.data_source_view is not None:
             self.inputs += [
                 SlotInfoBox(
-                    model=input,
+                    model=input.model,
                     text_style=text_style,
                 )
-                for input in self.view.input_slots_representation
+                for input in self.data_source_view.input_slots_representation
             ]
 
     @on_trait_change('data_source_view.output_slots_representation[]')
@@ -52,12 +54,12 @@ class DataSourceBox(InputOutputBox):
         if self.data_source_view is not None:
             self.outputs += [
                 SlotInfoBox(
-                    model=output,
+                    model=output.model,
                     text_style=text_style)
-                for output in self.view.output_slots_representation
+                for output in self.data_source_view.output_slots_representation
             ]
 
-    @on_trait_change('inputs.model.model.name')
+    @on_trait_change('inputs.model.name')
     def _validate_inputs(self):
         valid_box_style = BoxStyle(
             color='azure'
@@ -66,12 +68,12 @@ class DataSourceBox(InputOutputBox):
             color='salmon'
         )
         for input in self.inputs:
-            if input.model.model.name:
+            if input.model.name:
                 input.box_style = valid_box_style
             else:
                 input.box_style = invalid_box_style
 
-    @on_trait_change('outputs.model.model.name')
+    @on_trait_change('outputs.model.name')
     def _validate_outputs(self):
         valid_box_style = BoxStyle(
             color='azure'
@@ -80,7 +82,7 @@ class DataSourceBox(InputOutputBox):
             color='gainsboro'
         )
         for output in self.outputs:
-            if output.model.model.name:
+            if output.model.name:
                 output.box_style = valid_box_style
             else:
                 output.box_style = inactive_box_style
@@ -89,9 +91,9 @@ class DataSourceBox(InputOutputBox):
 class ExecutionLayerBox(HLayoutBox):
 
     #: The slot info model that we use.
-    view = Instance(ExecutionLayerView)
+    execution_layer_view = Instance(ExecutionLayerView)
 
-    @on_trait_change('view.data_source_views[]')
+    @on_trait_change('execution_layer_view.data_source_views[]')
     def _update_data_sources(self):
         iobox_style = BoxStyle(
             color='powderblue',
@@ -107,12 +109,12 @@ class ExecutionLayerBox(HLayoutBox):
             alignment=('center', 'center')
         )
         self.remove(*self.components)
-        if self.view is not None:
+        if self.execution_layer_view is not None:
             self.add(*[
                 DataSourceBox(
-                    model=data_source,
+                    data_source_view=data_source,
                     text_style=iotext_style,
                     box_style=iobox_style,
                 )
-                for data_source in self.view.data_source_views
+                for data_source in self.execution_layer_view.data_source_views
             ])

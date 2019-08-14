@@ -136,4 +136,3 @@ class TestTextStyle(TestCase):
         self.text_style.margin_right += 2
         offsets = self.text_style.align_text(None, box, 'some text')
         self.assertEqual((-64, 8), offsets)
-

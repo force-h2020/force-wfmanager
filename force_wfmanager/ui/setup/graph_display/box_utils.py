@@ -30,7 +30,7 @@ class TextBox(Box):
     """
 
     #: The text to display.
-    text = Unicode
+    text = Unicode()
 
     #: The style to use when drawing the text.
     text_style = Instance(TextStyle, ())
@@ -75,14 +75,20 @@ class HLayoutBox(TextBox, Container):
     def _do_layout(self):
         if self.components:
             width, _ = self.get_preferred_size()
-            spacing = self.spacing + (self.width - width) / (len(self.components) + 1)
+            spacing = (
+                self.spacing +
+                (self.width - width) / (len(self.components) + 1)
+            )
             x = spacing
             y = self.text_style.get_preferred_size(self.text)[1] + self.spacing
             height = max(
-                component.get_preferred_size()[1] for component in self.components
+                component.get_preferred_size()[1]
+                for component in self.components
             )
             for component in self.components:
-                component.width = component.get_preferred_size()[0] - component.hpadding
+                component.width = (
+                    component.get_preferred_size()[0] - component.hpadding
+                )
                 component.height = height - component.vpadding
                 component.outer_x = x
                 if self.text_style.alignment[0] == 'top':

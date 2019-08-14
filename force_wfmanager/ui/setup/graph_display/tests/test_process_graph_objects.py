@@ -23,10 +23,12 @@ class TestDataSourceBox(WfManagerBaseTestCase):
     def test___init__(self):
 
         self.assertEqual(
-            self.data_source_view, self.data_source_box.view
+            self.data_source_view,
+            self.data_source_box.data_source_view
         )
         self.assertEqual(
-            self.model_1, self.data_source_box.view.model
+            self.model_1,
+            self.data_source_box.data_source_view.model
         )
 
         self.assertEqual(
@@ -39,7 +41,7 @@ class TestDataSourceBox(WfManagerBaseTestCase):
             'test_data_source', self.data_source_box.text
         )
         self.assertEqual(
-            'P1', self.data_source_box.inputs[0].model.model.name
+            'P1', self.data_source_box.inputs[0].model.name
         )
 
 
@@ -50,4 +52,3 @@ class TestExecutionLayerBox(WfManagerBaseTestCase):
 
     def test___init__(self):
         pass
-

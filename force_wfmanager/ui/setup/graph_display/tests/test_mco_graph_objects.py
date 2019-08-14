@@ -22,9 +22,6 @@ class TestParametersBox(TestCase):
         self.workflow = get_basic_workflow()
         self.param1 = self.workflow.mco.parameters[0]
         self.param2 = self.workflow.mco.parameters[1]
-        self.param3 = self.workflow.mco.parameters[2]
-        self.data_source1 = self.workflow.execution_layers[0].data_sources[0]
-        self.data_source2 = self.workflow.execution_layers[0].data_sources[1]
 
         self.param1.name = 'T1'
         self.param1.type = 'PRESSURE'
@@ -64,11 +61,7 @@ class TestKPIsBox(TestCase):
 
     def setUp(self):
         self.workflow = get_basic_workflow()
-        self.param1 = self.workflow.mco.parameters[0]
-        self.param2 = self.workflow.mco.parameters[1]
-        self.param3 = self.workflow.mco.parameters[2]
-        self.data_source1 = self.workflow.execution_layers[0].data_sources[0]
-        self.data_source2 = self.workflow.execution_layers[0].data_sources[1]
+
         self.kpi1 = KPISpecification(name='T1')
         self.kpi2 = KPISpecification()
         self.workflow.mco.kpis.append(self.kpi1)
@@ -101,4 +94,3 @@ class TestKPIsBox(TestCase):
         self.assertEqual(self.kpi2, input_box.model)
         self.assertEqual('', input_box.text)
         self.assertEqual('salmon', input_box.bgcolor)
-

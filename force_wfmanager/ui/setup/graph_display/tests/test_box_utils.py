@@ -114,7 +114,7 @@ class TestInputOutputBox(TestCase):
         self.input_output_box.inputs[0].padding_left += 20
         self.input_output_box.outputs[0].padding_top += 20
         size = self.input_output_box.get_preferred_size()
-        self.assertEqual((182, 78), size)
+        self.assertEqual((186, 78), size)
 
 
 class TestSlotInfoBox(TestCase):

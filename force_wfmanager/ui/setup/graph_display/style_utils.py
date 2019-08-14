@@ -158,7 +158,6 @@ class TextStyle(BaseStyle):
             y_offset += self.margin_bottom
         elif self.alignment[0] == 'bottom':
             y_offset += self.margin_bottom + self.line_height - self.font.size
-            #y_offset -= descent
 
         return x_offset, y_offset
 
@@ -168,8 +167,12 @@ class TextStyle(BaseStyle):
             gc.set_fill_color(self.color_)
             gc.set_stroke_color(self.stroke_color_)
 
-            x_offset, y_offset = self.align_text(gc, component, component.text)
-            gc.set_text_position(component.x + x_offset, component.y + y_offset)
+            x_offset, y_offset = self.align_text(
+                gc, component, component.text
+            )
+            gc.set_text_position(
+                component.x + x_offset, component.y + y_offset
+            )
             gc.show_text(component.text)
 
             gc.draw_path()
