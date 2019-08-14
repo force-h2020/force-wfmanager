@@ -1,0 +1,95 @@
+from enable.api import Component, Container
+from traits.api import (
+    DelegatesTo, Instance, Int, Unicode
+)
+
+from .style_utils import BoxStyle, TextStyle
+
+
+class Box(Component):
+
+    #: The style to use when drawing the box.
+    box_style = Instance(BoxStyle, ())
+
+    #: The background color, prototyped from the style.
+    bgcolor = DelegatesTo('box_style', 'color')
+
+    #: The border color, prototyped from the style.
+    border_color = DelegatesTo('box_style', 'stroke_color')
+
+    def _draw_background(self, gc, view_bounds=None, mode="default"):
+        self.box_style.draw_background(self, gc, view_bounds=None,
+                                       mode="default")
+
+
+class TextBox(Box):
+    """ A component containing a text label.
+
+    For simplicity, the text is assumed to be a single line.
+    """
+
+    #: The text to display.
+    text = Unicode
+
+    #: The style to use when drawing the text.
+    text_style = Instance(TextStyle, ())
+
+    def get_preferred_size(self):
+        width, height = self.text_style.get_preferred_size(self.text)
+        width += self.hpadding
+        height += self.vpadding
+        return [width, height]
+
+    def _draw_mainlayer(self, gc, view_bounds=None, mode="default"):
+        self.text_style.draw_mainlayer(self, gc, view_bounds=None,
+                                       mode="default")
+
+    def _text_changed(self):
+        self._layout_needed = True
+        self.invalidate_and_redraw()
+
+
+class HLayoutBox(TextBox, Container):
+
+    #: The amount of space between components.
+    spacing = Int(10)
+
+    def get_preferred_size(self):
+        width, height = super(HLayoutBox, self).get_preferred_size()
+
+        max_component_height = 0
+        component_width = self.spacing * (len(self.components) + 1)
+
+        for component in self.components:
+            item_width, item_height = component.get_preferred_size()
+            max_component_height = max(max_component_height, item_height)
+            component_width += item_width
+
+        width = max(width, component_width)
+        height += max_component_height + self.spacing * 2
+        width += self.hpadding
+        height += self.vpadding
+        return width, height
+
+    def _do_layout(self):
+        if self.components:
+            width, _ = self.get_preferred_size()
+            spacing = self.spacing + (self.width - width) / (len(self.components) + 1)
+            x = spacing
+            y = self.text_style.get_preferred_size(self.text)[1] + self.spacing
+            height = max(
+                component.get_preferred_size()[1] for component in self.components
+            )
+            for component in self.components:
+                component.width = component.get_preferred_size()[0] - component.hpadding
+                component.height = height - component.vpadding
+                component.outer_x = x
+                if self.text_style.alignment[0] == 'top':
+                    component.outer_y2 = self.height - y
+                else:
+                    component.outer_y = y
+
+                x += component.outer_width + spacing
+
+    def _draw_container_mainlayer(self, gc, view_bounds=None, mode="normal"):
+        self._draw_mainlayer(gc, view_bounds=None, mode="normal")
