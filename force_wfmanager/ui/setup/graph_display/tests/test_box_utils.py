@@ -1,9 +1,11 @@
 from unittest import TestCase
 
-from force_wfmanager.ui.setup.utils.box_utils import (
-    Box, TextBox, HLayoutBox, InputOutputBox
+from force_bdss.api import InputSlotInfo
+
+from force_wfmanager.ui.setup.graph_display.box_utils import (
+    Box, TextBox, HLayoutBox, InputOutputBox, SlotInfoBox
 )
-from force_wfmanager.ui.setup.utils.style_utils import (
+from force_wfmanager.ui.setup.graph_display.style_utils import (
     BoxStyle, TextStyle
 )
 
@@ -113,3 +115,22 @@ class TestInputOutputBox(TestCase):
         self.input_output_box.outputs[0].padding_top += 20
         size = self.input_output_box.get_preferred_size()
         self.assertEqual((182, 78), size)
+
+
+class TestSlotInfoBox(TestCase):
+
+    def setUp(self):
+
+        self.input_slot = InputSlotInfo(name='input_slot_1')
+        self.slot_info_box = SlotInfoBox(model=self.input_slot)
+
+    def test___init__(self):
+
+        self.assertEqual('input_slot_1', self.slot_info_box.text)
+
+    def test_update_text(self):
+        self.slot_info_box.text = 'text_change'
+        self.assertEqual('text_change', self.slot_info_box.text)
+
+        self.input_slot.name = 'name_change'
+        self.assertEqual('name_change', self.slot_info_box.text)

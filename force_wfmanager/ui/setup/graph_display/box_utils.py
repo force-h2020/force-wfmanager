@@ -1,6 +1,6 @@
 from enable.api import Component, Container
 from traits.api import (
-    on_trait_change, Instance, Int, Unicode, List
+    HasTraits, on_trait_change, Instance, Int, Unicode, List
 )
 
 from .style_utils import BoxStyle, TextStyle
@@ -167,3 +167,14 @@ class InputOutputBox(TextBox, Container):
 
     def _draw_container_mainlayer(self, gc, view_bounds=None, mode="normal"):
         self._draw_mainlayer(gc, view_bounds=None, mode="normal")
+
+
+class SlotInfoBox(TextBox):
+
+    #: The slot info model that we use.
+    model = Instance(HasTraits)
+
+    @on_trait_change('model.name')
+    def update_text(self):
+        if self.model is not None:
+            self.text = self.model.name

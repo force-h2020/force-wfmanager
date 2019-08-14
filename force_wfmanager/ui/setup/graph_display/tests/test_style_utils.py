@@ -4,7 +4,7 @@ from enable.api import Component
 from enable.compiled_path import CompiledPath
 from traits.api import Set
 
-from force_wfmanager.ui.setup.utils.style_utils import (
+from force_wfmanager.ui.setup.graph_display.style_utils import (
     BaseStyle, BoxStyle, TextStyle
 )
 

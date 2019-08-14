@@ -1,11 +1,9 @@
 from unittest import TestCase
 
-from enable.api import Component
-
-from force_wfmanager.ui.setup.utils.box_utils import (
+from force_wfmanager.ui.setup.graph_display.box_utils import (
     TextBox, InputOutputBox, HLayoutBox
 )
-from force_wfmanager.ui.setup.utils.graph_utils import (
+from force_wfmanager.ui.setup.graph_display.graph_utils import (
     LayeredGraph
 )
 
