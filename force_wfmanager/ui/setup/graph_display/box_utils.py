@@ -1,6 +1,7 @@
 from enable.api import Component, Container
 from traits.api import (
-    HasTraits, on_trait_change, Instance, Int, Unicode, List
+    HasTraits, Any, on_trait_change, Instance, Int, Unicode, List,
+    Property
 )
 
 from .style_utils import BoxStyle, TextStyle
@@ -110,6 +111,10 @@ class InputOutputBox(TextBox, Container):
     #: The inputs.
     outputs = List(Instance(TextBox))
 
+    padding_left = 10
+
+    padding_right = 10
+
     @on_trait_change('inputs[],outputs[]')
     def _update_inputs_outputs(self):
         self.remove(*self.components)
@@ -177,8 +182,15 @@ class InputOutputBox(TextBox, Container):
 
 class SlotInfoBox(TextBox):
 
+    #: The model view that we use.
+    view = Instance(HasTraits)
+
     #: The slot info model that we use.
-    model = Instance(HasTraits)
+    model = Property(Any, depends_on='view')
+
+    def _get_model(self):
+        if self.view is not None:
+            return self.view.model
 
     @on_trait_change('model.name')
     def update_text(self):

@@ -8,7 +8,9 @@ from force_wfmanager.ui.setup.graph_display.box_utils import (
 from force_wfmanager.ui.setup.graph_display.style_utils import (
     BoxStyle, TextStyle
 )
-
+from force_wfmanager.ui.setup.process.data_source_view import (
+    InputSlotRow
+)
 
 class TestBox(TestCase):
 
@@ -122,11 +124,13 @@ class TestSlotInfoBox(TestCase):
     def setUp(self):
 
         self.input_slot = InputSlotInfo(name='input_slot_1')
-        self.slot_info_box = SlotInfoBox(model=self.input_slot)
+        self.input_slot_view = InputSlotRow(model=self.input_slot)
+        self.slot_info_box = SlotInfoBox(view=self.input_slot_view)
 
     def test___init__(self):
 
         self.assertEqual('input_slot_1', self.slot_info_box.text)
+        self.assertEqual(self.input_slot, self.slot_info_box.model)
 
     def test_update_text(self):
         self.slot_info_box.text = 'text_change'

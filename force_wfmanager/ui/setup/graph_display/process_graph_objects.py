@@ -24,9 +24,7 @@ class DataSourceBox(InputOutputBox):
     text = Unicode
 
     def _text_default(self):
-        return get_factory_name(
-            self.data_source_view.model.factory
-        )
+        return self.data_source_view.label
 
     @on_trait_change('data_source_view.input_slots_representation[]')
     def _update_input_slots(self):
@@ -38,7 +36,7 @@ class DataSourceBox(InputOutputBox):
         if self.data_source_view is not None:
             self.inputs += [
                 SlotInfoBox(
-                    model=input.model,
+                    view=input,
                     text_style=text_style,
                 )
                 for input in self.data_source_view.input_slots_representation
@@ -54,7 +52,7 @@ class DataSourceBox(InputOutputBox):
         if self.data_source_view is not None:
             self.outputs += [
                 SlotInfoBox(
-                    model=output.model,
+                    view=output,
                     text_style=text_style)
                 for output in self.data_source_view.output_slots_representation
             ]
@@ -92,6 +90,8 @@ class ExecutionLayerBox(HLayoutBox):
 
     #: The slot info model that we use.
     execution_layer_view = Instance(ExecutionLayerView)
+
+    resizable = 'hv'
 
     @on_trait_change('execution_layer_view.data_source_views[]')
     def _update_data_sources(self):

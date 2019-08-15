@@ -47,7 +47,7 @@ class ParametersBox(InputOutputBox):
         self.outputs = []
         if self.parameter_view is not None:
             self.outputs += [
-                SlotInfoBox(model=model_view.model, text_style=text_style)
+                SlotInfoBox(view=model_view, text_style=text_style)
                 for model_view in self.parameter_view.model_views
             ]
 
@@ -83,6 +83,6 @@ class KPIsBox(InputOutputBox):
         self.inputs = []
         if self.kpi_view is not None:
             self.inputs += [
-                SlotInfoBox(model=model_view.model, text_style=text_style)
+                SlotInfoBox(view=model_view, text_style=text_style)
                 for model_view in self.kpi_view.model_views
             ]
