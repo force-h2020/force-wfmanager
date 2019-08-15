@@ -231,7 +231,7 @@ class WorkflowTree(ModelView):
                     label='=Process',
                     view=no_view,
                     menu=no_menu,
-                    on_select=self.workflow_selected
+                    on_select=self.graph_selected
                 ),
                 #: Node representing the Execution layers
                 TreeNode(
@@ -477,6 +477,17 @@ class WorkflowTree(ModelView):
             Unused, automatically passed by TreeEditor on selection
         """
         self.system_state.selected_factory_name = 'Workflow'
+
+    @selection
+    def graph_selected(self, workflow_view):
+        """Called on selecting the 'Process' node in the WorkflowTree
+
+        Parameters
+        ----------
+        workflow_view: WorkflowView
+            Unused, automatically passed by TreeEditor on selection
+        """
+        self.system_state.selected_factory_name = 'Process'
 
     @selection
     def process_selected(self, process_view):

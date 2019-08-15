@@ -34,6 +34,7 @@ class LayeredGraph(VStackedContainer):
         with gc:
             gc.set_stroke_color((0.0, 0.0, 0.0, 1.0))
             for source, sink in connections:
+
                 source, (x, y) = source
                 start_x = x1 = x + (source.x + source.x2)/2
                 start_y = y + source.outer_y

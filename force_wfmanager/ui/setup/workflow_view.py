@@ -1,6 +1,8 @@
+from enable.component_editor import ComponentEditor
 from traits.api import (
     HasTraits, List, Instance, Unicode, on_trait_change, Bool, Event
 )
+from traitsui.api import View, Item, Group
 
 from force_bdss.api import Workflow, VerifierError
 
@@ -10,6 +12,7 @@ from force_wfmanager.ui.setup.mco.mco_view import MCOView
 from force_wfmanager.ui.setup.process.process_view import (
     ProcessView
 )
+from force_wfmanager.ui.setup.workflow_graph import WorkflowGraph
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
@@ -51,6 +54,8 @@ class WorkflowView(HasTraits):
     #: NOTE: (Has to be a list to be selectable in TreeEditor)
     communicator_view = List(Instance(CommunicatorView))
 
+    workflow_graph = Instance(WorkflowGraph)
+
     #: Defines if the Workflow is valid or not. Set by the
     #: function verify_tree
     valid = Bool(True)
@@ -67,6 +72,20 @@ class WorkflowView(HasTraits):
     # -------------------
     #     Defaults
     # -------------------
+
+    def default_traits_view(self):
+
+        view = View(
+            Group(
+                Item('workflow_graph',
+                     editor=ComponentEditor(),
+                     style='custom'
+                ),
+                show_labels = False
+            )
+        )
+
+        return view
 
     def _model_default(self):
         return Workflow()
@@ -95,6 +114,17 @@ class WorkflowView(HasTraits):
             model=self.model
         )]
 
+    def _workflow_graph_default(self):
+        if self.variable_names_registry is not None:
+            return WorkflowGraph(
+                variable_names_registry=self.variable_names_registry
+            )
+        if self.mco_view is not None:
+            return WorkflowGraph(
+                variable_names_registry=self.variable_names_registry,
+                mco_view=self.mco_view,
+            )
+
     # -------------------
     #     Listeners
     # -------------------
@@ -114,6 +144,10 @@ class WorkflowView(HasTraits):
     @on_trait_change('model')
     def update_communication_view(self):
         self.communicator_view = self._communicator_view_default()
+
+    @on_trait_change('mco_view,variable_names_registry')
+    def update_workflow_graph(self):
+        self.workflow_graph = self._workflow_graph_default()
 
     @on_trait_change('mco_view.verify_workflow_event,'
                      'process_view.verify_workflow_event,'

@@ -44,6 +44,19 @@ class TableRow(HasStrictTraits):
     #: Current UI status of the slot (alters user to Variable hook-ups)
     status = Unicode()
 
+    # --------------------
+    # Dependent Attributes
+    # --------------------
+
+    #: Human readable label for TableRow
+    #: Listens to: :attr:`model.name`, :attr:`type`
+    label = Property(Unicode, depends_on='model.name,type')
+
+    def _get_label(self):
+        if self.model is not None:
+            return f'{self.model.name}: {self.type}'
+        return f'{self.type}'
+
 
 class InputSlotRow(TableRow):
     """Row in the UI representing DataSource input_slot_rows. """

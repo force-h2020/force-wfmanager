@@ -1,6 +1,6 @@
 from enable.api import Component, Container
 from traits.api import (
-    HasTraits, Any, on_trait_change, Instance, Int, Unicode, List,
+    HasTraits, on_trait_change, Instance, Int, Unicode, List,
     Property
 )
 
@@ -186,7 +186,7 @@ class SlotInfoBox(TextBox):
     view = Instance(HasTraits)
 
     #: The slot info model that we use.
-    model = Property(Any, depends_on='view')
+    model = Property(Instance(HasTraits), depends_on='view')
 
     def _get_model(self):
         if self.view is not None:

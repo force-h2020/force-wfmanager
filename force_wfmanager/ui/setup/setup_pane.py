@@ -86,6 +86,12 @@ class SetupPane(TraitsTaskPane):
     )
 
     #: A Boolean indicating whether the currently selected view represents
+    #: the Workflow graph display.
+    workflow_graph_visible = Property(
+        Bool, depends_on='system_state:selected_factory_name'
+    )
+
+    #: A Boolean indicating whether the currently selected view represents
     #: a factory view.
     factory_view_visible = Property(
         Bool, depends_on='system_state:selected_factory_name'
@@ -155,7 +161,15 @@ class SetupPane(TraitsTaskPane):
                         style="custom",
                     ),
                     visible_when="mco_view_visible"
-
+                ),
+                # Workflow Graph View
+                VGroup(
+                    UItem(
+                        "object.system_state.selected_view",
+                        editor=InstanceEditor(),
+                        style="custom",
+                    ),
+                    visible_when="workflow_graph_visible"
                 ),
                 # Process Tree Views
                 HGroup(
@@ -252,6 +266,10 @@ class SetupPane(TraitsTaskPane):
     @cached_property
     def _get_main_view_visible(self):
         return self.system_state.selected_factory_name == 'Workflow'
+
+    @cached_property
+    def _get_workflow_graph_visible(self):
+        return self.system_state.selected_factory_name == 'Process'
 
     @cached_property
     def _get_mco_view_visible(self):
