@@ -12,6 +12,7 @@ from force_wfmanager.ui.setup.process.data_source_view import (
     InputSlotRow
 )
 
+
 class TestBox(TestCase):
 
     def setUp(self):
@@ -99,24 +100,24 @@ class TestInputOutputBox(TestCase):
 
     def test_get_preferred_size(self):
         size = self.input_output_box.get_preferred_size()
-        self.assertEqual((158, 48), size)
+        self.assertEqual((178, 48), size)
 
         self.input_output_box.padding_left += 2
         self.input_output_box.padding_right += 2
         self.input_output_box.padding_top += 2
         self.input_output_box.padding_bottom += 2
         size = self.input_output_box.get_preferred_size()
-        self.assertEqual((162, 56), size)
+        self.assertEqual((182, 56), size)
 
         self.input_output_box.inputs[0].padding_left += 2
         self.input_output_box.outputs[0].padding_top += 2
         size = self.input_output_box.get_preferred_size()
-        self.assertEqual((162, 58), size)
+        self.assertEqual((182, 58), size)
 
         self.input_output_box.inputs[0].padding_left += 20
         self.input_output_box.outputs[0].padding_top += 20
         size = self.input_output_box.get_preferred_size()
-        self.assertEqual((186, 78), size)
+        self.assertEqual((206, 78), size)
 
 
 class TestSlotInfoBox(TestCase):

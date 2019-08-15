@@ -42,7 +42,6 @@ class TestParametersBox(TestCase):
 
     def test___init__(self):
 
-        self.assertEqual('Parameters', self.parameters_box.text)
         self.assertEqual(3, len(self.parameter_view.model_views))
         self.assertEqual(3, len(self.parameters_box.outputs))
 
@@ -81,7 +80,6 @@ class TestKPIsBox(TestCase):
 
     def test___init__(self):
 
-        self.assertEqual('KPIs', self.kpis_box.text)
         self.assertEqual(2, len(self.kpi_view.model_views))
         self.assertEqual(2, len(self.kpis_box.inputs))
 

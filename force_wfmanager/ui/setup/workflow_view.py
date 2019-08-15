@@ -78,11 +78,12 @@ class WorkflowView(HasTraits):
 
         view = View(
             Group(
-                Item('workflow_graph',
-                     editor=ComponentEditor(),
-                     style='custom'
+                Item(
+                    'workflow_graph',
+                    editor=ComponentEditor(),
+                    style='custom'
                 ),
-                show_labels = False
+                show_labels=False
             )
         )
 

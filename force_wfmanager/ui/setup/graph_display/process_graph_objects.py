@@ -6,7 +6,6 @@ from force_wfmanager.ui.setup.process.data_source_view import (
 from force_wfmanager.ui.setup.process.execution_layer_view import (
     ExecutionLayerView
 )
-from force_wfmanager.ui.ui_utils import get_factory_name
 from force_wfmanager.ui.setup.graph_display.box_utils import (
     InputOutputBox, SlotInfoBox, HLayoutBox
 )

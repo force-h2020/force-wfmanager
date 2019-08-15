@@ -68,13 +68,13 @@ class WorkflowGraph(LayeredGraph):
     def _mco_layer_box(self, text):
         return HLayoutBox(
             text=text,
-            text_style = TextStyle(
+            text_style=TextStyle(
                 font="Swiss 18",
                 line_height=18,
                 margin=2,
                 alignment=('top', 'left')
             )
-    )
+        )
 
     def _kpis_layer_default(self):
         return self._mco_layer_box('KPIs')
@@ -109,16 +109,10 @@ class WorkflowGraph(LayeredGraph):
                 rounded_corners={'top left', 'top right',
                                  'bottom left', 'bottom right'}
             )
-            text_style = TextStyle(
-                font="Swiss 18",
-                line_height=24,
-                margin=4,
-                alignment=('center', 'center')
-            )
 
             self.parameters_layer.add(ParametersBox(
                 parameter_view=self.mco_view.parameter_view,
-                box_style = box_style,
+                box_style=box_style,
                 text_style=TextStyle(
                     font="Swiss 18",
                     alignment=('top', 'center')
@@ -173,9 +167,8 @@ class WorkflowGraph(LayeredGraph):
                 layer_box = self.execution_layers[layer_index]
                 output_x, output_y = layer_box.position
 
-                data_index = layer_box.execution_layer_view.data_source_views.index(
-                    variable.origin
-                )
+                views = layer_box.execution_layer_view.data_source_views
+                data_index = views.index(variable.origin)
                 data_box = layer_box.components[data_index]
                 output_x += data_box.x
                 output_y += data_box.y
@@ -191,8 +184,10 @@ class WorkflowGraph(LayeredGraph):
                     data_index = [
                         index for index, data_box in
                         enumerate(layer_box.components)
-                        if input_row[1] in data_box.data_source_view.input_slots_representation
-                    ][0]
+                        if input_row[1] in (
+                            data_box.data_source_view.
+                            input_slots_representation
+                        )][0]
                     data_box = layer_box.components[data_index]
                     input_x += data_box.x
                     input_y += data_box.y
@@ -236,8 +231,10 @@ class WorkflowGraph(LayeredGraph):
                     data_index = [
                         index for index, data_box in
                         enumerate(layer_box.components)
-                        if input_row[1] in data_box.data_source_view.input_slots_representation
-                    ][0]
+                        if input_row[1] in (
+                            data_box.data_source_view
+                            .input_slots_representation
+                        )][0]
                     data_box = layer_box.components[data_index]
                     input_x += data_box.x
                     input_y += data_box.y

@@ -56,9 +56,9 @@ class TestWorkflowGraph(WfManagerBaseTestCase, UnittestTools):
         self.assertEqual(2, len(self.workflow_graph.components[1].components))
 
 
-class TestDisplay():
+class TestDisplay(TestCase):
 
-    def test_display(self):
+    def view_display(self):
 
         from enable.api import Container, Window
         from enable.example_support import DemoFrame, demo_main
@@ -107,7 +107,9 @@ class TestDisplay():
                 param2.name = 'V2'
                 param2.type = 'PRESSURE'
                 kpi1 = KPISpecification(name='C1')
+                kpi2 = KPISpecification(name='T1')
                 workflow.mco.kpis.append(kpi1)
+                workflow.mco.kpis.append(kpi2)
 
                 process_view = ProcessView(model=workflow)
                 registry = VariableNamesRegistry(
@@ -133,4 +135,4 @@ class TestDisplay():
 
                 return Window(self, -1, component=container)
 
-        demo = demo_main(MyFrame)
+        demo_main(MyFrame)
