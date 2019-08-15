@@ -3,6 +3,8 @@ from enable.stacked_container import VStackedContainer
 
 class LayeredGraph(VStackedContainer):
 
+    stack_order = 'top_to_bottom'
+
     def get_connections(self):
         connections = []
         sources = {}
@@ -27,6 +29,7 @@ class LayeredGraph(VStackedContainer):
                     for output in node.outputs
                     if output.text
                 )
+
         return connections
 
     def _draw_overlay(self, gc, view_bounds=None, mode="normal"):

@@ -21,9 +21,6 @@ class ParametersBox(InputOutputBox):
     #: The data source that we use.
     parameter_view = Instance(MCOParameterView)
 
-    #: The text to display.
-    text = "Parameters"
-
     @on_trait_change('outputs.model.name')
     def _validate_outputs(self):
         valid_box_style = BoxStyle(
@@ -56,9 +53,6 @@ class KPIsBox(InputOutputBox):
 
     #: The data source that we use.
     kpi_view = Instance(KPISpecificationView)
-
-    #: The text to display.
-    text = "KPIs"
 
     @on_trait_change('inputs.model.name')
     def _validate_inputs(self):

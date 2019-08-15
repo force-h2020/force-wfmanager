@@ -21,7 +21,7 @@ class DataSourceBox(InputOutputBox):
     data_source_view = Instance(DataSourceView)
 
     #: The text to display.
-    text = Unicode
+    text = Unicode()
 
     def _text_default(self):
         return self.data_source_view.label
@@ -91,18 +91,16 @@ class ExecutionLayerBox(HLayoutBox):
     #: The slot info model that we use.
     execution_layer_view = Instance(ExecutionLayerView)
 
-    resizable = 'hv'
-
     @on_trait_change('execution_layer_view.data_source_views[]')
     def _update_data_sources(self):
-        iobox_style = BoxStyle(
+        box_style = BoxStyle(
             color='powderblue',
             rounded_corners={
                 'top left', 'top right',
                 'bottom left', 'bottom right'
             }
         )
-        iotext_style = TextStyle(
+        text_style = TextStyle(
             font="Swiss 18",
             line_height=24,
             margin=4,
@@ -113,8 +111,8 @@ class ExecutionLayerBox(HLayoutBox):
             self.add(*[
                 DataSourceBox(
                     data_source_view=data_source,
-                    text_style=iotext_style,
-                    box_style=iobox_style,
+                    text_style=text_style,
+                    box_style=box_style,
                 )
                 for data_source in self.execution_layer_view.data_source_views
             ])

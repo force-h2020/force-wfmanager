@@ -54,6 +54,7 @@ class WorkflowView(HasTraits):
     #: NOTE: (Has to be a list to be selectable in TreeEditor)
     communicator_view = List(Instance(CommunicatorView))
 
+    #: Graphical display of Workflow shown in UI
     workflow_graph = Instance(WorkflowGraph)
 
     #: Defines if the Workflow is valid or not. Set by the
@@ -115,15 +116,14 @@ class WorkflowView(HasTraits):
         )]
 
     def _workflow_graph_default(self):
-        if self.variable_names_registry is not None:
-            return WorkflowGraph(
-                variable_names_registry=self.variable_names_registry
-            )
-        if self.mco_view is not None:
+        if len(self.mco_view) > 0:
             return WorkflowGraph(
                 variable_names_registry=self.variable_names_registry,
-                mco_view=self.mco_view,
+                mco_view=self.mco_view[0],
             )
+        return WorkflowGraph(
+            variable_names_registry=self.variable_names_registry
+        )
 
     # -------------------
     #     Listeners
@@ -145,7 +145,7 @@ class WorkflowView(HasTraits):
     def update_communication_view(self):
         self.communicator_view = self._communicator_view_default()
 
-    @on_trait_change('mco_view,variable_names_registry')
+    @on_trait_change('mco_view[],variable_names_registry')
     def update_workflow_graph(self):
         self.workflow_graph = self._workflow_graph_default()
 
