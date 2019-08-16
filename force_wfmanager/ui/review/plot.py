@@ -129,6 +129,7 @@ class BasePlot(BaseDataView):
     def __plot_default(self):
         plot = self.plot_scatter()
         self.plot_updater.start()
+        # recenter_plot() requires self._plot to be defined
         do_later(self.recenter_plot)
         return plot
 
