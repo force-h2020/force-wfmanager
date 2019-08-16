@@ -1,3 +1,4 @@
+from pyface.image_resource import ImageResource
 from traits.api import (
     HasStrictTraits, Instance, List, Int, on_trait_change,
     Bool, HTML, Property, Event, Unicode, HasTraits,
@@ -42,7 +43,7 @@ class TableRow(HasStrictTraits):
     description = Unicode()
 
     #: Current UI status of the slot (alters user to Variable hook-ups)
-    status = Unicode()
+    status = Bool(False)
 
     # --------------------
     # Dependent Attributes
@@ -83,9 +84,18 @@ class OutputSlotRow(TableRow):
     model = Instance(OutputSlotInfo)
 
 
+class ObjectColumnWithStatus(ObjectColumn):
+
+    def get_image(self, object):
+        if object.status:
+            return ImageResource('icons/baseline_link_black_18dp.png')
+        return ImageResource('icons/baseline_link_off_black_18dp.png')
+
+
 #: The TraitsUI editor used for :attr:`TableRow.model.name`
 name_editor = TextEditor(auto_set=False,
                          enter_set=True)
+
 
 #: The TraitsUI editor used for :class:`InputSlotRow`
 #: and :class:`OutputSlotRow`
@@ -96,8 +106,8 @@ slots_editor = TableEditor(
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
-        ObjectColumn(name="model.name", label="Variable Name",
-                     editable=True, editor=name_editor)
+        ObjectColumnWithStatus(name="model.name", label="Variable Name",
+                               editable=True, editor=name_editor)
     ]
 )
 
