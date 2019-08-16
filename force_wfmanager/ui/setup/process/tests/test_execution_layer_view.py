@@ -1,10 +1,12 @@
 from force_wfmanager.ui.setup.process.execution_layer_view import (
     ExecutionLayerView
 )
-from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
+from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
+    WfManagerBaseTestCase
+)
 
 
-class TestExecutionLayerView(BaseTest):
+class TestExecutionLayerView(WfManagerBaseTestCase):
 
     def setUp(self):
         super(TestExecutionLayerView, self).setUp()
@@ -21,13 +23,6 @@ class TestExecutionLayerView(BaseTest):
         )
         self.assertEqual(
             2, len(self.execution_layer_view.data_source_views)
-        )
-
-    def test_init_slot_rows(self):
-        self.assertEqual(
-            ['P1', 'P2'],
-            self.execution_layer_view.data_source_views[0]
-            .input_slots_representation[0].available_variables,
         )
 
     def test_add_data_source(self):

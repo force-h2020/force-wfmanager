@@ -18,7 +18,7 @@ from force_wfmanager.model.analysis_model import AnalysisModel
 from .mock_methods import (
     mock_file_reader, mock_file_writer, mock_dialog, mock_return_args
 )
-from .dummy_classes import DummyWfManager
+from force_wfmanager.tests.dummy_classes.dummy_wfmanager import DummyWfManager
 
 from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask

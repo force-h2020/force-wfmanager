@@ -7,7 +7,8 @@ from force_bdss.tests.probe_classes.data_source import \
 
 from force_wfmanager.ui.ui_utils import (
     class_description, get_factory_name, model_info)
-from force_wfmanager.tests.dummy_classes import DummyFactory
+from force_wfmanager.tests.dummy_classes.dummy_factory import \
+    DummyFactory
 
 
 class HasDescriptionNone(object):
