@@ -1,12 +1,18 @@
+import os
+
+from pyface.image_resource import ImageResource
+from pyface.ui_traits import Image
 from traits.api import (
     HasStrictTraits, Instance, List, Int, on_trait_change,
     Bool, HTML, Property, Event, Unicode, HasTraits,
     cached_property
 )
 from traitsui.api import (
-    View, Item, TableEditor, VGroup, TextEditor, UReadonly
+    View, Item, TableEditor, VGroup, TextEditor, UReadonly, ImageEditor,
+    TabularEditor
 )
 from traitsui.table_column import ObjectColumn
+from traitsui.tabular_adapter import TabularAdapter
 
 from force_bdss.api import (
     BaseDataSourceModel, BaseDataSource, InputSlotInfo, OutputSlotInfo,
@@ -42,7 +48,7 @@ class TableRow(HasStrictTraits):
     description = Unicode()
 
     #: Current UI status of the slot (alters user to Variable hook-ups)
-    status = Unicode()
+    status = Bool(False)
 
 
 class InputSlotRow(TableRow):
@@ -70,9 +76,18 @@ class OutputSlotRow(TableRow):
     model = Instance(OutputSlotInfo)
 
 
+class LinkIconColumn(ObjectColumn):
+
+    def get_image(self, object):
+        if object.status:
+            return ImageResource('icons/baseline_link_black_18dp.png')
+        return ImageResource('icons/baseline_link_off_black_18dp.png')
+
+
 #: The TraitsUI editor used for :attr:`TableRow.model.name`
 name_editor = TextEditor(auto_set=False,
                          enter_set=True)
+
 
 #: The TraitsUI editor used for :class:`InputSlotRow`
 #: and :class:`OutputSlotRow`
@@ -83,8 +98,8 @@ slots_editor = TableEditor(
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
-        ObjectColumn(name="model.name", label="Variable Name",
-                     editable=True, editor=name_editor)
+        LinkIconColumn(name="model.name", label="Variable Name",
+                       editable=True, editor=name_editor)
     ]
 )
 

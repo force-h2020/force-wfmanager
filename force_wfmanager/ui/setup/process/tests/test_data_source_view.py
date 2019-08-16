@@ -1,7 +1,7 @@
 from force_bdss.api import (OutputSlotInfo, InputSlotInfo, BaseDataSourceModel)
 
 from force_wfmanager.ui.setup.process.data_source_view import \
-    DataSourceView
+    DataSourceView, TableRowAdaptor
 from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
     WfManagerBaseTestCase
 )
@@ -116,3 +116,7 @@ class TestDataSourceView(WfManagerBaseTestCase):
         self.assertEqual(
             len(self.data_source_view.output_slots_representation),
             len(self.model_1.output_slot_info))
+
+    def test_table_row_adaptor(self):
+
+        TableRowAdaptor()._get_TableRow_status_image()

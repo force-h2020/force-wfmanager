@@ -105,6 +105,16 @@ class Variable(HasTraits):
             input_slot[1].model.name = self.name
             input_slot[1].type = self.type
 
+    @on_trait_change('output_slot_row,input_slot_rows[]')
+    def update_slot_row_status(self):
+        """Updates output_slot_row and all input_slot_rows with Variable
+        hooked-up status"""
+
+        if self.output_slot_row is not None:
+            self.output_slot_row.status = True
+            for input_slot in self.input_slot_rows:
+                input_slot[1].status = True
+
     # ------------------
     #   Public Methods
     # ------------------
