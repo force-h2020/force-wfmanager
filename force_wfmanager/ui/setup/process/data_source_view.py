@@ -1,18 +1,13 @@
-import os
-
 from pyface.image_resource import ImageResource
-from pyface.ui_traits import Image
 from traits.api import (
     HasStrictTraits, Instance, List, Int, on_trait_change,
     Bool, HTML, Property, Event, Unicode, HasTraits,
     cached_property
 )
 from traitsui.api import (
-    View, Item, TableEditor, VGroup, TextEditor, UReadonly, ImageEditor,
-    TabularEditor
+    View, Item, TableEditor, VGroup, TextEditor, UReadonly
 )
 from traitsui.table_column import ObjectColumn
-from traitsui.tabular_adapter import TabularAdapter
 
 from force_bdss.api import (
     BaseDataSourceModel, BaseDataSource, InputSlotInfo, OutputSlotInfo,
@@ -76,7 +71,7 @@ class OutputSlotRow(TableRow):
     model = Instance(OutputSlotInfo)
 
 
-class LinkIconColumn(ObjectColumn):
+class ObjectColumnWithStatus(ObjectColumn):
 
     def get_image(self, object):
         if object.status:
@@ -98,8 +93,8 @@ slots_editor = TableEditor(
     columns=[
         ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="type", label="Type", editable=False),
-        LinkIconColumn(name="model.name", label="Variable Name",
-                       editable=True, editor=name_editor)
+        ObjectColumnWithStatus(name="model.name", label="Variable Name",
+                               editable=True, editor=name_editor)
     ]
 )
 
