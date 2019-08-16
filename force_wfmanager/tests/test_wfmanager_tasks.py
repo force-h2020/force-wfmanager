@@ -6,9 +6,13 @@ from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from pyface.tasks.api import TaskWindow
 
-from force_bdss.tests.probe_classes.factory_registry import \
+from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
+)
 from force_bdss.api import Workflow
+from force_wfmanager.tests.dummy_classes.dummy_contributed_ui import (
+    DummyContributedUI
+)
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.side_pane import SidePane
@@ -39,7 +43,7 @@ ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.' \
 ANALYSIS_FILE_OPEN_PATH = 'force_wfmanager.io.analysis_model_io.open'
 
 
-def get_probe_wfmanager_tasks(wf_manager=None):
+def get_probe_wfmanager_tasks(wf_manager=None, contributed_uis=None):
     # Returns the Setup and Review Tasks, with a mock TaskWindow and dummy
     # Application which does not have an event loop.
 
@@ -49,12 +53,15 @@ def get_probe_wfmanager_tasks(wf_manager=None):
     analysis_model = AnalysisModel()
     workflow_model = Workflow()
     factory_registry_plugin = ProbeFactoryRegistry()
+    if contributed_uis is None:
+        contributed_uis = [DummyContributedUI()]
 
     wf_manager.factory_registry = factory_registry_plugin
 
     setup_test = WfManagerSetupTask(
         analysis_model=analysis_model, workflow_model=workflow_model,
-        factory_registry=factory_registry_plugin
+        factory_registry=factory_registry_plugin,
+        contributed_uis=contributed_uis
     )
 
     review_task = WfManagerReviewTask(
