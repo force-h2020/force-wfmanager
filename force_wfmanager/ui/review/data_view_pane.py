@@ -67,7 +67,9 @@ class DataViewPane(TraitsTaskPane):
         ))
 
     def _data_view_default(self):
-        return Plot(analysis_model=self.analysis_model)
+        plot_data_view = Plot(analysis_model=self.analysis_model)
+        plot_data_view.is_active_view = True
+        return plot_data_view
 
     def _available_data_views_default(self):
         """ Look through all the loaded plugins and try
@@ -103,9 +105,11 @@ class DataViewPane(TraitsTaskPane):
         current_type = type(self.data_view)
         if current_type not in self.data_view_instances:
             self.data_view_instances[current_type] = self.data_view
+        self.data_view.is_active_view = False
 
         # Retrieve or instantiate the requested type
         try:
             self.data_view = self.data_view_instances[data_view_type]
         except KeyError:
             self.data_view = data_view_type(analysis_model=self.analysis_model)
+        self.data_view.is_active_view = True
