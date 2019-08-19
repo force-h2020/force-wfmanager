@@ -2,15 +2,18 @@ import unittest
 
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
+
 from force_bdss.api import plugin_id
+from force_bdss.core_plugins.service_offers_plugin import ServiceOffersPlugin
 from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
+
 from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.tests.dummy_classes.dummy_factory import DummyFactory
-from force_wfmanager.ui import ContributedUI, IContributedUI, UIExtensionPlugin
+from force_wfmanager.ui import ContributedUI, IContributedUI
 from force_wfmanager.wfmanager import WfManager
 
 
-class ExampleUIPlugin(UIExtensionPlugin):
+class ExampleUIPlugin(ServiceOffersPlugin):
 
     id = plugin_id("enthought", "test", 4)
 
@@ -24,7 +27,10 @@ class ExampleUIPlugin(UIExtensionPlugin):
         return [DummyFactory]
 
     def get_contributed_uis(self):
-        return [ContributedUI, ContributedUI]
+        return (IContributedUI, [ContributedUI, ContributedUI])
+
+    def get_service_offer_factories(self):
+        return [self.get_contributed_uis()]
 
 
 class TestUIExtensionPlugin(unittest.TestCase):
