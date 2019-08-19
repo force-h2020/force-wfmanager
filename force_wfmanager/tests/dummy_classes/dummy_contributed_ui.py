@@ -1,8 +1,8 @@
 from traitsui.api import Item, VGroup
 
 from force_bdss.api import plugin_id, Workflow
-from force_bdss.core_plugins.service_offers_plugin import \
-    ServiceOffersPlugin
+from force_bdss.core_plugins.service_offer_plugin import \
+    ServiceOfferExtensionPlugin
 from force_wfmanager.tests.dummy_classes.dummy_factory import DummyFactory
 from force_wfmanager.ui import ContributedUI, IContributedUI
 
@@ -38,7 +38,7 @@ class DummyContributedUI2(ContributedUI):
         return Workflow()
 
 
-class DummyUIPlugin(ServiceOffersPlugin):
+class DummyUIPlugin(ServiceOfferExtensionPlugin):
 
     id = plugin_id("enthought", "uitest", 2)
 
@@ -54,11 +54,11 @@ class DummyUIPlugin(ServiceOffersPlugin):
     def get_contributed_uis(self):
         return [DummyContributedUI, DummyContributedUI2]
 
-    def get_service_offers_factories(self):
+    def get_service_offer_factories(self):
         return [(IContributedUI, self.get_contributed_uis())]
 
 
-class DummyUIPluginOld(ServiceOffersPlugin):
+class DummyUIPluginOld(ServiceOfferExtensionPlugin):
 
     id = plugin_id("enthought", "uitest", 1)
 
@@ -74,5 +74,5 @@ class DummyUIPluginOld(ServiceOffersPlugin):
     def get_contributed_uis(self):
         return [DummyContributedUI, DummyContributedUI2]
 
-    def get_service_offers_factories(self):
+    def get_service_offer_factories(self):
         return [(IContributedUI, self.get_contributed_uis())]
