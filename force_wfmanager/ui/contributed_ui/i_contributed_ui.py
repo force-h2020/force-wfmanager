@@ -3,6 +3,11 @@ from traitsui.api import Action, Group
 
 
 class IContributedUI(Interface):
+    """Envisage required interface for the ContributedUI class.
+    You should not need to use this directly.
+
+    Refer to the ContributedUI for documentation.
+    """
 
     #: Name for the UI in selection screen
     name = Unicode()
