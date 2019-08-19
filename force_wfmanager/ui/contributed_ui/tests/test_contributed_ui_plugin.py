@@ -27,10 +27,10 @@ class ExampleUIPlugin(ServiceOffersPlugin):
         return [DummyFactory]
 
     def get_contributed_uis(self):
-        return (IContributedUI, [ContributedUI, ContributedUI])
+        return [ContributedUI, ContributedUI]
 
     def get_service_offer_factories(self):
-        return [self.get_contributed_uis()]
+        return [(IContributedUI, self.get_contributed_uis())]
 
 
 class TestContributedUIPlugin(unittest.TestCase):

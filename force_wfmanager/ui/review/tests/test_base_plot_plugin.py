@@ -9,7 +9,7 @@ from force_bdss.factory_registry_plugin import FactoryRegistryPlugin
 
 from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.tests.dummy_classes.dummy_factory import DummyFactory
-from force_wfmanager.ui import BasePlot, IDataView
+from force_wfmanager.ui import BasePlot, IBasePlot
 from force_wfmanager.wfmanager import WfManager
 
 
@@ -27,10 +27,10 @@ class ExampleUIPlugin(ServiceOffersPlugin):
         return [DummyFactory]
 
     def get_base_plots(self):
-        return (IDataView, [BasePlot, BasePlot])
+        return [BasePlot, BasePlot]
 
     def get_service_offer_factories(self):
-        return [self.get_base_plots()]
+        return [(IBasePlot, self.get_base_plots())]
 
 
 class TestServiceOffersPlugin(unittest.TestCase):
@@ -42,4 +42,4 @@ class TestServiceOffersPlugin(unittest.TestCase):
         ]
         wfmanager = WfManager(plugins=plugins)
         wfmanager.plugin_manager.start()
-        self.assertEqual(len(wfmanager.get_services(IDataView)), 2)
+        self.assertEqual(len(wfmanager.get_services(IBasePlot)), 2)
