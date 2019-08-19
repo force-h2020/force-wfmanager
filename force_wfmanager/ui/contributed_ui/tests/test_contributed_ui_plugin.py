@@ -33,7 +33,7 @@ class ExampleUIPlugin(ServiceOffersPlugin):
         return [self.get_contributed_uis()]
 
 
-class TestUIExtensionPlugin(unittest.TestCase):
+class TestContributedUIPlugin(unittest.TestCase):
 
     def test_contributes_service(self):
         plugins = [
