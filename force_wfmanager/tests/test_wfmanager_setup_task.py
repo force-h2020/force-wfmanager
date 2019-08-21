@@ -1,19 +1,26 @@
 import subprocess
 from unittest import mock, TestCase
+
 from testfixtures import LogCapture
 
 from pyface.constant import OK, CANCEL, YES
 from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
-from force_bdss.tests.probe_classes.factory_registry import \
+from force_bdss.api import (
+    DataValue, MCOProgressEvent, MCOStartEvent, WorkflowWriter, plugin_id
+)
+from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
-from force_bdss.api import MCOProgressEvent, MCOStartEvent
-from force_bdss.core.data_value import DataValue
-
-from force_bdss.io.workflow_writer import WorkflowWriter
+)
 
 from force_wfmanager.server.zmq_server import ZMQServer
+from force_wfmanager.tests.dummy_classes.dummy_contributed_ui import (
+    DummyContributedUI2
+)
+from force_wfmanager.tests.dummy_classes.dummy_wfmanager import (
+    DummyUIWfManager
+)
 from force_wfmanager.tests.utils import wait_condition
 
 from .mock_methods import (
@@ -23,8 +30,9 @@ from .mock_methods import (
 )
 from .test_wfmanager_tasks import get_probe_wfmanager_tasks
 
-CONFIRMATION_DIALOG_PATH = \
+CONFIRMATION_DIALOG_PATH = (
     'force_wfmanager.wfmanager_setup_task.ConfirmationDialog'
+)
 FILE_DIALOG_PATH = 'force_wfmanager.wfmanager_setup_task.FileDialog'
 INFORMATION_PATH = 'force_wfmanager.wfmanager_setup_task.information'
 CONFIRM_PATH = 'force_wfmanager.wfmanager_setup_task.confirm'
@@ -34,8 +42,13 @@ WORKFLOW_READER_PATH = 'force_wfmanager.io.workflow_io.WorkflowReader'
 SETUP_ERROR_PATH = 'force_wfmanager.wfmanager_setup_task.error'
 SUBPROCESS_PATH = 'force_wfmanager.wfmanager_setup_task.subprocess'
 OS_REMOVE_PATH = 'force_wfmanager.wfmanager_setup_task.os.remove'
-ZMQSERVER_SETUP_SOCKETS_PATH = \
+ZMQSERVER_SETUP_SOCKETS_PATH = (
     'force_wfmanager.wfmanager_setup_task.ZMQServer._setup_sockets'
+)
+UI_SELECT_MODAL_PATH = 'force_wfmanager.wfmanager_setup_task.UISelectModal'
+RUN_BDSS_PATH = (
+    'force_wfmanager.wfmanager_setup_task.WfManagerSetupTask.run_bdss'
+)
 
 
 class TestWFManagerTasks(GuiTestAssistant, TestCase):
@@ -423,3 +436,45 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertEqual(
                 mock_error.call_args[0][1],
                 'Unable to run BDSS: write failed')
+
+    def test_ui_select(self):
+
+        contributed_ui = DummyContributedUI2()
+
+        class MockUIModal():
+
+            def __init__(self, **kwargs):
+                self.selected_ui = contributed_ui
+
+            def edit_traits(self):
+                pass
+
+        ui_wfmanager = DummyUIWfManager()
+        # Get a reference to the plugins we expect to use in the modal dialog
+        ui_plugin = ui_wfmanager.get_plugin(
+            plugin_id("enthought", "uitest", 2)
+        )
+        ui_plugin_old = ui_wfmanager.get_plugin(
+            plugin_id("enthought", "uitest", 1)
+        )
+        setup_task, _ = get_probe_wfmanager_tasks(
+            wf_manager=ui_wfmanager, contributed_uis=[contributed_ui]
+        )
+
+        with mock.patch(UI_SELECT_MODAL_PATH) as mock_ui_modal:
+            mock_ui_modal.side_effect = MockUIModal
+            setup_task.ui_select()
+        # Check the plugins were sorted
+        mock_ui_modal.assert_called_with(
+            available_plugins=[ui_plugin_old, ui_plugin],
+            contributed_uis=[contributed_ui]
+        )
+        # Press the 'update workflow' button
+        with self.assertTraitChanges(setup_task, 'workflow_model'):
+            setup_task.selected_contributed_ui.update_workflow = True
+
+        # Press the 'run simulation' button
+        with mock.patch(RUN_BDSS_PATH) as _mock_run:
+            with self.assertTraitChanges(setup_task, 'workflow_model'):
+                setup_task.selected_contributed_ui.run_workflow = True
+        _mock_run.assert_called()
