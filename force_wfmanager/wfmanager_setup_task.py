@@ -697,6 +697,7 @@ class WfManagerSetupTask(Task):
             contributed_uis=self.contributed_uis,
             available_plugins=plugins
         )
+        ui_modal.edit_traits()
         self.selected_contributed_ui = ui_modal.selected_ui
         if self.selected_contributed_ui:
             self.selected_contributed_ui.on_trait_event(
