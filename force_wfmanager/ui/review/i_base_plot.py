@@ -5,10 +5,12 @@ from .i_data_view import IDataView
 
 
 class IBasePlot(IDataView):
-    """Envisage required interface for the BasePlot class.
-    You should not need to use this directly.
+    """Interface definition for the BasePlot class.
 
-    Refer to the BasePlot for documentation.
+    Subclasses using this interface currently require a
+    `_plot_index_datasource` attribute in order to access
+     the data to be displayed and a `_plot_default` method
+    to be implemented in order to instruct how to display it.
     """
 
     #: Listens to: :attr:`analysis_model.selected_step_indices
