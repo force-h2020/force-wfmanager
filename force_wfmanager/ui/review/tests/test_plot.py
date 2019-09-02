@@ -1,10 +1,11 @@
-import unittest
+from unittest import mock, TestCase
 import warnings
 
 from chaco.api import Plot as ChacoPlot
 from chaco.api import BaseXYPlot
 from chaco.api import ColormappedScatterPlot
 from chaco.abstract_colormap import AbstractColormap
+from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 from force_wfmanager.ui.review.base_plot import BasePlot
 from force_wfmanager.ui.review.color_plot import ColorPlot
@@ -14,8 +15,12 @@ from .plot_base_test_case import PlotBaseTestCase
 
 push_exception_handler(reraise_exceptions=True)
 
+COLOR_PLOT_EDIT_TRAITS_PATH = (
+    "force_wfmanager.ui.review.color_plot.ColorPlot.edit_traits"
+)
 
-class TestBasePlot(PlotBaseTestCase, unittest.TestCase):
+
+class TestBasePlot(PlotBaseTestCase, TestCase):
 
     def setUp(self):
         super(TestBasePlot, self).setUp()
@@ -25,10 +30,10 @@ class TestBasePlot(PlotBaseTestCase, unittest.TestCase):
                      + "._update_plot")
 
 
-class TestPlot(PlotBaseTestCase, unittest.TestCase):
+class TestColorPlot(PlotBaseTestCase, TestCase, GuiTestAssistant):
 
     def setUp(self):
-        super(TestPlot, self).setUp()
+        super(TestColorPlot, self).setUp()
         self.plot = ColorPlot(analysis_model=self.analysis_model)
         self.path = ("force_wfmanager.ui.review.color_plot."
                      + self.plot.__class__.__name__
@@ -72,3 +77,8 @@ class TestPlot(PlotBaseTestCase, unittest.TestCase):
         self.assertEqual(self.plot._get_plot_range(), (0.5, 2, 100000, 103000))
         self.assertEqual(self.plot._plot.x_axis.title, "density")
         self.assertEqual(self.plot._plot.y_axis.title, "pressure")
+
+    def test__color_options_fired(self):
+        with mock.patch(COLOR_PLOT_EDIT_TRAITS_PATH) as mock_edit_traits:
+            self.plot.color_options = True
+            mock_edit_traits.assert_called()
