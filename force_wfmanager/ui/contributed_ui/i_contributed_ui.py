@@ -3,11 +3,13 @@ from traitsui.api import Action, Group
 
 
 class IContributedUI(Interface):
-    """Envisage required interface for the ContributedUI class.
-    You should not need to use this directly.
+    """Interface definition for the ContributedUI class. Instructions
+    for how to contribute additional UI objects can be found in
+    the force-bdss documentation.
 
-    Refer to the ContributedUI for documentation.
-    """
+    Key attributes required by any sublcass using this interface
+    are listed below. A `create_workflow` method is also required
+    to be implemented, which generates a `Workflow` object."""
 
     #: Name for the UI in selection screen
     name = Unicode()
