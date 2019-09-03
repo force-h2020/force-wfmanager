@@ -2,7 +2,7 @@ import unittest
 import warnings
 
 from chaco.api import Plot as ChacoPlot
-from chaco.api import BaseXYPlot
+from chaco.api import ScatterPlot
 from chaco.api import ColormappedScatterPlot
 from chaco.abstract_colormap import AbstractColormap
 
@@ -61,7 +61,7 @@ class TestPlot(PlotBaseTestCase, unittest.TestCase):
         self.plot.colormap = 'CoolWarm'
 
         self.plot.color_plot = False
-        self.assertIsInstance(self.plot._axis, BaseXYPlot)
+        self.assertIsInstance(self.plot._axis, ScatterPlot)
 
     def test_ranges_are_kept(self):
         self.analysis_model.value_names = ('density', 'pressure', 'color')
