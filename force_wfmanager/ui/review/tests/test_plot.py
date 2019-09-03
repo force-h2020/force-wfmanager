@@ -2,7 +2,7 @@ from unittest import mock, TestCase
 import warnings
 
 from chaco.api import Plot as ChacoPlot
-from chaco.api import BaseXYPlot
+from chaco.api import ScatterPlot
 from chaco.api import ColormappedScatterPlot
 from chaco.abstract_colormap import AbstractColormap
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
@@ -66,7 +66,7 @@ class TestColorPlot(PlotBaseTestCase, TestCase, GuiTestAssistant):
         self.plot.colormap = 'CoolWarm'
 
         self.plot.color_plot = False
-        self.assertIsInstance(self.plot._axis, BaseXYPlot)
+        self.assertIsInstance(self.plot._axis, ScatterPlot)
 
     def test_ranges_are_kept(self):
         self.analysis_model.value_names = ('density', 'pressure', 'color')
