@@ -9,6 +9,7 @@ from traitsui.api import (
 )
 
 from force_bdss.api import BaseExtensionPlugin
+
 from force_wfmanager.ui import ContributedUI
 
 
