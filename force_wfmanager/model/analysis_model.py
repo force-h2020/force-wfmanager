@@ -43,8 +43,8 @@ class AnalysisModel(HasStrictTraits):
     #: Property that informs about the currently selected step.
     #: Can be None if nothing is selected. If selected, it must be
     #: in the allowed range of values.
-    #: Listens to :attr:`ColorPlot._plot_index_datasource
-    #: <force_wfmanager.ui.review.color_plot.ColorPlot._plot_index_datasource>`
+    #: Listens to :attr:`Plot._plot_index_datasource
+    #: <force_wfmanager.central_pane.plot.Plot._plot_index_datasource>`
     selected_step_indices = Property(Either(None, List(Int)),
                                      depends_on="_selected_step_indices")
 

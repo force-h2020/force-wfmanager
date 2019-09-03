@@ -1,20 +1,14 @@
-from traits.api import Interface, Instance, Bool
+from traits.api import Interface, Instance
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 
 
 class IDataView(Interface):
-    """Interface definition for the BaseDataView class. Instructions
-    for how to contribute additional UI objects can be found in
-    the force-bdss documentation.
+    """Envisage required interface for the BaseDataView class.
+    You should not need to use this directly.
 
-    Subclasses using this interface require an `analysis_model`
-    attribute that contains data to be displayed, and an
-    `is_active_view` attribute for communication with WfManager
-    UI."""
+    Refer to the BaseDataView for documentation.
+    """
 
     #: The analysis model containing the results
     analysis_model = Instance(AnalysisModel)
-
-    #: Whether this data view is the one being currently visualized
-    is_active_view = Bool(False)
