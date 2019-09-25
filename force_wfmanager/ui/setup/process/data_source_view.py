@@ -27,18 +27,8 @@ class TableRow(HasStrictTraits):
     #: Model of the evaluator
     model = Instance(HasStrictTraits)
 
-    #: Type of the slot
-    type = Unicode()
-
     #: Index of the slot in the slot list
     index = Int()
-
-    # ------------------
-    # Regular Attributes
-    # ------------------
-
-    #: A human readable description of the slot
-    description = Unicode()
 
 
 class InputSlotRow(TableRow):
@@ -74,8 +64,8 @@ slots_editor = TableEditor(
     configurable=False,
     selected="selected_slot_row",
     columns=[
-        ObjectColumn(name="index", label="", editable=False),
-        ObjectColumn(name="type", label="Type", editable=False),
+        ObjectColumn(name="model.index", label="", editable=False),
+        ObjectColumn(name="model.type", label="Type", editable=False),
         ObjectColumn(name="model.name", label="Variable Name",
                      editable=True, editor=name_editor),
     ]
@@ -182,7 +172,7 @@ class DataSourceView(HasTraits):
     def __init__(self, *args, **kwargs):
         super(DataSourceView, self).__init__(*args, **kwargs)
         # Performs private method to set up slots tables on instantiation
-        self._create_slots_tables()
+        self._update_slots_tables()
 
     # -------------------
     #     Defaults
@@ -205,8 +195,8 @@ class DataSourceView(HasTraits):
             return DEFAULT_MESSAGE
 
         idx = self.selected_slot_row.index
-        row_type = self.selected_slot_row.type
-        description = self.selected_slot_row.description
+        row_type = self.selected_slot_row.model.type
+        description = self.selected_slot_row.model.description
 
         type_text = (
             "Input" if isinstance(self.selected_slot_row, InputSlotRow)
@@ -214,8 +204,8 @@ class DataSourceView(HasTraits):
         return SLOT_DESCRIPTION.format(row_type, type_text, idx, description)
 
     @on_trait_change(
-        'input_slots_representation.[model.name,type],'
-        'output_slots_representation.[model.name,type]'
+        'input_slots_representation.[model.[name,type]],'
+        'output_slots_representation.[model.[name,type]]'
     )
     def data_source_change(self):
         """Fires :func:`verify_workflow_event` when an input slot or output
@@ -225,104 +215,22 @@ class DataSourceView(HasTraits):
     # Changed Slots Functions
     @on_trait_change('model:changes_slots')
     def _update_slots_tables(self):
-        """ Update the tables of slots when a change on the model triggers a
-        change on the shape of the input/output slots"""
-        #: This synchronization maybe is something that should be moved to the
-        #: model.
-        self.input_slots_representation[:] = []
-        self.output_slots_representation[:] = []
+        """ Fill the tables rows according to input_slots and output_slots
+        needed by the evaluator and the model slot values """
 
-        input_slots, output_slots = self._data_source.slots(self.model)
-
-        #: Initialize the input slots
-        self.model.input_slot_info = [
-            InputSlotInfo(model=slot)
-            for slot in input_slots
+        self.input_slots_representation = [
+            InputSlotRow(model=model, index=index)
+            for index, model in enumerate(self.model.input_slot_info)
         ]
 
-        #: Initialize the output slots
-        self.model.output_slot_info = [
-            OutputSlotInfo(name='')
-            for _ in output_slots
+        self.output_slots_representation = [
+            OutputSlotRow(model=model, index=index)
+            for index, model in enumerate(self.model.output_slot_info)
         ]
-
-        self._fill_slot_rows(input_slots, output_slots)
 
     # -------------------
     #   Private Methods
     # -------------------
-
-    # Initialization
-    def _create_slots_tables(self):
-        """ Initialize the tables for editing the input and output slots
-
-        Raises
-        ------
-        RuntimeError:
-            If the input slots or output slots in the model are not of the
-            right length. This can come from a corrupted file.
-        """
-        input_slots, output_slots = self._data_source.slots(self.model)
-
-        # Initialize model.input_slot_info if not initialized yet
-        if len(self.model.input_slot_info) == 0:
-            self.model.input_slot_info = [
-                InputSlotInfo(name='') for _ in input_slots
-            ]
-
-        if len(self.model.input_slot_info) != len(input_slots):
-            raise RuntimeError(
-                "The number of input slots ({}) of the {} model doesn't match "
-                "the expected number of slots ({}). This is likely due to a "
-                "corrupted file."
-                .format(
-                    len(self.model.input_slot_info),
-                    type(self.model).__name__,
-                    len(input_slots)))
-
-        # Initialize model.output_slot_info if not initialized yet
-        if len(self.model.output_slot_info) == 0:
-            self.model.output_slot_info = [
-                OutputSlotInfo(name="") for _ in output_slots
-            ]
-
-        if len(self.model.output_slot_info) != len(output_slots):
-            raise RuntimeError(
-                "The number of output slots ({}) of the {} model doesn't "
-                "match the expected number of slots ({}). This is likely due "
-                "to a corrupted file."
-                .format(
-                    len(self.model.output_slot_info),
-                    type(self.model).__name__,
-                    len(output_slots)))
-
-        self._fill_slot_rows(input_slots, output_slots)
-
-    def _fill_slot_rows(self, input_slots, output_slots):
-        """ Fill the tables rows according to input_slots and output_slots
-        needed by the evaluator and the model slot values """
-
-        input_representations = []
-
-        for index, input_slot in enumerate(input_slots):
-            slot_representation = InputSlotRow(
-                model=self.model.input_slot_info[index],
-                index=index, type=input_slot.type,
-                description=input_slot.description)
-            input_representations.append(slot_representation)
-
-        self.input_slots_representation[:] = input_representations
-
-        output_representation = []
-
-        for index, output_slot in enumerate(output_slots):
-            slot_representation = OutputSlotRow(
-                model=self.model.output_slot_info[index],
-                index=index, type=output_slot.type,
-                description=output_slot.description)
-            output_representation.append(slot_representation)
-
-        self.output_slots_representation[:] = output_representation
 
     def _available_variables(self):
         """Returns the available variables for the containing execution layer

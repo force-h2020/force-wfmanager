@@ -47,30 +47,6 @@ class TestDataSourceView(WfManagerBaseTestCase):
         self.data_source_view.output_slots_representation[0].model.name = 'output'
         self.assertEqual('output', self.model_1.output_slot_info[0].name)
 
-    def test_bad_input_slots(self):
-        input_slots, _ = self.data_source.slots(self.model_1)
-
-        self.model_1.input_slot_info = [
-            InputSlotInfo(name='') for _ in range(len(input_slots) + 1) # noqa
-        ]
-
-        with self.assertRaisesRegex(RuntimeError, "input slots"):
-            DataSourceView(
-                model=self.model_1,
-                variable_names_registry=self.variable_names_registry)
-
-    def test_bad_output_slots(self):
-        _, output_slots = self.data_source.slots(self.model_1)
-
-        self.model_1.output_slot_info = [
-            OutputSlotInfo(name='')
-            for slot in range(len(output_slots) + 1)]
-
-        with self.assertRaisesRegex(RuntimeError, "output slots"):
-            DataSourceView(
-                model=self.model_1,
-                variable_names_registry=self.variable_names_registry)
-
     def test_update_table(self):
         self.model_1.output_slot_info[0].name = 'p1'
         self.model_1.output_slot_info[1].name = 't1'
