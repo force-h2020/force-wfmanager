@@ -98,15 +98,11 @@ class DataSourceView(HasTraits):
     #: The human readable name of the data source
     label = Unicode()
 
-    #: evaluator object, used to generate slots containing type and description
-    # of each variable (shouldn't be touched)
-    _data_source = Instance(BaseDataSource)
-
     #: Input slots representation for the table editor
-    input_slots_representation = List(InputSlotRow)
+    input_slot_rows = List(InputSlotRow)
 
     #: Output slots representation for the table editor
-    output_slots_representation = List(OutputSlotRow)
+    output_slot_rows = List(OutputSlotRow)
 
     # --------------------
     # Dependent Attributes
@@ -117,9 +113,9 @@ class DataSourceView(HasTraits):
     selected_slot_row = Instance(TableRow)
 
     #: Event to request a verification check on the workflow
-    #: Listens to: :attr:`input_slots_representation.name
-    #: <input_slots_representation>`, :attr:`output_slots_representation.name
-    #: <output_slots_representation>`
+    #: Listens to: :attr:`input_slot_rows.name
+    #: <input_slot_rows>`, :attr:`output_slot_rows.name
+    #: <output_slot_rows>`
     verify_workflow_event = Event()
 
     #: Defines if the evaluator is valid or not. Updated by
@@ -148,12 +144,12 @@ class DataSourceView(HasTraits):
         VGroup(
             VGroup(
                 Item(
-                    "input_slots_representation",
+                    "input_slot_rows",
                     label="Input variables",
                     editor=slots_editor,
                 ),
                 Item(
-                    "output_slots_representation",
+                    "output_slot_rows",
                     label="Output variables",
                     editor=slots_editor,
                 ),
@@ -181,9 +177,6 @@ class DataSourceView(HasTraits):
     def _label_default(self):
         return get_factory_name(self.model.factory)
 
-    def __data_source_default(self):
-        return self.model.factory.create_data_source()
-
     # -------------------
     #     Listeners
     # -------------------
@@ -204,8 +197,8 @@ class DataSourceView(HasTraits):
         return SLOT_DESCRIPTION.format(row_type, type_text, idx, description)
 
     @on_trait_change(
-        'input_slots_representation.[model.[name,type]],'
-        'output_slots_representation.[model.[name,type]]'
+        'input_slot_rows.[model.[name,type]],'
+        'output_slot_rows.[model.[name,type]]'
     )
     def data_source_change(self):
         """Fires :func:`verify_workflow_event` when an input slot or output
@@ -218,12 +211,12 @@ class DataSourceView(HasTraits):
         """ Fill the tables rows according to input_slots and output_slots
         needed by the evaluator and the model slot values """
 
-        self.input_slots_representation = [
+        self.input_slot_rows = [
             InputSlotRow(model=model, index=index)
             for index, model in enumerate(self.model.input_slot_info)
         ]
 
-        self.output_slots_representation = [
+        self.output_slot_rows = [
             OutputSlotRow(model=model, index=index)
             for index, model in enumerate(self.model.output_slot_info)
         ]
