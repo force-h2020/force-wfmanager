@@ -1,15 +1,16 @@
 from traits.api import (
     HasStrictTraits, Instance, List, Int, on_trait_change,
     Bool, HTML, Property, Event, Unicode, HasTraits,
-    cached_property
+    cached_property, Either
 )
 from traitsui.api import (
     View, Item, TableEditor, VGroup, TextEditor, UReadonly
 )
 from traitsui.table_column import ObjectColumn
 
-from force_bdss.api import (BaseDataSourceModel, BaseDataSource,
-                            InputSlotInfo, OutputSlotInfo)
+from force_bdss.api import (
+    BaseDataSourceModel, InputSlotInfo, OutputSlotInfo
+)
 
 from force_wfmanager.ui.ui_utils import (
     get_factory_name, get_default_background_color)
@@ -24,33 +25,16 @@ class TableRow(HasStrictTraits):
     # Required Attributes
     # -------------------
 
-    #: Model of the evaluator
-    model = Instance(HasStrictTraits)
+    #: Model of the evaluator, either type InputSlotInfo or
+    #: OutputSlotInfo
+    model = Either(Instance(InputSlotInfo),
+                   Instance(OutputSlotInfo))
 
     #: Index of the slot in the slot list
     index = Int()
 
-
-class InputSlotRow(TableRow):
-    """Row in the UI representing DataSource inputs. """
-
-    # -------------------
-    # Required Attributes
-    # -------------------
-
-    #: InputSlotInfo model of the evaluator
-    model = Instance(InputSlotInfo)
-
-
-class OutputSlotRow(TableRow):
-    """Row in the UI representing DataSource outputs. """
-
-    # -------------------
-    # Required Attributes
-    # -------------------
-
-    #: OutputSlotInfo model of the evaluator
-    model = Instance(OutputSlotInfo)
+    #: Text to display in the Row UI
+    text = Unicode()
 
 
 #: The TraitsUI editor used for :object:`TableRow.model.name`
@@ -64,7 +48,7 @@ slots_editor = TableEditor(
     configurable=False,
     selected="selected_slot_row",
     columns=[
-        ObjectColumn(name="model.index", label="", editable=False),
+        ObjectColumn(name="index", label="", editable=False),
         ObjectColumn(name="model.type", label="Type", editable=False),
         ObjectColumn(name="model.name", label="Variable Name",
                      editable=True, editor=name_editor),
@@ -99,10 +83,10 @@ class DataSourceView(HasTraits):
     label = Unicode()
 
     #: Input slots representation for the table editor
-    input_slot_rows = List(InputSlotRow)
+    input_slot_rows = List(TableRow)
 
     #: Output slots representation for the table editor
-    output_slot_rows = List(OutputSlotRow)
+    output_slot_rows = List(TableRow)
 
     # --------------------
     # Dependent Attributes
@@ -188,12 +172,10 @@ class DataSourceView(HasTraits):
             return DEFAULT_MESSAGE
 
         idx = self.selected_slot_row.index
+        type_text = self.selected_slot_row.text
         row_type = self.selected_slot_row.model.type
         description = self.selected_slot_row.model.description
 
-        type_text = (
-            "Input" if isinstance(self.selected_slot_row, InputSlotRow)
-            else "Output")
         return SLOT_DESCRIPTION.format(row_type, type_text, idx, description)
 
     @on_trait_change(
@@ -212,12 +194,12 @@ class DataSourceView(HasTraits):
         needed by the evaluator and the model slot values """
 
         self.input_slot_rows = [
-            InputSlotRow(model=model, index=index)
+            TableRow(model=model, index=index, text='Input')
             for index, model in enumerate(self.model.input_slot_info)
         ]
 
         self.output_slot_rows = [
-            OutputSlotRow(model=model, index=index)
+            TableRow(model=model, index=index, text="Output")
             for index, model in enumerate(self.model.output_slot_info)
         ]
 
