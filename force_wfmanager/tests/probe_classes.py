@@ -3,7 +3,6 @@ from envisage.ui.tasks.tasks_plugin import TasksPlugin
 
 from traits.trait_types import Int
 
-from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
 from force_bdss.tests.probe_classes.data_source import (
     ProbeDataSourceModel
 )

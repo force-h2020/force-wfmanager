@@ -1,4 +1,4 @@
-from force_bdss.api import (OutputSlotInfo, InputSlotInfo, BaseDataSourceModel)
+from force_bdss.api import BaseDataSourceModel
 
 from force_wfmanager.ui.setup.process.data_source_view import \
     DataSourceView
