@@ -19,8 +19,8 @@ from force_wfmanager.utils.variable_names_registry import (
 
 
 class TableRow(HasStrictTraits):
-    """ Base class representing attributes shared between Input and Output
-    rows"""
+    """Base class representing attributes shared between Input and
+    Output rows"""
 
     # -------------------
     # Required Attributes
@@ -38,12 +38,11 @@ class TableRow(HasStrictTraits):
     text = Unicode()
 
 
-#: The TraitsUI editor used for :object:`TableRow.model.name`
+# The TraitsUI editor used for :object:`TableRow.model.name`
 name_editor = TextEditor(auto_set=False,
                          enter_set=True)
 
-#: The TraitsUI editor used for :class:`InputSlotRow`
-#: and :class:`OutputSlotRow`
+# The TraitsUI editor used for :class:`TableRow`
 slots_editor = TableEditor(
     sortable=False,
     configurable=False,
