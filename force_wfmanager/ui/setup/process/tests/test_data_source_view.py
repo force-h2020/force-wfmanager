@@ -20,6 +20,13 @@ class TestDataSourceView(WfManagerBaseTestCase):
 
     def test_init_data_source_view(self):
         self.assertEqual(
+            1,
+            len(self.data_source_view.input_slot_rows))
+        self.assertEqual(
+            len(self.data_source_view.input_slot_rows),
+            len(self.model_1.input_slot_info))
+
+        self.assertEqual(
             2,
             len(self.data_source_view.output_slot_rows))
         self.assertEqual(
@@ -48,6 +55,7 @@ class TestDataSourceView(WfManagerBaseTestCase):
         self.assertEqual('output', self.model_1.output_slot_info[0].name)
 
     def test_update_table(self):
+
         self.model_1.output_slot_info[0].name = 'p1'
         self.model_1.output_slot_info[1].name = 't1'
 
@@ -81,3 +89,31 @@ class TestDataSourceView(WfManagerBaseTestCase):
                       self.data_source_view.selected_slot_description)
         self.assertIn("PRESSURE",
                       self.data_source_view.selected_slot_description)
+
+    def test__update_slots_tables(self):
+
+        old_input = self.model_1.input_slot_info[0]
+        old_input.name = 'c1'
+        old_output = self.model_1.output_slot_info[0]
+        old_output.name = 'p1'
+        self.data_source_view.model.changes_slots = True
+
+        self.assertEqual(
+            1,
+            len(self.data_source_view.input_slot_rows))
+        self.assertEqual(
+            old_input,
+            self.model_1.input_slot_info[0])
+        self.assertEqual(
+            'c1', self.model_1.input_slot_info[0].name
+        )
+
+        self.assertEqual(
+            2,
+            len(self.data_source_view.output_slot_rows))
+        self.assertEqual(
+            old_output,
+            self.model_1.output_slot_info[0])
+        self.assertEqual(
+            'p1', self.model_1.output_slot_info[0].name
+        )
