@@ -62,7 +62,7 @@ class AnalysisModel(HasStrictTraits):
         return self._selected_step_indices
 
     def _set_selected_step_indices(self, values):
-        """ Check the requested indices of selected rows, and use the
+        """ Check the requested slot_indices of selected rows, and use the
         requested values if they exist in the table, or are None.
 
         """

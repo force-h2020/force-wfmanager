@@ -1,7 +1,7 @@
 import unittest
 
 from force_bdss.api import (
-    DataValue, ExecutionLayer, Workflow, InputSlotInfo
+    DataValue, ExecutionLayer, Workflow
 )
 from force_bdss.tests.probe_classes.data_source import \
     ProbeDataSourceFactory
@@ -53,8 +53,8 @@ class WfManagerBaseTestCase(unittest.TestCase):
         )
         self.factory_registry.data_source_factories.append(factory)
 
-        self.model_1.input_slot_info = [InputSlotInfo(name='P1')]
-        self.model_2.input_slot_info = [InputSlotInfo(name='P2')]
+        self.model_1.input_slot_info[0].name = 'P1'
+        self.model_2.input_slot_info[0].name = 'P2'
 
         #: Store these data source models in an exectution layer
         self.data_sources = [self.model_1, self.model_2]

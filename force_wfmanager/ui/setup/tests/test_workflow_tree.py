@@ -397,6 +397,7 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         data_source2.input_slot_info[0].name = 'D1'
 
         self.system_state.selected_view = self.workflow_tree.workflow_view
+
         self.assertIn(
             "A variable is being used as an input before being generated"
             " as an output",
