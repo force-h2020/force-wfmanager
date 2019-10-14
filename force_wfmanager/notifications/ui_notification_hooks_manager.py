@@ -36,7 +36,7 @@ class UINotificationHooksManager(BaseUIHooksManager):
         if notification_model is None:
             registry = task.factory_registry
             nl_factory = registry.notification_listener_factory_by_id(
-                factory_id(self.factory.plugin.id, "ui_notification")
+                factory_id(self.factory.plugin_id, "ui_notification")
             )
             notification_model = nl_factory.create_model()
             model.notification_listeners.append(notification_model)
