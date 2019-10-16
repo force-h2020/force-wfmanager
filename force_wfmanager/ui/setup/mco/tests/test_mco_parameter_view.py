@@ -114,8 +114,8 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
         self.data_source1.input_slot_info = [InputSlotInfo(name='T1')]
         parameter_model_view = self.parameter_view.model_views[0]
         with self.assertTraitChanges(
-                self.parameter_view, 'verify_workflow_event', count=2):
+                self.parameter_view, 'verify_workflow_event', count=1):
             parameter_model_view.model.name = 'T1'
         with self.assertTraitChanges(
-                self.parameter_view, 'verify_workflow_event', count=3):
+                self.parameter_view, 'verify_workflow_event', count=1):
             parameter_model_view.model.name = 'another'

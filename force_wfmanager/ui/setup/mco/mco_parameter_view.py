@@ -1,19 +1,17 @@
 from traits.api import (
     Instance, Unicode, on_trait_change, Property,
-    cached_property, List, Button, Tuple
+    cached_property, List, Button
 )
 from traitsui.api import (
     View, Item, HGroup, ListEditor, VGroup, InstanceEditor
 )
-
-from force_bdss.api import Identifier
-from force_bdss.local_traits import CUBAType
 
 from force_wfmanager.ui.setup.mco.base_mco_options_view import \
     BaseMCOOptionsView
 from force_wfmanager.ui.setup.mco.mco_parameter_model_view import \
     MCOParameterModelView
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
+from force_wfmanager.utils.variable_names_registry import Variable
 
 
 class MCOParameterView(BaseMCOOptionsView):
@@ -39,8 +37,8 @@ class MCOParameterView(BaseMCOOptionsView):
     #: A list of variable names and types, each from a variable
     #: that could become a MCO parameter
     parameter_name_options = Property(
-        List(Tuple(Identifier, CUBAType)),
-        depends_on='variable_names_registry.data_source_inputs'
+        List(Variable),
+        depends_on='variable_names_registry.available_variables'
     )
 
     # ------------------
@@ -131,13 +129,17 @@ class MCOParameterView(BaseMCOOptionsView):
 
         if self.model is not None:
             # Add all MCO parameters as ModelViews
-            model_views += [
-                MCOParameterModelView(
-                    model=parameter,
-                    available_variables=self.parameter_name_options
-                )
-                for parameter in self.model.parameters
-            ]
+            for parameter in self.model.parameters:
+                model_view = MCOParameterModelView(
+                        model=parameter,
+                        available_variables=self.parameter_name_options
+                    )
+                for var in self.parameter_name_options:
+                    name_check = var.name == parameter.name
+                    type_check = var.type == parameter.type
+                    if name_check and type_check:
+                        model_view.selected_variable = var
+                model_views.append(model_view)
 
         return model_views
 
@@ -151,12 +153,10 @@ class MCOParameterView(BaseMCOOptionsView):
          possible names for new MCO parameters"""
         parameter_name_options = []
         if self.variable_names_registry is not None:
-            outputs = self.variable_names_registry.data_source_outputs
-            inputs = self.variable_names_registry.data_source_inputs
-            parameter_name_options += (
-                [input_ for input_ in inputs
-                 if input_ not in outputs]
-            )
+            variables = self.variable_names_registry.available_variables
+            for variable in variables:
+                if variable.output_slot is None:
+                    parameter_name_options.append(variable)
 
         return parameter_name_options
 
@@ -176,10 +176,13 @@ class MCOParameterView(BaseMCOOptionsView):
 
     # Workflow Validation
     @on_trait_change('parameter_name_options')
-    def update_model_views__combobox(self):
-        """Update the parameter model view name options"""
-        for parameter_view in self.model_views:
-            parameter_view.available_variables = self.parameter_name_options
+    def update_model_views_available_variables(self):
+        """Updates all model_view available_variables when
+        parameter_name_options is updated"""
+
+        # Update the model_views with the new parameter_name_options
+        for model_view in self.model_views:
+            model_view.update_available_variables(self.parameter_name_options)
 
     def _add_parameter_button_fired(self):
         """Call add_parameter to create a new empty parameter using

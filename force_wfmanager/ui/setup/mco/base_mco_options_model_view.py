@@ -1,15 +1,16 @@
 from traits.api import (
-    Bool, Event, Instance, List, Property, Unicode,
-    on_trait_change, Either, Tuple
+    Bool, Event, Instance, List, Unicode, Either, on_trait_change
 )
 from traitsui.api import (
     ModelView
 )
 
 from force_bdss.api import (
-    KPISpecification, BaseMCOParameter, Identifier
+    KPISpecification, BaseMCOParameter
 )
-from force_bdss.local_traits import CUBAType
+from force_wfmanager.utils.variable_names_registry import (
+    Variable
+)
 
 
 class BaseMCOOptionsModelView(ModelView):
@@ -22,11 +23,11 @@ class BaseMCOOptionsModelView(ModelView):
     model = Either(Instance(KPISpecification),
                    Instance(BaseMCOParameter))
 
-    #: Only display name and type options for available variables
-    # FIXME: this isn't an ideal method, since it requires further
-    # work arounds for the name validation. Putting better error
-    # handling into the force_bdss could resolve this.
-    available_variables = List(Tuple(Identifier, CUBAType))
+    # Variable selected by the UI to hook model up to
+    selected_variable = Instance(Variable)
+
+    #: List of available variables for UI selection
+    available_variables = List(Variable)
 
     # ------------------
     # Regular Attributes
@@ -50,27 +51,42 @@ class BaseMCOOptionsModelView(ModelView):
     #     Properties
     # ------------------
 
-    #: Values for model.name EnumEditor in traits_view
-    _combobox_values = Property(List(Identifier),
-                                depends_on='available_variables')
-
     def __init__(self, model=None, *args, **kwargs):
         super(BaseMCOOptionsModelView, self).__init__(*args, **kwargs)
         if model is not None:
             self.model = model
 
     # ------------------
+    #     Defaults
+    # ------------------
+
+    def _selected_variable_default(self):
+        return Variable()
+
+    def _available_variables_default(self):
+        """Create a default list containing an empty Variable object
+        to allow the user to manually unhook an mco option"""
+        return [Variable()]
+
+    # ------------------
     #     Listeners
     # ------------------
 
-    def _get__combobox_values(self):
-        """Update combobox_values based on available variable names"""
-        _combobox_values = []
-        if self.available_variables is not None:
-            for variable in self.available_variables:
-                _combobox_values.append(variable[0])
+    @on_trait_change('selected_variable,available_variables')
+    def _check_available_variables(self):
+        """"""
+        if self.selected_variable is not None:
+            if self.selected_variable not in self.available_variables:
+                self.selected_variable = None
 
-        return _combobox_values
+    @on_trait_change('selected_variable')
+    def _check_selected_model(self):
+
+        if self.selected_variable is None:
+            if self.model is not None:
+                self.model.name = ''
+                if isinstance(self.model, BaseMCOParameter):
+                    self.model.type = ''
 
     # Assign an on_trait_change decorator to specify traits to listen to
     # in child class implementation
@@ -78,12 +94,9 @@ class BaseMCOOptionsModelView(ModelView):
         """Raise verify workflow event upon change in model"""
         self.verify_workflow_event = True
 
-    @on_trait_change('model.name,_combobox_values')
-    def _check_model_name(self):
-        """Check the model name against a compiled list of available
-         output variable names. Clear the model name if a matching
-         output is not found"""
-        if self.model is not None:
-            if self._combobox_values is not None:
-                if self.model.name not in self._combobox_values + ['']:
-                    self.model.name = ''
+    def update_available_variables(self, available_variables):
+        """Update the available_variables list, whilst keeping the
+        default values"""
+        self.available_variables = (
+            self._available_variables_default() + available_variables
+        )

@@ -1,6 +1,11 @@
 import unittest
 
-from force_bdss.tests.dummy_classes.data_source import DummyDataSourceModel
+from force_bdss.tests.dummy_classes.data_source import (
+    DummyDataSourceModel, DummyDataSourceFactory
+)
+from force_bdss.tests.dummy_classes.extension_plugin import (
+    DummyExtensionPlugin
+)
 from force_bdss.tests.probe_classes.data_source import (
     ProbeDataSourceFactory, ProbeDataSourceModel
 )
@@ -13,7 +18,7 @@ from force_wfmanager.tests.dummy_classes.dummy_model_info import (
     DummyModelInfo
 )
 from force_wfmanager.tests.probe_classes import (
-    ProbeDataSourceModel as ProbeDataSourceModelDescription
+    ProbeDataSourceModelDescription
 )
 from force_wfmanager.ui.setup.new_entity_creator import (
      NewEntityCreator
@@ -114,10 +119,15 @@ class TestNewEntityModel(unittest.TestCase):
 
     def test_description_non_editable_datasource(self):
 
-        model, _ = self._get_data_selector()
-        model.selected_factory = self.data_sources[0]
+        plugin = DummyExtensionPlugin()
+        factory = DummyDataSourceFactory(plugin)
+        model = NewEntityCreator(
+            factories=[factory]
+        )
+        model.selected_factory = factory
+
         # An empty DataSourceModel with no editable traits
-        model.model = DummyDataSourceModel(self.data_sources[0])
+        model.model = DummyDataSourceModel(factory)
         self.assertFalse(model._current_model_editable)
         self.assertIn("No description available",
                       model.model_description_HTML)

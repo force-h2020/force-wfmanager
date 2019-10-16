@@ -57,9 +57,6 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
         self.assertEqual(
             'outputA',
             self.kpi_view.model_views[0].model.name)
-        self.assertEqual(
-            'outputA',
-            self.kpi_view.kpi_names[0])
 
         self.assertEqual(2, len(self.parameter_view.model_views))
         self.assertEqual(
@@ -78,7 +75,6 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
         self.kpi_view.add_kpi(kpi_spec)
         self.assertEqual(2, len(self.kpi_view.model_views))
         self.assertEqual(3, len(self.kpi_view.kpi_name_options))
-        self.assertEqual(2, len(self.kpi_view.kpi_names))
         self.assertEqual(self.kpi_view.model_views[1].model, kpi_spec)
         self.assertEqual(
             'outputB',
@@ -86,14 +82,12 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
         self.assertEqual(
             'KPI: outputB (MINIMISE)',
             self.kpi_view.model_views[1].label)
-        self.assertEqual('outputB', self.kpi_view.kpi_names[1])
 
     def test_remove_kpi(self):
         kpi_spec = self.kpi_view.model_views[0].model
         self.kpi_view.remove_kpi(kpi_spec)
         self.assertEqual(0, len(self.kpi_view.model_views))
         self.assertEqual(3, len(self.kpi_view.kpi_name_options))
-        self.assertEqual(0, len(self.kpi_view.kpi_names))
 
     def test_add_parameter(self):
         parameter = BaseMCOParameter(None, name='P3', type='PRESSURE')
@@ -101,7 +95,6 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
         self.parameter_view.add_parameter(parameter)
         self.assertEqual(3, len(self.parameter_view.model_views))
         self.assertEqual(3, len(self.kpi_view.kpi_name_options))
-        self.assertEqual(1, len(self.kpi_view.kpi_names))
         self.assertEqual(
             parameter, self.parameter_view.model_views[2].model)
 
@@ -110,14 +103,15 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
         self.parameter_view.remove_parameter(parameter)
         self.assertEqual(1, len(self.parameter_view.model_views))
         self.assertEqual(3, len(self.kpi_view.kpi_name_options))
-        self.assertEqual(1, len(self.kpi_view.kpi_names))
 
     def test_verify_workflow_event(self):
         parameter_model_view = self.parameter_view.model_views[0]
 
         with self.assertTraitChanges(
-                self.mco_view, 'verify_workflow_event', count=1):
-            parameter_model_view.model.name = 'P2'
+                self.mco_view, 'verify_workflow_event', count=2):
+            variable = parameter_model_view.available_variables[1]
+            parameter_model_view.selected_variable = variable
+            self.assertEqual('P2', parameter_model_view.model.name)
 
         kpi_model_view = self.kpi_view.model_views[0]
         with self.assertTraitChanges(

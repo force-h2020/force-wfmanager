@@ -1,6 +1,6 @@
 import unittest
 
-from force_bdss.api import OutputSlotInfo, InputSlotInfo, ExecutionLayer
+from force_bdss.api import InputSlotInfo, ExecutionLayer
 from force_bdss.core.workflow import Workflow
 from force_bdss.tests.probe_classes.data_source import (
     ProbeDataSourceFactory
@@ -12,7 +12,8 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import \
     ProbeExtensionPlugin
 
 from force_wfmanager.utils.variable_names_registry import (
-    VariableNamesRegistry)
+    Variable, VariableNamesRegistry
+)
 
 
 def get_basic_variable_names_registry():
@@ -71,102 +72,253 @@ class VariableNamesRegistryTest(unittest.TestCase):
         self.data_source3 = self.workflow.execution_layers[1].data_sources[0]
         self.data_source4 = self.workflow.execution_layers[2].data_sources[0]
 
-    def test_registry_init(self):
-        self.assertEqual(
-            3, len(self.registry.available_input_variables_stack)
-        )
-        self.assertEqual(
-            3, len(self.registry.available_output_variables_stack)
-        )
-
-    def test_variables_stacks(self):
-
-        self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
-
-        self.assertEqual([[('V1', 'PRESSURE')], []],
-                         self.registry.available_input_variables_stack[0])
-        self.assertEqual([[('T1', 'PRESSURE')], []],
-                         self.registry.available_output_variables_stack[0])
-
-        self.data_source2.input_slot_info = [InputSlotInfo(name='V2')]
-        self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
-
-        self.assertEqual([[('V1', 'PRESSURE')], [('V2', 'PRESSURE')]],
-                         self.registry.available_input_variables_stack[0])
-        self.assertEqual([[('T1', 'PRESSURE')], [('T2', 'PRESSURE')]],
-                         self.registry.available_output_variables_stack[0])
-
-        self.data_source3.input_slot_info = [InputSlotInfo(name='T1')]
-        self.data_source3.output_slot_info = [OutputSlotInfo(name='T3')]
-        self.assertEqual([[('T1', 'PRESSURE')]],
-                         self.registry.available_input_variables_stack[1])
-        self.assertEqual([[('T3', 'PRESSURE')]],
-                         self.registry.available_output_variables_stack[1])
-
-        self.data_source3.input_slot_info = [InputSlotInfo(name='')]
-        self.data_source3.changes_slots = True
-        self.data_source3.output_slot_info = [OutputSlotInfo(name='T3')]
-        self.assertEqual([[]],
-                         self.registry.available_input_variables_stack[1])
+    def test__init__(self):
+        registry = self.registry._variable_registry
+        self.assertEqual(2, len(registry))
+        self.assertEqual(0, len(self.registry.available_variables))
 
     def test_available_variables(self):
+        self.data_source1.input_slot_info[0].name = 'V1'
+        self.data_source1.output_slot_info[0].name = 'T1'
 
-        self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
-        self.data_source2.input_slot_info = [InputSlotInfo(name='V2')]
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
-        self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
+        self.assertEqual(2, len(self.registry.available_variables))
+        self.assertEqual('T1', self.registry.available_variables[0].name)
+        self.assertEqual('V1', self.registry.available_variables[1].name)
 
-        self.data_source3.input_slot_info = [InputSlotInfo(name='T1')]
-        self.data_source3.output_slot_info = [OutputSlotInfo(name='P1')]
+    def test_available_variable_names(self):
+
+        self.data_source1.input_slot_info[0].name = 'V1'
+        self.data_source2.input_slot_info[0].name = 'V2'
+        self.data_source1.output_slot_info[0].name = 'T1'
+        self.data_source2.output_slot_info[0].name = 'T2'
+
+        self.data_source3.input_slot_info[0].name = 'T1'
+        self.data_source3.output_slot_info[0].name = 'P1'
 
         self.assertEqual(
-            3,
-            len(self.registry.available_variables)
+            4,
+            len(self.registry.available_variable_names)
         )
         self.assertEqual(
-            [['V1', 'T1', 'V2', 'T2'], ['T1', 'P1'], []],
-            self.registry.available_variables
+            [['V1', 'V2'],
+             ['T1', 'T2', 'V1', 'V2'],
+             ['T1', 'T2', 'P1', 'V1', 'V2'],
+             ['T1', 'T2', 'P1', 'V1', 'V2']],
+            self.registry.available_variable_names
+        )
+
+    def test_available_variables_by_type(self):
+
+        self.data_source1.input_slot_info[0].name = 'V1'
+        self.data_source2.input_slot_info[0].name = 'V2'
+        self.data_source1.output_slot_info[0].name = 'T1'
+        self.data_source2.output_slot_info[0].name = 'T2'
+
+        self.data_source3.input_slot_info[0].name = 'V1'
+        self.data_source3.output_slot_info[0].name = 'P1'
+
+        self.assertEqual(
+            4,
+            len(self.registry.available_variables_by_type)
         )
         self.assertEqual(
-            [{'PRESSURE': ['V1', 'T1', 'V2', 'T2']},
-             {'PRESSURE': ['T1', 'P1']}, {}],
-            self.registry.available_variables_by_type
-        )
-
-        self.data_source1.input_slot_info[0].name = 'V2'
-        self.assertEqual(
-            [['V2', 'T1', 'V2', 'T2'], ['T1', 'P1'], []],
-            self.registry.available_variables
+            {'PRESSURE'},
+            self.registry.available_variables_by_type[0].keys()
         )
         self.assertEqual(
-            [{'PRESSURE': ['V2', 'T1', 'V2', 'T2']},
-             {'PRESSURE': ['T1', 'P1']}, {}],
-            self.registry.available_variables_by_type
+            2,
+            len(self.registry.available_variables_by_type[0]["PRESSURE"])
+        )
+        self.assertEqual(
+            {'PRESSURE'},
+            self.registry.available_variables_by_type[1].keys()
+        )
+        self.assertEqual(
+            2,
+            len(self.registry.available_variables_by_type[1]["PRESSURE"])
+        )
+        self.assertEqual(
+            {'PRESSURE'},
+            self.registry.available_variables_by_type[2].keys()
+        )
+        self.assertEqual(
+            1,
+            len(self.registry.available_variables_by_type[2]["PRESSURE"])
         )
 
-    def test_data_source_outputs(self):
-        self.param1.name = 'V1'
-        self.assertEqual(self.registry.data_source_outputs, [])
+    def test_update__variable_registry(self):
 
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
-        self.assertEqual([("T1", 'PRESSURE')],
-                         self.registry.data_source_outputs)
+        self.data_source1.output_slot_info[0].name = 'T1'
+        self.data_source3.input_slot_info[0].name = 'T1'
 
-        self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
-        self.assertEqual([("T1", 'PRESSURE'), ("T2", 'PRESSURE')],
-                         self.registry.data_source_outputs, )
+        variable_list = self.registry.available_variables
+        self.assertEqual(1, len(variable_list))
+        self.assertEqual('PRESSURE T1', variable_list[0].label)
+        self.assertIsNotNone(variable_list[0].output_slot)
+        self.assertEqual(1, len(variable_list[0].input_slots))
 
-    def test_data_source_inputs(self):
-        self.param1.name = 'V1'
-        self.assertEqual(self.registry.data_source_inputs, [])
+        self.data_source1.input_slot_info[0].name = 'V1'
 
-        self.data_source1.input_slot_info = [InputSlotInfo(name='V1')]
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
-        self.assertEqual([("V1", 'PRESSURE')],
-                         self.registry.data_source_inputs)
+        variable_list = self.registry.available_variables
+        self.assertEqual(2, len(variable_list))
+        self.assertEqual('PRESSURE V1', variable_list[1].label)
+        self.assertIsNone(variable_list[1].output_slot)
+        self.assertIn(
+            ('V1', 'PRESSURE'),
+            self.registry._variable_registry['undefined'])
 
-        self.data_source2.input_slot_info = [InputSlotInfo(name='T1')]
-        self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
-        self.assertEqual([("V1", 'PRESSURE'), ("T1", 'PRESSURE')],
-                         self.registry.data_source_inputs)
+        self.data_source3.output_slot_info[0].name = 'P1'
+
+        variable_list = self.registry.available_variables
+        self.assertEqual('PRESSURE P1', variable_list[1].label)
+        self.assertIsNotNone(variable_list[1].output_slot)
+        self.assertIn(
+            ('V1', 'PRESSURE'),
+            self.registry._variable_registry['undefined'])
+
+    def test_rename_variables(self):
+        self.data_source1.output_slot_info[0].name = 'T1'
+        self.data_source3.input_slot_info[0].name = 'T1'
+        self.data_source3.output_slot_info[0].name = 'P1'
+
+        variable_list = self.registry.available_variables
+        self.assertEqual(2, len(variable_list))
+        self.assertEqual(1, len(variable_list[0].input_slots))
+        self.assertEqual(0, len(variable_list[1].input_slots))
+
+        # Rename an output variable
+        self.data_source1.output_slot_info[0].name = 'B1'
+        variable_list = self.registry.available_variables
+
+        self.assertEqual(2, len(variable_list))
+        self.assertEqual('PRESSURE B1', variable_list[0].label)
+        self.assertEqual('PRESSURE P1', variable_list[1].label)
+        self.assertIsNotNone(variable_list[0].output_slot)
+        self.assertIsNotNone(variable_list[1].output_slot)
+
+        # Rename an input variable
+        self.data_source3.input_slot_info[0].name = 'C1'
+        variable_list = self.registry.available_variables
+
+        self.assertEqual(3, len(variable_list))
+        self.assertEqual('PRESSURE C1', variable_list[2].label)
+        self.assertIsNone(variable_list[2].output_slot)
+        self.assertEqual(0, len(variable_list[0].input_slots))
+
+        # Clean an output variable name
+        self.data_source1.output_slot_info[0].name = ''
+        variable_list = self.registry.available_variables
+
+        self.assertEqual(2, len(variable_list))
+        self.assertEqual('PRESSURE P1', variable_list[0].label)
+        self.assertEqual('PRESSURE C1', variable_list[1].label)
+        self.assertIsNotNone(variable_list[0].output_slot)
+        self.assertIsNone(variable_list[1].output_slot)
+
+        # Clean an input variable name
+        self.data_source3.input_slot_info[0].name = ''
+        variable_list = self.registry.available_variables
+
+        self.assertEqual(1, len(variable_list))
+        self.assertEqual('PRESSURE P1', variable_list[0].label)
+        self.assertIsNotNone(variable_list[0].output_slot)
+
+
+class VariableTest(unittest.TestCase):
+
+    def setUp(self):
+        plugin = ProbeExtensionPlugin()
+        self.data_source_factory = ProbeDataSourceFactory(
+            plugin,
+            input_slots_size=1,
+            output_slots_size=1)
+
+        data_source = self.data_source_factory.create_model()
+        data_source.output_slot_info[0].name = 'T1'
+        data_source.output_slot_info[0].type = 'PRESSURE'
+
+        self.variable = Variable(
+            layer=0,
+            origin=data_source,
+            output_slot=data_source.output_slot_info[0],
+        )
+
+    def test_sync_output_slot(self):
+        self.assertEqual('T1', self.variable.name)
+        self.assertEqual('PRESSURE', self.variable.type)
+
+        self.variable.output_slot.name = 'B1'
+        self.assertEqual('B1', self.variable.name)
+
+        self.variable.output_slot.type = 'VOLUME'
+        self.assertEqual('VOLUME', self.variable.type)
+
+    def test_sync_input_slot(self):
+
+        input_slot = InputSlotInfo(name='T1')
+        self.variable.add_input_slot(
+            input_slot, 1
+        )
+
+        self.assertEqual('T1', self.variable.name)
+        self.assertEqual('T1', self.variable.input_slots[0].name)
+        self.assertEqual(1, self.variable.slot_indices[0])
+
+        self.variable.input_slots[0].name = 'V1'
+        self.assertEqual('T1', self.variable.name)
+        self.assertEqual(0, len(self.variable.input_slots))
+        self.assertEqual(0, len(self.variable.slot_indices))
+        self.assertEqual('V1', input_slot.name)
+
+    def test_label(self):
+        self.assertEqual('PRESSURE T1', self.variable.label)
+        self.variable.name = 'P1'
+        self.assertEqual('PRESSURE P1', self.variable.label)
+        self.variable.output_slot.name = 'B1'
+        self.assertEqual('PRESSURE B1', self.variable.label)
+
+    def test_verify(self):
+        errors = self.variable.verify()
+        self.assertEqual(0, len(errors))
+
+        self.variable.add_input_slot(InputSlotInfo(), 1)
+
+        errors = self.variable.verify()
+        self.assertEqual(0, len(errors))
+
+        self.variable.add_input_slot(InputSlotInfo(), 0)
+
+        errors = self.variable.verify()
+        self.assertEqual(1, len(errors))
+        self.assertIn(
+            'Variable is being used as an input before being generated',
+            errors[0].local_error)
+
+    def test_update_name(self):
+        self.variable.add_input_slot(InputSlotInfo(name='T1'), 1)
+
+        self.variable.name = 'V1'
+        self.assertEqual('V1', self.variable.output_slot.name)
+        self.assertEqual('V1', self.variable.input_slots[0].name)
+
+        self.variable.output_slot.name = 'T1'
+        self.assertEqual('T1', self.variable.name)
+        self.assertEqual('T1', self.variable.input_slots[0].name)
+
+        self.variable.add_input_slot(InputSlotInfo(name='T1'), 2)
+
+        self.variable.output_slot.name = 'V1'
+        self.assertEqual('V1', self.variable.input_slots[0].name)
+        self.assertEqual('V1', self.variable.input_slots[1].name)
+
+    def test_check_input_slot_hook(self):
+        input_slot = InputSlotInfo(name='T1', type='PRESSURE')
+        self.assertTrue(self.variable.check_input_slot_hook(
+            input_slot, 0)
+        )
+
+        input_slot = InputSlotInfo(name='C1', type='VOLUME')
+        self.assertFalse(self.variable.check_input_slot_hook(
+            input_slot, 0)
+        )
+        self.assertEqual(1, len(self.variable.input_slots))

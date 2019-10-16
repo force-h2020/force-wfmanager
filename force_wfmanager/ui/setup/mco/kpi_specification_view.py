@@ -14,6 +14,7 @@ from force_wfmanager.ui.setup.mco.base_mco_options_view import \
 from force_wfmanager.ui.setup.mco.kpi_specification_model_view import (
     KPISpecificationModelView
 )
+from force_wfmanager.utils.variable_names_registry import Variable
 
 
 class KPISpecificationView(BaseMCOOptionsView):
@@ -29,16 +30,11 @@ class KPISpecificationView(BaseMCOOptionsView):
     #     Properties
     # ------------------
 
-    #: The names of the KPIs in the Workflow.
-    kpi_names = Property(
-        List(Unicode), depends_on='model.kpis.name'
-    )
-
     #: A list names, each representing a variable
     #: that could become a KPI
     kpi_name_options = Property(
-        List(Unicode),
-        depends_on='variable_names_registry.data_source_outputs'
+        List(Variable),
+        depends_on='variable_names_registry.available_variables'
     )
 
     # ------------------
@@ -100,15 +96,18 @@ class KPISpecificationView(BaseMCOOptionsView):
         """Creates a list of KPISpecificationModelViews for each
         model.kpi"""
         model_views = []
+
         if self.model is not None:
-            # Update model view list
-            model_views += [
-                KPISpecificationModelView(
-                    model=kpi,
-                    available_variables=self.kpi_name_options
-                )
-                for kpi in self.model.kpis
-            ]
+            # Add all MCO KPIs as ModelViews
+            for kpi in self.model.kpis:
+                model_view = KPISpecificationModelView(
+                        model=kpi,
+                        available_variables=self.kpi_name_options
+                    )
+                for var in self.kpi_name_options:
+                    if var.name == kpi.name:
+                        model_view.selected_variable = var
+                model_views.append(model_view)
 
         return model_views
 
@@ -117,39 +116,32 @@ class KPISpecificationView(BaseMCOOptionsView):
     # -------------------
 
     @cached_property
-    def _get_kpi_names(self):
-        """Listens to model.kpis to extract model names for display"""
-        kpi_names = []
-        for kpi in self.model.kpis:
-            kpi_names.append(kpi.name)
-
-        return kpi_names
-
-    @cached_property
     def _get_kpi_name_options(self):
         """Listens to variable_names_registry to extract
          possible names for new KPIs"""
         kpi_name_options = []
         if self.variable_names_registry is not None:
-            outputs = self.variable_names_registry.data_source_outputs
-
-            kpi_name_options += (
-                [output_ for output_ in outputs]
-            )
+            variables = self.variable_names_registry.available_variables
+            for variable in variables:
+                if variable.output_slot is not None:
+                    kpi_name_options.append(variable)
 
         return kpi_name_options
 
-    @on_trait_change('kpi_name_options')
-    def update_model_views__combobox(self):
-        """Update the KPI model view name options"""
-        for kpi_view in self.model_views:
-            kpi_view.available_variables = self.kpi_name_options
-
     @on_trait_change('model.kpis')
     def update_kpi_model_views(self):
-        """ Triggers the base method update_model_views when
+        """Triggers the base method update_model_views when
         KPISpecifications are updated"""
         self.update_model_views()
+
+    @on_trait_change('kpi_name_options')
+    def update_model_views_available_variables(self):
+        """Updates all model_view available_variables when kpi_name_options
+         is updated"""
+
+        # Update the model_views with the new kpi_name_options
+        for model_view in self.model_views:
+            model_view.update_available_variables(self.kpi_name_options)
 
     def _add_kpi_button_fired(self):
         """Call add_kpi to insert a blank KPI to the model"""

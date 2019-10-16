@@ -148,7 +148,9 @@ class BaseMCOOptionsView(HasTraits):
 
     def update_model_views(self):
         """Regenerates the model_views from the model and sets the
-         default selected_model_view. This method can be combined with an
+         default selected_model_view.
+
+         This method can be combined with an
          on_trait_change decorator in a child class"""
 
         # Update the list of ModelView(s)
