@@ -6,7 +6,7 @@ from force_bdss.tests.probe_classes.data_source import \
     ProbeDataSourceModel
 
 from force_wfmanager.ui.ui_utils import (
-    class_description, get_factory_name, model_info, retain_list
+    class_description, get_factory_name, model_info
 )
 from force_wfmanager.tests.dummy_classes.dummy_factory import \
     DummyFactory
@@ -99,19 +99,3 @@ class TestUiUtils(unittest.TestCase):
             "This is a label (force_wfmanager.ui.tests.test_ui_utils."
             "DescriptionIsLabel)"
         )
-
-    def test_retain_list(self):
-
-        object_1 = DescriptionIsLabel()
-        object_2 = DescriptionIsLabel()
-        object_2.label = 'Another label'
-
-        list_1 = [object_1, object_1, object_2]
-        list_2 = [object_1]
-
-        retained_list = retain_list(list_1, list_2, ['label'])
-        self.assertEqual(3, len(retained_list))
-
-        retained_list = retain_list(list_2, list_1, ['label'])
-        self.assertEqual(1, len(retained_list))
-        self.assertEqual('This is a label', retained_list[0].label)

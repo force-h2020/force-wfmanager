@@ -123,27 +123,3 @@ def class_description(cl, maxlength=80, desc_attribute="description"):
         description = shorten(str(cl), length)
     return description
 
-
-def retain_list(new_list, old_list, attributes):
-    """Cross checks all elements in new_list against old_list
-    to identify those that correlate with each other. Return a list
-    containing the old instances of elements that match, and
-    any elements in new_list that are not in old_list
-    """
-    retained_list = []
-
-    for new_element in new_list:
-        retained = False
-        for old_element in old_list:
-            result = attr_checker(
-                new_element, old_element, attributes
-            )
-            if not result:
-                retained = True
-                retained_list.append(old_element)
-                break
-
-        if not retained:
-            retained_list.append(new_element)
-
-    return retained_list

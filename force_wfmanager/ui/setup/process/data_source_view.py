@@ -13,7 +13,8 @@ from force_bdss.api import (
 )
 
 from force_wfmanager.ui.ui_utils import (
-    get_factory_name, get_default_background_color, retain_list)
+    get_factory_name, get_default_background_color
+)
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry)
 
@@ -201,42 +202,16 @@ class DataSourceView(HasTraits):
     # Changed Slots Functions
     @on_trait_change('model:changes_slots')
     def _update_slots_tables(self):
-        """Update input_slot_info and output_slot_info attributes to
-        their defaults, based on the return value of a BaseDataSource
-        slots method. Retains any InputSlotInfo or OutputSlotInfo elements
-        that have been defined before."""
-
-        # Get new slots, caused by change_slots event
-        new_input_slot_info, new_output_slot_info = (
-            self.model.slot_info_defaults()
-        )
-
-        # Update the input_slot_info and output_slot_info attributes
-        # by retaining any slots that already exist and are named in the
-        # UI
-        self.model.input_slot_info = retain_list(
-            new_input_slot_info, self.model.input_slot_info,
-            ['type', 'description']
-        )
-
-        self.model.output_slot_info = retain_list(
-            new_output_slot_info, self.model.output_slot_info,
-            ['type', 'description']
-        )
+        """Update slot rows, based on new values of model input_slot_info
+        and output_slot_info attributes"""
 
         # Assign new TableRows for each updated slot UI
-        self._fill_slot_rows()
+        self.input_slot_rows = self._input_slot_rows_default()
+        self.output_slot_rows = self._output_slot_rows_default()
 
     # -------------------
     #   Private Methods
     # -------------------
-
-    def _fill_slot_rows(self):
-        """Fill the tables rows according to input_slot_info and
-        output_slot_info on the model"""
-
-        self.input_slot_rows = self._input_slot_rows_default()
-        self.output_slot_rows = self._output_slot_rows_default()
 
     def _available_variables(self):
         """Returns the available variables for the containing execution layer
