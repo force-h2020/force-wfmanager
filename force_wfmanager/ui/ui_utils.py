@@ -1,10 +1,6 @@
 from pyface.qt import QtGui
 from traitsui.api import Group, Item
 
-from force_bdss.data_sources.data_source_utilities import (
-    attr_checker
-)
-
 
 def get_factory_name(factory):
     """ Returns a factory name, given the factory. This ensure that something
@@ -122,4 +118,3 @@ def class_description(cl, maxlength=80, desc_attribute="description"):
     else:
         description = shorten(str(cl), length)
     return description
-
