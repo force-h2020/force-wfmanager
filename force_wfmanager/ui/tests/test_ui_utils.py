@@ -6,7 +6,8 @@ from force_bdss.tests.probe_classes.data_source import \
     ProbeDataSourceModel
 
 from force_wfmanager.ui.ui_utils import (
-    class_description, get_factory_name, model_info)
+    class_description, get_factory_name, model_info
+)
 from force_wfmanager.tests.dummy_classes.dummy_factory import \
     DummyFactory
 
@@ -47,8 +48,8 @@ class TestUiUtils(unittest.TestCase):
 
     def test_model_info(self):
 
-        self.assertEqual(model_info(None), [])
-        self.assertEqual(len(model_info(self.model)), 4)
+        self.assertEqual([], model_info(None))
+        self.assertEqual(6, len(model_info(self.model)))
 
     def test_class_description(self):
 

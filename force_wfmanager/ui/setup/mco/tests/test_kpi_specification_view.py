@@ -2,7 +2,7 @@ import unittest
 
 from traits.testing.unittest_tools import UnittestTools
 
-from force_bdss.api import OutputSlotInfo, KPISpecification
+from force_bdss.api import KPISpecification
 
 from force_wfmanager.ui.setup.mco.kpi_specification_view import \
     KPISpecificationView
@@ -39,7 +39,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
     def test_label(self):
 
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        self.data_source1.output_slot_info[0].name = 'T1'
 
         self.assertEqual([('T1', 'PRESSURE')],
                          self.registry.data_source_outputs)
@@ -64,7 +64,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
     def test_name_change(self):
 
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        self.data_source1.output_slot_info[0].name = 'T1'
         kpi_model_view = self.kpi_view.model_views[0]
 
         with self.assertTraitChanges(kpi_model_view, 'label', count=0):
@@ -76,7 +76,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
     def test_add_kpi(self):
 
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        self.data_source1.output_slot_info[0].name = 'T1'
         self.assertEqual(1, len(self.kpi_view.kpi_name_options))
 
         self.kpi_view._add_kpi_button_fired()
@@ -90,7 +90,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
                          kpi_model_view)
 
     def test_remove_kpi(self):
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        self.data_source1.output_slot_info[0].name = 'T1'
         kpi_model_view = self.kpi_view.model_views[0]
         self.kpi_view.selected_model_view = kpi_model_view
         self.kpi_view._remove_kpi_button_fired()
@@ -116,7 +116,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
                          self.kpi_view.selected_model_view)
 
     def test_verify_workflow_event(self):
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        self.data_source1.output_slot_info[0].name = 'T1'
         kpi_model_view = self.kpi_view.model_views[0]
         with self.assertTraitChanges(
                 self.kpi_view, 'verify_workflow_event', count=1):
@@ -127,12 +127,12 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
 
     def test__kpi_names_check(self):
 
-        self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
+        self.data_source1.output_slot_info[0].name = 'T1'
         self.workflow.mco.kpis[0].name = 'T1'
         error_message = self.kpi_view.verify_model_names()
         self.assertEqual(0, len(error_message))
 
-        self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
+        self.data_source2.output_slot_info[0].name = 'T2'
         self.kpi_view._add_kpi_button_fired()
         self.workflow.mco.kpis[1].name = 'T2'
         error_message = self.kpi_view.verify_model_names()

@@ -2,8 +2,6 @@ import unittest
 
 from traits.testing.unittest_tools import UnittestTools
 
-from force_bdss.api import InputSlotInfo
-
 from force_wfmanager.ui.setup.mco.mco_parameter_view import \
     MCOParameterView
 from force_wfmanager.utils.tests.test_variable_names_registry import \
@@ -95,8 +93,8 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
         self.assertIsNone(self.parameter_view.selected_model_view)
 
     def test__parameter_names_check(self):
-        self.data_source1.input_slot_info = [InputSlotInfo(name='T1')]
-        self.data_source2.input_slot_info = [InputSlotInfo(name='T2')]
+        self.data_source1.input_slot_info[0].name = 'T1'
+        self.data_source2.input_slot_info[0].name = 'T2'
 
         self.workflow.mco.parameters[0].name = 'T1'
         self.workflow.mco.parameters[1].name = 'T2'
@@ -111,7 +109,7 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
         )
 
     def test_verify_workflow_event(self):
-        self.data_source1.input_slot_info = [InputSlotInfo(name='T1')]
+        self.data_source1.input_slot_info[0].name = 'T1'
         parameter_model_view = self.parameter_view.model_views[0]
         with self.assertTraitChanges(
                 self.parameter_view, 'verify_workflow_event', count=2):

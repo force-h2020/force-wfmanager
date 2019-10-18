@@ -190,15 +190,14 @@ class VariableNamesRegistry(HasStrictTraits):
     @on_trait_change(
         'workflow.mco.parameters.[name,type],'
         'workflow.execution_layers.data_sources.'
-        '[input_slot_info.name,output_slot_info.name]'
+        '[input_slot_info.[name,type],'
+        'output_slot_info.[name,type]]'
     )
     def update_available_variables_stacks(self):
         """Updates the list of available variables. At present getting
         the datasource output slots requires creating the datasource by
         calling ``create_data_source()``."""
-        # FIXME: Remove reliance on create_data_source(). If one datasource
-        # FIXME: has an error, this shouldn't blow up the whole workflow.
-        # FIXME: Especially during the setup phase!
+
         input_stack = []
         output_stack = []
         # At the first layer, the available variables are the MCO parameters
@@ -208,41 +207,15 @@ class VariableNamesRegistry(HasStrictTraits):
             output_stack_entry_for_layer = []
 
             for data_source_model in layer.data_sources:
-                input_names = [
-                    info.name for info in data_source_model.input_slot_info
-                ]
-                output_names = [
-                    info.name for info in data_source_model.output_slot_info
-                ]
-
-                # This try-except is also in execute.py in force_bdss, so if
-                # this fails the workflow would not be able to run anyway.
-                try:
-                    data_source = (
-                        data_source_model.factory.create_data_source())
-
-                    # ds.slots() returns (input_slots, output_slots)
-                    input_slots = data_source.slots(data_source_model)[0]
-                    output_slots = data_source.slots(data_source_model)[1]
-                except Exception:
-                    log.exception(
-                        "Unable to create data source from factory '{}' "
-                        "in plugin '{}'. This may indicate a programming "
-                        "error in the plugin".format(
-                            data_source_model.factory.id,
-                            data_source_model.factory.plugin.id))
-                    raise
-
-                input_types = [slot.type for slot in input_slots]
-                output_types = [slot.type for slot in output_slots]
-
                 input_stack_entry_for_layer.append([
-                    (name, type) for name, type
-                    in zip(input_names, input_types) if name != ''
+                    (slot_info.name, slot_info.type) for slot_info
+                    in data_source_model.input_slot_info
+                    if slot_info.name != ''
                 ])
                 output_stack_entry_for_layer.append([
-                    (name, type) for name, type
-                    in zip(output_names, output_types) if name != ''
+                    (slot_info.name, slot_info.type) for slot_info
+                    in data_source_model.output_slot_info
+                    if slot_info.name != ''
                 ])
 
             input_stack.append(input_stack_entry_for_layer)
