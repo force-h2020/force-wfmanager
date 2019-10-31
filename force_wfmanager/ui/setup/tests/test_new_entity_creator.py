@@ -13,7 +13,7 @@ from force_wfmanager.tests.dummy_classes.dummy_model_info import (
     DummyModelInfo
 )
 from force_wfmanager.tests.probe_classes import (
-    ProbeDataSourceModel_2 as ProbeDataSourceModelDescription
+    ProbeDataSourceModel2 as ProbeDataSourceModelDescription
 )
 from force_wfmanager.ui.setup.new_entity_creator import (
      NewEntityCreator

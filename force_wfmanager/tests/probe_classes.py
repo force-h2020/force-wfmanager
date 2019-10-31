@@ -48,12 +48,12 @@ class ProbeWfManager(WfManager):
         self.run = self._create_windows
 
 
-class ProbeDataSourceModel_2(ProbeDataSourceModel):
+class ProbeDataSourceModel2(ProbeDataSourceModel):
 
     test_trait = Int(13, desc='Test trait', verify=True)
 
 
-class ProbeDataSourceFactory_2(ProbeDataSourceFactory):
+class ProbeDataSourceFactory2(ProbeDataSourceFactory):
 
     def get_model_class(self):
-        return ProbeDataSourceModel_2
+        return ProbeDataSourceModel2
