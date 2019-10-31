@@ -1,5 +1,8 @@
+from traits.testing.unittest_tools import UnittestTools
+
 from force_bdss.api import (OutputSlotInfo, InputSlotInfo, BaseDataSourceModel)
 
+from force_wfmanager.tests.probe_classes import ProbeDataSourceFactory_2
 from force_wfmanager.ui.setup.process.data_source_view import \
     DataSourceView
 from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
@@ -7,7 +10,7 @@ from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
 )
 
 
-class TestDataSourceView(WfManagerBaseTestCase):
+class TestDataSourceView(WfManagerBaseTestCase, UnittestTools):
 
     def setUp(self):
         super(TestDataSourceView, self).setUp()
@@ -105,3 +108,20 @@ class TestDataSourceView(WfManagerBaseTestCase):
                       self.data_source_view.selected_slot_description)
         self.assertIn("PRESSURE",
                       self.data_source_view.selected_slot_description)
+
+    def test_verify_data_source(self):
+
+        factory = ProbeDataSourceFactory_2({'id': '0', 'name': 'plugin'})
+        model = factory.create_model()
+        data_source_view = DataSourceView(
+            model=model,
+            variable_names_registry=self.variable_names_registry
+        )
+
+        with self.assertTraitChanges(
+                data_source_view, 'verify_workflow_event', 0):
+            model.input_slots_size = 10
+
+        with self.assertTraitChanges(
+                data_source_view, 'verify_workflow_event', 1):
+            model.test_trait = 10
