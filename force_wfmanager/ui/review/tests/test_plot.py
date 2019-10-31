@@ -18,6 +18,21 @@ class TestAnyPlot(object):
     def setUp(self):
         self.analysis_model = AnalysisModel()
 
+    def check_update_is_requested_and_apply(self):
+        """ Check that a plot update is requested (scheduled for the next
+        cycle of the timer) and that the timer is active, which means the
+        updates are going to happen.
+        Once that is assured, do the updates immediately instead of waiting
+        one cycle (that would slow down the test)
+        """
+        # check
+        self.assertTrue(self.plot.update_required)
+        self.assertTrue(self.plot.plot_updater.active)
+        # update
+        self.plot.update_data_arrays()
+        self.plot._update_plot()
+        self.plot.update_required = False
+
     def test_init(self):
         self.assertEqual(len(self.analysis_model.value_names), 0)
         self.assertEqual(len(self.analysis_model.evaluation_steps), 0)
@@ -30,7 +45,7 @@ class TestAnyPlot(object):
             self.plot._plot_data.get_data('x').tolist(), [])
         self.assertEqual(
             self.plot._plot_data.get_data('y').tolist(), [])
-        self.assertTrue(self.plot.plot_updater.IsRunning())
+        self.assertTrue(self.plot.plot_updater.active)
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ('density', 'pressure')
@@ -47,7 +62,7 @@ class TestAnyPlot(object):
             self.assertIsInstance(self.plot._axis, ScatterPlot)
 
     def test_plot_updater(self):
-        self.assertTrue(self.plot.plot_updater.IsRunning())
+        self.assertTrue(self.plot.plot_updater.active)
         with mock.patch(
                 "force_wfmanager.ui.review.plot."
                 + self.plot.__class__.__name__
@@ -83,9 +98,13 @@ class TestAnyPlot(object):
             self.assertFalse(self.plot.update_required)
 
     def test_push_new_evaluation_steps(self):
+        self.assertFalse(self.plot.update_required)
+
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
+
+        self.check_update_is_requested_and_apply()
 
         self.assertEqual(len(self.plot._data_arrays), 2)
 
@@ -98,12 +117,16 @@ class TestAnyPlot(object):
         # Append only one evaluation step
         self.analysis_model.add_evaluation_step((1.123, 102000))
 
+        self.check_update_is_requested_and_apply()
+
         self.assertEqual(first_data_array, [1.010, 1.100, 1.123])
         self.assertEqual(second_data_array, [101325, 101423, 102000])
 
         # Append two evaluation steps at the same time
         self.analysis_model.add_evaluation_step((1.156, 102123))
         self.analysis_model.add_evaluation_step((1.242, 102453))
+
+        self.check_update_is_requested_and_apply()
 
         self.assertEqual(
             first_data_array, [1.010, 1.100, 1.123, 1.156, 1.242])
@@ -114,6 +137,7 @@ class TestAnyPlot(object):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
+        self.check_update_is_requested_and_apply()
 
         self.assertEqual(len(self.plot._data_arrays), 2)
 
@@ -124,6 +148,7 @@ class TestAnyPlot(object):
         self.assertEqual(second_data_array, [101325, 101423])
 
         self.analysis_model.clear_steps()
+        self.check_update_is_requested_and_apply()
 
         self.assertEqual(first_data_array, [])
         self.assertEqual(second_data_array, [])
@@ -132,7 +157,7 @@ class TestAnyPlot(object):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
-        self.plot._update_plot()
+        self.check_update_is_requested_and_apply()
 
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(),
@@ -159,7 +184,7 @@ class TestAnyPlot(object):
         self.analysis_model.value_names = ('density', 'pressure')
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
-        self.plot._update_plot()
+        self.check_update_is_requested_and_apply()
 
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(),
@@ -228,7 +253,7 @@ class TestAnyPlot(object):
         # One data point
         self.analysis_model.value_names = ('x', 'y')
         self.analysis_model.add_evaluation_step((2, 3))
-        self.plot._update_plot()
+        self.check_update_is_requested_and_apply()
         committed_range = self.plot.recenter_plot()
         actual_range = self.plot._get_plot_range()
         self.assertEqual(committed_range, (1.5, 2.5, 2.5, 3.5))
@@ -237,7 +262,7 @@ class TestAnyPlot(object):
 
         # More than 1 data point
         self.analysis_model.add_evaluation_step((3, 4))
-        self.plot._update_plot()
+        self.check_update_is_requested_and_apply()
         self.plot.recenter_plot()
         committed_range = self.plot.recenter_plot()
         actual_range = self.plot._get_plot_range()

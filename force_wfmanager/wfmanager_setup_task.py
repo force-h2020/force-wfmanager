@@ -11,21 +11,23 @@ from pyface.api import (
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
 from traits.api import (
-    Bool, File, Instance, List, on_trait_change, Unicode)
+    Bool, File, Instance, List, on_trait_change, Unicode
+)
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
-    MCOProgressEvent, MCOStartEvent,
-    InvalidFileException
+    MCOProgressEvent, MCOStartEvent, InvalidFileException, Workflow
 )
-from force_bdss.api import Workflow
-
 from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.plugins.plugin_dialog import PluginDialog
+from force_wfmanager.server.zmq_server import ZMQServer
+from force_wfmanager.ui import (
+    ContributedUI, ContributedUIHandler, UISelectModal
+)
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.setup.system_state import SystemState
-from force_wfmanager.plugins.plugin_dialog import PluginDialog
-from force_wfmanager.server.zmq_server import ZMQServer
+
 from force_wfmanager.wfmanager import (
     TaskToggleGroupAccelerator
 )
@@ -97,6 +99,12 @@ class WfManagerSetupTask(Task):
 
     #: Review Task
     review_task = Instance(Task)
+
+    #: A list of plugin contributed UIs
+    contributed_uis = List(ContributedUI)
+
+    #: Selected contributed UI
+    selected_contributed_ui = Instance(ContributedUI)
 
     # ------------------
     #      Defaults
@@ -213,6 +221,13 @@ class WfManagerSetupTask(Task):
                     method="open_plugins",
                     image_size=(64, 64)
                 ),
+                TaskAction(
+                    name="Custom UI",
+                    tooltip="Load a plugin contributed custom UI.",
+                    image=ImageResource("baseline_dvr_black_48dp"),
+                    method="ui_select",
+                    image_size=(64, 64)
+                )
 
             )
         ]
@@ -666,3 +681,40 @@ class WfManagerSetupTask(Task):
 
     def exit(self):
         self.window.close()
+
+    # Custom UI Methods
+    def ui_select(self):
+        plugins = [
+            plugin for plugin in self.window.application.plugin_manager
+            if isinstance(plugin, BaseExtensionPlugin)
+        ]
+
+        # Plugins guaranteed to have an id, so sort by that if name is not set
+        plugins.sort(
+            key=lambda s: s.name if s.name not in ('', None) else s.id
+        )
+        ui_modal = UISelectModal(
+            contributed_uis=self.contributed_uis,
+            available_plugins=plugins
+        )
+        ui_modal.edit_traits()
+        self.selected_contributed_ui = ui_modal.selected_ui
+        if self.selected_contributed_ui:
+            self.selected_contributed_ui.on_trait_event(
+                self.update_workflow_custom_ui, 'update_workflow'
+            )
+            self.selected_contributed_ui.on_trait_event(
+                self.run_bdss_custom_ui, 'run_workflow'
+            )
+            self.selected_contributed_ui.edit_traits(
+                handler=ContributedUIHandler()
+            )
+
+    def update_workflow_custom_ui(self):
+        self.workflow_model = self.selected_contributed_ui.create_workflow(
+            factory_registry=self.factory_registry
+        )
+
+    def run_bdss_custom_ui(self):
+        self.update_workflow_custom_ui()
+        self.run_bdss()

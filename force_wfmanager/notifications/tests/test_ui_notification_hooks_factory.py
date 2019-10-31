@@ -13,7 +13,8 @@ class TestUINotificationHooksFactory(unittest.TestCase):
         self.factory = self.plugin.ui_hooks_factories[0]
 
     def test_initialization(self):
-        self.assertEqual(self.factory.plugin, self.plugin)
+        self.assertEqual(self.factory.plugin_id, self.plugin.id)
+        self.assertEqual(self.factory.plugin_name, self.plugin.name)
 
     def test_create_ui_hooks_manager(self):
         self.assertIsInstance(

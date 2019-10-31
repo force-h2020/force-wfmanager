@@ -1,4 +1,3 @@
-from envisage.plugin import Plugin
 from traits.api import (
     Bool, Callable, Dict, Either, HasStrictTraits, Instance, List, ReadOnly,
     Property, Unicode, on_trait_change
@@ -21,7 +20,7 @@ class PluginModelView(HasStrictTraits):
     in the TreeEditor of the NewEntityCreator.
     """
     #: An instance of an external Envisage Plugin.
-    plugin = Instance(Plugin)
+    id = Unicode()
 
     #: The name of the PluginModelView
     name = Unicode("plugin")
@@ -218,13 +217,13 @@ class NewEntityCreator(HasStrictTraits):
             plugin_dict[plugin].append(factory)
 
         # Order the keys alphabetically by plugin name
-        ordered_keys = sorted(plugin_dict.keys(), key=lambda p: p.name)
+        ordered_keys = sorted(plugin_dict.keys(), key=lambda p: p[1])
 
         plugins = []
         for plugin in ordered_keys:
             factories = plugin_dict[plugin]
             plugins.append(PluginModelView(
-                plugin=plugin, factories=factories, name=plugin.name
+                id=plugin[0], factories=factories, name=plugin[1]
             ))
         return Root(plugins=plugins)
 
@@ -327,15 +326,15 @@ class NewEntityCreator(HasStrictTraits):
             self.model = self.selected_factory.create_model()
 
     def get_plugin_from_factory(self, factory):
-        """Returns the plugin associated with a particular factory
+        """Returns the plugin information (id, name) associated with a
+        particular factory
 
         Parameters
         ----------
         factory: BaseFactory
             The factory to get plugin information for.
         """
-        plugin = factory.plugin
-        return plugin
+        return factory.plugin_id, factory.plugin_name
 
 
 # A generic HTML header and body with title and text

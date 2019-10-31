@@ -132,11 +132,9 @@ class KPISpecificationView(BaseMCOOptionsView):
         kpi_name_options = []
         if self.variable_names_registry is not None:
             outputs = self.variable_names_registry.data_source_outputs
-            inputs = self.variable_names_registry.data_source_inputs
 
             kpi_name_options += (
-                [output_ for output_ in outputs
-                 if output_ not in inputs]
+                [output_ for output_ in outputs]
             )
 
         return kpi_name_options

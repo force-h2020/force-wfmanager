@@ -100,7 +100,8 @@ class TestNewEntityModel(unittest.TestCase):
         root = model._plugins_root_default()
 
         self.assertEqual(len(root.plugins), 1)
-        self.assertEqual(root.plugins[0].plugin, self.plugin)
+        self.assertEqual(root.plugins[0].id, self.plugin.id)
+        self.assertEqual(root.plugins[0].name, self.plugin.name)
 
     def test_description_editable_data_source(self):
         model, _ = self._get_data_selector()

@@ -6,10 +6,8 @@ from envisage.api import Application
 from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.tests.mock_methods import mock_return_none
 
-SETUP_TASK = ("force_wfmanager.plugins.wfmanager_plugin"
-              ".WfManagerSetupTask")
-REVIEW_TASK = ("force_wfmanager.plugins.wfmanager_plugin"
-               ".WfManagerReviewTask")
+SETUP_TASK = "force_wfmanager.plugins.wfmanager_plugin.WfManagerSetupTask"
+REVIEW_TASK = "force_wfmanager.plugins.wfmanager_plugin.WfManagerReviewTask"
 PLUGIN_SERVICE = 'envisage.api.Plugin.application.get_service'
 
 
