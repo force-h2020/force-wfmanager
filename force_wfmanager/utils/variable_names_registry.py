@@ -230,7 +230,7 @@ class VariableNamesRegistry(HasStrictTraits):
                         "in plugin '{}'. This may indicate a programming "
                         "error in the plugin".format(
                             data_source_model.factory.id,
-                            data_source_model.factory.plugin.id))
+                            data_source_model.factory.plugin_id))
                     raise
 
                 input_types = [slot.type for slot in input_slots]
