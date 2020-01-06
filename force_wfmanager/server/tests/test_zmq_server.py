@@ -168,6 +168,7 @@ class TestZMQServer(unittest.TestCase):
                 x.encode('utf-8')
                 for x in ["MESSAGE", "xxx", json.dumps(
                     {
+                        "module": "force_bdss.core_driver_events",
                         'type': 'MCOStartEvent',
                         'model_data': {}
                     })]]
@@ -253,6 +254,7 @@ class TestZMQServer(unittest.TestCase):
                 x.encode('utf-8')
                 for x in ["MESSAGE", "xxx", json.dumps(
                     {
+                        "module": "force_bdss.core_driver_events",
                         'type': 'MCOStartEvent',
                         'model_data': {}
                     })]]

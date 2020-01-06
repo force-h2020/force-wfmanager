@@ -18,6 +18,7 @@ class TestEventSerializer(unittest.TestCase):
         self.assertEqual(
             json.loads(data),
             {
+                "module": "force_bdss.core_driver_events",
                 "type": "MCOStartEvent",
                 "model_data": {
                     "parameter_names": ["a", "b"],

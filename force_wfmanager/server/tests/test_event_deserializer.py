@@ -11,6 +11,7 @@ from force_bdss.api import MCOStartEvent, MCOProgressEvent
 class TestEventDeserializer(unittest.TestCase):
     def test_instantiation(self):
         data = json.dumps({
+            "module": "force_bdss.core_driver_events",
             "type": "MCOStartEvent",
             "model_data": {
                 "parameter_names": ["a", "b"],
@@ -25,6 +26,7 @@ class TestEventDeserializer(unittest.TestCase):
 
     def test_progress_event_deserialize(self):
         data = json.dumps({
+            "module": "force_bdss.core_driver_events",
             "type": "MCOProgressEvent",
             "model_data": {
                 "optimal_point": [
@@ -65,20 +67,27 @@ class TestEventDeserializer(unittest.TestCase):
                 }
             },
             {
+                "module": "force_bdss.core_driver_events",
                 "type": "BaseDeviceEvent",
                 "model_data": {
                 }
             },
             {
+                "module": "force_bdss.core.kpi_specification",
+                "type": "KPISpecification",
                 "model_data": {
                 }
             },
             {
-                "type": "MCOStartEvent"
+                "module": "force_bdss.core.kpi_specification",
+                "model_data": {
+                }
             },
             {
-                "type": "MCOStartEvent"
-            }]
+                "module": "force_bdss.core_driver_events",
+                "type": "BaseDriverEvent"
+            },
+        ]
 
         for case in invalid_cases:
             with self.assertRaises(DeserializerError):
