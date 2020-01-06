@@ -55,12 +55,9 @@ class EventDeserializer(object):
             raise DeserializerError("Unable to deserialize requested "
                                     "type {}".format(class_name))
 
-        if (cls is None or
-                not issubclass(cls, BaseDriverEvent) or
-                cls == BaseDriverEvent):
-
-            raise DeserializerError("Unable to deserialize requested "
-                                    "type {}".format(class_name))
+        if not issubclass(cls, BaseDriverEvent):
+            raise DeserializerError("Class {} is not a child of BaseDriverEvent"
+                                    " class".format(class_name))
 
         if "model_data" not in d:
             raise DeserializerError("Unable to find model data for "
