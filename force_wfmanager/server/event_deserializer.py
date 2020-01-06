@@ -1,6 +1,7 @@
 import json
+import importlib
 
-from force_bdss.api import DataValue, MCOProgressEvent
+from force_bdss.api import DataValue, MCOProgressEvent, BaseDriverEvent
 
 
 class DeserializerError(Exception):
@@ -37,21 +38,26 @@ class EventDeserializer(object):
             raise DeserializerError("Could not parse json data: {}".format(e))
 
         try:
+            class_module = d["module"]
+        except KeyError:
+            raise DeserializerError("Could not find module key in json "
+                                    "data.")
+        try:
             class_name = d["type"]
         except KeyError:
             raise DeserializerError("Could not find type key in json "
                                     "data.")
 
-        from force_bdss import api
         try:
-            cls = getattr(api, class_name)
+            module = importlib.import_module(class_module)
+            cls = getattr(module, class_name)
         except AttributeError:
             raise DeserializerError("Unable to deserialize requested "
                                     "type {}".format(class_name))
 
         if (cls is None or
-                not issubclass(cls, api.BaseDriverEvent) or
-                cls == api.BaseDriverEvent):
+                not issubclass(cls, BaseDriverEvent) or
+                cls == BaseDriverEvent):
 
             raise DeserializerError("Unable to deserialize requested "
                                     "type {}".format(class_name))
