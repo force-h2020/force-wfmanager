@@ -30,7 +30,8 @@ class EventSerializer(object):
             raise SerializerError("Cannot serialize classes not derived "
                                   "from BaseDriverEvent")
         data = json.dumps(
-            {"type": event.__class__.__name__,
+            {"module": event.__class__.__module__,
+             "type": event.__class__.__name__,
              "model_data": pop_recursive(
                  event.__getstate__(),
                  "__traits_version__")
