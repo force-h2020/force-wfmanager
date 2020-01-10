@@ -79,9 +79,9 @@ class WorkflowView(HasTraits):
             variable_names_registry=self.variable_names_registry)]
 
     def _mco_view_default(self):
-        if self.model.mco is not None:
+        if self.model.mco_model is not None:
             return [MCOView(
-                model=self.model.mco,
+                model=self.model.mco_model,
                 variable_names_registry=self.variable_names_registry)]
         else:
             return []
@@ -99,7 +99,7 @@ class WorkflowView(HasTraits):
     def update_process_view(self):
         self.process_view = self._process_view_default()
 
-    @on_trait_change('model:mco')
+    @on_trait_change('model:mco_model')
     def update_mco_view(self):
         self.mco_view = self._mco_view_default()
 

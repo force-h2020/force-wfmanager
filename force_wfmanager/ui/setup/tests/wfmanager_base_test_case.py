@@ -79,7 +79,7 @@ class WfManagerBaseTestCase(unittest.TestCase):
         #: Set up workflow containing 1 execution layer with 2
         #: data sources, 2 MCO parameters and 1 listener
         self.workflow = Workflow(
-            mco=self.mco_model,
+            mco_model=self.mco_model,
             execution_layers=[self.execution_layer],
             notification_listeners=[self.notification_listener]
         )

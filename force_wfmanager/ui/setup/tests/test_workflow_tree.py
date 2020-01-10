@@ -169,7 +169,7 @@ class TestWorkflowTree(WfManagerBaseTestCase):
             _factory_registry=self.factory_registry,
             system_state=self.system_state)
 
-        self.assertIsNone(workflow_tree.workflow_view.model.mco)
+        self.assertIsNone(workflow_tree.workflow_view.model.mco_model)
         self.assertEqual(len(workflow_tree.workflow_view.mco_view), 0)
 
         workflow_tree.mco_selected(workflow_tree.workflow_view)
@@ -179,14 +179,14 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         )
         self.system_state.add_new_entity()
 
-        self.assertIsNotNone(workflow_tree.workflow_view.model.mco)
+        self.assertIsNotNone(workflow_tree.workflow_view.model.mco_model)
         self.assertEqual(len(workflow_tree.workflow_view.mco_view), 1)
-        self.assertIsInstance(workflow_tree.workflow_view.model.mco,
+        self.assertIsInstance(workflow_tree.workflow_view.model.mco_model,
                               BaseMCOModel)
 
     def test_delete_mco(self):
 
-        self.assertIsNotNone(self.workflow_tree.model.mco)
+        self.assertIsNotNone(self.workflow_tree.model.mco_model)
         self.assertEqual(1, len(self.workflow_tree.workflow_view.mco_view))
 
         mco_view = self.workflow_tree.workflow_view.mco_view[0]
@@ -194,7 +194,7 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         self.workflow_tree.mco_optimizer_selected(mco_view)
         self.system_state.remove_entity()
 
-        self.assertIsNone(self.workflow_tree.model.mco)
+        self.assertIsNone(self.workflow_tree.model.mco_model)
         self.assertEqual(0, len(self.workflow_tree.workflow_view.mco_view))
 
     def test_new_execution_layer(self):
