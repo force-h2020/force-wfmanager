@@ -74,7 +74,7 @@ class TestWorkflowView(WfManagerBaseTestCase, UnittestTools):
 
     def test_set_mco(self):
         mco_model = self.factory_registry.mco_factories[0].create_model()
-        self.workflow_view.set_mco(mco_model)
+        self.workflow_view.model.mco_model = mco_model
 
         self.assertIsNotNone(self.workflow_view.model.mco)
 

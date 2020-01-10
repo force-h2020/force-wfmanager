@@ -646,7 +646,7 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def new_mco(self, ui_info, object):
         """Adds a new mco to the workflow"""
-        object.set_mco(self.system_state.entity_creator.model)
+        object.model.mco_model = self.system_state.entity_creator.model
         self.system_state.entity_creator.reset_model()
 
     @triggers_verify
@@ -673,7 +673,7 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def delete_mco(self, ui_info, object):
         """Delete a mco from the workflow"""
-        self.workflow_view.set_mco(None)
+        self.workflow_view.model.mco_model = None
 
     @triggers_verify
     def delete_notification_listener(self, ui_info, object):

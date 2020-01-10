@@ -117,10 +117,6 @@ class WorkflowView(HasTraits):
     #   Public Methods
     # -------------------
 
-    def set_mco(self, mco_model):
-        """Set the MCO"""
-        self.model.mco = mco_model
-
     def remove_execution_layer(self, layer):
         """Removes the execution layer from the model."""
         self.process_view[0].remove_execution_layer(layer)
