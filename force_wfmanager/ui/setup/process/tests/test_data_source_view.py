@@ -37,7 +37,7 @@ class TestDataSourceView(WfManagerBaseTestCase):
         self.assertEqual('', self.model_1.output_slot_info[0].name)
 
     def test_input_slot_update(self):
-        self.workflow.mco.parameters[0].name = 'P2'
+        self.workflow.mco_model.parameters[0].name = 'P2'
         self.assertEqual('P1', self.model_1.input_slot_info[0].name)
 
         self.data_source_view.input_slots_representation[0].name = 'P2'

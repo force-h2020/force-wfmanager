@@ -30,7 +30,7 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
         )
 
         self.mco_view = MCOView(
-            model=self.workflow.mco,
+            model=self.workflow.mco_model,
             variable_names_registry=self.variable_names_registry
         )
 
@@ -128,7 +128,7 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
 
         old_parameter_view = self.mco_view.parameter_view
         new_parameter_view = MCOParameterView(
-            model=self.workflow.mco
+            model=self.workflow.mco_model
         )
 
         self.mco_view.parameter_view = new_parameter_view
@@ -144,7 +144,7 @@ class TestMCOView(WfManagerBaseTestCase, UnittestTools):
 
         old_kpi_view = self.mco_view.kpi_view
         new_kpi_view = KPISpecificationView(
-            model=self.workflow.mco
+            model=self.workflow.mco_model
         )
 
         self.mco_view.kpi_view = new_kpi_view

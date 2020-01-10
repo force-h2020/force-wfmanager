@@ -69,9 +69,9 @@ class VariableNamesRegistry(HasStrictTraits):
     #: The size of the base list should be the number of layers plus one.
     #: the last one being the variables that are added by the last layer.
     #:
-    #: Listens to: `workflow.mco.parameters.name`,
+    #: Listens to: `workflow.mco_model.parameters.name`,
     #: `workflow.execution_layers.data_sources.output_slot_info.name`,
-    #: `workflow.mco.parameters.type`
+    #: `workflow.mco_model.parameters.type`
     available_input_variables_stack = List(exec_layer_input)
 
     available_output_variables_stack = List(exec_layer_output)
@@ -188,7 +188,7 @@ class VariableNamesRegistry(HasStrictTraits):
         return res
 
     @on_trait_change(
-        'workflow.mco.parameters.[name,type],'
+        'workflow.mco_model.parameters.[name,type],'
         'workflow.execution_layers.data_sources.'
         '[input_slot_info.name,output_slot_info.name]'
     )

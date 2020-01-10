@@ -15,14 +15,14 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
     def setUp(self):
         self.registry = get_basic_variable_names_registry()
         self.workflow = self.registry.workflow
-        self.param1 = self.workflow.mco.parameters[0]
-        self.param2 = self.workflow.mco.parameters[1]
-        self.param3 = self.workflow.mco.parameters[2]
+        self.param1 = self.workflow.mco_model.parameters[0]
+        self.param2 = self.workflow.mco_model.parameters[1]
+        self.param3 = self.workflow.mco_model.parameters[2]
         self.data_source1 = self.workflow.execution_layers[0].data_sources[0]
         self.data_source2 = self.workflow.execution_layers[0].data_sources[1]
 
         self.parameter_view = MCOParameterView(
-            model=self.workflow.mco,
+            model=self.workflow.mco_model,
             variable_names_registry=self.registry
         )
 
@@ -57,7 +57,7 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
 
         self.parameter_view._add_parameter_button_fired()
 
-        self.assertEqual(4, len(self.workflow.mco.parameters))
+        self.assertEqual(4, len(self.workflow.mco_model.parameters))
         self.assertEqual(4, len(self.parameter_view.model_views))
 
         parameter_model_view = self.parameter_view.model_views[3]
@@ -71,7 +71,7 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
         )
 
         self.parameter_view._dclick_add_parameter(None)
-        self.assertEqual(5, len(self.workflow.mco.parameters))
+        self.assertEqual(5, len(self.workflow.mco_model.parameters))
 
     def test_remove_parameter(self):
 
@@ -79,7 +79,7 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
         self.parameter_view.selected_model_view = parameter_model_view
         self.parameter_view._remove_parameter_button_fired()
 
-        self.assertEqual(2, len(self.workflow.mco.parameters))
+        self.assertEqual(2, len(self.workflow.mco_model.parameters))
         self.assertEqual(2, len(self.parameter_view.model_views))
         self.assertEqual(
             self.parameter_view.selected_model_view,
@@ -98,12 +98,12 @@ class TestMCOParameterView(unittest.TestCase, UnittestTools):
         self.data_source1.input_slot_info = [InputSlotInfo(name='T1')]
         self.data_source2.input_slot_info = [InputSlotInfo(name='T2')]
 
-        self.workflow.mco.parameters[0].name = 'T1'
-        self.workflow.mco.parameters[1].name = 'T2'
+        self.workflow.mco_model.parameters[0].name = 'T1'
+        self.workflow.mco_model.parameters[1].name = 'T2'
         error_message = self.parameter_view.verify_model_names()
         self.assertEqual(0, len(error_message))
 
-        self.workflow.mco.parameters[0].name = 'T2'
+        self.workflow.mco_model.parameters[0].name = 'T2'
         error_message = self.parameter_view.verify_model_names()
         self.assertIn(
             'Two or more Parameters have a duplicate name',

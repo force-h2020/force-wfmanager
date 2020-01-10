@@ -29,7 +29,7 @@ class TestWorkflowTree(WfManagerBaseTestCase):
             data_sources=data_sources
         )
         self.workflow.execution_layers.append(execution_layer)
-        self.workflow.mco.kpis.append(KPISpecification())
+        self.workflow.mco_model.kpis.append(KPISpecification())
 
         self.system_state = SystemState()
         self.workflow_tree = WorkflowTree(
@@ -371,7 +371,7 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         self.assertFalse(mco_view.valid)
         self.assertFalse(self.workflow_tree.workflow_view.valid)
 
-        self.workflow.mco.kpis = []
+        self.workflow.mco_model.kpis = []
         self.assertTrue(mco_view.parameter_view.valid)
 
         self.system_state.selected_view = mco_view.parameter_view
