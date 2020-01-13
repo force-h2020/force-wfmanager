@@ -1,8 +1,6 @@
 FORCE Workflow Manager
 ----------------------
 
-The Workflow Manager UI for the FORCE project.
-
 .. image:: https://travis-ci.org/force-h2020/force-wfmanager.svg?branch=master
     :target: https://travis-ci.org/force-h2020/force-wfmanager
     :alt: Build status
@@ -12,8 +10,8 @@ The Workflow Manager UI for the FORCE project.
     :alt: Coverage status
 
 This repository contains the implementation of the Workflow Manager UI for the Business Decision Support System (BDSS).
- It is implemented under the Formulations and Computational Engineering (FORCE) project within Horizon 2020
- (`NMBP-23-2016/721027 <https://www.the-force-project.eu>`_).
+It is implemented under the Formulations and Computational Engineering (FORCE) project within Horizon 2020
+(`NMBP-23-2016/721027 <https://www.the-force-project.eu>`_).
 
 Installation
 ------------
