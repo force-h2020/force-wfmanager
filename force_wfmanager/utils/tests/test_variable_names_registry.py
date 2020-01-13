@@ -20,7 +20,7 @@ def get_basic_variable_names_registry():
     workflow = Workflow()
 
     mco_factory = ProbeMCOFactory(plugin)
-    mco = mco_factory.create_model()
+    mco_model = mco_factory.create_model()
 
     param_factory = ProbeParameterFactory(mco_factory)
     param1 = param_factory.create_model()
@@ -41,8 +41,8 @@ def get_basic_variable_names_registry():
     # third layer
     data_source4 = data_source_factory.create_model()
 
-    workflow.mco = mco
-    mco.parameters = [param1, param2, param3]
+    workflow.mco_model = mco_model
+    mco_model.parameters = [param1, param2, param3]
     workflow.execution_layers.extend([
         ExecutionLayer(
             data_sources=[data_source1, data_source2]
@@ -63,9 +63,9 @@ class VariableNamesRegistryTest(unittest.TestCase):
     def setUp(self):
         self.registry = get_basic_variable_names_registry()
         self.workflow = self.registry.workflow
-        self.param1 = self.workflow.mco.parameters[0]
-        self.param2 = self.workflow.mco.parameters[1]
-        self.param3 = self.workflow.mco.parameters[2]
+        self.param1 = self.workflow.mco_model.parameters[0]
+        self.param2 = self.workflow.mco_model.parameters[1]
+        self.param3 = self.workflow.mco_model.parameters[2]
         self.data_source1 = self.workflow.execution_layers[0].data_sources[0]
         self.data_source2 = self.workflow.execution_layers[0].data_sources[1]
         self.data_source3 = self.workflow.execution_layers[1].data_sources[0]

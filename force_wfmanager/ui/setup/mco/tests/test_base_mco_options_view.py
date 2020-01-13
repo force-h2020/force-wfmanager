@@ -15,14 +15,14 @@ class TestBaseMCOOptionsView(unittest.TestCase, UnittestTools):
     def setUp(self):
         self.registry = get_basic_variable_names_registry()
         self.workflow = self.registry.workflow
-        self.param1 = self.workflow.mco.parameters[0]
-        self.param2 = self.workflow.mco.parameters[1]
-        self.param3 = self.workflow.mco.parameters[2]
+        self.param1 = self.workflow.mco_model.parameters[0]
+        self.param2 = self.workflow.mco_model.parameters[1]
+        self.param3 = self.workflow.mco_model.parameters[2]
         self.data_source1 = self.workflow.execution_layers[0].data_sources[0]
         self.data_source2 = self.workflow.execution_layers[0].data_sources[1]
 
         self.mco_options_view = DummyBaseMCOOptionsView(
-            model=self.workflow.mco,
+            model=self.workflow.mco_model,
             variable_names_registry=self.registry
         )
 

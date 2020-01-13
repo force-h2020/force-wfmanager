@@ -44,7 +44,7 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         #: Set up workflow containing 1 execution layer with 1
         #: data sources and 2 MCO parameters
         self.workflow = Workflow(
-            mco=self.mco_model,
+            mco_model=self.mco_model,
             execution_layers=[self.execution_layer]
         )
 
