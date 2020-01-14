@@ -1,8 +1,8 @@
 FORCE Workflow Manager
 ----------------------
 
-.. image:: https://travis-ci.org/force-h2020/force-wfmanager.svg?branch=master
-    :target: https://travis-ci.org/force-h2020/force-wfmanager
+.. image:: https://travis-ci.com/force-h2020/force-wfmanager.svg?branch=master
+    :target: https://travis-ci.com/force-h2020/force-wfmanager
     :alt: Build status
 
 .. image:: http://codecov.io/github/force-h2020/force-wfmanager/coverage.svg?branch=master
