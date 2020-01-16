@@ -83,7 +83,8 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             (
                 "force_wfmanager.wfmanager_setup_task",
                 "ERROR",
-                "Failed to create UI hook manager by factory ProbeUIHooksFactory",
+                "Failed to create UI hook manager by factory "
+                "ProbeUIHooksFactory",
             )
         )
 
