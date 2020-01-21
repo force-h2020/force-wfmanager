@@ -5,9 +5,11 @@ import copy
 from pyface.api import ImageResource, FileDialog, OK, error
 from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
-from traits.api import Bool, Instance, List, on_trait_change
+from traits.api import (
+    Bool, Instance, List, on_trait_change, DelegatesTo)
 
 from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
+from force_bdss.app.workflow_file import WorkflowFile
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
@@ -423,12 +425,14 @@ class WfManagerReviewTask(Task):
         can be used when saving the results of the run alongside the
         workflow that created it.
         """
+
         if self.setup_task.computation_running:
-            with tempfile.TemporaryFile(mode='w+t') as fp:
-                WorkflowWriter().write(self.setup_task.workflow_model, fp)
-                reader = WorkflowReader(self.setup_task.factory_registry)
-                fp.seek(0)
-                self.workflow_model = reader.read(fp)
+            state = {}
+            state['workflow'] = self.setup_task.workflow_model.__getstate__()
+            state['version'] = WorkflowWriter().version
+            self.workflow_model = Workflow.from_json(
+                self.setup_task.factory_registry, state
+            )
 
     # Menu/Toolbar Methods
 
