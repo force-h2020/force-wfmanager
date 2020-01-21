@@ -16,7 +16,7 @@ from traits.api import (
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
-    MCOProgressEvent, MCOStartEvent, InvalidFileException, Workflow
+    MCOProgressEvent, MCOStartEvent, InvalidFileException, Workflow, WorkflowWriter
 )
 
 from force_wfmanager.io.workflow_io import write_workflow_file, load_workflow_file
@@ -584,7 +584,7 @@ class WfManagerSetupTask(Task):
             return
 
         current_file = dialog.path
-        print(current_file)
+
         if self._write_workflow(current_file):
             self.current_file = current_file
             return True
@@ -637,8 +637,7 @@ class WfManagerSetupTask(Task):
 
             # Creates a temporary file containing the workflow
             tmpfile_path = tempfile.mktemp()
-            self.workflow_file.path = tmpfile_path
-            self.workflow_file.write()
+            WorkflowWriter().write(self.workflow_model, tmpfile_path)
 
             # Clear the analysis model before attempting to run
             self.analysis_model.clear()
@@ -718,7 +717,6 @@ class WfManagerSetupTask(Task):
             self.selected_contributed_ui.create_workflow(
                 factory_registry=self.factory_registry)
         )
-        self.workflow_file.workflow = self.workflow_model
 
     def run_bdss_custom_ui(self):
         self.update_workflow_custom_ui()
