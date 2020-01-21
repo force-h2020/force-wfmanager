@@ -9,7 +9,6 @@ from traits.api import (
     Bool, Instance, List, on_trait_change, DelegatesTo)
 
 from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
-from force_bdss.app.workflow_file import WorkflowFile
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
@@ -46,7 +45,7 @@ class WfManagerReviewTask(Task):
     #: This trait no longer tracks the workflow stored under
     #: :attr:`setup_task.workflow_model` and instead is only updated
     #: when a new run is started.
-    workflow_model = Instance(Workflow)
+    workflow_model = Instance(Workflow, allow_none=True)
 
     #: Analysis model. Contains the results that are displayed in the plot
     #: and table
@@ -357,7 +356,7 @@ class WfManagerReviewTask(Task):
 
             # create two separate workflows, so that setup task can be
             # edited without changing the review task copy
-            self.setup_task.workflow_file.workflow_model = (
+            self.setup_task.workflow_model = (
                 copy.copy(self.workflow_model))
 
             # share the analysis model with the setup_task

@@ -11,16 +11,15 @@ from pyface.api import (
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
 from traits.api import (
-    Bool, File, Instance, List, on_trait_change, Unicode,
-    DelegatesTo
+    Bool, File, Instance, List, on_trait_change, Unicode
 )
 
 from force_bdss.api import (
     BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
-    MCOProgressEvent, MCOStartEvent, InvalidFileException, Workflow,
-    WorkflowReader, WorkflowWriter
+    MCOProgressEvent, MCOStartEvent, InvalidFileException, Workflow
 )
-from force_bdss.app.workflow_file import WorkflowFile
+
+from force_wfmanager.io.workflow_io import write_workflow_file, load_workflow_file
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
@@ -46,12 +45,8 @@ class WfManagerSetupTask(Task):
 
     name = 'Workflow Setup'
 
-    #: WorkflowFile object containing the Workflow and
-    # read and write capabilities
-    workflow_file = Instance(WorkflowFile, allow_none=False)
-
     #: Workflow model.
-    workflow_model = DelegatesTo("workflow_file", prefix='workflow')
+    workflow_model = Instance(Workflow, allow_none=False)
 
     #: Analysis model. Contains the review that are displayed in the plot
     #: and table
@@ -243,20 +238,14 @@ class WfManagerSetupTask(Task):
             left=PaneItem('force_wfmanager.side_pane')
         )
 
+    def _workflow_model_default(self):
+        return Workflow()
+
     def _side_pane_default(self):
         return SidePane(
             workflow_model=self.workflow_model,
             factory_registry=self.factory_registry,
             system_state=self.system_state
-        )
-
-    def _workflow_file_default(self):
-        return WorkflowFile(
-            workflow=Workflow(),
-            reader=WorkflowReader(
-                factory_registry=self.factory_registry
-            ),
-            writer=WorkflowWriter()
         )
 
     def _analysis_model_default(self):
@@ -360,8 +349,7 @@ class WfManagerSetupTask(Task):
                 )
 
         try:
-            self.workflow_file.path = file_path
-            self.workflow_file.write()
+            write_workflow_file(self.workflow_model, file_path)
         except IOError as e:
             error(
                 None,
@@ -557,8 +545,10 @@ class WfManagerSetupTask(Task):
             The path to the workflow file
         """
         try:
-            self.workflow_file.path = file_path
-            self.workflow_file.read()
+            self.workflow_model = load_workflow_file(
+                self.factory_registry, file_path)
+            #self.workflow_file.path = file_path
+            #self.workflow_file.read()
         except (InvalidFileException, FileNotFoundError) as e:
             error(
                 None,
@@ -594,7 +584,7 @@ class WfManagerSetupTask(Task):
             return
 
         current_file = dialog.path
-
+        print(current_file)
         if self._write_workflow(current_file):
             self.current_file = current_file
             return True
@@ -724,10 +714,11 @@ class WfManagerSetupTask(Task):
             )
 
     def update_workflow_custom_ui(self):
-        self.workflow_file.workflow = (
+        self.workflow_model = (
             self.selected_contributed_ui.create_workflow(
                 factory_registry=self.factory_registry)
         )
+        self.workflow_file.workflow = self.workflow_model
 
     def run_bdss_custom_ui(self):
         self.update_workflow_custom_ui()
