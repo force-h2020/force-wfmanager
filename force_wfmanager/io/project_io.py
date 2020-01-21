@@ -1,7 +1,7 @@
 import logging
 import json
 
-from force_bdss.api import Workflow, WorkflowWriter
+from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
 
 log = logging.getLogger(__name__)
 
@@ -26,9 +26,10 @@ def write_project_file(workflow_model, analysis_model, file_path):
         # workflow and version that can be read back in by
         # :class:`WorkflowReader`, and dump to JSON
         project_json = {}
+        writer = WorkflowWriter()
         project_json['analysis_model'] = analysis_model.as_json()
-        project_json['workflow'] = workflow_model.__getstate__()
-        project_json['version'] = WorkflowWriter().version
+        project_json['workflow'] = writer.get_workflow_data(workflow_model)
+        project_json['version'] = writer.version
         json.dump(project_json, output, indent=4)
 
 
@@ -58,7 +59,7 @@ def load_project_file(factory_registry, file_path):
 
     analysis_model_dict = project_json['analysis_model']
 
-    workflow_model = Workflow.from_json(
-        factory_registry, project_json)
+    reader = WorkflowReader(factory_registry)
+    workflow_model = reader.load(file_path)
 
     return analysis_model_dict, workflow_model

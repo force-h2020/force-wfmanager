@@ -222,10 +222,9 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog,\
                 mock.patch(RESULTS_JSON_LOAD_PATH) as mock_json, \
                 mock.patch(WORKFLOW_FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(RESULTS_READER_PATH) as mock_reader:
+                mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True):
+
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_reader.side_effect = mock_file_reader
             mock_json.return_value = {'analysis_model': {'x': [1], 'y': [2]},
                                       'version': '1',
                                       'workflow': {}}
@@ -241,7 +240,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.review_task.open_project()
 
             self.assertTrue(mock_open.called)
-            self.assertTrue(mock_reader.called)
             self.assertTrue(mock_json.called)
 
             self.assertNotEqual(old_workflow, self.review_task.workflow_model)
