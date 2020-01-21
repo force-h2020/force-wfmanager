@@ -37,13 +37,14 @@ class WfManagerReviewTask(Task):
     tool_bars = List(SToolBar)
 
     id = 'force_wfmanager.wfmanager_review_task'
+
     name = 'Review'
 
     #: Workflow model used to create the review in the analysis model.
     #: This trait no longer tracks the workflow stored under
     #: :attr:`setup_task.workflow_model` and instead is only updated
     #: when a new run is started.
-    workflow_model = Instance(Workflow, allow_none=True)
+    workflow_model = Instance(Workflow)
 
     #: Analysis model. Contains the results that are displayed in the plot
     #: and table
@@ -354,7 +355,8 @@ class WfManagerReviewTask(Task):
 
             # create two separate workflows, so that setup task can be
             # edited without changing the review task copy
-            self.setup_task.workflow_model = copy.copy(self.workflow_model)
+            self.setup_task.workflow_file.workflow_model = (
+                copy.copy(self.workflow_model))
 
             # share the analysis model with the setup_task
             self.analysis_model.from_dict(analysis_model_dict)
@@ -420,7 +422,6 @@ class WfManagerReviewTask(Task):
         :attr:`setup_task.workflow_model` as :attr:workflow_model` that
         can be used when saving the results of the run alongside the
         workflow that created it.
-
         """
         if self.setup_task.computation_running:
             with tempfile.TemporaryFile(mode='w+t') as fp:
