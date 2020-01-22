@@ -351,14 +351,16 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             ):
                 self.setup_task.run_bdss()
 
-            capture.check(
+            self.assertIn(
                 (
                     "force_wfmanager.wfmanager_setup_task",
                     "ERROR",
                     "Failed before_execution hook for hook manager "
                     "ProbeUIHooksManager",
-                )
+                ),
+                capture.actual(),
             )
+
             hook_manager.before_execution_raises = False
             hook_manager.after_execution_raises = True
             with LogCapture() as capture, self.event_loop_until_condition(
@@ -366,13 +368,14 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             ):
                 self.setup_task.run_bdss()
 
-            capture.check(
+            self.assertIn(
                 (
                     "force_wfmanager.wfmanager_setup_task",
                     "ERROR",
                     "Failed after_execution hook for hook manager "
                     "ProbeUIHooksManager",
-                )
+                ),
+                capture.actual(),
             )
 
     def test_run_bdss_cancel(self):
