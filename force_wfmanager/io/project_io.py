@@ -1,7 +1,7 @@
 import logging
 import json
 
-from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
+from force_bdss.api import WorkflowWriter, WorkflowReader
 
 log = logging.getLogger(__name__)
 
@@ -60,8 +60,6 @@ def load_project_file(factory_registry, file_path):
     analysis_model_dict = project_json['analysis_model']
 
     reader = WorkflowReader(factory_registry)
-    workflow_data = reader._preprocess_workflow_data(project_json)
-    # workflow_model = reader.read(file_path)
-    workflow_model = Workflow.from_json(factory_registry, workflow_data)
+    workflow_model = reader.read(file_path)
 
     return analysis_model_dict, workflow_model

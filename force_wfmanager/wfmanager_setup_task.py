@@ -6,33 +6,46 @@ import tempfile
 import textwrap
 
 from pyface.api import (
-    FileDialog, GUI, ImageResource, OK, YES, confirm, error, information
+    FileDialog,
+    GUI,
+    ImageResource,
+    OK,
+    YES,
+    confirm,
+    error,
+    information,
 )
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
-from traits.api import (
-    Bool, File, Instance, List, on_trait_change, Unicode
-)
+from traits.api import Bool, File, Instance, List, on_trait_change, Unicode
 
 from force_bdss.api import (
-    BaseExtensionPlugin, BaseUIHooksManager, IFactoryRegistry,
-    MCOProgressEvent, MCOStartEvent, InvalidFileException, Workflow, WorkflowWriter
+    BaseExtensionPlugin,
+    BaseUIHooksManager,
+    IFactoryRegistry,
+    MCOProgressEvent,
+    MCOStartEvent,
+    InvalidFileException,
+    Workflow,
 )
 
-from force_wfmanager.io.workflow_io import write_workflow_file, load_workflow_file
+from force_wfmanager.io.workflow_io import (
+    write_workflow_file,
+    load_workflow_file,
+)
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.ui import (
-    ContributedUI, ContributedUIHandler, UISelectModal
+    ContributedUI,
+    ContributedUIHandler,
+    UISelectModal,
 )
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.setup.system_state import SystemState
 
-from force_wfmanager.wfmanager import (
-    TaskToggleGroupAccelerator
-)
+from force_wfmanager.wfmanager import TaskToggleGroupAccelerator
 
 
 log = logging.getLogger(__name__)
@@ -41,9 +54,9 @@ log = logging.getLogger(__name__)
 class WfManagerSetupTask(Task):
     """Task responsible for building / editing the Workflow"""
 
-    id = 'force_wfmanager.wfmanager_setup_task'
+    id = "force_wfmanager.wfmanager_setup_task"
 
-    name = 'Workflow Setup'
+    name = "Workflow Setup"
 
     #: Workflow model.
     workflow_model = Instance(Workflow, allow_none=False)
@@ -115,58 +128,44 @@ class WfManagerSetupTask(Task):
         """
         menu_bar = SMenuBar(
             SMenu(
-                TaskAction(
-                    name='Exit',
-                    method='exit',
-                    accelerator='Ctrl+Q',
-                ),
-                name='&Workflow Manager',
-
+                TaskAction(name="Exit", method="exit", accelerator="Ctrl+Q"),
+                name="&Workflow Manager",
             ),
             SMenu(
                 TaskAction(
-                    name='Open Workflow...',
-                    method='open_workflow',
-                    enabled_name='save_load_enabled',
-                    accelerator='Ctrl+O',
+                    name="Open Workflow...",
+                    method="open_workflow",
+                    enabled_name="save_load_enabled",
+                    accelerator="Ctrl+O",
                 ),
                 TaskAction(
-                    id='Save',
-                    name='Save Workflow',
-                    method='save_workflow',
-                    enabled_name='save_load_enabled',
-                    accelerator='Ctrl+S',
+                    id="Save",
+                    name="Save Workflow",
+                    method="save_workflow",
+                    enabled_name="save_load_enabled",
+                    accelerator="Ctrl+S",
                 ),
                 TaskAction(
-                    name='Save Workflow as...',
-                    method='save_workflow_as',
-                    enabled_name='save_load_enabled',
-                    accelerator='Shift+Ctrl+S',
+                    name="Save Workflow as...",
+                    method="save_workflow_as",
+                    enabled_name="save_load_enabled",
+                    accelerator="Shift+Ctrl+S",
                 ),
-                TaskAction(
-                    name='Plugins...',
-                    method='open_plugins'
-                ),
-                TaskAction(
-                    name='Exit',
-                    method='exit',
-                ),
-
+                TaskAction(name="Plugins...", method="open_plugins"),
+                TaskAction(name="Exit", method="exit"),
                 # NOTE: Setting id='File' here will automatically create
                 #       a exit menu item, I guess this is QT being 'helpful'.
                 #       This menu item calls application.exit, which bypasses
                 #       our custom exit which prompts for a save before exiting
-                name='&File',
-
+                name="&File",
             ),
             SMenu(
                 TaskAction(
-                    name='About WorkflowManager...',
-                    method='open_about'
+                    name="About WorkflowManager...", method="open_about"
                 ),
-                name='&Help'
+                name="&Help",
             ),
-            SMenu(TaskToggleGroupAccelerator(), id='View', name='&View'),
+            SMenu(TaskToggleGroupAccelerator(), id="View", name="&View"),
         )
         return menu_bar
 
@@ -179,15 +178,15 @@ class WfManagerSetupTask(Task):
                     image=ImageResource("baseline_play_arrow_black_48dp"),
                     method="run_bdss",
                     enabled_name="run_enabled",
-                    image_size=(64, 64)
+                    image_size=(64, 64),
                 ),
                 TaskAction(
                     name="View Results",
                     tooltip="View Results",
                     image=ImageResource("baseline_bar_chart_black_48dp"),
                     method="switch_task",
-                    image_size=(64, 64)
-                )
+                    image_size=(64, 64),
+                ),
             ),
             SToolBar(
                 TaskAction(
@@ -196,7 +195,7 @@ class WfManagerSetupTask(Task):
                     image=ImageResource("baseline_folder_open_black_48dp"),
                     method="open_workflow",
                     enabled_name="save_load_enabled",
-                    image_size=(64, 64)
+                    image_size=(64, 64),
                 ),
                 TaskAction(
                     name="Save",
@@ -204,7 +203,7 @@ class WfManagerSetupTask(Task):
                     image=ImageResource("baseline_save_black_48dp"),
                     method="save_workflow",
                     enabled_name="save_load_enabled",
-                    image_size=(64, 64)
+                    image_size=(64, 64),
                 ),
                 TaskAction(
                     name="Save As",
@@ -212,31 +211,28 @@ class WfManagerSetupTask(Task):
                     image=ImageResource("outline_save_black_48dp"),
                     method="save_workflow_as",
                     enabled_name="save_load_enabled",
-                    image_size=(64, 64)
+                    image_size=(64, 64),
                 ),
                 TaskAction(
                     name="Plugins",
                     tooltip="View state of loaded plugins",
                     image=ImageResource("baseline_power_black_48dp"),
                     method="open_plugins",
-                    image_size=(64, 64)
+                    image_size=(64, 64),
                 ),
                 TaskAction(
                     name="Custom UI",
                     tooltip="Load a plugin contributed custom UI.",
                     image=ImageResource("baseline_dvr_black_48dp"),
                     method="ui_select",
-                    image_size=(64, 64)
-                )
-
-            )
+                    image_size=(64, 64),
+                ),
+            ),
         ]
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
-        return TaskLayout(
-            left=PaneItem('force_wfmanager.side_pane')
-        )
+        return TaskLayout(left=PaneItem("force_wfmanager.side_pane"))
 
     def _workflow_model_default(self):
         return Workflow()
@@ -245,7 +241,7 @@ class WfManagerSetupTask(Task):
         return SidePane(
             workflow_model=self.workflow_model,
             factory_registry=self.factory_registry,
-            system_state=self.system_state
+            system_state=self.system_state,
         )
 
     def _analysis_model_default(self):
@@ -256,14 +252,13 @@ class WfManagerSetupTask(Task):
         managers = []
         for factory in hooks_factories:
             try:
-                managers.append(
-                    factory.create_ui_hooks_manager()
-                )
+                managers.append(factory.create_ui_hooks_manager())
             except Exception:
                 log.exception(
                     "Failed to create UI "
                     "hook manager by factory {}".format(
-                        factory.__class__.__name__)
+                        factory.__class__.__name__
+                    )
                 )
         return managers
 
@@ -273,7 +268,7 @@ class WfManagerSetupTask(Task):
     def _zmq_server_default(self):
         return ZMQServer(
             on_event_callback=self._server_event_callback,
-            on_error_callback=self._server_error_callback
+            on_error_callback=self._server_error_callback,
         )
 
     # ------------------
@@ -281,7 +276,7 @@ class WfManagerSetupTask(Task):
     # ------------------
 
     # Synchronization with side pane (Tree Pane)
-    @on_trait_change('side_pane.run_enabled')
+    @on_trait_change("side_pane.run_enabled")
     def set_toolbar_run_btn_state(self):
         """ Sets the run button to be enabled/disabled, matching the
         value of :attr:`side_pane.run_enabled
@@ -289,7 +284,7 @@ class WfManagerSetupTask(Task):
         """
         self.run_enabled = self.side_pane.run_enabled
 
-    @on_trait_change('workflow_model', post_init=True)
+    @on_trait_change("workflow_model", post_init=True)
     def update_side_pane_model(self):
         """ Updates the local :attr:`workflow_model`, to match
         :attr:`side_pane.workflow_model
@@ -297,7 +292,7 @@ class WfManagerSetupTask(Task):
         change as the user modifies a workflow via the UI."""
         self.side_pane.workflow_model = self.workflow_model
 
-    @on_trait_change('computation_running')
+    @on_trait_change("computation_running")
     def update_pane_active_status(self):
         """Disables the saving/loading toolbar buttons and the TreePane UI
         if a computation is running, and re-enables them when it finishes."""
@@ -307,13 +302,13 @@ class WfManagerSetupTask(Task):
         self.run_enabled = not self.computation_running
 
     # Method call from side pane interaction
-    @on_trait_change('side_pane.run_button')
+    @on_trait_change("side_pane.run_button")
     def run_button_clicked(self):
         """ Calls :func:`run_bdss` and runs the BDSS!"""
         self.run_bdss()
 
     # Synchronization with Window
-    @on_trait_change('window.tasks')
+    @on_trait_change("window.tasks")
     def sync_review_task(self):
         if self.window is not None:
             for task in self.window.tasks:
@@ -345,7 +340,8 @@ class WfManagerSetupTask(Task):
                 log.exception(
                     "Failed before_save hook "
                     "for hook manager {}".format(
-                        hook_manager.__class__.__name__)
+                        hook_manager.__class__.__name__
+                    )
                 )
 
         try:
@@ -353,20 +349,18 @@ class WfManagerSetupTask(Task):
         except IOError as e:
             error(
                 None,
-                'Cannot save in the requested file:\n\n{}'.format(
-                    str(e)),
-                'Error when saving workflow'
+                "Cannot save in the requested file:\n\n{}".format(str(e)),
+                "Error when saving workflow",
             )
-            log.exception('Error when saving workflow')
+            log.exception("Error when saving workflow")
             return False
         except Exception as e:
             error(
                 None,
-                'Cannot save the workflow:\n\n{}'.format(
-                    str(e)),
-                'Error when saving workflow'
+                "Cannot save the workflow:\n\n{}".format(str(e)),
+                "Error when saving workflow",
             )
-            log.exception('Error when saving workflow')
+            log.exception("Error when saving workflow")
             return False
         else:
             return True
@@ -376,22 +370,26 @@ class WfManagerSetupTask(Task):
         This executes the BDSS and wait for its completion.
         """
         try:
-            subprocess.check_call([self.bdss_executable_path,
-                                   workflow_path])
+            subprocess.check_call([self.bdss_executable_path, workflow_path])
         except OSError as e:
-            log.exception("Error while executing force_bdss executable. "
-                          " Is force_bdss in your path?")
+            log.exception(
+                "Error while executing force_bdss executable. "
+                " Is force_bdss in your path?"
+            )
             self._clean_tmp_workflow(workflow_path, silent=True)
             raise e
         except subprocess.CalledProcessError as e:
             # Ignore any error of execution.
-            log.exception("force_bdss returned a "
-                          "non-zero value after execution")
+            log.exception(
+                "force_bdss returned a " "non-zero value after execution"
+            )
             self._clean_tmp_workflow(workflow_path, silent=True)
             raise e
         except Exception as e:
-            log.exception("Unknown exception occurred "
-                          "while invoking force bdss executable.")
+            log.exception(
+                "Unknown exception occurred "
+                "while invoking force bdss executable."
+            )
             self._clean_tmp_workflow(workflow_path, silent=True)
             raise e
 
@@ -413,8 +411,10 @@ class WfManagerSetupTask(Task):
         except OSError as e:
             # Ignore deletion errors, in case the file magically
             # vanished in the meantime
-            log.exception("Unable to delete temporary "
-                          "workflow file at {}".format(workflow_path))
+            log.exception(
+                "Unable to delete temporary "
+                "workflow file at {}".format(workflow_path)
+            )
             if not silent:
                 raise e
 
@@ -441,7 +441,8 @@ class WfManagerSetupTask(Task):
                 log.exception(
                     "Failed after_execution hook "
                     "for hook manager {}".format(
-                        hook_manager.__class__.__name__)
+                        hook_manager.__class__.__name__
+                    )
                 )
 
         self.computation_running = False
@@ -449,9 +450,8 @@ class WfManagerSetupTask(Task):
         if exception is not None:
             error(
                 None,
-                'Execution of BDSS failed. \n\n{}'.format(
-                    str(exception)),
-                'Error when running BDSS'
+                "Execution of BDSS failed. \n\n{}".format(str(exception)),
+                "Error when running BDSS",
             )
 
     # Handling of BDSS events via ZMQ server
@@ -502,9 +502,7 @@ class WfManagerSetupTask(Task):
         """ Creates the central pane which contains the layer info part
         (factory selection and new object configuration editors)
         """
-        return SetupPane(
-            system_state=self.system_state
-        )
+        return SetupPane(system_state=self.system_state)
 
     def create_dock_panes(self):
         """ Creates the dock panes """
@@ -528,8 +526,7 @@ class WfManagerSetupTask(Task):
         """ Shows a dialog to open a workflow file """
 
         dialog = FileDialog(
-            action="open",
-            wildcard='JSON files (*.json)|*.json|'
+            action="open", wildcard="JSON files (*.json)|*.json|"
         )
         result = dialog.open()
         file_path = dialog.path
@@ -546,15 +543,15 @@ class WfManagerSetupTask(Task):
         """
         try:
             self.workflow_model = load_workflow_file(
-                self.factory_registry, file_path)
-            #self.workflow_file.path = file_path
-            #self.workflow_file.read()
+                self.factory_registry, file_path
+            )
+            # self.workflow_file.path = file_path
+            # self.workflow_file.read()
         except (InvalidFileException, FileNotFoundError) as e:
             error(
                 None,
-                'Cannot read the requested file:\n\n{}'.format(
-                    str(e)),
-                'Error when reading file'
+                "Cannot read the requested file:\n\n{}".format(str(e)),
+                "Error when reading file",
             )
         else:
             self.current_file = file_path
@@ -566,7 +563,7 @@ class WfManagerSetupTask(Task):
             return self.save_workflow_as()
 
         if not self._write_workflow(self.current_file):
-            self.current_file = ''
+            self.current_file = ""
             return False
         return True
 
@@ -575,7 +572,7 @@ class WfManagerSetupTask(Task):
         dialog = FileDialog(
             action="save as",
             default_filename="workflow.json",
-            wildcard='JSON files (*.json)|*.json|'
+            wildcard="JSON files (*.json)|*.json|",
         )
 
         result = dialog.open()
@@ -601,9 +598,9 @@ class WfManagerSetupTask(Task):
                 Developed as part of the FORCE project (Horizon 2020/NMBP-23-2016/721027).
 
                 This software is released under the BSD license.
-                """,  # noqa
+                """  # noqa
             ),
-            "About WorkflowManager"
+            "About WorkflowManager",
         )
 
     # BDSS Interaction
@@ -615,7 +612,8 @@ class WfManagerSetupTask(Task):
             result = confirm(
                 None,
                 "Are you sure you want to run the computation and "
-                "empty the result table?")
+                "empty the result table?",
+            )
             if result is not YES:
                 return
 
@@ -632,13 +630,13 @@ class WfManagerSetupTask(Task):
                     log.exception(
                         "Failed before_execution hook "
                         "for hook manager {}".format(
-                            hook_manager.__class__.__name__)
+                            hook_manager.__class__.__name__
+                        )
                     )
 
             # Creates a temporary file containing the workflow
             tmpfile_path = tempfile.mktemp()
             write_workflow_file(self.workflow_model, tmpfile_path)
-            # WorkflowWriter().write(self.workflow_model, tmpfile_path)
 
             # Clear the analysis model before attempting to run
             self.analysis_model.clear()
@@ -648,22 +646,26 @@ class WfManagerSetupTask(Task):
             future.add_done_callback(self._execution_done_callback)
         except Exception as e:
             logging.exception("Unable to run BDSS.")
-            error(None,
-                  "Unable to run BDSS: {}".format(e),
-                  'Error when running BDSS'
-                  )
+            error(
+                None,
+                "Unable to run BDSS: {}".format(e),
+                "Error when running BDSS",
+            )
             self.computation_running = False
 
     # Plugin Status
     def lookup_plugins(self):
 
-        plugins = [plugin
-                   for plugin in self.window.application.plugin_manager
-                   if isinstance(plugin, BaseExtensionPlugin)]
+        plugins = [
+            plugin
+            for plugin in self.window.application.plugin_manager
+            if isinstance(plugin, BaseExtensionPlugin)
+        ]
 
         # Plugins guaranteed to have an id, so sort by that if name is not set
-        plugins.sort(key=lambda s: s.name
-                     if s.name not in ('', None) else s.id)
+        plugins.sort(
+            key=lambda s: s.name if s.name not in ("", None) else s.id
+        )
 
         return plugins
 
@@ -688,35 +690,34 @@ class WfManagerSetupTask(Task):
     # Custom UI Methods
     def ui_select(self):
         plugins = [
-            plugin for plugin in self.window.application.plugin_manager
+            plugin
+            for plugin in self.window.application.plugin_manager
             if isinstance(plugin, BaseExtensionPlugin)
         ]
 
         # Plugins guaranteed to have an id, so sort by that if name is not set
         plugins.sort(
-            key=lambda s: s.name if s.name not in ('', None) else s.id
+            key=lambda s: s.name if s.name not in ("", None) else s.id
         )
         ui_modal = UISelectModal(
-            contributed_uis=self.contributed_uis,
-            available_plugins=plugins
+            contributed_uis=self.contributed_uis, available_plugins=plugins
         )
         ui_modal.edit_traits()
         self.selected_contributed_ui = ui_modal.selected_ui
         if self.selected_contributed_ui:
             self.selected_contributed_ui.on_trait_event(
-                self.update_workflow_custom_ui, 'update_workflow'
+                self.update_workflow_custom_ui, "update_workflow"
             )
             self.selected_contributed_ui.on_trait_event(
-                self.run_bdss_custom_ui, 'run_workflow'
+                self.run_bdss_custom_ui, "run_workflow"
             )
             self.selected_contributed_ui.edit_traits(
                 handler=ContributedUIHandler()
             )
 
     def update_workflow_custom_ui(self):
-        self.workflow_model = (
-            self.selected_contributed_ui.create_workflow(
-                factory_registry=self.factory_registry)
+        self.workflow_model = self.selected_contributed_ui.create_workflow(
+            factory_registry=self.factory_registry
         )
 
     def run_bdss_custom_ui(self):
