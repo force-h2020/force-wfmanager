@@ -297,9 +297,9 @@ class WfManagerReviewTask(Task):
             error(
                 None,
                 "Cannot save the Project:\n\n{}".format(str(e)),
-                "Error when saving results",
+                "Error when saving the project",
             )
-            log.exception("Error when the Project")
+            log.exception("Error when saving the Project")
             return False
         else:
             return True
