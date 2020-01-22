@@ -35,8 +35,7 @@ RESULTS_JSON_DUMP_PATH = 'force_wfmanager.io.project_io.json.dump'
 RESULTS_JSON_LOAD_PATH = 'force_wfmanager.io.project_io.json.load'
 RESULTS_WRITER_PATH = \
     'force_wfmanager.io.project_io.WorkflowWriter.get_workflow_data'
-RESULTS_READER_PATH = \
-    'force_wfmanager.io.project_io.WorkflowReader'
+RESULTS_READER_PATH = 'force_wfmanager.io.project_io.WorkflowReader'
 RESULTS_ERROR_PATH = 'force_wfmanager.wfmanager_review_task.error'
 ANALYSIS_WRITE_PATH = 'force_wfmanager.io.analysis_model_io.' \
                       'write_analysis_model'
@@ -222,12 +221,14 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         with mock.patch(RESULTS_FILE_DIALOG_PATH) as mock_file_dialog,\
                 mock.patch(RESULTS_JSON_LOAD_PATH) as mock_json, \
                 mock.patch(WORKFLOW_FILE_OPEN_PATH, mock_open, create=True), \
-                mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True):
+                mock.patch(RESULTS_FILE_OPEN_PATH, mock_open, create=True), \
+                mock.patch(RESULTS_READER_PATH) as mock_reader:
 
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_json.return_value = {'analysis_model': {'x': [1], 'y': [2]},
                                       'version': '1',
                                       'workflow': {}}
+            mock_reader.side_effect = mock_file_reader
 
             # the workflow gets updated to a new Workflow object
             old_workflow = self.review_task.workflow_model
