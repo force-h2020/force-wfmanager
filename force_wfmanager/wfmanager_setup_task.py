@@ -637,7 +637,8 @@ class WfManagerSetupTask(Task):
 
             # Creates a temporary file containing the workflow
             tmpfile_path = tempfile.mktemp()
-            WorkflowWriter().write(self.workflow_model, tmpfile_path)
+            write_workflow_file(self.workflow_model, tmpfile_path)
+            # WorkflowWriter().write(self.workflow_model, tmpfile_path)
 
             # Clear the analysis model before attempting to run
             self.analysis_model.clear()
