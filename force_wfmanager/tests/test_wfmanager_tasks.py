@@ -257,9 +257,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             WORKFLOW_FILE_OPEN_PATH, mock_open, create=True
         ), mock.patch(
             RESULTS_FILE_OPEN_PATH, mock_open, create=True
-        ), mock.patch(
-            RESULTS_READER_PATH
-        ) as mock_reader:
+        ):
 
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_json.return_value = {
@@ -267,7 +265,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 "version": "1",
                 "workflow": {},
             }
-            mock_reader.side_effect = mock_file_reader
 
             # the workflow gets updated to a new Workflow object
             old_workflow = self.review_task.workflow_model
