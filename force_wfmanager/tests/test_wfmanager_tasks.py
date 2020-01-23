@@ -31,7 +31,6 @@ from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 
 FILE_DIALOG_PATH = "force_wfmanager.wfmanager_setup_task.FileDialog"
-WORKFLOW_FILE_OPEN_PATH = "force_wfmanager.io.workflow_io.open"
 RESULTS_FILE_DIALOG_PATH = "force_wfmanager.wfmanager_review_task.FileDialog"
 RESULTS_FILE_OPEN_PATH = "force_wfmanager.io.project_io.open"
 RESULTS_JSON_DUMP_PATH = "force_wfmanager.io.project_io.json.dump"
@@ -254,8 +253,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         ) as mock_file_dialog, mock.patch(
             RESULTS_JSON_LOAD_PATH
         ) as mock_json, mock.patch(
-            WORKFLOW_FILE_OPEN_PATH, mock_open, create=True
-        ), mock.patch(
             RESULTS_FILE_OPEN_PATH, mock_open, create=True
         ):
 
@@ -332,8 +329,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         ) as mock_file_dialog, mock.patch(
             RESULTS_JSON_LOAD_PATH
         ) as mock_json, mock.patch(
-            WORKFLOW_FILE_OPEN_PATH, mock_open, create=True
-        ), mock.patch(
             RESULTS_ERROR_PATH
         ) as mock_error, mock.patch(
             RESULTS_FILE_OPEN_PATH, mock_open, create=True
