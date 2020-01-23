@@ -38,7 +38,20 @@ class TestContributedUI(GuiTestAssistant, unittest.TestCase):
         self.assertDictEqual(expected, self.ui.required_plugins)
 
     def test_search_for_id(self):
-
+        input_dict = {
+            'mco': {
+                'id': 'mco_identifier'
+            },
+            'execution_layers': [
+                [
+                    {
+                        'id': 'datasource_id',
+                        'info': [1, 2, 3]
+                    },
+                    {
+                        'id': 'datasource_id2',
+                        'info': [4, 5, 6]
+                    },
                 ],
                 [
                     {
