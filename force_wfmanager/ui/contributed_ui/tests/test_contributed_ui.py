@@ -1,5 +1,4 @@
 import unittest
-from unittest import mock
 from functools import partial
 
 from pyface.ui.qt4.util.modal_dialog_tester import ModalDialogTester
