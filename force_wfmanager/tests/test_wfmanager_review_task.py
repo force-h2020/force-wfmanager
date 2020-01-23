@@ -129,7 +129,7 @@ class TestWFManagerTasksWithPlugins(GuiTestAssistant, TestCase):
     def test_discover_data_views(self):
         # One default plot type plus three contributed
         self.assertEqual(
-            len(self.review_task.central_pane.available_data_views), 4
+            4, len(self.review_task.central_pane.available_data_views),
         )
 
         # fire the button to populate descriptions

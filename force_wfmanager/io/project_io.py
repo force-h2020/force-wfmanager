@@ -62,7 +62,6 @@ def load_project_file(factory_registry, file_path):
     reader = WorkflowReader(factory_registry)
     workflow_data = reader.parse_data(project_json)
 
-    workflow_model = Workflow.from_json(
-        factory_registry, workflow_data)
+    workflow_model = Workflow.from_json(factory_registry, workflow_data)
 
     return analysis_model_dict, workflow_model
