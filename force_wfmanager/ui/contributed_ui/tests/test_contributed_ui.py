@@ -4,8 +4,13 @@ from functools import partial
 from pyface.ui.qt4.util.modal_dialog_tester import ModalDialogTester
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
+from force_bdss.api import Workflow
+from force_bdss.tests.dummy_classes.factory_registry import (
+    DummyFactoryRegistry
+)
+
 from force_wfmanager.tests.dummy_classes.dummy_contributed_ui import (
-    DummyContributedUI2
+    DummyContributedUI, DummyContributedUI2
 )
 from force_wfmanager.ui import ContributedUIHandler
 from force_wfmanager.ui.contributed_ui.contributed_ui import search, parse_id
@@ -47,7 +52,6 @@ class TestContributedUI(GuiTestAssistant, unittest.TestCase):
                         'id': 'datasource_id2',
                         'info': [4, 5, 6]
                     },
-
                 ],
                 [
                     {
@@ -68,3 +72,19 @@ class TestContributedUI(GuiTestAssistant, unittest.TestCase):
     def test_parse_id_error(self):
         with self.assertRaisesRegex(ValueError, "Unexpected plugin id:"):
             parse_id("incorrectid")
+
+    def test_create_workflow(self):
+        json_data = {
+            "version": "1",
+            "workflow": {
+                "mco_model": None,
+                "execution_layers": [],
+                "notification_listeners": []
+            }
+        }
+        ui = DummyContributedUI(
+            workflow_data=json_data)
+        factory_registry = DummyFactoryRegistry()
+
+        workflow = ui.create_workflow(factory_registry)
+        self.assertIsInstance(workflow, Workflow)

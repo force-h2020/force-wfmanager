@@ -5,7 +5,7 @@ from traits.api import (
 )
 from traitsui.api import Action, Group, Handler, View
 
-from force_bdss.api import WorkflowReader
+from force_bdss.api import Workflow, WorkflowReader
 
 from force_wfmanager.ui.contributed_ui.i_contributed_ui import IContributedUI
 
@@ -74,7 +74,11 @@ class ContributedUI(HasTraits):
             The factory registry required by WorkflowReader
         """
         reader = WorkflowReader(factory_registry=factory_registry)
-        wf = reader.read_dict(self.workflow_data)
+        wf_dict = reader.parse_data(self.workflow_data)
+        wf = Workflow.from_json(
+            factory_registry,
+            wf_dict
+        )
         return wf
 
     def _required_plugins_default(self):
