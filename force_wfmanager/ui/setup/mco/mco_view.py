@@ -1,19 +1,21 @@
 from traits.api import (
     Instance, List, Unicode, on_trait_change, Bool, Event,
-    HasTraits, Either
+    HasTraits
 )
 from traitsui.api import View
 
 from force_bdss.api import BaseMCOModel
 
-from force_wfmanager.utils.variable_names_registry import \
-    VariableNamesRegistry
+from force_wfmanager.ui.setup.mco.base_mco_options_view import \
+    BaseMCOOptionsView
 from force_wfmanager.ui.setup.mco.kpi_specification_view import \
     KPISpecificationView
 from force_wfmanager.ui.setup.mco.mco_parameter_view import (
     MCOParameterView
 )
 from force_wfmanager.ui.ui_utils import get_factory_name
+from force_wfmanager.utils.variable_names_registry import \
+    VariableNamesRegistry
 
 
 class MCOView(HasTraits):
@@ -33,10 +35,11 @@ class MCOView(HasTraits):
     # Regular Attributes
     # ------------------
 
-    #: List of MCO parameter and KPI views to be displayed in the TreeEditor
-    #: NOTE: (Has to be a list to be selectable in TreeEditor)
-    mco_options = List(Either(Instance(MCOParameterView),
-                              Instance(KPISpecificationView)))
+    #: List of [MCOParameterView, KPISpecificationView] objects to be
+    #: displayed in WorkflowTree, containing information on the MCO
+    #: options.
+    # NOTE: (Has to be a list to be selectable in TreeEditor)
+    mco_options = List(Instance(BaseMCOOptionsView))
 
     #: A view containing all MCO parameters
     parameter_view = Instance(MCOParameterView)
@@ -71,14 +74,18 @@ class MCOView(HasTraits):
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
     error_message = Unicode()
 
-    #: Defaults
+    # -------------------
+    #      Defaults
+    # -------------------
+
     def _label_default(self):
         """Return a default label corresponding to the MCO factory"""
         return get_factory_name(self.model.factory)
 
     def _parameter_view_default(self):
         return MCOParameterView(
-            model=self.model
+            model=self.model,
+            variable_names_registry=self.variable_names_registry
         )
 
     def _kpi_view_default(self):
@@ -91,7 +98,10 @@ class MCOView(HasTraits):
         """Return a mco_options containing already constructed objects"""
         return [self.parameter_view, self.kpi_view]
 
-    #: Listeners
+    # -------------------
+    #     Listeners
+    # -------------------
+
     # Workflow Verification
     @on_trait_change('parameter_view.verify_workflow_event,'
                      'kpi_view.verify_workflow_event')

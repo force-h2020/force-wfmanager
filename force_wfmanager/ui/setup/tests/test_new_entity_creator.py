@@ -1,27 +1,25 @@
 import unittest
 
-from traits.api import Int
-
-from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeMCOModel
+from force_bdss.tests.dummy_classes.data_source import DummyDataSourceModel
 from force_bdss.tests.probe_classes.data_source import (
     ProbeDataSourceFactory, ProbeDataSourceModel
 )
+from force_bdss.tests.probe_classes.mco import ProbeMCOFactory, ProbeMCOModel
 from force_bdss.tests.probe_classes.probe_extension_plugin import (
     ProbeExtensionPlugin
 )
-from force_bdss.tests.dummy_classes.data_source import DummyDataSourceModel
-from force_bdss.api import BaseDataSourceModel
+
+from force_wfmanager.tests.dummy_classes.dummy_model_info import (
+    DummyModelInfo
+)
+from force_wfmanager.tests.probe_classes import (
+    ProbeDataSourceModel as ProbeDataSourceModelDescription
+)
 from force_wfmanager.ui.setup.new_entity_creator import (
      NewEntityCreator
 )
 from force_wfmanager.ui.setup.workflow_tree import WorkflowView
 from force_wfmanager.ui.ui_utils import model_info
-from force_wfmanager.tests.dummy_classes import DummyModelInfo
-
-
-class DataSourceModelDescription(BaseDataSourceModel):
-
-    test_trait = Int(13, desc='Test trait')
 
 
 class TestNewEntityModel(unittest.TestCase):
@@ -102,12 +100,13 @@ class TestNewEntityModel(unittest.TestCase):
         root = model._plugins_root_default()
 
         self.assertEqual(len(root.plugins), 1)
-        self.assertEqual(root.plugins[0].plugin, self.plugin)
+        self.assertEqual(root.plugins[0].id, self.plugin.id)
+        self.assertEqual(root.plugins[0].name, self.plugin.name)
 
     def test_description_editable_data_source(self):
         model, _ = self._get_data_selector()
         model.selected_factory = model.factories[0]
-        model.model = DataSourceModelDescription(
+        model.model = ProbeDataSourceModelDescription(
             model.selected_factory)
 
         self.assertIn("Test trait",

@@ -1,5 +1,4 @@
 import logging
-import tempfile
 import copy
 
 from pyface.api import ImageResource, FileDialog, OK, error
@@ -7,14 +6,12 @@ from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Bool, Instance, List, on_trait_change
 
-from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
+from force_bdss.api import Workflow
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.review.results_pane import ResultsPane
-from force_wfmanager.wfmanager import (
-    TaskToggleGroupAccelerator
-)
+from force_wfmanager.wfmanager import TaskToggleGroupAccelerator
 from force_wfmanager.io.analysis_model_io import write_analysis_model
 from force_wfmanager.io.project_io import write_project_file, load_project_file
 
@@ -36,8 +33,9 @@ class WfManagerReviewTask(Task):
     #: The tool bars for this task.
     tool_bars = List(SToolBar)
 
-    id = 'force_wfmanager.wfmanager_review_task'
-    name = 'Review'
+    id = "force_wfmanager.wfmanager_review_task"
+
+    name = "Review"
 
     #: Workflow model used to create the review in the analysis model.
     #: This trait no longer tracks the workflow stored under
@@ -67,55 +65,47 @@ class WfManagerReviewTask(Task):
         at the application level."""
         menu_bar = SMenuBar(
             SMenu(
-                TaskAction(
-                    name='Exit',
-                    method='exit',
-                    accelerator='Ctrl+Q',
-                ),
-                name='&Workflow Manager'
+                TaskAction(name="Exit", method="exit", accelerator="Ctrl+Q"),
+                name="&Workflow Manager",
             ),
             SMenu(
                 TaskAction(
-                    name='Open Workflow...',
-                    method='setup_task.open_workflow',
-                    enabled_name='save_load_enabled',
-                    accelerator='Ctrl+O',
+                    name="Open Workflow...",
+                    method="setup_task.open_workflow",
+                    enabled_name="save_load_enabled",
+                    accelerator="Ctrl+O",
                 ),
                 TaskAction(
-                    name='Save Workflow',
-                    method='setup_task.save_workflow',
-                    enabled_name='save_load_enabled',
-                    accelerator='Ctrl+S',
+                    name="Save Workflow",
+                    method="setup_task.save_workflow",
+                    enabled_name="save_load_enabled",
+                    accelerator="Ctrl+S",
                 ),
                 TaskAction(
-                    name='Save Workflow as...',
-                    method='setup_task.save_workflow_as',
-                    enabled_name='save_load_enabled',
-                    accelerator='Shift+Ctrl+S',
+                    name="Save Workflow as...",
+                    method="setup_task.save_workflow_as",
+                    enabled_name="save_load_enabled",
+                    accelerator="Shift+Ctrl+S",
                 ),
                 TaskAction(
-                    name='Save Results as...',
-                    method='export_analysis_model_as',
-                    enabled_name='export_results_enabled'
+                    name="Save Results as...",
+                    method="export_analysis_model_as",
+                    enabled_name="export_results_enabled",
                 ),
                 TaskAction(
-                    name='Plugins...',
-                    method='setup_task.open_plugins'
+                    name="Plugins...", method="setup_task.open_plugins"
                 ),
-                TaskAction(
-                    name='Exit',
-                    method='exit',
-                ),
-                name='&File'
+                TaskAction(name="Exit", method="exit"),
+                name="&File",
             ),
             SMenu(
                 TaskAction(
-                    name='About WorkflowManager...',
-                    method='setup_task.open_about'
+                    name="About WorkflowManager...",
+                    method="setup_task.open_about",
                 ),
-                name='&Help'
+                name="&Help",
             ),
-            SMenu(TaskToggleGroupAccelerator(), id='View', name='&View')
+            SMenu(TaskToggleGroupAccelerator(), id="View", name="&View"),
         )
         return menu_bar
 
@@ -128,15 +118,15 @@ class WfManagerReviewTask(Task):
                     image=ImageResource("baseline_play_arrow_black_48dp"),
                     method="setup_task.run_bdss",
                     enabled_name="run_enabled",
-                    image_size=(64, 64)
+                    image_size=(64, 64),
                 ),
                 TaskAction(
                     name="Setup Workflow",
                     tooltip="Setup Workflow",
                     image=ImageResource("outline_build_black_48dp"),
                     method="switch_task",
-                    image_size=(64, 64)
-                )
+                    image_size=(64, 64),
+                ),
             ),
             SToolBar(
                 TaskAction(
@@ -144,7 +134,7 @@ class WfManagerReviewTask(Task):
                     tooltip="Open a project containing a workflow and results",
                     image=ImageResource("baseline_folder_open_black_48dp"),
                     method="open_project",
-                    image_size=(64, 64)
+                    image_size=(64, 64),
                 ),
                 TaskAction(
                     name="Save Project As",
@@ -152,7 +142,7 @@ class WfManagerReviewTask(Task):
                     image=ImageResource("outline_save_black_48dp"),
                     method="save_project_as",
                     enabled_name="export_results_enabled",
-                    image_size=(64, 64)
+                    image_size=(64, 64),
                 ),
                 TaskAction(
                     name="Export Results",
@@ -160,14 +150,14 @@ class WfManagerReviewTask(Task):
                     image=ImageResource("baseline_save_black_48dp"),
                     method="export_analysis_model_as",
                     enabled_name="export_results_enabled",
-                    image_size=(64, 64)
+                    image_size=(64, 64),
                 ),
                 TaskAction(
                     name="Plugins",
                     tooltip="View state of loaded plugins",
                     image=ImageResource("baseline_power_black_48dp"),
                     method="setup_task.open_plugins",
-                    image_size=(64, 64)
+                    image_size=(64, 64),
                 ),
             ),
         ]
@@ -191,9 +181,7 @@ class WfManagerReviewTask(Task):
 
     def _default_layout_default(self):
         """ Defines the default layout of the task window """
-        return TaskLayout(
-            top=PaneItem('force_wfmanager.results_pane'),
-        )
+        return TaskLayout(top=PaneItem("force_wfmanager.results_pane"))
 
     def _workflow_model_default(self):
         return None
@@ -203,7 +191,7 @@ class WfManagerReviewTask(Task):
 
     # Save AnalysisModel to file and sync its state
 
-    @on_trait_change('analysis_model.export_enabled')
+    @on_trait_change("analysis_model.export_enabled")
     def sync_export_enabled(self):
         self.export_results_enabled = self.analysis_model.export_enabled
 
@@ -215,7 +203,7 @@ class WfManagerReviewTask(Task):
         dialog = FileDialog(
             action="save as",
             default_filename="results.json",
-            wildcard='JSON files (*.json)|*.json|CSV files (*.csv)|*.csv',
+            wildcard="JSON files (*.json)|*.json|CSV files (*.csv)|*.csv",
         )
 
         result = dialog.open()
@@ -248,20 +236,18 @@ class WfManagerReviewTask(Task):
         except IOError as e:
             error(
                 None,
-                'Cannot save in the requested file:\n\n{}'.format(
-                    str(e)),
-                'Error when saving the results table'
+                "Cannot save in the requested file:\n\n{}".format(str(e)),
+                "Error when saving the results table",
             )
-            log.exception('Error when saving AnalysisModel')
+            log.exception("Error when saving AnalysisModel")
             return False
         except Exception as e:
             error(
                 None,
-                'Cannot save the results table:\n\n{}'.format(
-                    str(e)),
-                'Error when saving results'
+                "Cannot save the results table:\n\n{}".format(str(e)),
+                "Error when saving results",
             )
-            log.exception('Error when saving results')
+            log.exception("Error when saving results")
             return False
         else:
             self.current_file = file_path
@@ -272,7 +258,7 @@ class WfManagerReviewTask(Task):
         dialog = FileDialog(
             action="save as",
             default_filename="project.json",
-            wildcard='JSON files (*.json)|*.json',
+            wildcard="JSON files (*.json)|*.json",
         )
 
         result = dialog.open()
@@ -294,27 +280,26 @@ class WfManagerReviewTask(Task):
 
         """
         try:
-            write_project_file(self.workflow_model,
-                               self.analysis_model, file_path)
+            write_project_file(
+                self.workflow_model, self.analysis_model, file_path
+            )
 
         except IOError as e:
             error(
                 None,
-                'Cannot save in the requested file:\n\n{}'.format(
-                    str(e)),
-                'Error when saving the project'
+                "Cannot save in the requested file:\n\n{}".format(str(e)),
+                "Error when saving the project",
             )
-            log.exception('Error when saving Project')
+            log.exception("Error when saving Project")
             return False
 
         except Exception as e:
             error(
                 None,
-                'Cannot save the Project:\n\n{}'.format(
-                    str(e)),
-                'Error when saving results'
+                "Cannot save the Project:\n\n{}".format(str(e)),
+                "Error when saving the project",
             )
-            log.exception('Error when the Project')
+            log.exception("Error when saving the Project")
             return False
         else:
             return True
@@ -326,8 +311,7 @@ class WfManagerReviewTask(Task):
         """
 
         dialog = FileDialog(
-            action="open",
-            wildcard='JSON files (*.json)|*.json',
+            action="open", wildcard="JSON files (*.json)|*.json"
         )
 
         result = dialog.open()
@@ -348,9 +332,9 @@ class WfManagerReviewTask(Task):
 
         """
         try:
-            (analysis_model_dict,
-             self.workflow_model) = load_project_file(
-                self.factory_registry, file_path)
+            (analysis_model_dict, self.workflow_model) = load_project_file(
+                self.factory_registry, file_path
+            )
 
             # create two separate workflows, so that setup task can be
             # edited without changing the review task copy
@@ -363,31 +347,28 @@ class WfManagerReviewTask(Task):
         except KeyError as e:
             error(
                 None,
-                'Unable to find analysis model:\n\n{}'.format(
-                    str(e)),
-                'Error when loading project'
+                "Unable to find analysis model:\n\n{}".format(str(e)),
+                "Error when loading project",
             )
-            log.exception('KeyError when loading project')
+            log.exception("KeyError when loading project")
             return False
 
         except IOError as e:
             error(
                 None,
-                'Unable to load file:\n\n{}'.format(
-                    str(e)),
-                'Error when loading project'
+                "Unable to load file:\n\n{}".format(str(e)),
+                "Error when loading project",
             )
-            log.exception('Error loading project file')
+            log.exception("Error loading project file")
             return False
 
         except Exception as e:
             error(
                 None,
-                'Unable to load project:\n\n{}'.format(
-                    str(e)),
-                'Error when loading project'
+                "Unable to load project:\n\n{}".format(str(e)),
+                "Error when loading project",
             )
-            log.exception('Error when loading project')
+            log.exception("Error when loading project")
             return False
 
         else:
@@ -396,17 +377,17 @@ class WfManagerReviewTask(Task):
 
     # Synchronization with Setup Task
 
-    @on_trait_change('setup_task.run_enabled')
+    @on_trait_change("setup_task.run_enabled")
     def sync_run_enabled(self):
         self.run_enabled = self.setup_task.run_enabled
 
-    @on_trait_change('setup_task.save_load_enabled')
+    @on_trait_change("setup_task.save_load_enabled")
     def sync_save_load_enabled(self):
         self.save_load_enabled = self.setup_task.save_load_enabled
 
     # Synchronization with Window
 
-    @on_trait_change('window.tasks')
+    @on_trait_change("window.tasks")
     def sync_setup_task(self):
         if self.window is not None:
             for task in self.window.tasks:
@@ -414,20 +395,19 @@ class WfManagerReviewTask(Task):
                     self.setup_task = task
                     self.analysis_model = self.setup_task.analysis_model
 
-    @on_trait_change('setup_task.computation_running')
+    @on_trait_change("setup_task.computation_running")
     def cache_running_workflow(self):
         """ When a new computation starts running, save a copy of the
         :attr:`setup_task.workflow_model` as :attr:workflow_model` that
         can be used when saving the results of the run alongside the
         workflow that created it.
-
         """
+
         if self.setup_task.computation_running:
-            with tempfile.TemporaryFile(mode='w+t') as fp:
-                WorkflowWriter().write(self.setup_task.workflow_model, fp)
-                reader = WorkflowReader(self.setup_task.factory_registry)
-                fp.seek(0)
-                self.workflow_model = reader.read(fp)
+            self.workflow_model = Workflow.from_json(
+                self.setup_task.factory_registry,
+                self.setup_task.workflow_model.__getstate__(),
+            )
 
     # Menu/Toolbar Methods
 

@@ -1,4 +1,5 @@
 import json
+
 from force_bdss.api import BaseDriverEvent, pop_recursive
 
 
@@ -12,6 +13,7 @@ class EventSerializer(object):
     Important: only basic python types are supported. If events start
     carrying more complex instances, this serializer will not be enough.
     """
+
     def serialize(self, event):
         """Serializes an event into a json string
 
@@ -26,14 +28,17 @@ class EventSerializer(object):
             Raises if :param event: is not a BaseDriverEvent
         """
         if not isinstance(event, BaseDriverEvent):
-            raise SerializerError("Cannot serialize classes not derived "
-                                  "from BaseDriverEvent")
+            raise SerializerError(
+                "Cannot serialize classes not derived " "from BaseDriverEvent"
+            )
         data = json.dumps(
-            {"type": event.__class__.__name__,
-             "model_data": pop_recursive(
-                 event.__getstate__(),
-                 "__traits_version__")
-             }
+            {
+                "module": event.__class__.__module__,
+                "type": event.__class__.__name__,
+                "model_data": pop_recursive(
+                    event.__getstate__(), "__traits_version__"
+                ),
+            }
         )
 
         return data

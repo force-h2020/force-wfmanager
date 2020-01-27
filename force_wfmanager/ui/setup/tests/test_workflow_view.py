@@ -3,12 +3,15 @@ from traits.testing.unittest_tools import UnittestTools
 from force_bdss.api import (
     KPISpecification, OutputSlotInfo, ExecutionLayer
 )
+
+from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
+    WfManagerBaseTestCase
+)
 from force_wfmanager.ui.setup.workflow_view import \
     WorkflowView
-from force_wfmanager.ui.setup.tests.template_test_case import BaseTest
 
 
-class TestWorkflowView(BaseTest, UnittestTools):
+class TestWorkflowView(WfManagerBaseTestCase, UnittestTools):
 
     def setUp(self):
         super(TestWorkflowView, self).setUp()
@@ -33,11 +36,11 @@ class TestWorkflowView(BaseTest, UnittestTools):
         self.assertEqual(
             2, len(mco_view.mco_options))
         self.assertEqual(
-            2, len(parameter_view.parameter_model_views))
+            2, len(parameter_view.model_views))
         self.assertEqual(
             1, len(kpi_view.kpi_names))
         self.assertEqual(
-            1, len(kpi_view.kpi_model_views))
+            1, len(kpi_view.model_views))
         self.assertEqual(
             3, len(kpi_view.kpi_name_options))
         self.assertEqual(
@@ -54,10 +57,10 @@ class TestWorkflowView(BaseTest, UnittestTools):
         )
         self.assertEqual(
             'KPI: outputA (MINIMISE)',
-            kpi_view.kpi_model_views[0].label)
+            kpi_view.model_views[0].label)
         self.assertEqual(
             'outputA',
-            kpi_view.kpi_model_views[0].model.name)
+            kpi_view.model_views[0].model.name)
 
         self.assertEqual(
             1,
@@ -71,17 +74,17 @@ class TestWorkflowView(BaseTest, UnittestTools):
 
     def test_set_mco(self):
         mco_model = self.factory_registry.mco_factories[0].create_model()
-        self.workflow_view.set_mco(mco_model)
+        self.workflow_view.model.mco_model = mco_model
 
-        self.assertIsNotNone(self.workflow_view.model.mco)
+        self.assertIsNotNone(self.workflow_view.model.mco_model)
 
         kpi_view = self.workflow_view.mco_view[0].kpi_view
         parameter_view = self.workflow_view.mco_view[0].parameter_view
 
         self.assertEqual(
-            0, len(parameter_view.parameter_model_views))
+            0, len(parameter_view.model_views))
         self.assertEqual(
-            0, len(kpi_view.kpi_model_views))
+            0, len(kpi_view.model_views))
         self.assertEqual(
             0, len(kpi_view.kpi_names))
         self.assertEqual(

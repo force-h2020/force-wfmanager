@@ -1,137 +1,47 @@
 from traits.api import (
-    Instance, Unicode, Bool, on_trait_change, Event, Property,
-    cached_property, HasTraits, List, Button
+    Instance, Unicode, on_trait_change, Property,
+    cached_property, List, Button, Tuple
 )
 from traitsui.api import (
-    View, Item, HGroup, ModelView, ListEditor, VGroup, InstanceEditor
+    View, Item, HGroup, ListEditor, VGroup, InstanceEditor
 )
 
-from force_bdss.api import BaseMCOParameter, BaseMCOModel
+from force_bdss.api import Identifier
+from force_bdss.local_traits import CUBAType
 
-from force_wfmanager.ui.ui_utils import get_factory_name
+from force_wfmanager.ui.setup.mco.base_mco_options_view import \
+    BaseMCOOptionsView
+from force_wfmanager.ui.setup.mco.mco_parameter_model_view import \
+    MCOParameterModelView
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
 
 
-class MCOParameterModelView(ModelView):
-
-    # -------------------
-    # Required Attributes
-    # -------------------
-
-    #: MCO parameter model
-    model = Instance(BaseMCOParameter)
-
-    # ------------------
-    # Dependent Attributes
-    # ------------------
-
-    #: Defines if the MCO parameter is valid or not. Updated by
-    #: :func:`verify_tree
-    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    valid = Bool(True)
-
-    #: An error message for issues in this modelview. Updated by
-    #: :func:`verify_tree
-    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    error_message = Unicode()
-
-    #: Event to request a verification check on the workflow
-    #: Listens to: :attr:`model.name <model>` and :attr:`model.type <model>`
-    verify_workflow_event = Event
-
-    # ----------
-    # Properties
-    # ----------
-
-    #: The human readable name of the MCO parameter class
-    label = Property(Unicode(), depends_on="model.[name,type]")
-
-    # ----------
-    #    View
-    # ----------
-
-    def default_traits_view(self):
-        """Default view containing both traits from the base class and
-        any additional user-defined traits"""
-
-        return View(Item('name', object='model'),
-                    Item('type', object='model'),
-                    Item('model',
-                         editor=InstanceEditor(),
-                         style='custom')
-                    )
-
-    #: Defaults
-    def _label_default(self):
-        """Return a default label corresponding to the MCO parameter factory"""
-        return get_factory_name(self.model.factory)
-
-    #: Property getters
-    @cached_property
-    def _get_label(self):
-        """Return a label appending both the parameter name and type to the
-        default"""
-        if self.model.name == '' and self.model.type == '':
-            return self._label_default()
-        return self._label_default()+': {type} {name}'.format(
-            type=self.model.type, name=self.model.name
-        )
-
-    #: Listeners
-    # Workflow Validation
-    @on_trait_change('model.[name,type]')
-    def parameter_change(self):
-        """Alert to a change in the model"""
-        self.verify_workflow_event = True
-
-
-class MCOParameterView(HasTraits):
-
-    # -------------------
-    # Required Attributes
-    # -------------------
-
-    #: MCO model
-    model = Instance(BaseMCOModel)
+class MCOParameterView(BaseMCOOptionsView):
 
     # -------------------
     # Regular Attributes
     # -------------------
 
-    #: List of MCO parameter model views
-    parameter_model_views = List(Instance(MCOParameterModelView))
+    #: The human readable name of the MCOParameterView class
+    name = Unicode('Parameters')
 
     # --------------------
     # Dependent Attributes
     # --------------------
 
-    #: The selected parameter model view
-    selected_parameter = Instance(MCOParameterModelView)
-
     #: Creates new instances of MCO Parameters
     parameter_entity_creator = Instance(NewEntityCreator)
-
-    #: Defines if the MCO parameter is valid or not. Updated by
-    #: :func:`verify_tree
-    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    valid = Bool(True)
-
-    #: An error message for issues in this modelview. Updated by
-    #: :func:`verify_tree
-    #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    error_message = Unicode()
-
-    #: Event to request a verification check on the workflow
-    #: Listens to: :attr:`parameter_model_views.verify_workflow_event
-    #: <MCOParameterModelView>`
-    verify_workflow_event = Event()
 
     # ----------
     # Properties
     # ----------
 
-    #: The human readable name of the MCOParameterView class
-    label = Unicode('MCO Parameters')
+    #: A list of variable names and types, each from a variable
+    #: that could become a MCO parameter
+    parameter_name_options = Property(
+        List(Tuple(Identifier, CUBAType)),
+        depends_on='variable_names_registry.data_source_inputs'
+    )
 
     # ------------------
     #      Buttons
@@ -141,30 +51,26 @@ class MCOParameterView(HasTraits):
     #: parameter_entity_creator
     add_parameter_button = Button('New Parameter')
 
-    #: Button to remove selected_parameter from the MCO
+    #: Button to remove selected_model_view from the MCO
     remove_parameter_button = Button('Delete Parameter')
-
-    # ------------------
-    #       View
-    # ------------------
 
     def default_traits_view(self):
         """Creates a traits view containing a notebook list of existing MCO
         parameters above an entity creator from which the user can select new
         parameter types"""
 
-        # Defines a list editor to display parameter_model_views
+        # Defines a list editor to display model_views
         parameter_editor = ListEditor(
             page_name='.label',
             use_notebook=True,
             dock_style='tab',
-            selected='selected_parameter')
+            selected='selected_model_view')
 
         traits_view = View(
             VGroup(
                 #: Displays existing parameters
                 VGroup(
-                    Item('parameter_model_views',
+                    Item('model_views',
                          editor=parameter_editor,
                          show_label=False,
                          style='custom',
@@ -188,7 +94,7 @@ class MCOParameterView(HasTraits):
                          enabled_when='object.parameter_entity_creator'
                                       '.model is not None'),
                     Item('remove_parameter_button',
-                         enabled_when='selected_parameter is not None'),
+                         enabled_when='selected_model_view is not None'),
                     show_labels=False,
                 ),
             )
@@ -196,7 +102,10 @@ class MCOParameterView(HasTraits):
 
         return traits_view
 
-    #: Defaults
+    # -------------------
+    #      Defaults
+    # -------------------
+
     def _parameter_entity_creator_default(self):
         """Returns an entity creator containing parameter types
         from all installed plugins"""
@@ -215,26 +124,42 @@ class MCOParameterView(HasTraits):
             )
             return parameter_entity_creator
 
-    def _parameter_model_views_default(self):
+    def _model_views_default(self):
         """Creates a list of MCOParameterModelViews for each
         model.parameter"""
-        parameter_model_views = []
+        model_views = []
 
         if self.model is not None:
             # Add all MCO parameters as ModelViews
-            parameter_model_views += [
-                MCOParameterModelView(model=parameter)
+            model_views += [
+                MCOParameterModelView(
+                    model=parameter,
+                    available_variables=self.parameter_name_options
+                )
                 for parameter in self.model.parameters
             ]
 
-        return parameter_model_views
+        return model_views
 
-    def _selected_parameter_default(self):
-        """Default value for selected_kpi"""
-        if len(self.parameter_model_views) > 0:
-            return self.parameter_model_views[0]
+    # -------------------
+    #     Listeners
+    # -------------------
 
-    #: Listeners
+    @cached_property
+    def _get_parameter_name_options(self):
+        """Listens to variable_names_registry to extract
+         possible names for new MCO parameters"""
+        parameter_name_options = []
+        if self.variable_names_registry is not None:
+            outputs = self.variable_names_registry.data_source_outputs
+            inputs = self.variable_names_registry.data_source_inputs
+            parameter_name_options += (
+                [input_ for input_ in inputs
+                 if input_ not in outputs]
+            )
+
+        return parameter_name_options
+
     @on_trait_change('model')
     def update_parameter_entity_creator(self):
         """ Update the entity creator based on the MCO factory """
@@ -242,45 +167,37 @@ class MCOParameterView(HasTraits):
                 self._parameter_entity_creator_default()
         )
 
-    # Update parameter_model_views when model changes
+    # Update model_views when model.parameters changes
     @on_trait_change('model.parameters')
     def update_parameter_model_views(self):
-        """ Update the MCOParameterModelView(s) """
-        self.parameter_model_views = self._parameter_model_views_default()
-
-        # Update the selected_parameter view
-        if len(self.parameter_model_views) == 0:
-            self.selected_parameter = None
+        """ Triggers the base method update_model_views when
+        MCOParameters are updated"""
+        self.update_model_views()
 
     # Workflow Validation
-    @on_trait_change('parameter_model_views.verify_workflow_event')
-    def received_verify_request(self):
-        """Pass on request for verify_workflow_event"""
-        self.verify_workflow_event = True
+    @on_trait_change('parameter_name_options')
+    def update_model_views__combobox(self):
+        """Update the parameter model view name options"""
+        for parameter_view in self.model_views:
+            parameter_view.available_variables = self.parameter_name_options
 
-    #: Button actions
     def _add_parameter_button_fired(self):
         """Call add_parameter to create a new empty parameter using
         the parameter_entity_creator"""
         self.add_parameter(self.parameter_entity_creator.model)
         self.parameter_entity_creator.reset_model()
 
-        self.selected_parameter = self.parameter_model_views[-1]
+        # Highlight new Parameter in ListEditor
+        self.selected_model_view = self.model_views[-1]
 
     def _remove_parameter_button_fired(self):
-        """Call remove_parameter to delete selected_parameter"""
+        """Call remove_parameter to delete selected parameter from model"""
+        self._remove_button_action(self.remove_parameter)
 
-        index = self.parameter_model_views.index(self.selected_parameter)
-        self.remove_parameter(self.selected_parameter.model)
+    # -------------------
+    #   Private Methods
+    # -------------------
 
-        # Update user selection
-        if len(self.parameter_model_views) > 0:
-            if index == 0:
-                self.selected_parameter = self.parameter_model_views[index]
-            else:
-                self.selected_parameter = self.parameter_model_views[index-1]
-
-    #: Private Methods
     def _dclick_add_parameter(self, ui_info):
         """Called when a parameter factory is double clicked in the entity
         creator. The ui_info object is automatically passed by the
@@ -288,7 +205,10 @@ class MCOParameterView(HasTraits):
         """
         self._add_parameter_button_fired()
 
-    #: Public Methods
+    # -------------------
+    #    Public Methods
+    # -------------------
+
     def add_parameter(self, parameter):
         """Adds a parameter to the MCO model associated with this view.
 

@@ -6,9 +6,9 @@ from traitsui.api import (
     HSplit, HTMLEditor, InstanceEditor, Menu, TreeEditor, TreeNode, UItem,
     VGroup, View
 )
-from envisage.plugin import Plugin
 
 from force_bdss.api import BaseFactory, BaseMCOParameter, BaseModel
+
 from force_wfmanager.ui.ui_utils import model_info
 
 no_view = View()
@@ -20,7 +20,7 @@ class PluginModelView(HasStrictTraits):
     in the TreeEditor of the NewEntityCreator.
     """
     #: An instance of an external Envisage Plugin.
-    plugin = Instance(Plugin)
+    id = Unicode()
 
     #: The name of the PluginModelView
     name = Unicode("plugin")
@@ -97,9 +97,9 @@ class NewEntityCreator(HasStrictTraits):
     #: Listens to :attr:`selected_factory`
     _cached_models = Dict()
 
-    # ----------
-    # Properties
-    # ----------
+    # --------------
+    #   Properties
+    # --------------
 
     #: HTML header containing the factory name
     view_header = Property(Instance(Unicode), depends_on='factory_name')
@@ -115,6 +115,10 @@ class NewEntityCreator(HasStrictTraits):
     def __init__(self, factories, *args, **kwargs):
         super(NewEntityCreator, self).__init__(*args, **kwargs)
         self.factories = factories
+
+    # -------------------
+    #        View
+    # -------------------
 
     def default_traits_view(self):
         """ Sets up a view containing a TreeEditor for the currently loaded
@@ -193,6 +197,10 @@ class NewEntityCreator(HasStrictTraits):
 
         return view
 
+    # -------------------
+    #      Defaults
+    # -------------------
+
     def _plugins_root_default(self):
         """Create a root object for use in the root node of the tree editor.
         This contains a list of PluginModelViews, which hold the plugin itself,
@@ -209,13 +217,13 @@ class NewEntityCreator(HasStrictTraits):
             plugin_dict[plugin].append(factory)
 
         # Order the keys alphabetically by plugin name
-        ordered_keys = sorted(plugin_dict.keys(), key=lambda p: p.name)
+        ordered_keys = sorted(plugin_dict.keys(), key=lambda p: p[1])
 
         plugins = []
         for plugin in ordered_keys:
             factories = plugin_dict[plugin]
             plugins.append(PluginModelView(
-                plugin=plugin, factories=factories, name=plugin.name
+                id=plugin[0], factories=factories, name=plugin[1]
             ))
         return Root(plugins=plugins)
 
@@ -224,6 +232,10 @@ class NewEntityCreator(HasStrictTraits):
         """
         return htmlformat(body="<p>No configuration options "
                           "available for this selection</p>")
+
+    # -------------------
+    #      Listeners
+    # -------------------
 
     def _get_view_header(self):
         """Return a header to the view clearly showing the factory name"""
@@ -248,24 +260,9 @@ class NewEntityCreator(HasStrictTraits):
 
         self.model = cached_model
 
-    def reset_model(self):
-        """Helper function which 'resets' self.model to be a new un-edited
-        model for the currently selected factory"""
-        if self.selected_factory is None:
-            self.model = None
-        else:
-            self.model = self.selected_factory.create_model()
-
-    def get_plugin_from_factory(self, factory):
-        """Returns the plugin associated with a particular factory
-
-        Parameters
-        ----------
-        factory: BaseFactory
-            The factory to get plugin information for.
-        """
-        plugin = factory.plugin
-        return plugin
+    # -------------------
+    #   Private Methods
+    # -------------------
 
     def _get__current_model_editable(self):
         """A check which returns True if 1. A view with at least
@@ -315,6 +312,29 @@ class NewEntityCreator(HasStrictTraits):
 
         # Create a HTML string with all the model's parameters
         return htmlformat(model_name, model_desc, name_desc_pairs)
+
+    # -------------------
+    #    Public Methods
+    # -------------------
+
+    def reset_model(self):
+        """Helper function which 'resets' self.model to be a new un-edited
+        model for the currently selected factory"""
+        if self.selected_factory is None:
+            self.model = None
+        else:
+            self.model = self.selected_factory.create_model()
+
+    def get_plugin_from_factory(self, factory):
+        """Returns the plugin information (id, name) associated with a
+        particular factory
+
+        Parameters
+        ----------
+        factory: BaseFactory
+            The factory to get plugin information for.
+        """
+        return factory.plugin_id, factory.plugin_name
 
 
 # A generic HTML header and body with title and text

@@ -17,8 +17,7 @@ def write_workflow_file(workflow_model, file_path):
         The file_path pointing to the file in which you want to write the
         workflow
     """
-    with open(file_path, 'w') as output:
-        WorkflowWriter().write(workflow_model, output)
+    WorkflowWriter().write(workflow_model, file_path)
 
 
 def load_workflow_file(factory_registry, file_path):
@@ -36,7 +35,6 @@ def load_workflow_file(factory_registry, file_path):
 
     reader = WorkflowReader(factory_registry)
 
-    with open(file_path, 'r') as fobj:
-        workflow_model = reader.read(fobj)
+    workflow_model = reader.read(file_path)
 
     return workflow_model

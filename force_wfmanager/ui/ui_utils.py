@@ -1,5 +1,5 @@
-from traitsui.api import Group, Item
 from pyface.qt import QtGui
+from traitsui.api import Group, Item
 
 
 def get_factory_name(factory):
@@ -63,7 +63,7 @@ def class_description(cl, maxlength=80, desc_attribute="description"):
     """ Returns a short description of a class, based on a
     description class attribute (if present) and the class path:
 
-    Examples (maxlenght = 45)::
+    Examples (maxlength = 45)::
 
         "Short description (path.to.the.class)"
         "This is a longer description (path...class)"

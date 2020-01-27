@@ -1,18 +1,19 @@
 import unittest
 
 from force_bdss.api import (
-    DataValue, ExecutionLayer, Workflow
+    DataValue, ExecutionLayer, Workflow, InputSlotInfo
 )
 from force_bdss.tests.probe_classes.data_source import \
     ProbeDataSourceFactory
-from force_bdss.tests.probe_classes.mco import ProbeParameter
-from force_bdss.tests.probe_classes.probe_extension_plugin import \
-    ProbeExtensionPlugin
-from force_wfmanager.utils.variable_names_registry import \
-    VariableNamesRegistry
 from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
+from force_bdss.tests.probe_classes.mco import ProbeParameter
+from force_bdss.tests.probe_classes.probe_extension_plugin import \
+    ProbeExtensionPlugin
+
+from force_wfmanager.utils.variable_names_registry import \
+    VariableNamesRegistry
 
 
 def get_run_function(nb_outputs):
@@ -21,7 +22,7 @@ def get_run_function(nb_outputs):
     return run
 
 
-class BaseTest(unittest.TestCase):
+class WfManagerBaseTestCase(unittest.TestCase):
 
     def setUp(self):
         #: Create 2 data source factories and models
@@ -52,6 +53,9 @@ class BaseTest(unittest.TestCase):
         )
         self.factory_registry.data_source_factories.append(factory)
 
+        self.model_1.input_slot_info = [InputSlotInfo(name='P1')]
+        self.model_2.input_slot_info = [InputSlotInfo(name='P2')]
+
         #: Store these data source models in an exectution layer
         self.data_sources = [self.model_1, self.model_2]
         self.execution_layer = ExecutionLayer(
@@ -75,7 +79,7 @@ class BaseTest(unittest.TestCase):
         #: Set up workflow containing 1 execution layer with 2
         #: data sources, 2 MCO parameters and 1 listener
         self.workflow = Workflow(
-            mco=self.mco_model,
+            mco_model=self.mco_model,
             execution_layers=[self.execution_layer],
             notification_listeners=[self.notification_listener]
         )

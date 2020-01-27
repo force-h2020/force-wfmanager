@@ -1,4 +1,5 @@
 import unittest
+
 from traits.api import HasStrictTraits, TraitError
 
 from force_wfmanager.utils.local_traits import ZMQSocketURL

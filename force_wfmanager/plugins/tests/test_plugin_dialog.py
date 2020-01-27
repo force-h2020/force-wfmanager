@@ -3,9 +3,11 @@ import testfixtures
 
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
-from force_bdss.base_extension_plugin import BaseExtensionPlugin
+from force_bdss.core_plugins.base_extension_plugin import BaseExtensionPlugin
 from force_wfmanager.plugins.plugin_dialog import htmlformat, PluginDialog
-from force_wfmanager.tests.dummy_classes import DummyModelInfo
+from force_wfmanager.tests.dummy_classes.dummy_model_info import (
+    DummyModelInfo
+)
 
 
 class Plugin1(BaseExtensionPlugin):

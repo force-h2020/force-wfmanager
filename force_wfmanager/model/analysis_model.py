@@ -1,4 +1,5 @@
 import json
+
 from traits.api import (
     Bool, Either, HasStrictTraits, Int, List, Property, Tuple, on_trait_change
 )
@@ -47,38 +48,15 @@ class AnalysisModel(HasStrictTraits):
     selected_step_indices = Property(Either(None, List(Int)),
                                      depends_on="_selected_step_indices")
 
-    @on_trait_change("value_names")
-    def _clear_evaluation_steps(self):
-        self._evaluation_steps[:] = []
-        self._selected_step_indices = None
-        self._export_enabled = False
+    # ------------------
+    #     Listeners
+    # ------------------
 
     def _get_export_enabled(self):
         return self._export_enabled
 
     def _get_evaluation_steps(self):
         return self._evaluation_steps
-
-    def add_evaluation_step(self, evaluation_step):
-        """Add the result of an optimisation run to the AnalysisModel
-
-        Parameters
-        ---------
-        evaluation_step: Tuple
-            A pair of values, which can be of any type.
-        """
-        if len(self.value_names) == 0:
-            raise ValueError("Cannot add evaluation step to an empty "
-                             "Analysis model")
-
-        if len(evaluation_step) != len(self.value_names):
-            raise ValueError(
-                "Size of evaluation step '{}' is incompatible "
-                "with the number of value names {}.".format(
-                    evaluation_step, self.value_names))
-
-        self._evaluation_steps.append(evaluation_step)
-        self._export_enabled = True
 
     def _get_selected_step_indices(self):
         return self._selected_step_indices
@@ -101,6 +79,37 @@ class AnalysisModel(HasStrictTraits):
                     )
 
         self._selected_step_indices = values
+
+    @on_trait_change("value_names")
+    def _clear_evaluation_steps(self):
+        self._evaluation_steps[:] = []
+        self._selected_step_indices = None
+        self._export_enabled = False
+
+    # ------------------
+    #   Public Methods
+    # ------------------
+
+    def add_evaluation_step(self, evaluation_step):
+        """Add the result of an optimisation run to the AnalysisModel
+
+        Parameters
+        ---------
+        evaluation_step: Tuple
+            A pair of values, which can be of any type.
+        """
+        if len(self.value_names) == 0:
+            raise ValueError("Cannot add evaluation step to an empty "
+                             "Analysis model")
+
+        if len(evaluation_step) != len(self.value_names):
+            raise ValueError(
+                "Size of evaluation step '{}' is incompatible "
+                "with the number of value names {}.".format(
+                    evaluation_step, self.value_names))
+
+        self._evaluation_steps.append(evaluation_step)
+        self._export_enabled = True
 
     def clear(self):
         """ Sets :attr:`value_names` to be empty, removes all entries in the

@@ -4,20 +4,15 @@ from traits.api import (
 
 from force_bdss.api import Workflow
 
+from force_wfmanager.ui.setup.communicator\
+    .communicator_view import CommunicatorView
 from force_wfmanager.ui.setup.mco.mco_view import MCOView
 from force_wfmanager.ui.setup.process.process_view import (
     ProcessView
 )
-from force_wfmanager.ui.setup.communicator\
-    .communicator_view import CommunicatorView
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
-
-# VerifierError severity constants
-_ERROR = "error"
-_WARNING = "warning"
-_INFO = "information"
 
 
 class WorkflowView(HasTraits):
@@ -56,7 +51,7 @@ class WorkflowView(HasTraits):
     communicator_view = List(Instance(CommunicatorView))
 
     #: Defines if the Workflow is valid or not. Set by the
-    #: function map_verify_workflow
+    #: function verify_tree
     valid = Bool(True)
 
     #: Event to request a verification check on the workflow
@@ -68,7 +63,10 @@ class WorkflowView(HasTraits):
     #: A label for the Workflow
     label = Unicode("Workflow")
 
-    # Defaults
+    # -------------------
+    #     Defaults
+    # -------------------
+
     def _model_default(self):
         return Workflow()
 
@@ -81,9 +79,9 @@ class WorkflowView(HasTraits):
             variable_names_registry=self.variable_names_registry)]
 
     def _mco_view_default(self):
-        if self.model.mco is not None:
+        if self.model.mco_model is not None:
             return [MCOView(
-                model=self.model.mco,
+                model=self.model.mco_model,
                 variable_names_registry=self.variable_names_registry)]
         else:
             return []
@@ -93,12 +91,15 @@ class WorkflowView(HasTraits):
             model=self.model,
             variable_names_registry=self.variable_names_registry)]
 
-    #: Listeners
+    # -------------------
+    #     Listeners
+    # -------------------
+
     @on_trait_change('model')
     def update_process_view(self):
         self.process_view = self._process_view_default()
 
-    @on_trait_change('model:mco')
+    @on_trait_change('model:mco_model')
     def update_mco_view(self):
         self.mco_view = self._mco_view_default()
 
@@ -112,10 +113,9 @@ class WorkflowView(HasTraits):
     def received_verify_request(self):
         self.verify_workflow_event = True
 
-    #: Public methods
-    def set_mco(self, mco_model):
-        """Set the MCO"""
-        self.model.mco = mco_model
+    # -------------------
+    #   Public Methods
+    # -------------------
 
     def remove_execution_layer(self, layer):
         """Removes the execution layer from the model."""

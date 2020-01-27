@@ -1,11 +1,13 @@
 from traits.api import (
     HasTraits, Instance, List, on_trait_change, Bool, Event, Unicode
 )
+
+from force_bdss.api import Workflow
+
 from force_wfmanager.utils.variable_names_registry import (
     VariableNamesRegistry
 )
 from .execution_layer_view import ExecutionLayerView
-from force_bdss.api import Workflow
 
 
 class ProcessView(HasTraits):
@@ -60,7 +62,10 @@ class ProcessView(HasTraits):
         # variable_names_registry has been assigned first
         self.model = model
 
-    #: Listeners
+    # -------------------
+    #     Listeners
+    # -------------------
+
     @on_trait_change('model.execution_layers[]')
     def update_execution_layers_views(self):
         """Update the ExecutionLayer ModelViews when the model changes."""
@@ -82,7 +87,10 @@ class ProcessView(HasTraits):
         """
         self.verify_workflow_event = True
 
-    #: Public methods
+    # -------------------
+    #   Public Methods
+    # -------------------
+
     def add_execution_layer(self, execution_layer):
         """Adds a new empty execution layer"""
         self.model.execution_layers.append(execution_layer)
@@ -90,6 +98,7 @@ class ProcessView(HasTraits):
     def remove_execution_layer(self, layer):
         """Removes the execution layer from the model."""
         self.model.execution_layers.remove(layer)
+        self.verify_workflow_event = True
 
     # NOTE: Currently needed by TreeEditor as a reference point
     def remove_data_source(self, data_source):

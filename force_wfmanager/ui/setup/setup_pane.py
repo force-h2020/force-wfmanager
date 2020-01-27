@@ -8,8 +8,9 @@ from traitsui.api import (
 )
 
 from force_bdss.api import BaseModel
-from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
+
 from force_wfmanager.ui.setup.system_state import SystemState
+from force_wfmanager.ui.setup.workflow_info import WorkflowInfo
 
 
 class SetupPane(TraitsTaskPane):
@@ -45,7 +46,7 @@ class SetupPane(TraitsTaskPane):
     error_message = Unicode()
 
     # --------------------
-    # Button Attributes
+    #  Button Attributes
     # --------------------
 
     #: A Button which calls add_new_entity when pressed.
@@ -54,9 +55,9 @@ class SetupPane(TraitsTaskPane):
     #: A Button which calls remove_entity when pressed.
     remove_entity_btn = Button()
 
-    # ----------
-    # Properties
-    # ----------
+    # ----------------
+    #    Properties
+    # ----------------
 
     #: The string displayed on the 'add new entity' button.
     add_new_entity_label = Property(
@@ -125,6 +126,10 @@ class SetupPane(TraitsTaskPane):
     remove_button_visible = Property(
         Bool, depends_on='system_state:selected_factory_name'
     )
+
+    # -------------------
+    #        View
+    # -------------------
 
     #: The view when editing an existing instance within the workflow tree
     def default_traits_view(self):
@@ -215,7 +220,10 @@ class SetupPane(TraitsTaskPane):
 
         return view
 
-    # Property getters
+    # -------------------
+    #      Listeners
+    # -------------------
+
     @cached_property
     def _get_selected_view_editable(self):
         """ Determines if the selected modelview in the WorkflowTree has a
@@ -304,7 +312,6 @@ class SetupPane(TraitsTaskPane):
             error_message=self.error_message
         )
 
-    #: Listeners
     # Synchronisation with WorkflowTree
     @on_trait_change('system_state:selected_view.error_message')
     def sync_selected_view(self):
@@ -319,7 +326,6 @@ class SetupPane(TraitsTaskPane):
 
             self.error_message = self.system_state.selected_view.error_message
 
-    #: Button actions
     # Button event handlers for creating and deleting workflow items
     def _add_new_entity_btn_fired(self):
         """Calls add_new_entity when add_new_entity_btn is clicked"""
@@ -329,7 +335,10 @@ class SetupPane(TraitsTaskPane):
         """Calls remove_entity when remove_entity_btn is clicked"""
         self.system_state.remove_entity()
 
-    #: Protected methods
+    # -------------------
+    #   Private Methods
+    # -------------------
+
     def _console_ns_default(self):
         namespace = {
             "task": self.task
