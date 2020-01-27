@@ -7,24 +7,19 @@ DEFAULT_PYTHON_VERSION = "3.6"
 PYTHON_VERSIONS = ["3.6"]
 
 ADDITIONAL_CORE_DEPS = [
-    "pyface==6.1.0-2",
+    "pyface==6.1.2-1",
     "pygments==2.2.0-1",
     "pyqt==4.11.4-7",
     "qt==4.8.7-10",
     "sip==4.17-4",
-    "traitsui==6.1.1-1",
+    "traitsui==6.1.3-2",
     "numpy==1.15.4-2",
     "chaco==4.8.0-1",
     "pyzmq==16.0.0-7",
     "mock==2.0.0-3"
 ]
 
-ADDITIONAL_PIP_DEPS = [
-    # FIXME: Using pyface from master to take advantage of this not yet
-    #        released bugfix: enthought/pyface#409
-    'git+https://github.com/enthought/pyface.git'
-    '@c3fee1b80c73c3b95b37be5023a3fd03a2a885d3'
-]
+ADDITIONAL_PIP_DEPS = []
 
 
 @click.group()
