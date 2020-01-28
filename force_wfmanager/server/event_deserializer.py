@@ -69,7 +69,7 @@ class EventDeserializer(object):
             )
 
         model_data = d["model_data"]
-        if cls == MCOProgressEvent:
+        if issubclass(cls, MCOProgressEvent):
             model_data["optimal_point"] = [
                 DataValue(**data) for data in model_data["optimal_point"]
             ]
