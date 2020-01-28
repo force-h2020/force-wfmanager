@@ -44,7 +44,7 @@ CONFIRMATION_DIALOG_PATH = (
 FILE_DIALOG_PATH = "force_wfmanager.wfmanager_setup_task.FileDialog"
 INFORMATION_PATH = "force_wfmanager.wfmanager_setup_task.information"
 CONFIRM_PATH = "force_wfmanager.wfmanager_setup_task.confirm"
-FILE_OPEN_PATH = "force_wfmanager.io.workflow_io.open"
+FILE_OPEN_PATH = "force_wfmanager.io.workflow_io.WorkflowWriter.write"
 WORKFLOW_WRITER_PATH = "force_wfmanager.io.workflow_io.WorkflowWriter"
 WORKFLOW_READER_PATH = "force_wfmanager.io.workflow_io.WorkflowReader"
 SETUP_ERROR_PATH = "force_wfmanager.wfmanager_setup_task.error"
@@ -83,16 +83,16 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             (
                 "force_wfmanager.wfmanager_setup_task",
                 "ERROR",
-                "Failed to create UI hook manager by factory "
-                "ProbeUIHooksFactory",
+                "Failed to create UI hook manager by "
+                "factory ProbeUIHooksFactory",
             )
         )
 
     def test_save_workflow(self):
-        mock_open = mock.mock_open()
+
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, mock.patch(
-            FILE_OPEN_PATH, mock_open, create=True
-        ), mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
+            WORKFLOW_WRITER_PATH
+        ) as mock_writer:
 
             hook_manager = self.setup_task.ui_hooks_managers[0]
             self.assertFalse(hook_manager.before_save_called)
@@ -105,7 +105,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.setup_task.save_workflow()
 
             self.assertTrue(mock_writer.called)
-            self.assertTrue(mock_open.called)
             self.assertTrue(mock_file_dialog.called)
 
             self.assertEqual(self.setup_task.current_file, "file_path")
@@ -126,33 +125,31 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
             hook_manager.before_save_raises = False
 
-        mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, mock.patch(
-            FILE_OPEN_PATH, mock_open, create=True
-        ), mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
+            WORKFLOW_WRITER_PATH
+        ) as mock_writer:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_writer.side_effect = mock_file_writer
 
             self.setup_task.save_workflow()
 
             self.assertTrue(mock_writer.called)
-            self.assertTrue(mock_open.called)
             self.assertFalse(mock_file_dialog.called)
 
-    def test_save_workflow_failure(self):
+    def test_save_workflow_success(self):
         mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, mock.patch(
             FILE_OPEN_PATH, mock_open, create=True
-        ), mock.patch(WORKFLOW_WRITER_PATH) as mock_writer:
+        ):
             mock_file_dialog.side_effect = mock_dialog(
                 FileDialog, OK, "file_path"
             )
-            mock_writer.side_effect = mock_file_writer
 
-            self.setup_task.save_workflow()
+            self.assertTrue(self.setup_task.save_workflow())
 
             self.assertEqual(self.setup_task.current_file, "file_path")
 
+    def test_save_workflow_failure(self):
         mock_open = mock.mock_open()
         mock_open.side_effect = Exception("OUPS")
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, mock.patch(
@@ -161,7 +158,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_error.side_effect = mock_return_args
 
-            self.setup_task.save_workflow()
+            self.assertFalse(self.setup_task.save_workflow())
 
             self.assertEqual(self.setup_task.current_file, "")
 
@@ -197,7 +194,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
             self.setup_task.save_workflow_as()
 
-            self.assertTrue(mock_open.called)
             mock_error.assert_called_with(
                 None,
                 "Cannot save in the requested file:\n\nOUPS",
@@ -205,10 +201,9 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             )
 
     def test_open_workflow(self):
-        mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, mock.patch(
-            FILE_OPEN_PATH, mock_open, create=True
-        ), mock.patch(WORKFLOW_READER_PATH) as mock_reader:
+            WORKFLOW_READER_PATH
+        ) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_reader.side_effect = mock_file_reader
 
@@ -220,7 +215,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
             self.setup_task.open_workflow()
 
-            self.assertTrue(mock_open.called)
             self.assertTrue(mock_reader.called)
 
             self.assertNotEqual(old_workflow, self.setup_task.workflow_model)
@@ -229,12 +223,9 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             )
 
     def test_read_failure(self):
-        mock_open = mock.mock_open()
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, mock.patch(
-            FILE_OPEN_PATH, mock_open, create=True
-        ), mock.patch(SETUP_ERROR_PATH) as mock_error, mock.patch(
-            WORKFLOW_READER_PATH
-        ) as mock_reader:
+            SETUP_ERROR_PATH
+        ) as mock_error, mock.patch(WORKFLOW_READER_PATH) as mock_reader:
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_error.side_effect = mock_return_args
             mock_reader.side_effect = mock_file_reader_failure
@@ -243,7 +234,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
             self.setup_task.open_workflow()
 
-            self.assertTrue(mock_open.called)
             self.assertTrue(mock_reader.called)
             mock_error.assert_called_with(
                 None,
@@ -362,14 +352,16 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             ):
                 self.setup_task.run_bdss()
 
-            capture.check(
+            self.assertIn(
                 (
                     "force_wfmanager.wfmanager_setup_task",
                     "ERROR",
                     "Failed before_execution hook for hook manager "
                     "ProbeUIHooksManager",
-                )
+                ),
+                capture.actual(),
             )
+
             hook_manager.before_execution_raises = False
             hook_manager.after_execution_raises = True
             with LogCapture() as capture, self.event_loop_until_condition(
@@ -377,13 +369,14 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             ):
                 self.setup_task.run_bdss()
 
-            capture.check(
+            self.assertIn(
                 (
                     "force_wfmanager.wfmanager_setup_task",
                     "ERROR",
                     "Failed after_execution hook for hook manager "
                     "ProbeUIHooksManager",
-                )
+                ),
+                capture.actual(),
             )
 
     def test_run_bdss_cancel(self):

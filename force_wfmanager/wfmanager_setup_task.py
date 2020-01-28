@@ -28,6 +28,11 @@ from force_bdss.api import (
     InvalidFileException,
     Workflow,
 )
+
+from force_wfmanager.io.workflow_io import (
+    write_workflow_file,
+    load_workflow_file,
+)
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
@@ -41,10 +46,7 @@ from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.setup.system_state import SystemState
 
 from force_wfmanager.wfmanager import TaskToggleGroupAccelerator
-from force_wfmanager.io.workflow_io import (
-    write_workflow_file,
-    load_workflow_file,
-)
+
 
 log = logging.getLogger(__name__)
 
@@ -232,15 +234,15 @@ class WfManagerSetupTask(Task):
         """ Defines the default layout of the task window """
         return TaskLayout(left=PaneItem("force_wfmanager.side_pane"))
 
+    def _workflow_model_default(self):
+        return Workflow()
+
     def _side_pane_default(self):
         return SidePane(
             workflow_model=self.workflow_model,
             factory_registry=self.factory_registry,
             system_state=self.system_state,
         )
-
-    def _workflow_model_default(self):
-        return Workflow()
 
     def _analysis_model_default(self):
         return AnalysisModel()
