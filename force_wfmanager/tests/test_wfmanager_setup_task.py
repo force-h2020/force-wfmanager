@@ -259,8 +259,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             send_event(
                 MCOProgressEvent(
                     optimal_point=[DataValue(value=1.0)],
-                    optimal_kpis=[DataValue(value=2.0)],
-                    weights=[1.0],
+                    optimal_kpis=[DataValue(value=2.0)]
                 )
             )
 
