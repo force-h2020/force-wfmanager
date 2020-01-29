@@ -252,7 +252,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             len(self.setup_task.analysis_model.evaluation_steps), 0
         )
         self.assertEqual(
-            self.setup_task.analysis_model.value_names, ("x", "y", "y weight")
+            self.setup_task.analysis_model.value_names, ("x", "y")
         )
 
         with self.event_loop():

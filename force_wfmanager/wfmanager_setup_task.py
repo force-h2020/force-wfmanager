@@ -473,21 +473,9 @@ class WfManagerSetupTask(Task):
         action appropriately according to the type"""
         if isinstance(event, MCOStartEvent):
             self.analysis_model.clear()
-            value_names = list(event.parameter_names)
-            for kpi_name in event.kpi_names:
-                value_names.extend([kpi_name, kpi_name + " weight"])
-            self.analysis_model.value_names = tuple(value_names)
+            self.analysis_model.value_names = tuple(event.serialize())
         elif isinstance(event, MCOProgressEvent):
-            data = [dv.value for dv in event.optimal_point]
-            for kpi, weight in zip(event.optimal_kpis, event.weights):
-                data.extend([kpi.value, weight])
-            for i, data_val in enumerate(data[:]):
-                try:
-                    data[i] = float(data_val)
-                except ValueError:
-                    data[i] = str(data_val)
-
-            self.analysis_model.add_evaluation_step(data)
+            self.analysis_model.add_evaluation_step(event.serialize())
 
     # Error Display
     def _show_error_dialog(self, message):
@@ -545,8 +533,6 @@ class WfManagerSetupTask(Task):
             self.workflow_model = load_workflow_file(
                 self.factory_registry, file_path
             )
-            # self.workflow_file.path = file_path
-            # self.workflow_file.read()
         except (InvalidFileException, FileNotFoundError) as e:
             error(
                 None,
