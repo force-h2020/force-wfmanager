@@ -35,8 +35,7 @@ class TestEventDeserializer(unittest.TestCase):
                 "type": "MCOProgressEvent",
                 "model_data": {
                     "optimal_point": [{"value": 1.0}, {"value": 2.0}],
-                    "optimal_kpis": [{"value": 3.0}],
-                    "weights": [1.0],
+                    "optimal_kpis": [{"value": 3.0}]
                 },
             }
         )
@@ -49,8 +48,6 @@ class TestEventDeserializer(unittest.TestCase):
 
         self.assertEqual(len(event.optimal_kpis), 1)
         self.assertEqual(event.optimal_kpis[0].value, 3.0)
-
-        self.assertEqual(event.weights, [1.0])
 
     def test_invalid_cases(self):
         invalid_cases = [
