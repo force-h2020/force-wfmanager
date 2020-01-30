@@ -3,9 +3,7 @@ import threading
 
 import zmq
 
-from force_bdss.api import BaseDriverEvent
-from .event_deserializer import (
-    EventDeserializer, DeserializerError)
+from force_bdss.api import BaseDriverEvent, DriverEventDeserializationError
 
 log = logging.getLogger(__name__)
 
@@ -66,7 +64,6 @@ class ZMQServer(threading.Thread):
         self._pub_socket = None
         self._sync_socket = None
         self._inproc_socket = None
-        self._deserializer = EventDeserializer()
         self.ports = None
 
     def run(self):
@@ -307,7 +304,7 @@ class ZMQServer(threading.Thread):
 
         try:
             event = BaseDriverEvent.loads_json(serialized_data)
-        except DeserializerError:
+        except DriverEventDeserializationError:
             log.error("Received invalid data. Discarding")
             return
 
