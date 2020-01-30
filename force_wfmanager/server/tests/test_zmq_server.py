@@ -172,19 +172,13 @@ class TestZMQServer(unittest.TestCase):
             ]
             wait_condition(lambda: server.state == ZMQServer.STATE_RECEIVING)
 
+            event_data = {
+                "id": "force_bdss.core_driver_events.MCOStartEvent",
+                "model_data": {},
+            }
             server._pub_socket.data = [
                 x.encode("utf-8")
-                for x in [
-                    "MESSAGE",
-                    "xxx",
-                    json.dumps(
-                        {
-                            "module": "force_bdss.core_driver_events",
-                            "type": "MCOStartEvent",
-                            "model_data": {},
-                        }
-                    ),
-                ]
+                for x in ["MESSAGE", "xxx", json.dumps(event_data)]
             ]
 
             wait_condition(lambda: len(events) == 1)
@@ -291,19 +285,13 @@ class TestZMQServer(unittest.TestCase):
             ]
             wait_condition(lambda: server.state == ZMQServer.STATE_RECEIVING)
 
+            event_data = {
+                "id": "force_bdss.core_driver_events.MCOStartEvent",
+                "model_data": {},
+            }
             server._pub_socket.data = [
                 x.encode("utf-8")
-                for x in [
-                    "MESSAGE",
-                    "xxx",
-                    json.dumps(
-                        {
-                            "module": "force_bdss.core_driver_events",
-                            "type": "MCOStartEvent",
-                            "model_data": {},
-                        }
-                    ),
-                ]
+                for x in ["MESSAGE", "xxx", json.dumps(event_data)]
             ]
             server._sync_socket.data = [
                 x.encode("utf-8") for x in ["GOODBYE", "xxx"]
