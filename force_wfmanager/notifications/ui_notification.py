@@ -132,7 +132,7 @@ class UINotification(BaseNotificationListener):
         if not isinstance(event, BaseDriverEvent):
             raise TypeError("Event is not a BaseDriverEvent")
 
-        data = self._serializer.serialize(event)
+        data = event.dumps_json()
 
         self._pub_socket.send_multipart(
             [x.encode('utf-8') for x in ["MESSAGE", self._identifier, data]])
