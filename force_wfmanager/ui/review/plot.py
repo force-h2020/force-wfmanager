@@ -18,8 +18,8 @@ from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
 from enable.api import KeySpec
 from traits.api import (
-    Button, Bool, Dict, Enum, Instance, List, Property, Tuple,
-    on_trait_change, Unicode
+    Button, Bool, Dict, Enum, Instance, List, Property,
+    on_trait_change, Unicode, DelegatesTo
 )
 from traitsui.api import HGroup, Item, UItem, VGroup, View
 
@@ -74,7 +74,9 @@ class BasePlot(BaseDataView):
     #: A local copy of the analysis model's value names
     #: Listens to: :attr:`ç.value_names
     #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.value_names>`
-    _value_names = Tuple()
+    _value_names = DelegatesTo(
+        "analysis_model", prefix="numerical_value_names"
+    )
 
     #: List containing the data arrays.
     #: Listens to: :attr:`analysis_model.value_names
@@ -229,7 +231,7 @@ class BasePlot(BaseDataView):
         """ Sets the value names in the plot to match those it the analysis
         model and resets any data arrays."""
 
-        self._value_names = self.analysis_model.numerical_value_names
+        # self._value_names = self.analysis_model.numerical_value_names
         self._data_arrays = self.__data_arrays_default()
         # If there is more than one value names, we select the second one for
         # the y axis
@@ -401,7 +403,7 @@ class BasePlot(BaseDataView):
 
         return None
 
-    @on_trait_change('analysis_model.selected_step_indices')
+    @on_trait_change('analysis_model:selected_step_indices')
     def update_selected_points(self):
         """ Updates the selected points in the plot according to the model """
         if self.analysis_model.selected_step_indices is None:
