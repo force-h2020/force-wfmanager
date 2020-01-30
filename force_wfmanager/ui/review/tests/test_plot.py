@@ -49,9 +49,9 @@ class TestAnyPlot:
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ('density', 'pressure')
-        self.assertEqual(self.plot.x, None)
-        self.assertEqual(self.plot.y, None)
-        self.assertEqual(self.plot._data_arrays, [])
+        self.assertIsNone(self.plot.x)
+        self.assertIsNone(self.plot.y)
+        self.assertEqual([[], []], self.plot._data_arrays)
 
     def test_plot(self):
         self.analysis_model.value_names = ('density', 'pressure')

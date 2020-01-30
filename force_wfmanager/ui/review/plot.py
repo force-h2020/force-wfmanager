@@ -226,7 +226,7 @@ class BasePlot(BaseDataView):
 
     # Response to analysis model changes
 
-    @on_trait_change('analysis_model.numerical_value_names')
+    @on_trait_change("_value_names")
     def update_value_names(self):
         """ Sets the value names in the plot to match those it the analysis
         model and resets any data arrays."""
