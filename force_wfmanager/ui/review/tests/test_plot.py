@@ -14,7 +14,7 @@ from traits.api import push_exception_handler, TraitError
 push_exception_handler(reraise_exceptions=True)
 
 
-class TestAnyPlot(object):
+class TestAnyPlot:
     def setUp(self):
         self.analysis_model = AnalysisModel()
 
@@ -49,9 +49,9 @@ class TestAnyPlot(object):
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ('density', 'pressure')
-        self.assertEqual(self.plot.x, 'density')
-        self.assertEqual(self.plot.y, 'pressure')
-        self.assertEqual(self.plot._data_arrays, [[], []])
+        self.assertEqual(self.plot.x, None)
+        self.assertEqual(self.plot.y, None)
+        self.assertEqual(self.plot._data_arrays, [])
 
     def test_plot(self):
         self.analysis_model.value_names = ('density', 'pressure')
@@ -195,7 +195,7 @@ class TestAnyPlot(object):
             [101325, 101423]
         )
 
-        self.analysis_model.value_names = ()
+        self.analysis_model.numerical_value_names = []
 
         self.assertEqual(
             self.plot._plot_data.get_data('x').tolist(),
@@ -212,9 +212,10 @@ class TestAnyPlot(object):
         self.analysis_model.add_evaluation_step((1.100, 101423))
 
         self.analysis_model.value_names = ('density', )
+        self.analysis_model.add_evaluation_step((1.010, ))
 
-        self.assertEqual(len(self.plot._data_arrays), 1)
-        self.assertEqual(len(self.plot._data_arrays[0]), 0)
+        self.assertEqual(1, len(self.plot._data_arrays))
+        self.assertEqual(0, len(self.plot._data_arrays[0]))
 
     def test_selection(self):
         self.analysis_model.value_names = ('density', 'pressure')
@@ -289,9 +290,9 @@ class TestPlot(TestAnyPlot, unittest.TestCase):
 
     def test_cmapped_plot(self):
         self.analysis_model.value_names = ('density', 'pressure', 'color')
+        self.analysis_model.add_evaluation_step((1.010, 101325, 1))
         self.plot.color_plot = True
         self.plot.color_by = 'color'
-        self.analysis_model.add_evaluation_step((1.010, 101325, 1))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             self.assertEqual(self.plot.color_by, 'color')

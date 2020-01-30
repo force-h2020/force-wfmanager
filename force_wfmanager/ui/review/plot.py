@@ -224,11 +224,12 @@ class BasePlot(BaseDataView):
 
     # Response to analysis model changes
 
-    @on_trait_change('analysis_model.value_names')
+    @on_trait_change('analysis_model.numerical_value_names')
     def update_value_names(self):
         """ Sets the value names in the plot to match those it the analysis
         model and resets any data arrays."""
-        self._value_names = self.analysis_model.value_names
+
+        self._value_names = self.analysis_model.numerical_value_names
         self._data_arrays = self.__data_arrays_default()
         # If there is more than one value names, we select the second one for
         # the y axis
