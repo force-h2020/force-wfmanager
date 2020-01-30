@@ -1,14 +1,19 @@
 import unittest
 from testfixtures import LogCapture
 
-from force_bdss.api import MCOStartEvent, MCOProgressEvent, \
-    MCOFinishEvent, DataValue
-from force_wfmanager.notifications.ui_notification import \
-    UINotification
-from force_wfmanager.notifications.ui_notification_factory import \
-    UINotificationFactory
-from force_wfmanager.notifications.ui_notification_model import \
-    UINotificationModel
+from force_bdss.api import (
+    MCOStartEvent,
+    MCOProgressEvent,
+    MCOFinishEvent,
+    DataValue,
+)
+from force_wfmanager.notifications.ui_notification import UINotification
+from force_wfmanager.notifications.ui_notification_factory import (
+    UINotificationFactory,
+)
+from force_wfmanager.notifications.ui_notification_model import (
+    UINotificationModel,
+)
 
 try:
     import mock
@@ -28,16 +33,16 @@ class TestUINotification(unittest.TestCase):
         self.sync_socket = mock.Mock(spec=zmq.Socket)
         self.sync_socket.recv_multipart = mock.Mock()
         self.sync_socket.recv_multipart.side_effect = [
-            [x.encode('utf-8') for x in ["HELLO", "an_id", "1"]],
-            [x.encode('utf-8') for x in ["GOODBYE", "an_id"]]
+            [x.encode("utf-8") for x in ["HELLO", "an_id", "1"]],
+            [x.encode("utf-8") for x in ["GOODBYE", "an_id"]],
         ]
 
         self.pub_socket = mock.Mock(spec=zmq.Socket)
         self.context = mock.Mock(spec=zmq.Context)
-        self.context.socket.side_effect = [self.pub_socket,
-                                           self.sync_socket]
+        self.context.socket.side_effect = [self.pub_socket, self.sync_socket]
         listener.__class__._create_context = mock.Mock(
-            return_value=self.context)
+            return_value=self.context
+        )
 
         self.listener = listener
 
@@ -46,26 +51,40 @@ class TestUINotification(unittest.TestCase):
         listener.initialize(self.model)
         self.assertEqual(
             self.sync_socket.send_multipart.call_args[0][0],
-            [x.encode('utf-8') for x in ['HELLO', 'an_id', '1']])
+            [x.encode("utf-8") for x in ["HELLO", "an_id", "1"]],
+        )
 
         listener.deliver(MCOStartEvent())
         self.assertEqual(
             self.pub_socket.send_multipart.call_args[0][0][0:2],
-            [x.encode('utf-8') for x in ['MESSAGE', 'an_id']])
+            [x.encode("utf-8") for x in ["MESSAGE", "an_id"]],
+        )
 
-        listener.deliver(MCOProgressEvent(
-            optimal_point=[DataValue(value=1),
-                           DataValue(value=2),
-                           DataValue(value=3)],
-            optimal_kpis=[DataValue(value=4), DataValue(value=5)]))
+        listener.deliver(
+            MCOProgressEvent(
+                optimal_point=[
+                    DataValue(value=1),
+                    DataValue(value=2),
+                    DataValue(value=3),
+                ],
+                optimal_kpis=[DataValue(value=4), DataValue(value=5)],
+            )
+        )
         self.assertEqual(
             self.pub_socket.send_multipart.call_args[0][0][0:2],
-            [x.encode('utf-8') for x in ['MESSAGE', 'an_id']])
+            [x.encode("utf-8") for x in ["MESSAGE", "an_id"]],
+        )
 
         listener.deliver(MCOFinishEvent())
         self.assertEqual(
             self.pub_socket.send_multipart.call_args[0][0][0:2],
-            [x.encode('utf-8') for x in ['MESSAGE', 'an_id']])
+            [x.encode("utf-8") for x in ["MESSAGE", "an_id"]],
+        )
+
+        with self.assertRaisesRegex(
+            TypeError, "Event is not a BaseDriverEvent"
+        ):
+            listener.deliver("not an event")
 
     def test_finalize(self):
         listener = self.listener
@@ -83,7 +102,8 @@ class TestUINotification(unittest.TestCase):
         listener.initialize(self.model)
         self.assertEqual(
             self.sync_socket.send_multipart.call_args[0][0],
-            [x.encode('utf-8') for x in ['HELLO', 'an_id', '1']])
+            [x.encode("utf-8") for x in ["HELLO", "an_id", "1"]],
+        )
 
     def test_polling(self):
         self.sync_socket.poll.return_value = 0
@@ -91,10 +111,12 @@ class TestUINotification(unittest.TestCase):
         with LogCapture() as capture:
             listener.initialize(self.model)
             capture.check(
-                ("force_wfmanager.notifications.ui_notification",  # noqa
-                 "INFO",
-                 "Could not connect to UI server after 1000 ms. Continuing without UI notification."  # noqa
-                 ),
+                (
+                    "force_wfmanager.notifications.ui_notification",
+                    "INFO",
+                    "Could not connect to UI server after 1000 ms. "
+                    "Continuing without UI notification.",
+                )
             )
 
         self.assertIsNone(listener._context)
@@ -103,18 +125,19 @@ class TestUINotification(unittest.TestCase):
         listener = self.listener
 
         self.sync_socket.recv_multipart.side_effect = [
-            [x.encode('utf-8') for x in ["HELLO", "not_the_right_id", "1"]],
-            [x.encode('utf-8') for x in ["GOODBYE", "an_id"]]
+            [x.encode("utf-8") for x in ["HELLO", "not_the_right_id", "1"]],
+            [x.encode("utf-8") for x in ["GOODBYE", "an_id"]],
         ]
 
         with LogCapture() as capture:
             listener.initialize(self.model)
             capture.check(
-                ("force_wfmanager.notifications.ui_notification",  # noqa
-                 "ERROR",
-                 "Unexpected reply in sync negotiation with UI server. "
-                 "'['HELLO', 'not_the_right_id', '1']'"  # noqa
-                 ),
+                (
+                    "force_wfmanager.notifications.ui_notification",
+                    "ERROR",
+                    "Unexpected reply in sync negotiation with UI server. "
+                    "'['HELLO', 'not_the_right_id', '1']'",
+                )
             )
 
         self.assertIsNone(listener._context)
@@ -134,10 +157,12 @@ class TestUINotification(unittest.TestCase):
         with LogCapture() as capture:
             listener.finalize()
             capture.check(
-                ("force_wfmanager.notifications.ui_notification",  # noqa
-                 "ERROR",
-                 "Could not close connection to UI server after 1000 ms."  # noqa
-                 ),
+                (
+                    "force_wfmanager.notifications.ui_notification",
+                    "ERROR",
+                    "Could not close connection to UI server "
+                    "after 1000 ms.",
+                )
             )
 
         self.assertIsNone(listener._context)
@@ -146,8 +171,8 @@ class TestUINotification(unittest.TestCase):
         listener = self.listener
         self.sync_socket.poll.side_effect = [1, 1]
         self.sync_socket.recv_multipart.side_effect = [
-            [x.encode('utf-8') for x in ["HELLO", "an_id", "1"]],
-            [x.encode('utf-8') for x in ["GOODBYE", "not_the_right_id"]]
+            [x.encode("utf-8") for x in ["HELLO", "an_id", "1"]],
+            [x.encode("utf-8") for x in ["GOODBYE", "not_the_right_id"]],
         ]
 
         listener.initialize(self.model)
@@ -155,11 +180,13 @@ class TestUINotification(unittest.TestCase):
         with LogCapture() as capture:
             listener.finalize()
             capture.check(
-                ("force_wfmanager.notifications.ui_notification",  # noqa
-                 "ERROR",
-                 "Unexpected reply in goodbye sync negotiation with UI server. "  # noqa
-                 "'['GOODBYE', 'not_the_right_id']'"  # noqa
-                 ),
+                (
+                    "force_wfmanager.notifications.ui_notification",
+                    "ERROR",
+                    "Unexpected reply in goodbye sync "
+                    "negotiation with UI server. "
+                    "'['GOODBYE', 'not_the_right_id']'",
+                )
             )
 
         self.assertIsNone(listener._context)
