@@ -173,7 +173,7 @@ class TestZMQServer(unittest.TestCase):
             wait_condition(lambda: server.state == ZMQServer.STATE_RECEIVING)
 
             event_data = {
-                "id": "force_bdss.core_driver_events.MCOStartEvent",
+                "id": "force_bdss.events.mco_events.MCOStartEvent",
                 "model_data": {},
             }
             server._pub_socket.data = [
@@ -286,7 +286,7 @@ class TestZMQServer(unittest.TestCase):
             wait_condition(lambda: server.state == ZMQServer.STATE_RECEIVING)
 
             event_data = {
-                "id": "force_bdss.core_driver_events.MCOStartEvent",
+                "id": "force_bdss.events.mco_events.MCOStartEvent",
                 "model_data": {},
             }
             server._pub_socket.data = [

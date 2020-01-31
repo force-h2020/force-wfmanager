@@ -1,8 +1,11 @@
 import json
+import logging
 
 from traits.api import (
     Bool, Either, HasStrictTraits, Int, List, Property, Tuple, on_trait_change
 )
+
+log = logging.getLogger(__name__)
 
 
 class AnalysisModel(HasStrictTraits):
@@ -15,6 +18,8 @@ class AnalysisModel(HasStrictTraits):
     #: :class:`WFManagerSetupTask
     #: <force_wfmanager.wfmanager_setup_task.WfManagerSetupTask>`.
     value_names = Tuple()
+
+    numerical_value_names = List()
 
     #: Shadow trait of the `evaluation_steps` property
     #: Listens to: :attr:`value_names`
@@ -111,11 +116,36 @@ class AnalysisModel(HasStrictTraits):
         self._evaluation_steps.append(evaluation_step)
         self._export_enabled = True
 
+    @on_trait_change("_evaluation_steps[]")
+    def update_numerical_value_names(self):
+        if len(self._evaluation_steps) == 0:
+            return []
+
+        evaluation_step = self._evaluation_steps[-1]
+
+        step_numerical_value_names = [
+            name for (value, name)
+            in zip(evaluation_step, self.value_names)
+            if isinstance(value, (int, float))
+        ]
+        if len(self.numerical_value_names) == 0:
+            numerical_value_names = step_numerical_value_names
+        else:
+            numerical_value_names = [
+                name for name in step_numerical_value_names
+                if name in self.numerical_value_names
+            ]
+        # If the evaluation step changes (reduces) the number of
+        # displayable columns, we update the `self.numerical_value_names`.
+        if len(self.numerical_value_names) != len(numerical_value_names):
+            self.numerical_value_names[:] = numerical_value_names
+
     def clear(self):
         """ Sets :attr:`value_names` to be empty, removes all entries in the
         list :attr:`evaluation_steps` and sets :attr:`selected_step_indices`
         to None"""
         self.value_names = ()
+        self.numerical_value_names = []
         self._clear_evaluation_steps()
 
     def clear_steps(self):
