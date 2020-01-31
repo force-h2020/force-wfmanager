@@ -8,6 +8,7 @@
   optional colourmap to be applied to a third variable.
 
 """
+import logging
 
 from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay
 from chaco.api import Plot as ChacoPlot
@@ -24,6 +25,8 @@ from traits.api import (
 from traitsui.api import HGroup, Item, UItem, VGroup, View
 
 from .data_view import BaseDataView
+
+log = logging.getLogger(__name__)
 
 
 class BasePlot(BaseDataView):
@@ -226,24 +229,26 @@ class BasePlot(BaseDataView):
 
     # Response to analysis model changes
 
-    @on_trait_change("_value_names")
+    @on_trait_change("analysis_model:numerical_value_names")
     def update_value_names(self):
         """ Sets the value names in the plot to match those it the analysis
         model and resets any data arrays."""
-
-        # self._value_names = self.analysis_model.numerical_value_names
         self._data_arrays = self.__data_arrays_default()
-        # If there is more than one value names, we select the second one for
-        # the y axis
+        # If there is more than one value names, we select the second one
+        # for the y axis. If the second one is already taken by the `x`
+        # axis, the first value name for `y`.
         if len(self._value_names) > 1:
-            self.y = self._value_names[1]
+            if self.x != self._value_names[1]:
+                y_value = self._value_names[1]
+            else:
+                y_value = self._value_names[0]
+            self.y = y_value
         elif len(self._value_names) == 1:
             self.y = self._value_names[0]
 
         # If there are no available value names, set the plot view to a default
         # state. This occurs when the analysis model is cleared.
-
-        if self._value_names == ():
+        if len(self._value_names) == 0:
             self._set_plot_range(-1, 1, -1, 1)
             # Unset the axis labels
             self._plot.x_axis.title = ""
