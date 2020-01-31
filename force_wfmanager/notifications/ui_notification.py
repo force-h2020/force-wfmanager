@@ -4,12 +4,7 @@ import zmq
 
 from traits.api import Instance, String
 
-from force_bdss.api import (
-    BaseNotificationListener,
-    BaseDriverEvent,
-)
-
-from force_wfmanager.server.event_serializer import EventSerializer
+from force_bdss.api import BaseNotificationListener, BaseDriverEvent
 
 log = logging.getLogger(__name__)
 
@@ -18,6 +13,7 @@ class UINotification(BaseNotificationListener):
     """
     Notification engine for the UI. Uses zeromq for the traffic handling.
     """
+
     #: The ZMQ context. If None, it means that the service is unavailable.
     _context = Instance(zmq.Context)
 
@@ -32,16 +28,6 @@ class UINotification(BaseNotificationListener):
 
     #: The protocol version that this plugin delivers
     _proto_version = "1"
-
-    #: The serializer for the event.
-    _serializer = Instance(EventSerializer)
-
-    # ------------
-    #   Defaults
-    # ------------
-
-    def __serializer_default(self):
-        return EventSerializer()
 
     # ----------------
     #  Private Methods
@@ -86,8 +72,10 @@ class UINotification(BaseNotificationListener):
         self._sync_socket.setsockopt(zmq.LINGER, 0)
         self._sync_socket.connect(model.sync_url)
 
-        msg = [x.encode('utf-8')
-               for x in ["HELLO", self._identifier, self._proto_version]]
+        msg = [
+            x.encode("utf-8")
+            for x in ["HELLO", self._identifier, self._proto_version]
+        ]
 
         # Send a special "HELLO" message to the zmq server. This is sent to the
         # 'sync' socket and should be handled by the '_handle_WAITING_sync'
@@ -96,8 +84,10 @@ class UINotification(BaseNotificationListener):
         events = self._sync_socket.poll(1000, zmq.POLLIN)
 
         if events == 0:
-            log.info("Could not connect to UI server after 1000 ms. "
-                     "Continuing without UI notification.")
+            log.info(
+                "Could not connect to UI server after 1000 ms. "
+                "Continuing without UI notification."
+            )
             self._close_and_clear_sockets()
             return
 
@@ -105,9 +95,13 @@ class UINotification(BaseNotificationListener):
         recv = self._sync_socket.recv_multipart()
         if recv != msg:
             log.error(
-                ("Unexpected reply in sync"
-                 " negotiation with UI server. '{}'".format(
-                    [x.decode('utf-8') for x in recv])))
+                (
+                    "Unexpected reply in sync"
+                    " negotiation with UI server. '{}'".format(
+                        [x.decode("utf-8") for x in recv]
+                    )
+                )
+            )
             self._close_and_clear_sockets()
             return
 
@@ -132,22 +126,24 @@ class UINotification(BaseNotificationListener):
         if not isinstance(event, BaseDriverEvent):
             raise TypeError("Event is not a BaseDriverEvent")
 
-        data = self._serializer.serialize(event)
+        data = event.dumps_json()
 
         self._pub_socket.send_multipart(
-            [x.encode('utf-8') for x in ["MESSAGE", self._identifier, data]])
+            [x.encode("utf-8") for x in ["MESSAGE", self._identifier, data]]
+        )
 
     def finalize(self):
         """ Disconnects from the ZMQServer."""
         if not self._context:
             return
 
-        msg = [x.encode('utf-8') for x in ["GOODBYE", self._identifier]]
+        msg = [x.encode("utf-8") for x in ["GOODBYE", self._identifier]]
         self._sync_socket.send_multipart(msg)
         events = self._sync_socket.poll(1000, zmq.POLLIN)
         if events == 0:
-            log.error("Could not close connection to UI server after "
-                      "1000 ms.")
+            log.error(
+                "Could not close connection to UI server after " "1000 ms."
+            )
             self._close_and_clear_sockets()
             return
 
@@ -155,8 +151,12 @@ class UINotification(BaseNotificationListener):
 
         if recv != msg:
             log.error(
-                ("Unexpected reply in goodbye sync"
-                 " negotiation with UI server. '{}'".format(
-                    [x.decode('utf-8') for x in recv])))
+                (
+                    "Unexpected reply in goodbye sync"
+                    " negotiation with UI server. '{}'".format(
+                        [x.decode("utf-8") for x in recv]
+                    )
+                )
+            )
 
         self._close_and_clear_sockets()
