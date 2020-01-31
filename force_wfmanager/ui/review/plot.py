@@ -19,8 +19,16 @@ from chaco.tools.api import PanTool, ScatterInspector, ZoomTool
 from enable.api import Component, ComponentEditor
 from enable.api import KeySpec
 from traits.api import (
-    Button, Bool, Dict, Enum, Instance, List, Property,
-    on_trait_change, Unicode, DelegatesTo
+    Button,
+    Bool,
+    Dict,
+    Enum,
+    Instance,
+    List,
+    Property,
+    on_trait_change,
+    Unicode,
+    DelegatesTo,
 )
 from traitsui.api import HGroup, Item, UItem, VGroup, View
 
@@ -38,19 +46,19 @@ class BasePlot(BaseDataView):
 
     #: Button to reset plot view. The button is active if :attr:`reset_enabled`
     #: is *True* and inactive if it is *False*.
-    reset_plot = Button('Reset View')
+    reset_plot = Button("Reset View")
 
     #: First parameter used for the plot (abscissa)
-    x = Enum(values='_value_names')
+    x = Enum(values="_value_names")
 
     #: Second parameter used for the plot (ordinate)
-    y = Enum(values='_value_names')
+    y = Enum(values="_value_names")
 
     #: Optional third parameter used to set colour of points
-    color_by = Enum(values='_value_names')
+    color_by = Enum(values="_value_names")
 
     #: Optional title to display above the figure
-    title = Unicode('Plot')
+    title = Unicode("Plot")
 
     #: Listens to: :attr:`analysis_model.selected_step_indices
     #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.\
@@ -112,14 +120,9 @@ class BasePlot(BaseDataView):
 
     view = View(
         VGroup(
-            HGroup(
-                Item('x'),
-                Item('y'),
-            ),
-            UItem('_plot', editor=ComponentEditor()),
-            VGroup(
-                UItem('reset_plot', enabled_when='reset_enabled')
-            )
+            HGroup(Item("x"), Item("y")),
+            UItem("_plot", editor=ComponentEditor()),
+            VGroup(UItem("reset_plot", enabled_when="reset_enabled")),
         )
     )
 
@@ -129,7 +132,8 @@ class BasePlot(BaseDataView):
 
     def _plot_updater_default(self):
         return CallbackTimer.timer(
-            interval=1, callback=self._check_scheduled_updates)
+            interval=1, callback=self._check_scheduled_updates
+        )
 
     def __plot_default(self):
         plot = self.plot_scatter()
@@ -144,7 +148,7 @@ class BasePlot(BaseDataView):
             scatter_plot,
             threshold=10,
             multiselect_modifier=KeySpec(None, "shift"),
-            selection_mode="multi"
+            selection_mode="multi",
         )
 
         overlay = ScatterInspectorOverlay(
@@ -154,21 +158,23 @@ class BasePlot(BaseDataView):
             selection_marker_size=20,
             selection_color=(0, 0, 1, 0.5),
             selection_outline_color=(0, 0, 0, 0.8),
-            selection_line_width=3)
+            selection_line_width=3,
+        )
 
         return inspector, overlay
 
     def plot_scatter(self):
         plot = ChacoPlot(self._plot_data)
         scatter_plot = plot.plot(
-            ('x', 'y'),
+            ("x", "y"),
             type="scatter",
             name="Plot",
             marker="circle",
             index_sort="ascending",
             color="green",
             marker_size=4,
-            bgcolor="white")[0]
+            bgcolor="white",
+        )[0]
 
         plot.trait_set(title=self.title, padding=75, line_width=1)
 
@@ -178,12 +184,12 @@ class BasePlot(BaseDataView):
 
         # Set the scatterplot's default selection marker invisible as it
         # lead to artifacts on axis when switching between plotted cols
-        scatter_plot.trait_set(selection_color=(0, 0, 0, 0),
-                               selection_outline_color=(0, 0, 0, 0))
+        scatter_plot.trait_set(
+            selection_color=(0, 0, 0, 0), selection_outline_color=(0, 0, 0, 0)
+        )
 
         # Add the selection tool
-        inspector, overlay = self._get_scatter_inspector_overlay(
-            scatter_plot)
+        inspector, overlay = self._get_scatter_inspector_overlay(scatter_plot)
         scatter_plot.tools.append(inspector)
         scatter_plot.overlays.append(overlay)
 
@@ -204,9 +210,9 @@ class BasePlot(BaseDataView):
         """ Creates empty plot data in three colums: x, y, color_by.
         """
         plot_data = ArrayPlotData()
-        plot_data.set_data('x', [])
-        plot_data.set_data('y', [])
-        plot_data.set_data('color_by', [])
+        plot_data.set_data("x", [])
+        plot_data.set_data("y", [])
+        plot_data.set_data("color_by", [])
         return plot_data
 
     def __data_arrays_default(self):
@@ -218,7 +224,7 @@ class BasePlot(BaseDataView):
 
     #: NOTE: appears to be updated very often (could do with caching?)
     def _get_reset_enabled(self):
-        x_data = self._plot_data.get_data('x')
+        x_data = self._plot_data.get_data("x")
         if len(x_data) > 0:
             return True
         return False
@@ -256,14 +262,14 @@ class BasePlot(BaseDataView):
 
         self._update_plot()
 
-    @on_trait_change('analysis_model:evaluation_steps[]')
+    @on_trait_change("analysis_model:evaluation_steps[]")
     def request_update(self):
         # Data points are being added: update plot data at the next cycle
         self.update_required = True
 
     # Response to user input
 
-    @on_trait_change('is_active_view')
+    @on_trait_change("is_active_view")
     def toggle_updater_with_visibility(self):
         """Start/stop the update if this data view is not being used. """
         if self.is_active_view:
@@ -275,13 +281,17 @@ class BasePlot(BaseDataView):
             if self.plot_updater.active:
                 self.plot_updater.stop()
 
-    @on_trait_change('x,y')
+    @on_trait_change("x,y")
     def _update_plot(self):
         """Refresh the plot's axes and data. """
-        if self.x is None or self.y is None \
-                or self.color_by is None or self._data_arrays == []:
-            self._plot_data.set_data('x', [])
-            self._plot_data.set_data('y', [])
+        if (
+            self.x is None
+            or self.y is None
+            or self.color_by is None
+            or self._data_arrays == []
+        ):
+            self._plot_data.set_data("x", [])
+            self._plot_data.set_data("y", [])
             self.recenter_plot()
             return
 
@@ -295,9 +305,9 @@ class BasePlot(BaseDataView):
 
         data_arrays = self._data_arrays
 
-        self._plot_data.set_data('x', data_arrays[x_index])
-        self._plot_data.set_data('y', data_arrays[y_index])
-        self._plot_data.set_data('color_by', data_arrays[c_index])
+        self._plot_data.set_data("x", data_arrays[x_index])
+        self._plot_data.set_data("y", data_arrays[y_index])
+        self._plot_data.set_data("color_by", data_arrays[c_index])
 
         self.recenter_plot()
 
@@ -367,8 +377,8 @@ class BasePlot(BaseDataView):
         if self.x is None or self.y is None:
             return None
 
-        x_data = self._plot_data.get_data('x')
-        y_data = self._plot_data.get_data('y')
+        x_data = self._plot_data.get_data("x")
+        y_data = self._plot_data.get_data("y")
 
         if len(x_data) > 1:
             x_max = max(x_data)
@@ -388,8 +398,12 @@ class BasePlot(BaseDataView):
             return x_min, x_max, y_min, y_max
 
         elif len(x_data) == 1:
-            self._set_plot_range(x_data[0] - 0.5, x_data[0] + 0.5,
-                                 y_data[0] - 0.5, y_data[0] + 0.5)
+            self._set_plot_range(
+                x_data[0] - 0.5,
+                x_data[0] + 0.5,
+                y_data[0] - 0.5,
+                y_data[0] + 0.5,
+            )
             # Replace the old ZoomTool as retaining the same one can lead
             # to issues where the zoom out/in limit is not reset on
             # resizing the plot.
@@ -398,25 +412,31 @@ class BasePlot(BaseDataView):
                 if isinstance(overlay, ZoomTool):
                     self._plot.overlays[idx] = ZoomTool(self._plot)
 
-            return (x_data[0] - 0.5, x_data[0] + 0.5, y_data[0] - 0.5,
-                    y_data[0] + 0.5)
+            return (
+                x_data[0] - 0.5,
+                x_data[0] + 0.5,
+                y_data[0] - 0.5,
+                y_data[0] + 0.5,
+            )
 
         return None
 
-    @on_trait_change('analysis_model:selected_step_indices')
+    @on_trait_change("analysis_model:selected_step_indices")
     def update_selected_points(self):
         """ Updates the selected points in the plot according to the model """
         if self.analysis_model.selected_step_indices is None:
-            self._plot_index_datasource.metadata['selections'] = []
+            self._plot_index_datasource.metadata["selections"] = []
         else:
-            self._plot_index_datasource.metadata['selections'] = \
-                self.analysis_model.selected_step_indices
+            self._plot_index_datasource.metadata[
+                "selections"
+            ] = self.analysis_model.selected_step_indices
 
-    @on_trait_change('_plot_index_datasource.metadata_changed')
+    @on_trait_change("_plot_index_datasource.metadata_changed")
     def update_model(self):
         """ Updates the model according to the selected point in the plot """
         selected_indices = self._plot_index_datasource.metadata.get(
-            'selections', [])
+            "selections", []
+        )
         if len(selected_indices) == 0:
             self.analysis_model.selected_step_indices = None
         else:
@@ -459,7 +479,7 @@ class BasePlot(BaseDataView):
             self._plot.range2d.x_range.low_setting,
             self._plot.range2d.x_range.high_setting,
             self._plot.range2d.y_range.low_setting,
-            self._plot.range2d.y_range.high_setting
+            self._plot.range2d.y_range.high_setting,
         )
 
 
@@ -471,10 +491,12 @@ class Plot(BasePlot):
     # ------------------
 
     #: Colour options button:
-    color_options = Button('Color...')
+    color_options = Button("Color...")
 
-    colormap = Enum(values='_available_colormaps_names',
-                    depends_on='_available_colormaps_names')
+    colormap = Enum(
+        values="_available_colormaps_names",
+        depends_on="_available_colormaps_names",
+    )
 
     color_plot = Bool(False)
 
@@ -489,32 +511,26 @@ class Plot(BasePlot):
     __continuous_colormaps = Dict(color_map_name_dict)
     #: List of the names of continuous chaco colormaps.
     #: The default is set by the first entry of this list.
-    __continuous_colormaps_names = (
-        ['viridis'] +
-        [cmap_name
-         for cmap_name in color_map_name_dict.keys()
-         if cmap_name != 'viridis']
-    )
+    __continuous_colormaps_names = ["viridis"] + [
+        cmap_name
+        for cmap_name in color_map_name_dict.keys()
+        if cmap_name != "viridis"
+    ]
 
     _available_colormaps = __continuous_colormaps
-    _available_colormaps_names = List(__continuous_colormaps_names,
-                                      depends_on='_available_colormaps')
+    _available_colormaps_names = List(
+        __continuous_colormaps_names, depends_on="_available_colormaps"
+    )
 
     view = View(
         VGroup(
-            HGroup(
-                Item('x'),
-                Item('y'),
-                UItem('color_options'),
-            ),
-            UItem('_plot', editor=ComponentEditor()),
-            VGroup(
-                UItem('reset_plot', enabled_when='reset_enabled')
-            )
+            HGroup(Item("x"), Item("y"), UItem("color_options")),
+            UItem("_plot", editor=ComponentEditor()),
+            VGroup(UItem("reset_plot", enabled_when="reset_enabled")),
         )
     )
 
-    @on_trait_change('color_plot')
+    @on_trait_change("color_plot")
     def change_plot_style(self):
         ranges = self._get_plot_range()
         x_title = self._plot.x_axis.title
@@ -529,7 +545,7 @@ class Plot(BasePlot):
         self._plot.x_axis.title = x_title
         self._plot.y_axis.title = y_title
 
-    @on_trait_change('colormap')
+    @on_trait_change("colormap")
     def _update_cmap(self):
         cmap = self._available_colormaps[self.colormap]
         if isinstance(self._axis, ColormappedScatterPlot):
@@ -539,10 +555,10 @@ class Plot(BasePlot):
     def _color_options_fired(self):
         """ Event handler for :attr:`color_options` button. """
         view = View(
-            Item('color_plot'),
-            Item('color_by', enabled_when='color_plot'),
-            Item('colormap', enabled_when='color_plot'),
-            kind='livemodal'
+            Item("color_plot"),
+            Item("color_by", enabled_when="color_plot"),
+            Item("colormap", enabled_when="color_plot"),
+            kind="livemodal",
         )
         self.edit_traits(view=view)
 
@@ -550,7 +566,7 @@ class Plot(BasePlot):
         plot = ChacoPlot(self._plot_data)
 
         cmap_scatter_plot = plot.plot(
-            ('x', 'y', 'color_by'),
+            ("x", "y", "color_by"),
             type="cmap_scatter",
             name="Plot",
             marker="circle",
@@ -560,7 +576,8 @@ class Plot(BasePlot):
             outline_color="black",
             index_sort="ascending",
             line_width=0,
-            bgcolor="white")[0]
+            bgcolor="white",
+        )[0]
 
         plot.trait_set(title="Plot", padding=75, line_width=1)
 
@@ -570,7 +587,8 @@ class Plot(BasePlot):
 
         # Add the selection tool
         inspector, overlay = self._get_scatter_inspector_overlay(
-            cmap_scatter_plot)
+            cmap_scatter_plot
+        )
         cmap_scatter_plot.tools.append(inspector)
         cmap_scatter_plot.overlays.append(overlay)
 
@@ -581,13 +599,17 @@ class Plot(BasePlot):
 
     # Response to UI changes
 
-    @on_trait_change('color_by')
+    @on_trait_change("color_by")
     def _update_color_plot(self):
-        if self.x is None or self.y is None \
-                or self.color_by is None or self._data_arrays == []:
-            self._plot_data.set_data('color_by', [])
+        if (
+            self.x is None
+            or self.y is None
+            or self.color_by is None
+            or self._data_arrays == []
+        ):
+            self._plot_data.set_data("color_by", [])
             return
 
         c_index = self.analysis_model.value_names.index(self.color_by)
-        self._plot_data.set_data('color_by', self._data_arrays[c_index])
-        self._plot_data.set_data('color_by', self._data_arrays[c_index])
+        self._plot_data.set_data("color_by", self._data_arrays[c_index])
+        self._plot_data.set_data("color_by", self._data_arrays[c_index])
