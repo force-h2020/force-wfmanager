@@ -314,11 +314,6 @@ class BasePlot(BaseDataView):
         """
         data_dim = len(self.analysis_model.value_names)
 
-        # This can happen when the evaluation steps has been cleared, but the
-        # value names are not updated yet
-        if data_dim != len(self._value_names):
-            self.update_value_names()
-
         # If there is no data yet, or the data has been removed, make sure the
         # plot is updated accordingly (empty arrays)
         if data_dim == 0:
