@@ -1,5 +1,5 @@
 from traits.api import (
-    Instance, List, Unicode, on_trait_change, Bool, Event,
+    Instance, List, Str, on_trait_change, Bool, Event,
     HasTraits
 )
 from traitsui.api import View
@@ -48,7 +48,7 @@ class MCOView(HasTraits):
     kpi_view = Instance(KPISpecificationView)
 
     #: The label to display in the TreeEditor
-    label = Unicode()
+    label = Str()
 
     # This is an empty View, which if not explicitly defined can cause the
     # traits notification handler to raise exceptions during testing.
@@ -72,7 +72,7 @@ class MCOView(HasTraits):
     #: An error message for issues in this modelview. Updated by
     #: :func:`verify_tree
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    error_message = Unicode()
+    error_message = Str()
 
     # -------------------
     #      Defaults

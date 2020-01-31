@@ -27,7 +27,7 @@ from traits.api import (
     List,
     Property,
     on_trait_change,
-    Unicode,
+    Str,
     DelegatesTo,
 )
 from traitsui.api import HGroup, Item, UItem, VGroup, View
@@ -58,7 +58,7 @@ class BasePlot(BaseDataView):
     color_by = Enum(values="_value_names")
 
     #: Optional title to display above the figure
-    title = Unicode("Plot")
+    title = Str("Plot")
 
     #: Listens to: :attr:`analysis_model.selected_step_indices
     #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.\

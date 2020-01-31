@@ -17,7 +17,7 @@ from pyface.api import (
 )
 from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
-from traits.api import Bool, File, Instance, List, on_trait_change, Unicode
+from traits.api import Bool, File, Instance, List, on_trait_change, Str
 
 from force_bdss.api import (
     BaseExtensionPlugin,
@@ -98,7 +98,7 @@ class WfManagerSetupTask(Task):
 
     #: Path to spawn for the BDSS CLI executable.
     #: This will go to some global configuration option later.
-    bdss_executable_path = Unicode("force_bdss")
+    bdss_executable_path = Str("force_bdss")
 
     #: ZeroMQ Server to receive information from the running BDSS
     zmq_server = Instance(ZMQServer)

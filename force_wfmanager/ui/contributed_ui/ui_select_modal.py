@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from traits.api import (
-    Dict, Enum, HasRequiredTraits, Instance, List, Unicode, on_trait_change
+    Dict, Enum, HasRequiredTraits, Instance, List, Str, on_trait_change
 )
 from traitsui.api import (
     Handler, HGroup, Item, OKCancelButtons, Spring, TextEditor, UReadonly,
@@ -36,19 +36,19 @@ class UISelectModal(HasRequiredTraits):
     avail_plugin_info = Dict()
 
     #: Mapping allowing selection of a UI by its name
-    ui_name_map = Dict(Unicode, Instance(ContributedUI))
+    ui_name_map = Dict(Str, Instance(ContributedUI))
 
     #: The name of the currently selected UI
-    selected_ui_name = Enum(Unicode, values='_contributed_ui_names')
+    selected_ui_name = Enum(Str, values='_contributed_ui_names')
 
     #: List of discovered ContributedUI names
-    _contributed_ui_names = List(Unicode)
+    _contributed_ui_names = List(Str)
 
     #: The currently selected UI
     selected_ui = Instance(ContributedUI)
 
     #: The description for the currently selected UI
-    selected_ui_desc = Unicode()
+    selected_ui_desc = Str()
 
     traits_view = View(VGroup(
         HGroup(

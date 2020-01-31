@@ -1,5 +1,5 @@
 from traits.api import (
-    Instance, Unicode, Bool, Event, HasTraits
+    Instance, Str, Bool, Event, HasTraits
 )
 
 from force_bdss.api import BaseNotificationListenerModel
@@ -21,7 +21,7 @@ class NotificationListenerView(HasTraits):
     # ------------------
 
     #: Label to be used in the TreeEditor
-    label = Unicode()
+    label = Str()
 
     # --------------------
     # Dependent Attributes
@@ -30,7 +30,7 @@ class NotificationListenerView(HasTraits):
     #: An error message for issues in this modelview. Updated by
     #: :func:`workflow_tree.WorkflowTree.verify_tree
     #: <force_wfmanager.models.workflow_tree.WorkflowTree.verify_tree>`
-    error_message = Unicode()
+    error_message = Str()
 
     #: Event to request a verification check on the workflow.
     verify_workflow_event = Event
