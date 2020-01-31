@@ -107,8 +107,8 @@ class UINotification(BaseNotificationListener):
 
     def deliver(self, event):
         """ Serializes as JSON and sends a BaseDriverEvent (see
-        :class:`force_bdss.core_driver_events.BaseDriverEvent`) as a message
-        to the ZMQServer.
+        :class:`force_bdss.events.base_driver_event.BaseDriverEvent`)
+        as a message to the ZMQServer.
 
         Parameters
         ----------
