@@ -28,7 +28,6 @@ from traits.api import (
     Property,
     on_trait_change,
     Unicode,
-    DelegatesTo,
 )
 from traitsui.api import HGroup, Item, UItem, VGroup, View
 
@@ -49,13 +48,13 @@ class BasePlot(BaseDataView):
     reset_plot = Button("Reset View")
 
     #: First parameter used for the plot (abscissa)
-    x = Enum(values="_value_names")
+    x = Enum(values="_displayable_value_names")
 
     #: Second parameter used for the plot (ordinate)
-    y = Enum(values="_value_names")
+    y = Enum(values="_displayable_value_names")
 
     #: Optional third parameter used to set colour of points
-    color_by = Enum(values="_value_names")
+    color_by = Enum(values="_displayable_value_names")
 
     #: Optional title to display above the figure
     title = Unicode("Plot")
@@ -85,9 +84,8 @@ class BasePlot(BaseDataView):
     #: A local copy of the analysis model's value names
     #: Listens to: :attr:`ç.value_names
     #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.value_names>`
-    _value_names = DelegatesTo(
-        "analysis_model", prefix="numerical_value_names"
-    )
+    #: List of column names that can be displayed by the chosen Plot
+    _displayable_value_names = List()
 
     #: List containing the data arrays.
     #: Listens to: :attr:`analysis_model.value_names
@@ -235,36 +233,67 @@ class BasePlot(BaseDataView):
 
     # Response to analysis model changes
 
-    @on_trait_change("analysis_model:numerical_value_names")
-    def update_value_names(self):
+    def update__displayable_value_names(self):
+        print("update__displayable_value_names")
+        if len(self.analysis_model._evaluation_steps) == 0:
+            self._displayable_value_names = []
+            return
+
+        evaluation_step = self.analysis_model._evaluation_steps[-1]
+
+        step_numerical_value_names = [
+            name
+            for (value, name) in zip(
+                evaluation_step, self.analysis_model.value_names
+            )
+            if isinstance(value, (int, float))
+        ]
+        if len(self._displayable_value_names) == 0:
+            _displayable_value_names = step_numerical_value_names
+        else:
+            _displayable_value_names = [
+                name
+                for name in step_numerical_value_names
+                if name in self._displayable_value_names
+            ]
+        # If the evaluation step changes (reduces) the number of
+        # displayable columns, we update the `self.numerical_value_names`.
+        if len(self._displayable_value_names) != len(_displayable_value_names):
+            self._displayable_value_names[:] = _displayable_value_names
+
+    @on_trait_change("_displayable_value_names[]")
+    def update_plot_axis_names(self):
         """ Sets the value names in the plot to match those it the analysis
         model and resets any data arrays."""
+        print("update_plot_axis_names")
+
         self._data_arrays = self.__data_arrays_default()
-        # If there is more than one value names, we select the second one
-        # for the y axis. If the second one is already taken by the `x`
-        # axis, the first value name for `y`.
-        if len(self._value_names) > 1:
-            if self.x != self._value_names[1]:
-                y_value = self._value_names[1]
-            else:
-                y_value = self._value_names[0]
-            self.y = y_value
-        elif len(self._value_names) == 1:
-            self.y = self._value_names[0]
 
         # If there are no available value names, set the plot view to a default
         # state. This occurs when the analysis model is cleared.
-        if len(self._value_names) == 0:
+        if len(self._displayable_value_names) == 0:
             self._set_plot_range(-1, 1, -1, 1)
             # Unset the axis labels
             self._plot.x_axis.title = ""
             self._plot.y_axis.title = ""
+        elif len(self._displayable_value_names) > 1:
+            # If there is more than one value names, we select the second one
+            # for the y axis. If the second one is already taken by the `x`
+            # axis, the first value name for `y`.
+            if self.x != self._displayable_value_names[1]:
+                y_value = self._displayable_value_names[1]
+            else:
+                y_value = self._displayable_value_names[0]
+            self.y = y_value
+        elif len(self._displayable_value_names) == 1:
+            self.y = self._displayable_value_names[0]
 
         self._update_plot()
 
     @on_trait_change("analysis_model:evaluation_steps[]")
     def request_update(self):
         # Data points are being added: update plot data at the next cycle
+        print("request_update")
         self.update_required = True
 
     # Response to user input
@@ -280,6 +309,7 @@ class BasePlot(BaseDataView):
         else:
             if self.plot_updater.active:
                 self.plot_updater.stop()
+                log.warning("Stopped plot updater")
 
     @on_trait_change("x,y")
     def _update_plot(self):
@@ -327,7 +357,7 @@ class BasePlot(BaseDataView):
         # If there is no data yet, or the data has been removed, make sure the
         # plot is updated accordingly (empty arrays)
         if data_dim == 0:
-            self._update_plot()
+            self._displayable_value_names = []
             return
 
         evaluation_steps = self.analysis_model.evaluation_steps.copy()
@@ -360,6 +390,7 @@ class BasePlot(BaseDataView):
         callback for the _plot_updater timer.
         """
         if self.update_required:
+            self.update__displayable_value_names()
             self.update_data_arrays()
             self._update_plot()
             self.update_required = False
