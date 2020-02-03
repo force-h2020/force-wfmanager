@@ -1,7 +1,7 @@
 import re
 
 from traits.api import (
-    Dict, Event, HasTraits, Instance, Int, Unicode, provides
+    Dict, Event, HasTraits, Instance, Int, Str, provides
 )
 from traitsui.api import Action, Group, Handler, View
 
@@ -26,13 +26,13 @@ class ContributedUI(HasTraits):
     """An object which contains a custom UI for a particular workflow file."""
 
     #: Name for the UI in selection screen
-    name = Unicode()
+    name = Str()
 
     #: Description of the UI
-    desc = Unicode()
+    desc = Str()
 
     #: List of plugin ids and versions required for this UI
-    required_plugins = Dict(Unicode, Int)
+    required_plugins = Dict(Str, Int)
 
     #: Data for a premade workflow
     workflow_data = Dict()

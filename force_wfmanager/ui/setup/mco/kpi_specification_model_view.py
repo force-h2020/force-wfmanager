@@ -1,5 +1,5 @@
 from traits.api import (
-    Property, Instance, Unicode, on_trait_change
+    Property, Str, on_trait_change
 )
 from traitsui.api import (
     Item, View, EnumEditor
@@ -15,8 +15,7 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
     #  Properties
     # -------------
 
-    label = Property(Instance(Unicode),
-                     depends_on='model.[name,objective]')
+    label = Property(Str, depends_on='model.[name,objective]')
 
     # -----------
     #     View

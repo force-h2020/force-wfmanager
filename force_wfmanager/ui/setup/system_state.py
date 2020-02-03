@@ -1,5 +1,5 @@
 from traits.api import (
-    HasTraits, Instance, Unicode, Callable
+    HasTraits, Instance, Str, Callable
 )
 
 from force_wfmanager.ui.setup.new_entity_creator import NewEntityCreator
@@ -16,7 +16,7 @@ class SystemState(HasTraits):
     selected_view = Instance(HasTraits)
 
     #: The factory currently selected in the TreePane
-    selected_factory_name = Unicode('None')
+    selected_factory_name = Str('None')
 
     #: Creates new instances of DataSource, MCO, Notification Listener or
     #: MCO Parameters - depending on the plugins currently installed.

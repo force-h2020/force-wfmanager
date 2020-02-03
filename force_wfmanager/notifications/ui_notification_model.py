@@ -1,4 +1,4 @@
-from traits.api import Unicode
+from traits.api import Str
 
 from force_bdss.api import (
     BaseNotificationListenerModel)
@@ -18,4 +18,4 @@ class UINotificationModel(BaseNotificationListenerModel):
     pub_url = ZMQSocketURL()
 
     #: Unique identifier assigned by the UI to recognize the connection.
-    identifier = Unicode()
+    identifier = Str()

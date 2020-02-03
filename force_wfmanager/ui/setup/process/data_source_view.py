@@ -1,6 +1,6 @@
 from traits.api import (
     HasStrictTraits, Instance, List, Int, on_trait_change,
-    Bool, HTML, Property, Event, Unicode, HasTraits,
+    Bool, HTML, Property, Event, Str, HasTraits,
     cached_property
 )
 from traitsui.api import (
@@ -25,7 +25,7 @@ class TableRow(HasStrictTraits):
     # -------------------
 
     #: Type of the slot
-    type = Unicode()
+    type = Str()
 
     #: Index of the slot in the slot list
     index = Int()
@@ -38,7 +38,7 @@ class TableRow(HasStrictTraits):
     # ------------------
 
     #: A human readable description of the slot
-    description = Unicode()
+    description = Str()
 
 
 class InputSlotRow(TableRow):
@@ -143,7 +143,7 @@ class DataSourceView(HasTraits):
     # ------------------
 
     #: The human readable name of the data source
-    label = Unicode()
+    label = Str()
 
     #: evaluator object, shouldn't be touched
     _data_source = Instance(BaseDataSource)
@@ -176,7 +176,7 @@ class DataSourceView(HasTraits):
     #: An error message for issues in this modelview. Updated by
     #: :func:`verify_tree
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    error_message = Unicode()
+    error_message = Str()
 
     # ----------------
     #    Properties

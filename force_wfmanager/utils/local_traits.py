@@ -1,9 +1,9 @@
 import re
 
-from traits.api import BaseUnicode, HasStrictTraits, TraitError
+from traits.api import BaseStr, HasStrictTraits, TraitError
 
 
-class ZMQSocketURL(BaseUnicode):
+class ZMQSocketURL(BaseStr):
     """A custom Unicode Trait which is required to be a valid tcp address."""
     #: A basic description of the class
     info_text = "A ZeroMQ Socket URL"
