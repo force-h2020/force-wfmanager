@@ -87,12 +87,12 @@ class BasePlot(BaseDataView):
     #: List of column names that can be displayed by the chosen Plot
     _displayable_value_names = List()
 
-    #: List containing the data arrays.
-    #: Listens to: :attr:`analysis_model.value_names
-    #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.value_names>`
-    #: , :attr:`analysis_model.evaluation_steps
-    #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.\
-    #: evaluation_steps>`
+    #: a Callable: object -> Bool that indicates if the object
+    #: can be displayed by the BasePlot instance.
+    displayable_data_mask = Callable()
+
+    #: List containing the data arrays from the
+    #: analysis_mode.evaluation steps.
     _data_arrays = List(List())
 
     #: The plot data. This is the model of the actual Chaco plot.
@@ -215,6 +215,13 @@ class BasePlot(BaseDataView):
 
     def __data_arrays_default(self):
         return [[] for _ in range(len(self.analysis_model.value_names))]
+
+    def _displayable_data_mask_default(self):
+        """ Default mask for data coming from the analysis model.
+        Verifies that the data entry is numerical value."""
+        def is_numerical(data_entry):
+            return isinstance(data_entry, (int, float))
+        return is_numerical
 
     # ----------
     # Properties
