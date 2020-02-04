@@ -240,7 +240,7 @@ class BasePlot(BaseDataView):
 
     def update__displayable_value_names(self):
         """ Updates the list of the `_displayable_value_names`.
-        If the analysis model doesn't have any data in `_evaluation_steps`,
+        If the analysis model doesn't have any data in `evaluation_steps`,
         the _displayable_value_names list should be empty as we can't infer
         the data type.
         If the _displayable_value_names list is empty, we accept all value
@@ -250,11 +250,11 @@ class BasePlot(BaseDataView):
         current plot (`self.displayable_data_mask(entry) == False`), then
         that value name is removed from `self._displayable_value_names`.
         """
-        if len(self.analysis_model._evaluation_steps) == 0:
+        if len(self.analysis_model.evaluation_steps) == 0:
             self._displayable_value_names = []
             return
 
-        evaluation_step = self.analysis_model._evaluation_steps[-1]
+        evaluation_step = self.analysis_model.evaluation_steps[-1]
 
         masked_value_names = [
             name
