@@ -6,11 +6,11 @@ from chaco.api import Plot as ChacoPlot
 from chaco.api import ColormappedScatterPlot, ScatterPlot
 from chaco.abstract_colormap import AbstractColormap
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+from traits.api import push_exception_handler, TraitError
 from traits.testing.api import UnittestTools
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.plot import BasePlot, Plot
-from traits.api import push_exception_handler, TraitError
 
 push_exception_handler(reraise_exceptions=True)
 
@@ -37,10 +37,10 @@ class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
     def test_init(self):
         self.assertEqual(len(self.analysis_model.value_names), 0)
         self.assertEqual(len(self.analysis_model.evaluation_steps), 0)
-        self.assertEqual(len(self.plot._data_arrays), 0)
+        self.assertEqual(len(self.plot.data_arrays), 0)
         self.assertIsNone(self.plot.x)
         self.assertIsNone(self.plot.y)
-        self.assertIsNone(self.plot.update_data_arrays())
+        self.assertIsNone(self.plot._update_data_arrays())
         self.plot._update_plot()
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [])
@@ -50,7 +50,7 @@ class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.analysis_model.value_names = ("density", "pressure")
         self.assertIsNone(self.plot.x)
         self.assertIsNone(self.plot.y)
-        self.assertEqual([[], []], self.plot._data_arrays)
+        self.assertEqual([[], []], self.plot.data_arrays)
 
     def test_plot(self):
         self.analysis_model.value_names = ("density", "pressure")
@@ -66,21 +66,21 @@ class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.check_update_is_requested_and_apply()
         self.assertEqual("1", self.plot.x)
         self.assertEqual("2", self.plot.y)
-        self.assertListEqual(self.plot._displayable_value_names, ["1", "2"])
+        self.assertListEqual(self.plot.displayable_value_names, ["1", "2"])
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [1])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [2])
-        self.assertListEqual([[1], [2], ["string"]], self.plot._data_arrays)
+        self.assertListEqual([[1], [2], ["string"]], self.plot.data_arrays)
 
         self.analysis_model.add_evaluation_step((3, 4, "another string"))
         self.check_update_is_requested_and_apply()
         self.assertEqual("1", self.plot.x)
         self.assertEqual("2", self.plot.y)
-        self.assertListEqual(self.plot._displayable_value_names, ["1", "2"])
+        self.assertListEqual(self.plot.displayable_value_names, ["1", "2"])
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [1, 3])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [2, 4])
         self.assertListEqual(
             [[1, 3], [2, 4], ["string", "another string"]],
-            self.plot._data_arrays,
+            self.plot.data_arrays,
         )
 
     def test_displayable_mask(self):
@@ -137,10 +137,10 @@ class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
 
         self.check_update_is_requested_and_apply()
 
-        self.assertEqual(len(self.plot._data_arrays), 2)
+        self.assertEqual(len(self.plot.data_arrays), 2)
 
-        first_data_array = self.plot._data_arrays[0]
-        second_data_array = self.plot._data_arrays[1]
+        first_data_array = self.plot.data_arrays[0]
+        second_data_array = self.plot.data_arrays[1]
 
         self.assertEqual(first_data_array, [1.010, 1.100])
         self.assertEqual(second_data_array, [101325, 101423])
@@ -170,16 +170,16 @@ class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.analysis_model.add_evaluation_step((1.10, 101423))
         self.check_update_is_requested_and_apply()
 
-        self.assertEqual(len(self.plot._data_arrays), 2)
+        self.assertEqual(len(self.plot.data_arrays), 2)
 
-        self.assertEqual(self.plot._data_arrays[0], [1.01, 1.10])
-        self.assertEqual(self.plot._data_arrays[1], [101325, 101423])
+        self.assertEqual(self.plot.data_arrays[0], [1.01, 1.10])
+        self.assertEqual(self.plot.data_arrays[1], [101325, 101423])
 
         self.analysis_model.clear_steps()
         self.check_update_is_requested_and_apply()
 
-        self.assertEqual([], self.plot._data_arrays[0])
-        self.assertEqual([], self.plot._data_arrays[1])
+        self.assertEqual([], self.plot.data_arrays[0])
+        self.assertEqual([], self.plot.data_arrays[1])
 
     def test_select_plot_axis(self):
         self.analysis_model.value_names = ("density", "pressure")
@@ -231,8 +231,8 @@ class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.analysis_model.value_names = ("density",)
         self.analysis_model.add_evaluation_step((1.010,))
 
-        self.assertEqual(1, len(self.plot._data_arrays))
-        self.assertEqual(0, len(self.plot._data_arrays[0]))
+        self.assertEqual(1, len(self.plot.data_arrays))
+        self.assertEqual(0, len(self.plot.data_arrays[0]))
 
     def test_selection(self):
         self.analysis_model.value_names = ("density", "pressure")
