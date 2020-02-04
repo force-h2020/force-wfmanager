@@ -83,6 +83,18 @@ class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             self.plot._data_arrays,
         )
 
+    def test_displayable_mask(self):
+        self.assertTrue(self.plot.displayable_data_mask(1))
+        self.assertTrue(self.plot.displayable_data_mask(42.0))
+        self.assertFalse(self.plot.displayable_data_mask(None))
+
+        another_plot = BasePlot(
+            analysis_model=self.analysis_model,
+            displayable_data_mask=lambda object: isinstance(object, str),
+        )
+        self.assertTrue(another_plot.displayable_data_mask("string"))
+        self.assertFalse(another_plot.displayable_data_mask(1))
+
     def test_plot_updater(self):
         self.assertTrue(self.plot.plot_updater.active)
         with mock.patch(
