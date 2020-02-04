@@ -28,22 +28,6 @@ class TestAnalysisModel(TestCase):
         with self.assertRaises(ValueError):
             self.analysis.add_evaluation_step(())
 
-    def test_numerical_value_names(self):
-        self.analysis.value_names = ("1", "2", "string")
-        self.analysis.add_evaluation_step((1, 2, 3))
-        for index, value in enumerate(self.analysis.value_names):
-            self.assertEqual(value, self.analysis.numerical_value_names[index])
-
-        self.analysis.add_evaluation_step((1, 2, "string data"))
-        self.assertEqual(2, len(self.analysis.numerical_value_names))
-        self.assertTupleEqual(self.analysis.value_names, ("1", "2", "string"))
-        self.assertListEqual(self.analysis.numerical_value_names, ["1", "2"])
-
-        self.analysis.add_evaluation_step((1, "string data", 2))
-        self.assertEqual(1, len(self.analysis.numerical_value_names))
-        self.assertTupleEqual(self.analysis.value_names, ("1", "2", "string"))
-        self.assertListEqual(self.analysis.numerical_value_names, ["1"])
-
     def test_change_selection(self):
         self.analysis.value_names = ["foo", "bar"]
         self.analysis.add_evaluation_step((1, 2))
