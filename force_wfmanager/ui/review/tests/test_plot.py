@@ -1,11 +1,12 @@
 import mock
-import time
 import unittest
 import warnings
 
 from chaco.api import Plot as ChacoPlot
 from chaco.api import ColormappedScatterPlot, ScatterPlot
 from chaco.abstract_colormap import AbstractColormap
+from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+from traits.testing.api import UnittestTools
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.plot import BasePlot, Plot
@@ -14,8 +15,9 @@ from traits.api import push_exception_handler, TraitError
 push_exception_handler(reraise_exceptions=True)
 
 
-class TestAnyPlot(unittest.TestCase):
+class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
     def setUp(self):
+        super().setUp()
         self.analysis_model = AnalysisModel()
         self.plot = BasePlot(analysis_model=self.analysis_model)
 
@@ -87,12 +89,12 @@ class TestAnyPlot(unittest.TestCase):
             "force_wfmanager.ui.review.plot."
             + self.plot.__class__.__name__
             + "._update_plot"
-        ) as mock_update_plot:
-
+        ) as mock_update_plot, self.event_loop_until_condition(
+            lambda: self.plot.update_required is False
+        ):
+            self.assertTrue(self.plot.plot_updater.active)
             self.assertFalse(self.plot.update_required)
 
-            # check that after a cycle no update is done
-            time.sleep(1.1)
             mock_update_plot.assert_not_called()
 
             self.analysis_model.value_names = ("density", "pressure")
@@ -100,10 +102,9 @@ class TestAnyPlot(unittest.TestCase):
             self.analysis_model.add_evaluation_step((1.100, 101423))
             self.assertTrue(self.plot.update_required)
             self.assertTrue(self.plot.plot_updater.active)
-            # self.check_update_is_requested_and_apply()
-            # wait a cycle for the update
-            time.sleep(1.1)
-            mock_update_plot.assert_called()
+
+        self.assertFalse(self.plot.update_required)
+        mock_update_plot.assert_called()
 
     def test_check_scheduled_updates(self):
         with mock.patch(
