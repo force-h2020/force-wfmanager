@@ -3,7 +3,7 @@ from traitsui.view import View
 
 from force_bdss.tests.dummy_classes.extension_plugin import \
     DummyExtensionPlugin
-from force_wfmanager.ui.review.data_view import BaseDataView
+from force_wfmanager.ui.review.base_data_view import BaseDataView
 
 
 class DummyDataView1(BaseDataView):

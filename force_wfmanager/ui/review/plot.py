@@ -27,12 +27,11 @@ from traits.api import (
     List,
     Property,
     on_trait_change,
-    Str,
-    Callable
+    Str
 )
 from traitsui.api import HGroup, Item, UItem, VGroup, View
 
-from .data_view import BaseDataView
+from .base_data_view import BaseDataView
 
 log = logging.getLogger(__name__)
 
@@ -49,13 +48,13 @@ class BasePlot(BaseDataView):
     reset_plot = Button("Reset View")
 
     #: First parameter used for the plot (abscissa)
-    x = Enum(values="_displayable_value_names")
+    x = Enum(values="displayable_value_names")
 
     #: Second parameter used for the plot (ordinate)
-    y = Enum(values="_displayable_value_names")
+    y = Enum(values="displayable_value_names")
 
     #: Optional third parameter used to set colour of points
-    color_by = Enum(values="_displayable_value_names")
+    color_by = Enum(values="displayable_value_names")
 
     #: Optional title to display above the figure
     title = Str("Plot")
@@ -81,17 +80,6 @@ class BasePlot(BaseDataView):
     _plot = Instance(Component)
 
     _axis = Instance(BaseXYPlot)
-
-    #: A list of displayable columns from the analysis model's value names
-    _displayable_value_names = List()
-
-    #: a Callable: object -> Bool that indicates if the object
-    #: can be displayed by the BasePlot instance.
-    displayable_data_mask = Callable()
-
-    #: List containing the data arrays from the
-    #: analysis_mode.evaluation steps.
-    _data_arrays = List(List())
 
     #: The plot data. This is the model of the actual Chaco plot.
     #: Listens to: :attr:`x`, :attr:`y`
@@ -211,16 +199,6 @@ class BasePlot(BaseDataView):
         plot_data.set_data("color_by", [])
         return plot_data
 
-    def __data_arrays_default(self):
-        return [[] for _ in range(len(self.analysis_model.value_names))]
-
-    def _displayable_data_mask_default(self):
-        """ Default mask for data coming from the analysis model.
-        Verifies that the data entry is numerical value."""
-        def is_numerical(data_entry):
-            return isinstance(data_entry, (int, float))
-        return is_numerical
-
     # ----------
     # Properties
     # ----------
@@ -238,68 +216,30 @@ class BasePlot(BaseDataView):
 
     # Response to analysis model changes
 
-    def update__displayable_value_names(self):
-        """ Updates the list of the `_displayable_value_names`.
-        If the analysis model doesn't have any data in `_evaluation_steps`,
-        the _displayable_value_names list should be empty as we can't infer
-        the data type.
-        If the _displayable_value_names list is empty, we accept all value
-        names from the model, whose corresponding columns contain only
-        entries fulfilling `self.displayable_data_mask(entry) == True`.
-        If an evaluation step contains data that can't be displayed by the
-        current plot (`self.displayable_data_mask(entry) == False`), then
-        that value name is removed from `self._displayable_value_names`.
-        """
-        if len(self.analysis_model._evaluation_steps) == 0:
-            self._displayable_value_names = []
-            return
-
-        evaluation_step = self.analysis_model._evaluation_steps[-1]
-
-        masked_value_names = [
-            name
-            for (value, name) in zip(
-                evaluation_step, self.analysis_model.value_names
-            )
-            if self.displayable_data_mask(value)
-        ]
-        if len(self._displayable_value_names) == 0:
-            _displayable_value_names = masked_value_names
-        else:
-            _displayable_value_names = [
-                name
-                for name in masked_value_names
-                if name in self._displayable_value_names
-            ]
-        # If the evaluation step changes (reduces) the number of
-        # displayable columns, we update the `self.numerical_value_names`.
-        if len(self._displayable_value_names) != len(_displayable_value_names):
-            self._displayable_value_names[:] = _displayable_value_names
-
-    @on_trait_change("_displayable_value_names[]")
+    @on_trait_change("displayable_value_names[]")
     def update_plot_axis_names(self):
         """ Sets the value names in the plot to match those it the analysis
         model and resets any data arrays."""
-        self._data_arrays = self.__data_arrays_default()
+        self.data_arrays = self._data_arrays_default()
 
         # If there are no available value names, set the plot view to a default
         # state. This occurs when the analysis model is cleared.
-        if len(self._displayable_value_names) == 0:
+        if len(self.displayable_value_names) == 0:
             self._set_plot_range(-1, 1, -1, 1)
             # Unset the axis labels
             self._plot.x_axis.title = ""
             self._plot.y_axis.title = ""
-        elif len(self._displayable_value_names) > 1:
+        elif len(self.displayable_value_names) > 1:
             # If there is more than one value names, we select the second one
             # for the y axis. If the second one is already taken by the `x`
             # axis, the first value name for `y`.
-            if self.x != self._displayable_value_names[1]:
-                y_value = self._displayable_value_names[1]
+            if self.x != self.displayable_value_names[1]:
+                y_value = self.displayable_value_names[1]
             else:
-                y_value = self._displayable_value_names[0]
+                y_value = self.displayable_value_names[0]
             self.y = y_value
-        elif len(self._displayable_value_names) == 1:
-            self.y = self._displayable_value_names[0]
+        elif len(self.displayable_value_names) == 1:
+            self.y = self.displayable_value_names[0]
 
         self._update_plot()
 
@@ -330,7 +270,7 @@ class BasePlot(BaseDataView):
             self.x is None
             or self.y is None
             or self.color_by is None
-            or self._data_arrays == []
+            or self.data_arrays == []
         ):
             self._plot_data.set_data("x", [])
             self._plot_data.set_data("y", [])
@@ -345,7 +285,7 @@ class BasePlot(BaseDataView):
         self._plot.x_axis.title = self.x
         self._plot.y_axis.title = self.y
 
-        data_arrays = self._data_arrays
+        data_arrays = self.data_arrays
 
         self._plot_data.set_data("x", data_arrays[x_index])
         self._plot_data.set_data("y", data_arrays[y_index])
@@ -353,57 +293,13 @@ class BasePlot(BaseDataView):
 
         self.recenter_plot()
 
-    def update_data_arrays(self):
-        """ Update the data arrays used by the plot. It assumes that the
-        AnalysisModel object is valid. Which means that the number of
-        value_names is equal to the number of element in each evaluation step
-        (e.g. value_names=["viscosity", "pressure"] then each evaluation step
-        is a two dimensions tuple). Only the number of evaluation
-        steps can change, not their values.
-
-        Note: evaluation steps is row-based (one tuple = one row). The data
-        arrays are column based. The transformation happens here.
-        """
-        data_dim = len(self.analysis_model.value_names)
-
-        # If there is no data yet, or the data has been removed, make sure the
-        # plot is updated accordingly (empty arrays)
-        if data_dim == 0:
-            self._displayable_value_names = []
-            return
-
-        evaluation_steps = self.analysis_model.evaluation_steps.copy()
-
-        # In this case, the value_names have changed, so we need to
-        # synchronize the number of data arrays to the newly found data
-        # dimensionality before adding new data to them. Of course, this also
-        # means to remove the current content.
-        if data_dim != len(self._data_arrays):
-            self._data_arrays = [[] for _ in range(data_dim)]
-
-        # If the number of evaluation steps is less than the number of element
-        # in the data arrays, it certainly means that the model has been
-        # reinitialized. The only thing we can do is recompute the data arrays.
-        if len(evaluation_steps) < len(self._data_arrays[0]):
-            for data_array in self._data_arrays:
-                data_array[:] = []
-
-        # Update the data arrays with the newly added evaluation_steps
-        new_evaluation_steps = evaluation_steps[len(self._data_arrays[0]):]
-        for evaluation_step in new_evaluation_steps:
-            # Fan out the data in the appropriate arrays. The model guarantees
-            # that the size of the evaluation step and the data_dim are the
-            # same.
-            for index in range(data_dim):
-                self._data_arrays[index].append(evaluation_step[index])
-
     def _check_scheduled_updates(self):
         """ Update the plot if an update was required. This function is a
         callback for the _plot_updater timer.
         """
         if self.update_required:
-            self.update__displayable_value_names()
-            self.update_data_arrays()
+            self._update_displayable_value_names()
+            self._update_data_arrays()
             self._update_plot()
             self.update_required = False
 
@@ -648,11 +544,11 @@ class Plot(BasePlot):
             self.x is None
             or self.y is None
             or self.color_by is None
-            or self._data_arrays == []
+            or self.data_arrays == []
         ):
             self._plot_data.set_data("color_by", [])
             return
 
         c_index = self.analysis_model.value_names.index(self.color_by)
-        self._plot_data.set_data("color_by", self._data_arrays[c_index])
-        self._plot_data.set_data("color_by", self._data_arrays[c_index])
+        self._plot_data.set_data("color_by", self.data_arrays[c_index])
+        self._plot_data.set_data("color_by", self.data_arrays[c_index])
