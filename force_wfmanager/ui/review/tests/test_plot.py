@@ -99,14 +99,16 @@ class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertTrue(self.plot.plot_updater.active)
 
         with mock.patch(
-                "force_wfmanager.ui.review.plot."
-                + self.plot.__class__.__name__
-                + "._update_plot") as mock_update_plot:
+            "force_wfmanager.ui.review.plot."
+            + self.plot.__class__.__name__
+            + "._update_plot"
+        ) as mock_update_plot:
             with self.event_loop_until_condition(
-                    lambda: not self.plot.update_required):
+                lambda: not self.plot.update_required
+            ):
                 self.assertFalse(self.plot.update_required)
                 self.analysis_model.value_names = ("density", "pressure")
-                with self.assertTraitChanges(self.plot, 'update_required'):
+                with self.assertTraitChanges(self.plot, "update_required"):
                     self.analysis_model.add_evaluation_step((1.010, 101325))
 
                 self.assertTrue(self.plot.update_required)
