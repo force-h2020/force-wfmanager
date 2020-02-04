@@ -234,7 +234,6 @@ class BasePlot(BaseDataView):
     # Response to analysis model changes
 
     def update__displayable_value_names(self):
-        print("update__displayable_value_names")
         if len(self.analysis_model._evaluation_steps) == 0:
             self._displayable_value_names = []
             return
@@ -265,8 +264,6 @@ class BasePlot(BaseDataView):
     def update_plot_axis_names(self):
         """ Sets the value names in the plot to match those it the analysis
         model and resets any data arrays."""
-        print("update_plot_axis_names")
-
         self._data_arrays = self.__data_arrays_default()
 
         # If there are no available value names, set the plot view to a default
@@ -293,7 +290,6 @@ class BasePlot(BaseDataView):
     @on_trait_change("analysis_model:evaluation_steps[]")
     def request_update(self):
         # Data points are being added: update plot data at the next cycle
-        print("request_update")
         self.update_required = True
 
     # Response to user input
