@@ -97,26 +97,21 @@ class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
 
     def test_plot_updater(self):
         self.assertTrue(self.plot.plot_updater.active)
+
         with mock.patch(
-            "force_wfmanager.ui.review.plot."
-            + self.plot.__class__.__name__
-            + "._update_plot"
-        ) as mock_update_plot, self.event_loop_until_condition(
-            lambda: self.plot.update_required is False
-        ):
-            self.assertTrue(self.plot.plot_updater.active)
-            self.assertFalse(self.plot.update_required)
+                "force_wfmanager.ui.review.plot."
+                + self.plot.__class__.__name__
+                + "._update_plot") as mock_update_plot:
+            with self.event_loop_until_condition(
+                    lambda: not self.plot.update_required):
+                self.assertFalse(self.plot.update_required)
+                self.analysis_model.value_names = ("density", "pressure")
+                with self.assertTraitChanges(self.plot, 'update_required'):
+                    self.analysis_model.add_evaluation_step((1.010, 101325))
 
-            mock_update_plot.assert_not_called()
+                self.assertTrue(self.plot.update_required)
 
-            self.analysis_model.value_names = ("density", "pressure")
-            self.analysis_model.add_evaluation_step((1.010, 101325))
-            self.analysis_model.add_evaluation_step((1.100, 101423))
-            self.assertTrue(self.plot.update_required)
-            self.assertTrue(self.plot.plot_updater.active)
-
-        self.assertFalse(self.plot.update_required)
-        mock_update_plot.assert_called()
+            mock_update_plot.assert_called()
 
     def test_check_scheduled_updates(self):
         with mock.patch(
