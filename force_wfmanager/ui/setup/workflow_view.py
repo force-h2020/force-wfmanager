@@ -1,5 +1,5 @@
 from traits.api import (
-    HasTraits, List, Instance, Unicode, on_trait_change, Bool, Event
+    HasTraits, List, Instance, Str, on_trait_change, Bool, Event
 )
 
 from force_bdss.api import Workflow
@@ -58,10 +58,10 @@ class WorkflowView(HasTraits):
     verify_workflow_event = Event()
 
     #: An error message for the entire workflow
-    error_message = Unicode()
+    error_message = Str()
 
     #: A label for the Workflow
-    label = Unicode("Workflow")
+    label = Str("Workflow")
 
     # -------------------
     #     Defaults

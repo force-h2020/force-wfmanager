@@ -2,7 +2,7 @@ from envisage.plugin import Plugin
 from pyface.api import ImageResource
 
 from traits.api import (
-    HasTraits, List, Unicode
+    HasTraits, List, Str
 )
 from traitsui.api import (
     ImageEditor, View, Group, HGroup, UItem, ListStrEditor, VGroup, Spring,
@@ -27,16 +27,16 @@ class WorkflowInfo(HasTraits):
     # -------------------
 
     #: Filename for the current workflow (if any)
-    workflow_filename = Unicode()
+    workflow_filename = Str()
 
     #: A list of the loaded plugins
     plugins = List(Plugin)
 
     #: The factory currently selected in the SetupPane
-    selected_factory_name = Unicode()
+    selected_factory_name = Str()
 
     #: An error message for the entire workflow
-    error_message = Unicode()
+    error_message = Str()
 
     # ---------------------
     # Dependent Attributes
@@ -46,10 +46,10 @@ class WorkflowInfo(HasTraits):
     image = ImageResource('Force_Logo.png')
 
     #: Message indicating currently loaded file
-    workflow_filename_message = Unicode()
+    workflow_filename_message = Str()
 
     #: A list of plugin names
-    plugin_names = List(Unicode)
+    plugin_names = List(Str)
 
     # -----------
     #    View

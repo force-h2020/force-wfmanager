@@ -1,5 +1,5 @@
 from traits.api import (
-    HasStrictTraits, List, Instance, Unicode,
+    HasStrictTraits, List, Instance, Str,
     on_trait_change
 )
 from traitsui.editors import HTMLEditor
@@ -43,7 +43,7 @@ class PluginDialog(HasStrictTraits):
 
     #: An HTML description of the selected plugin
     #: Listens to :attr:`selected_plugin`
-    selected_plugin_HTML = Unicode()
+    selected_plugin_HTML = Str()
 
     def __init__(self, plugins):
         super(PluginDialog, self).__init__(plugins=plugins)

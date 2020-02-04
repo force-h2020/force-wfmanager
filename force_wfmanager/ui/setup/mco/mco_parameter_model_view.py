@@ -1,5 +1,5 @@
 from traits.api import (
-    cached_property, Property, Instance, Unicode, on_trait_change
+    cached_property, Property, Str, on_trait_change
 )
 from traitsui.api import (
     View, Item, InstanceEditor, Readonly,
@@ -17,8 +17,7 @@ class MCOParameterModelView(BaseMCOOptionsModelView):
     #  Properties
     # -------------
 
-    label = Property(Instance(Unicode),
-                     depends_on='model.[name,type]')
+    label = Property(Str, depends_on='model.[name,type]')
 
     # ----------
     #    View

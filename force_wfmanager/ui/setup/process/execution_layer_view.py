@@ -1,5 +1,5 @@
 from traits.api import (
-    Instance, Unicode, Bool, on_trait_change, List, Int,
+    Instance, Str, Bool, on_trait_change, List, Int,
     Event, HasTraits
     )
 
@@ -28,7 +28,7 @@ class ExecutionLayerView(HasTraits):
     variable_names_registry = Instance(VariableNamesRegistry)
 
     #: The label to display in the list
-    label = Unicode()
+    label = Str()
 
     # ------------------
     # Regular Attributes
@@ -49,7 +49,7 @@ class ExecutionLayerView(HasTraits):
     #: An error message for issues in this modelview. Updated by
     #: :func:`workflow_tree.WorkflowTree.verify_tree
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    error_message = Unicode()
+    error_message = Str()
 
     #: Event to request a verification check on the workflow
     #: Listens to: :attr:`data_sources_mv.verify_workflow_event

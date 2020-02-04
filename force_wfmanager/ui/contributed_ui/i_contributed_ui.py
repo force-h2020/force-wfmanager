@@ -1,4 +1,4 @@
-from traits.api import Dict, Event, Instance, Int, Interface, Unicode
+from traits.api import Dict, Event, Instance, Int, Interface, Str
 from traitsui.api import Action, Group
 
 
@@ -12,13 +12,13 @@ class IContributedUI(Interface):
     to be implemented, which generates a `Workflow` object."""
 
     #: Name for the UI in selection screen
-    name = Unicode()
+    name = Str()
 
     #: Description of UI
-    desc = Unicode()
+    desc = Str()
 
     #: List of plugin ids and versions required for this UI
-    required_plugins = Dict(Unicode, Int)
+    required_plugins = Dict(Str, Int)
 
     #: Data for a premade workflow
     workflow_data = Dict()

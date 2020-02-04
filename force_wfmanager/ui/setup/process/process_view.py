@@ -1,5 +1,5 @@
 from traits.api import (
-    HasTraits, Instance, List, on_trait_change, Bool, Event, Unicode
+    HasTraits, Instance, List, on_trait_change, Bool, Event, Str
 )
 
 from force_bdss.api import Workflow
@@ -35,7 +35,7 @@ class ProcessView(HasTraits):
     execution_layer_views = List(Instance(ExecutionLayerView))
 
     #: The label to display in the list
-    label = Unicode('Process')
+    label = Str('Process')
 
     # ---------------------
     #  Dependent Attributes
@@ -49,7 +49,7 @@ class ProcessView(HasTraits):
     #: An error message for issues in this modelview. Updated by
     #: :func:`workflow_tree.WorkflowTree.verify_tree
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    error_message = Unicode()
+    error_message = Str()
 
     #: An event which runs a verification check on the current workflow when
     #: triggered.
