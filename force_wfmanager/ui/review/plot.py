@@ -28,6 +28,7 @@ from traits.api import (
     Property,
     on_trait_change,
     Unicode,
+    Callable
 )
 from traitsui.api import HGroup, Item, UItem, VGroup, View
 
@@ -81,10 +82,7 @@ class BasePlot(BaseDataView):
 
     _axis = Instance(BaseXYPlot)
 
-    #: A local copy of the analysis model's value names
-    #: Listens to: :attr:`ç.value_names
-    #: <force_wfmanager.central_pane.analysis_model.AnalysisModel.value_names>`
-    #: List of column names that can be displayed by the chosen Plot
+    #: A list of displayable columns from the analysis model's value names
     _displayable_value_names = List()
 
     #: a Callable: object -> Bool that indicates if the object
@@ -241,25 +239,36 @@ class BasePlot(BaseDataView):
     # Response to analysis model changes
 
     def update__displayable_value_names(self):
+        """ Updates the list of the `_displayable_value_names`.
+        If the analysis model doesn't have any data in `_evaluation_steps`,
+        the _displayable_value_names list should be empty as we can't infer
+        the data type.
+        If the _displayable_value_names list is empty, we accept all value
+        names from the model, whose corresponding columns contain only
+        entries fulfilling `self.displayable_data_mask(entry) == True`.
+        If an evaluation step contains data that can't be displayed by the
+        current plot (`self.displayable_data_mask(entry) == False`), then
+        that value name is removed from `self._displayable_value_names`.
+        """
         if len(self.analysis_model._evaluation_steps) == 0:
             self._displayable_value_names = []
             return
 
         evaluation_step = self.analysis_model._evaluation_steps[-1]
 
-        step_numerical_value_names = [
+        masked_value_names = [
             name
             for (value, name) in zip(
                 evaluation_step, self.analysis_model.value_names
             )
-            if isinstance(value, (int, float))
+            if self.displayable_data_mask(value)
         ]
         if len(self._displayable_value_names) == 0:
-            _displayable_value_names = step_numerical_value_names
+            _displayable_value_names = masked_value_names
         else:
             _displayable_value_names = [
                 name
-                for name in step_numerical_value_names
+                for name in masked_value_names
                 if name in self._displayable_value_names
             ]
         # If the evaluation step changes (reduces) the number of
