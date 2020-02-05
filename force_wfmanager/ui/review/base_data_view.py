@@ -42,7 +42,9 @@ class BaseDataView(HasStrictTraits):
         return is_numerical
 
     def _update_displayable_value_names(self):
-        """ Updates the list of the `_displayable_value_names`.
+        """ This method is a part of the `_check_scheduled_updates`
+        callback function.
+        Updates the list of the `_displayable_value_names`.
         If the analysis model doesn't have any data in `_evaluation_steps`,
         the _displayable_value_names list should be empty as we can't infer
         the data type.
@@ -55,7 +57,11 @@ class BaseDataView(HasStrictTraits):
         that value name is removed from `self._displayable_value_names`.
         """
         if len(self.analysis_model.evaluation_steps) == 0:
-            self.displayable_value_names = []
+            self.displayable_value_names[:] = []
+            return
+
+        if len(self.analysis_model.value_names) == 0:
+            self.displayable_value_names[:] = []
             return
 
         evaluation_step = self.analysis_model.evaluation_steps[-1]
@@ -82,7 +88,9 @@ class BaseDataView(HasStrictTraits):
             self.displayable_value_names[:] = _displayable_value_names
 
     def _update_data_arrays(self):
-        """ Update the data arrays used by the plot. It assumes that the
+        """ This method is a part of the `_check_scheduled_updates`
+        callback function.
+        Update the data arrays used by the plot. It assumes that the
         AnalysisModel object is valid. Which means that the number of
         value_names is equal to the number of element in each evaluation step
         (e.g. value_names=["viscosity", "pressure"] then each evaluation step
@@ -97,7 +105,6 @@ class BaseDataView(HasStrictTraits):
         # If there is no data yet, or the data has been removed, make sure the
         # plot is updated accordingly (empty arrays)
         if data_dim == 0:
-            self.displayable_value_names[:] = []
             self.data_arrays = self._data_arrays_default()
             return
 

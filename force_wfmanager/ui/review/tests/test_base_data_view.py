@@ -46,6 +46,7 @@ class TestAnyPlot(GuiTestAssistant, TestCase, UnittestTools):
 
         self.plot._update_data_arrays()
         self.assertListEqual(self.plot.displayable_value_names, [])
+        self.assertListEqual(self.plot.data_arrays, [])
 
         self.analysis_model.value_names = ("one", "two")
         self.plot._update_data_arrays()
