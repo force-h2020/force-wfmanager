@@ -79,8 +79,21 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [1, 3])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [2, 4])
         self.assertListEqual(
-            [[1, 3], [2, 4], ["string", "another string"]],
             self.plot.data_arrays,
+            [[1, 3], [2, 4], ["string", "another string"]],
+        )
+
+        self.analysis_model.add_evaluation_step((5, "unexpected string", 6))
+        self.check_update_is_requested_and_apply()
+        self.assertEqual("1", self.plot.x)
+        self.assertEqual("1", self.plot.y)
+        self.assertListEqual(
+            self.plot.data_arrays,
+            [
+                [1, 3, 5],
+                [2, 4, "unexpected string"],
+                ["string", "another string", 6],
+            ],
         )
 
     def test_displayable_mask(self):
