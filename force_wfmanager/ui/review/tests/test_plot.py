@@ -15,7 +15,7 @@ from force_wfmanager.ui.review.plot import BasePlot, Plot
 push_exception_handler(reraise_exceptions=True)
 
 
-class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
+class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
     def setUp(self):
         super().setUp()
         self.analysis_model = AnalysisModel()
@@ -294,9 +294,9 @@ class TestAnyPlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertEqual(self.plot._plot.range2d.x_range.low, 1.9)
 
 
-class TestPlot(TestAnyPlot):
+class TestPlot(TestBasePlot):
     def setUp(self):
-        super(TestPlot, self).setUp()
+        super().setUp()
         self.plot = Plot(analysis_model=self.analysis_model)
 
     def test_cmapped_plot(self):

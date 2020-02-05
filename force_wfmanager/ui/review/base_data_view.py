@@ -11,26 +11,14 @@ from .i_data_view import IDataView
 class BaseDataView(HasStrictTraits):
     """ Base class for contributed UI views of models. """
 
-    # -------------------
-    # Required Attributes
-    # -------------------
-
     #: The analysis model containing the results
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
     #: Whether this data view is the one being currently visualized
     is_active_view = Bool(False)
 
-    # ------------------
-    # Regular Attributes
-    # ------------------
-
     #: Short description for the UI selection (to be overwritten)
     description = "Base Data View"
-
-    # --------------------
-    # Dependent Attributes
-    # --------------------
 
     #: List containing the data arrays from the
     #: analysis_mode.evaluation steps.
@@ -43,10 +31,6 @@ class BaseDataView(HasStrictTraits):
     #: can be displayed by the BasePlot instance.
     displayable_data_mask = Callable()
 
-    # --------------
-    #    Defaults
-    # --------------
-
     def _data_arrays_default(self):
         return [[] for _ in range(len(self.analysis_model.value_names))]
 
@@ -56,10 +40,6 @@ class BaseDataView(HasStrictTraits):
         def is_numerical(data_entry):
             return isinstance(data_entry, (int, float))
         return is_numerical
-
-    # -----------------
-    #  Private Methods
-    # -----------------
 
     def _update_displayable_value_names(self):
         """ Updates the list of the `_displayable_value_names`.
@@ -117,7 +97,8 @@ class BaseDataView(HasStrictTraits):
         # If there is no data yet, or the data has been removed, make sure the
         # plot is updated accordingly (empty arrays)
         if data_dim == 0:
-            self.displayable_value_names = []
+            self.displayable_value_names[:] = []
+            self.data_arrays = self._data_arrays_default()
             return
 
         evaluation_steps = self.analysis_model.evaluation_steps.copy()
