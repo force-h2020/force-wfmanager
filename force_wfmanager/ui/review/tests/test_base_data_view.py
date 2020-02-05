@@ -13,7 +13,13 @@ class TestAnyPlot(GuiTestAssistant, TestCase, UnittestTools):
         self.plot = BaseDataView(analysis_model=self.analysis_model)
 
     def test__update_data_arrays(self):
+        self.assertEqual(0, len(self.plot.data_arrays))
+
         self.analysis_model.value_names = ("one", "two")
+        self.assertEqual(0, len(self.analysis_model.evaluation_steps))
+        self.plot._update_data_arrays()
+        self.assertListEqual(self.plot.data_arrays, [[], []])
+
         self.analysis_model.add_evaluation_step((1, 2))
         self.analysis_model.add_evaluation_step((3, 4))
 
@@ -33,3 +39,14 @@ class TestAnyPlot(GuiTestAssistant, TestCase, UnittestTools):
                 self.analysis_model.evaluation_steps[1][1],
             ],
         )
+
+        self.analysis_model.clear()
+        self.assertEqual(0, len(self.analysis_model.value_names))
+        self.assertEqual(0, len(self.analysis_model.evaluation_steps))
+
+        self.plot._update_data_arrays()
+        self.assertListEqual(self.plot.displayable_value_names, [])
+
+        self.analysis_model.value_names = ("one", "two")
+        self.plot._update_data_arrays()
+        self.assertListEqual(self.plot.data_arrays, [[], []])
