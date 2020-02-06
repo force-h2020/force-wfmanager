@@ -219,6 +219,7 @@ class BasePlot(BaseDataView):
     @on_trait_change("displayable_value_names[]")
     def update_plot_axis_names(self):
         """ Sets the plot axis to match the displayable_value_names."""
+        self.data_arrays = self._data_arrays_default()
         if len(self.displayable_value_names) == 0:
             # If there are no displayable_value_names, set the plot view
             # to a default state. This occurs when the analysis model is
