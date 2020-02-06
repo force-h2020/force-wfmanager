@@ -113,7 +113,7 @@ class BaseDataView(HasStrictTraits):
         # dimensionality before adding new data to them. Of course, this also
         # means to remove the current content.
         if data_dim != len(self.data_arrays):
-            self.data_arrays = [[] for _ in range(data_dim)]
+            self.data_arrays = self._data_arrays_default()
 
         evaluation_steps = self.analysis_model.evaluation_steps.copy()
 
