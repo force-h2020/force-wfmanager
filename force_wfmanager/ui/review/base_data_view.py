@@ -108,14 +108,14 @@ class BaseDataView(HasStrictTraits):
             self.data_arrays = self._data_arrays_default()
             return
 
-        evaluation_steps = self.analysis_model.evaluation_steps.copy()
-
         # In this case, the value_names have changed, so we need to
         # synchronize the number of data arrays to the newly found data
         # dimensionality before adding new data to them. Of course, this also
         # means to remove the current content.
         if data_dim != len(self.data_arrays):
             self.data_arrays = [[] for _ in range(data_dim)]
+
+        evaluation_steps = self.analysis_model.evaluation_steps.copy()
 
         # If the number of evaluation steps is less than the number of element
         # in the data arrays, it certainly means that the model has been
