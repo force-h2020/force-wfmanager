@@ -27,7 +27,7 @@ from traits.api import (
     List,
     Property,
     on_trait_change,
-    Str
+    Str,
 )
 from traitsui.api import HGroup, Item, UItem, VGroup, View
 
@@ -218,30 +218,27 @@ class BasePlot(BaseDataView):
 
     @on_trait_change("displayable_value_names[]")
     def update_plot_axis_names(self):
-        """ Sets the value names in the plot to match those it the analysis
-        model and resets any data arrays."""
-        self.data_arrays = self._data_arrays_default()
-
-        # If there are no available value names, set the plot view to a default
-        # state. This occurs when the analysis model is cleared.
+        """ Sets the plot axis to match the displayable_value_names."""
         if len(self.displayable_value_names) == 0:
+            # If there are no displayable_value_names, set the plot view
+            # to a default state. This occurs when the analysis model is cleared.
             self._set_plot_range(-1, 1, -1, 1)
             # Unset the axis labels
             self._plot.x_axis.title = ""
             self._plot.y_axis.title = ""
+            self._update_plot()
         elif len(self.displayable_value_names) > 1:
-            # If there is more than one value names, we select the second one
-            # for the y axis. If the second one is already taken by the `x`
-            # axis, the first value name for `y`.
+            # If there is more than one displayable_value_names,
+            # we select the second one for the y axis.
+            # If the second one is already taken by the `x` axis,
+            # the first value name for `y`.
             if self.x != self.displayable_value_names[1]:
                 y_value = self.displayable_value_names[1]
             else:
                 y_value = self.displayable_value_names[0]
             self.y = y_value
-        elif len(self.displayable_value_names) == 1:
+        else:
             self.y = self.displayable_value_names[0]
-
-        self._update_plot()
 
     @on_trait_change("analysis_model:evaluation_steps[]")
     def request_update(self):
@@ -264,6 +261,10 @@ class BasePlot(BaseDataView):
                 log.warning("Stopped plot updater")
 
     @on_trait_change("x,y")
+    def _update_plot_axis(self):
+        self._update_plot()
+        self.recenter_plot()
+
     def _update_plot(self):
         """Refresh the plot's axes and data. """
         if (
@@ -285,13 +286,9 @@ class BasePlot(BaseDataView):
         self._plot.x_axis.title = self.x
         self._plot.y_axis.title = self.y
 
-        data_arrays = self.data_arrays
-
-        self._plot_data.set_data("x", data_arrays[x_index])
-        self._plot_data.set_data("y", data_arrays[y_index])
-        self._plot_data.set_data("color_by", data_arrays[c_index])
-
-        self.recenter_plot()
+        self._plot_data.set_data("x", self.data_arrays[x_index])
+        self._plot_data.set_data("y", self.data_arrays[y_index])
+        self._plot_data.set_data("color_by", self.data_arrays[c_index])
 
     def _check_scheduled_updates(self):
         """ Update the plot if an update was required. This function is a
