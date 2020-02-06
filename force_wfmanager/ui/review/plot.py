@@ -221,7 +221,8 @@ class BasePlot(BaseDataView):
         """ Sets the plot axis to match the displayable_value_names."""
         if len(self.displayable_value_names) == 0:
             # If there are no displayable_value_names, set the plot view
-            # to a default state. This occurs when the analysis model is cleared.
+            # to a default state. This occurs when the analysis model is
+            # cleared.
             self._set_plot_range(-1, 1, -1, 1)
             # Unset the axis labels
             self._plot.x_axis.title = ""
