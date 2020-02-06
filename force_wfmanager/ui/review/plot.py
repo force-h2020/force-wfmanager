@@ -102,13 +102,20 @@ class BasePlot(BaseDataView):
     # View
     # ----
 
-    view = View(
-        VGroup(
-            HGroup(Item("x"), Item("y")),
-            UItem("_plot", editor=ComponentEditor()),
-            VGroup(UItem("reset_plot", enabled_when="reset_enabled")),
+    axis_hgroup = Instance(HGroup)
+
+    def _axis_hgroup_default(self):
+        return HGroup(Item("x"), Item("y"))
+
+    def default_traits_view(self):
+        view = View(
+            VGroup(
+                self.axis_hgroup,
+                UItem("_plot", editor=ComponentEditor()),
+                VGroup(UItem("reset_plot", enabled_when="reset_enabled")),
+            )
         )
-    )
+        return view
 
     # --------------------
     # Defaults and getters
@@ -460,13 +467,8 @@ class Plot(BasePlot):
         __continuous_colormaps_names, depends_on="_available_colormaps"
     )
 
-    view = View(
-        VGroup(
-            HGroup(Item("x"), Item("y"), UItem("color_options")),
-            UItem("_plot", editor=ComponentEditor()),
-            VGroup(UItem("reset_plot", enabled_when="reset_enabled")),
-        )
-    )
+    def _axis_hgroup_default(self):
+        return HGroup(Item("x"), Item("y"), UItem("color_options"))
 
     @on_trait_change("color_plot")
     def change_plot_style(self):
