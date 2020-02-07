@@ -320,6 +320,17 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.plot.reset_plot = True
         self.assertEqual(self.plot._plot.range2d.x_range.low, 1.9)
 
+    def test_calculate_axis_bounds(self):
+        data = [1.0]
+        self.assertEqual((0.5, 1.5), self.plot.calculate_axis_bounds(data))
+        data = []
+        self.assertEqual((-1.0, 1.0), self.plot.calculate_axis_bounds(data))
+        data = [1.0, 2.0, 3.0]
+        self.assertEqual(
+            (1.0 - 0.1 * (3.0 - 1.0), 3.0 + 0.1 * (3.0 - 1.0)),
+            self.plot.calculate_axis_bounds(data),
+        )
+
 
 class TestPlot(TestBasePlot):
     def setUp(self):
