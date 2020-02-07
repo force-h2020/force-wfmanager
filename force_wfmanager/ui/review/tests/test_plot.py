@@ -96,6 +96,11 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             ],
         )
 
+        self.analysis_model.add_evaluation_step(("oops", 1, 2))
+        self.check_update_is_requested_and_apply()
+        self.assertEqual("", self.plot.x)
+        self.assertEqual("", self.plot.y)
+
     def test_displayable_mask(self):
         self.assertTrue(self.plot.displayable_data_mask(1))
         self.assertTrue(self.plot.displayable_data_mask(42.0))
@@ -232,6 +237,19 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             ),
             self.plot._get_plot_range(),
         )
+
+        with mock.patch(
+            "force_wfmanager.ui.review.plot."
+            + self.plot.__class__.__name__
+            + "._update_plot_y_data"
+        ) as mock_update_plot_y_data, mock.patch(
+            "force_wfmanager.ui.review.plot."
+            + self.plot.__class__.__name__
+            + ".recenter_y_axis"
+        ) as mock_recenter_y_axis:
+            self.plot.y = "c"
+            mock_update_plot_y_data.assert_called()
+            mock_recenter_y_axis.assert_called()
 
     def test_remove_value_names(self):
         self.analysis_model.value_names = ("density", "pressure")
