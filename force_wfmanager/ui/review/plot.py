@@ -306,7 +306,6 @@ class BasePlot(BaseDataView):
         else:
             data = self._plot_data.get_data("x")
             bounds = self.calculate_axis_bounds(data)
-
         self._set_plot_x_range(*bounds)
         self._reset_zoomtool()
         return bounds
@@ -358,17 +357,17 @@ class BasePlot(BaseDataView):
     @staticmethod
     def calculate_axis_bounds(data):
         if len(data) > 1:
-            axis_max = max(data)
+            axis_max = max(data) * 1.0
             axis_min = min(data)
             axis_spread = abs(axis_max - axis_min)
-            axis_max = axis_max + 0.1 * axis_spread
-            axis_min = axis_min - 0.1 * axis_spread
+            axis_mean = 0.5 * (axis_max + axis_min)
+            axis_max = axis_max + 0.1 * (axis_spread + axis_mean)
+            axis_min = axis_min - 0.1 * (axis_spread + axis_mean)
             bounds = (axis_min, axis_max)
         elif len(data) == 1:
             bounds = (data[0] - 0.5, data[0] + 0.5)
         else:
             bounds = (-1, 1)
-
         return bounds
 
     def _reset_zoomtool(self):
@@ -403,8 +402,8 @@ class BasePlot(BaseDataView):
         callback for the _plot_updater timer.
         """
         if self.update_required:
-            self._update_displayable_value_names()
             self._update_data_arrays()
+            self._update_displayable_value_names()
             self._update_plot()
             self.update_required = False
 

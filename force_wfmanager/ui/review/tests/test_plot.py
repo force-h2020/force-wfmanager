@@ -198,16 +198,20 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
     def test_select_plot_axis(self):
         self.analysis_model.value_names = ("a", "b", "c", "d")
         self.analysis_model.add_evaluation_step((1.0, 2.0, 3.0, 4.0))
+        self.check_update_is_requested_and_apply()
+        self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [1.0])
+        self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [2.0])
+        self.assertEqual((0.5, 1.5, 1.5, 2.5), self.plot._get_plot_range())
+
         self.analysis_model.add_evaluation_step((5.0, 4.0, 3.0, 2.0))
         self.check_update_is_requested_and_apply()
-
         self.assertEqual(
             self.plot._plot_data.get_data("x").tolist(), [1.0, 5.0]
         )
         self.assertEqual(
             self.plot._plot_data.get_data("y").tolist(), [2.0, 4.0]
         )
-        self.assertEqual((-1.0, 1.0, -1.0, 1.0), self.plot._get_plot_range())
+        self.assertEqual((0.5, 1.5, 1.5, 2.5), self.plot._get_plot_range())
 
         self.plot.x = "b"
         self.assertEqual(
@@ -217,7 +221,12 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             self.plot._plot_data.get_data("y").tolist(), [2.0, 4.0]
         )
         self.assertEqual(
-            (2.0 - 0.1 * (4.0 - 2.0), 4.0 + 0.1 * (4.0 - 2.0), -1.0, 1.0),
+            (
+                2.0 - 0.1 * (4.0 - 2.0 + 0.5 * (4.0 + 2.0)),
+                4.0 + 0.1 * (4.0 - 2.0 + 0.5 * (4.0 + 2.0)),
+                1.5,
+                2.5,
+            ),
             self.plot._get_plot_range(),
         )
 
@@ -230,10 +239,10 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         )
         self.assertEqual(
             (
-                2.0 - 0.1 * (4.0 - 2.0),
-                4.0 + 0.1 * (4.0 - 2.0),
-                1.0 - 0.1 * (5.0 - 1.0),
-                5.0 + 0.1 * (5.0 - 1.0),
+                2.0 - 0.1 * (4.0 - 2.0 + 0.5 * (4.0 + 2.0)),
+                4.0 + 0.1 * (4.0 - 2.0 + 0.5 * (4.0 + 2.0)),
+                1.0 - 0.1 * (5.0 - 1.0 + 0.5 * (5.0 + 1.0)),
+                5.0 + 0.1 * (5.0 - 1.0 + 0.5 * (5.0 + 1.0)),
             ),
             self.plot._get_plot_range(),
         )
@@ -331,12 +340,12 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.plot.recenter_plot()
         committed_range = self.plot.recenter_plot()
         actual_range = self.plot._get_plot_range()
-        self.assertEqual(committed_range, (1.9, 3.1, 2.9, 4.1))
+        self.assertEqual(committed_range, (1.65, 3.35, 2.55, 4.45))
         self.assertEqual(committed_range, actual_range)
         self.assertTrue(self.plot._get_reset_enabled())
         self.plot._plot.range2d.x_range.low = -10
         self.plot.reset_plot = True
-        self.assertEqual(self.plot._plot.range2d.x_range.low, 1.9)
+        self.assertEqual(self.plot._plot.range2d.x_range.low, 1.65)
 
     def test_calculate_axis_bounds(self):
         data = [1.0]
@@ -345,7 +354,10 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertEqual((-1.0, 1.0), self.plot.calculate_axis_bounds(data))
         data = [1.0, 2.0, 3.0]
         self.assertEqual(
-            (1.0 - 0.1 * (3.0 - 1.0), 3.0 + 0.1 * (3.0 - 1.0)),
+            (
+                1.0 - 0.1 * (3.0 - 1.0 + 0.5 * (3.0 + 1.0)),
+                3.0 + 0.1 * (3.0 - 1.0 + 0.5 * (3.0 + 1.0)),
+            ),
             self.plot.calculate_axis_bounds(data),
         )
 
