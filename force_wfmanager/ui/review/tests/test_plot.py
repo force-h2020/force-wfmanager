@@ -38,8 +38,8 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertEqual(len(self.analysis_model.value_names), 0)
         self.assertEqual(len(self.analysis_model.evaluation_steps), 0)
         self.assertEqual(len(self.plot.data_arrays), 0)
-        self.assertIsNone(self.plot.x)
-        self.assertIsNone(self.plot.y)
+        self.assertEqual("", self.plot.x)
+        self.assertEqual("", self.plot.y)
         self.assertIsNone(self.plot._update_data_arrays())
         self.plot._update_plot()
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [])
@@ -48,8 +48,8 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ("density", "pressure")
-        self.assertIsNone(self.plot.x)
-        self.assertIsNone(self.plot.y)
+        self.assertEqual("", self.plot.x)
+        self.assertEqual("", self.plot.y)
         self.assertEqual([[], []], self.plot.data_arrays)
 
     def test_plot(self):
@@ -119,7 +119,8 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             with self.event_loop_until_condition(
                 lambda: not self.plot.update_required
             ):
-                self.assertFalse(self.plot.update_required)
+                self.assertTrue(self.plot.update_required)
+                self.plot.update_required = False
                 self.analysis_model.value_names = ("density", "pressure")
                 with self.assertTraitChanges(self.plot, "update_required"):
                     self.analysis_model.add_evaluation_step((1.010, 101325))
@@ -134,7 +135,8 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             + self.plot.__class__.__name__
             + "._update_plot"
         ) as mock_update_plot:
-            self.assertFalse(self.plot.update_required)
+            self.assertTrue(self.plot.update_required)
+            self.plot.update_required = False
             self.plot._check_scheduled_updates()
             mock_update_plot.assert_not_called()
 
@@ -144,8 +146,6 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             self.assertFalse(self.plot.update_required)
 
     def test_push_new_evaluation_steps(self):
-        self.assertFalse(self.plot.update_required)
-
         self.analysis_model.value_names = ("density", "pressure")
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
@@ -280,7 +280,7 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
 
         # No data
         result = self.plot.recenter_plot()
-        self.assertIsNone(result)
+        self.assertEqual((-1, 1, -1, 1), result)
         self.assertFalse(self.plot._get_reset_enabled())
 
         # One data point
@@ -288,9 +288,9 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.analysis_model.add_evaluation_step((2, 3))
         self.check_update_is_requested_and_apply()
         committed_range = self.plot.recenter_plot()
+        self.assertEqual((1.5, 2.5, 2.5, 3.5), committed_range)
         actual_range = self.plot._get_plot_range()
-        self.assertEqual(committed_range, (1.5, 2.5, 2.5, 3.5))
-        self.assertEqual(committed_range, actual_range)
+        self.assertEqual(actual_range, committed_range)
         self.assertTrue(self.plot._get_reset_enabled())
 
         # More than 1 data point
