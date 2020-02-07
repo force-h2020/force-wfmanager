@@ -119,13 +119,8 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             with self.event_loop_until_condition(
                 lambda: not self.plot.update_required
             ):
-                self.assertTrue(self.plot.update_required)
-                self.plot.update_required = False
                 self.analysis_model.value_names = ("density", "pressure")
-                with self.assertTraitChanges(self.plot, "update_required"):
-                    self.analysis_model.add_evaluation_step((1.010, 101325))
-
-                self.assertTrue(self.plot.update_required)
+                self.analysis_model.add_evaluation_step((1.010, 101325))
 
             mock_update_plot.assert_called()
 
@@ -135,7 +130,6 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             + self.plot.__class__.__name__
             + "._update_plot"
         ) as mock_update_plot:
-            self.assertTrue(self.plot.update_required)
             self.plot.update_required = False
             self.plot._check_scheduled_updates()
             mock_update_plot.assert_not_called()
@@ -197,26 +191,46 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertEqual([], self.plot.data_arrays[1])
 
     def test_select_plot_axis(self):
-        self.analysis_model.value_names = ("density", "pressure")
-        self.analysis_model.add_evaluation_step((1.010, 101325))
-        self.analysis_model.add_evaluation_step((1.100, 101423))
+        self.analysis_model.value_names = ("a", "b", "c", "d")
+        self.analysis_model.add_evaluation_step((1.0, 2.0, 3.0, 4.0))
+        self.analysis_model.add_evaluation_step((5.0, 4.0, 3.0, 2.0))
         self.check_update_is_requested_and_apply()
 
         self.assertEqual(
-            self.plot._plot_data.get_data("x").tolist(), [1.010, 1.100]
+            self.plot._plot_data.get_data("x").tolist(), [1.0, 5.0]
         )
         self.assertEqual(
-            self.plot._plot_data.get_data("y").tolist(), [101325, 101423]
+            self.plot._plot_data.get_data("y").tolist(), [2.0, 4.0]
+        )
+        self.assertEqual((-1.0, 1.0, -1.0, 1.0), self.plot._get_plot_range())
+
+        self.plot.x = "b"
+        self.assertEqual(
+            self.plot._plot_data.get_data("x").tolist(), [2.0, 4.0]
+        )
+        self.assertEqual(
+            self.plot._plot_data.get_data("y").tolist(), [2.0, 4.0]
+        )
+        self.assertEqual(
+            (2.0 - 0.1 * (4.0 - 2.0), 4.0 + 0.1 * (4.0 - 2.0), -1.0, 1.0),
+            self.plot._get_plot_range(),
         )
 
-        self.plot.x = "pressure"
-        self.plot.y = "density"
-
+        self.plot.y = "a"
         self.assertEqual(
-            self.plot._plot_data.get_data("x").tolist(), [101325, 101423]
+            self.plot._plot_data.get_data("x").tolist(), [2.0, 4.0]
         )
         self.assertEqual(
-            self.plot._plot_data.get_data("y").tolist(), [1.010, 1.100]
+            self.plot._plot_data.get_data("y").tolist(), [1.0, 5.0]
+        )
+        self.assertEqual(
+            (
+                2.0 - 0.1 * (4.0 - 2.0),
+                4.0 + 0.1 * (4.0 - 2.0),
+                1.0 - 0.1 * (5.0 - 1.0),
+                5.0 + 0.1 * (5.0 - 1.0),
+            ),
+            self.plot._get_plot_range(),
         )
 
     def test_remove_value_names(self):
