@@ -405,6 +405,7 @@ class BasePlot(BaseDataView):
             self._update_data_arrays()
             self._update_displayable_value_names()
             self._update_plot()
+            self._reset_zoomtool()
             self.update_required = False
 
     def _reset_plot_fired(self):
