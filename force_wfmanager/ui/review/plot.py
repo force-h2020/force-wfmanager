@@ -29,7 +29,7 @@ from traits.api import (
     on_trait_change,
     Str,
 )
-from traitsui.api import HGroup, Item, UItem, VGroup, View
+from traitsui.api import HGroup, Item, UItem, VGroup, View, EnumEditor
 
 from .base_data_view import BaseDataView
 
@@ -47,11 +47,11 @@ class BasePlot(BaseDataView):
     #: is *True* and inactive if it is *False*.
     reset_plot = Button("Reset View")
 
-    #: First parameter used for the plot (abscissa)
-    x = Enum(values="displayable_value_names")
+    #: The plot abscissa axis name
+    x = Str()
 
-    #: Second parameter used for the plot (ordinate)
-    y = Enum(values="displayable_value_names")
+    #: The plot ordinate axis name
+    y = Str()
 
     #: Optional third parameter used to set colour of points
     color_by = Enum(values="displayable_value_names")
@@ -88,8 +88,10 @@ class BasePlot(BaseDataView):
     #: Timer to check on required updates
     plot_updater = Instance(CallbackTimer)
 
-    #: Schedule a refresh of plot data and axes
-    update_required = Bool(False)
+    #: Schedule a refresh of plot data and axes. Set to True
+    #: by default: the plot needs to be refreshed if the
+    #: simulation was started from the 'Setup' pane.
+    update_required = Bool(True)
 
     # ------------------
     # Regular Attributes
@@ -102,13 +104,23 @@ class BasePlot(BaseDataView):
     # View
     # ----
 
-    view = View(
-        VGroup(
-            HGroup(Item("x"), Item("y")),
-            UItem("_plot", editor=ComponentEditor()),
-            VGroup(UItem("reset_plot", enabled_when="reset_enabled")),
+    axis_hgroup = Instance(HGroup)
+
+    def _axis_hgroup_default(self):
+        return HGroup(
+            Item("x", editor=EnumEditor(name="displayable_value_names")),
+            Item("y", editor=EnumEditor(name="displayable_value_names")),
         )
-    )
+
+    def default_traits_view(self):
+        view = View(
+            VGroup(
+                self.axis_hgroup,
+                UItem("_plot", editor=ComponentEditor()),
+                VGroup(UItem("reset_plot", enabled_when="reset_enabled")),
+            )
+        )
+        return view
 
     # --------------------
     # Defaults and getters
@@ -218,36 +230,37 @@ class BasePlot(BaseDataView):
 
     @on_trait_change("displayable_value_names[]")
     def update_plot_axis_names(self):
-        """ Sets the plot axis to match the displayable_value_names."""
-        self.data_arrays = self._data_arrays_default()
+        """ Update the plot axis to match the displayable_value_names."""
         if len(self.displayable_value_names) == 0:
             # If there are no displayable_value_names, set the plot view
-            # to a default state. This occurs when the analysis model is
-            # cleared.
-            self._set_plot_range(-1, 1, -1, 1)
-            # Unset the axis labels
+            # to a default state.
+            # This occurs when the analysis model is cleared, or no data
+            # from the self.data_arrays is displayable.
             self._plot.x_axis.title = ""
             self._plot.y_axis.title = ""
-            self._update_plot()
+            self.x = ""
+            self.y = ""
         elif len(self.displayable_value_names) > 1:
             # If there is more than one displayable_value_names,
-            # we select the second one for the y axis.
-            # If the second one is already taken by the `x` axis,
-            # the first value name for `y`.
-            if self.x != self.displayable_value_names[1]:
-                y_value = self.displayable_value_names[1]
-            else:
-                y_value = self.displayable_value_names[0]
-            self.y = y_value
+            # the x axis is set to the first displayable value name
+            # (if the existing x axis is not displayable anymore),
+            # the y axis is set to the second displayable value name
+            # (if the existing y axis is not displayable anymore).
+            if self.x not in self.displayable_value_names:
+                self.x = self.displayable_value_names[0]
+            if self.y not in self.displayable_value_names:
+                self.y = self.displayable_value_names[1]
         else:
+            # For a single displayable_value_names, both x and y
+            # are set to the only available axis.
             self.y = self.displayable_value_names[0]
+            self.x = self.displayable_value_names[0]
 
     @on_trait_change("analysis_model:evaluation_steps[]")
     def request_update(self):
-        # Data points are being added: update plot data at the next cycle
+        # Listens to the change in data points in the analysis model.
+        # Enables the plot update at the next cycle.
         self.update_required = True
-
-    # Response to user input
 
     @on_trait_change("is_active_view")
     def toggle_updater_with_visibility(self):
@@ -262,16 +275,114 @@ class BasePlot(BaseDataView):
                 self.plot_updater.stop()
                 log.warning("Stopped plot updater")
 
-    @on_trait_change("x,y")
-    def _update_plot_axis(self):
-        self._update_plot()
-        self.recenter_plot()
+    @on_trait_change("x")
+    def _update_plot_x_axis(self):
+        """ Listens to the changes of the x-axis name. Updates the
+        displayed data and resets the plot x axis."""
+        self._update_plot_x_data()
+        self.recenter_x_axis()
+
+    def _update_plot_x_data(self):
+        """ Update data points displayed by the x axis.
+        Sets the x-`self._plot_data` to corresponding data in the
+        `self.data_arrays`.
+        This method is called by the `_update_plot` method during
+        the callback update.
+        This method is called when the `x` axis is changed.
+        """
+        if self.x == "" or len(self.data_arrays) == 0:
+            self._plot_data.set_data("x", [])
+        else:
+            self._plot.x_axis.title = self.x
+            x_index = self.analysis_model.value_names.index(self.x)
+            self._plot_data.set_data("x", self.data_arrays[x_index])
+
+    def recenter_x_axis(self):
+        """ Resets the bounds on the x-axis of the plot. If now x axis
+        is specified, uses the default bounds (-1, 1). Otherwise, infers
+        the bounds from the x-axis related data."""
+        if self.x == "":
+            bounds = (-1, 1)
+        else:
+            data = self._plot_data.get_data("x")
+            bounds = self.calculate_axis_bounds(data)
+        self._set_plot_x_range(*bounds)
+        self._reset_zoomtool()
+        return bounds
+
+    def _set_plot_x_range(self, lower_bound, upper_bound):
+        self._plot.range2d.x_range.low_setting = lower_bound
+        self._plot.range2d.x_range.high_setting = upper_bound
+
+    @on_trait_change("y")
+    def _update_plot_y_axis(self):
+        """ Listens to the changes of the y-axis name. Updates the
+        displayed data and resets the plot y axis."""
+        self._update_plot_y_data()
+        self.recenter_y_axis()
+
+    def _update_plot_y_data(self):
+        """ Update data points displayed by the y axis.
+        Sets the y-`self._plot_data` to corresponding data in the
+        `self.data_arrays`.
+        This method is called by the `_update_plot` method during
+        the callback update.
+        This method is called when the `y` axis is changed.
+        """
+        if self.y == "" or len(self.data_arrays) == 0:
+            self._plot_data.set_data("y", [])
+        else:
+            self._plot.y_axis.title = self.y
+            y_index = self.analysis_model.value_names.index(self.y)
+            self._plot_data.set_data("y", self.data_arrays[y_index])
+
+    def recenter_y_axis(self):
+        """ Resets the bounds on the x-axis of the plot. If now y axis
+        is specified, uses the default bounds (-1, 1). Otherwise, infers
+        the bounds from the y-axis related data."""
+        if self.y == "":
+            bounds = (-1, 1)
+        else:
+            data = self._plot_data.get_data("y")
+            bounds = self.calculate_axis_bounds(data)
+
+        self._set_plot_y_range(*bounds)
+        self._reset_zoomtool()
+        return bounds
+
+    def _set_plot_y_range(self, lower_bound, upper_bound):
+        self._plot.range2d.y_range.low_setting = lower_bound
+        self._plot.range2d.y_range.high_setting = upper_bound
+
+    @staticmethod
+    def calculate_axis_bounds(data):
+        if len(data) > 1:
+            axis_max = max(data) * 1.0
+            axis_min = min(data)
+            axis_spread = abs(axis_max - axis_min)
+            axis_mean = 0.5 * (axis_max + axis_min)
+            axis_max = axis_max + 0.1 * (axis_spread + axis_mean)
+            axis_min = axis_min - 0.1 * (axis_spread + axis_mean)
+            bounds = (axis_min, axis_max)
+        elif len(data) == 1:
+            bounds = (data[0] - 0.5, data[0] + 0.5)
+        else:
+            bounds = (-1, 1)
+        return bounds
+
+    def _reset_zoomtool(self):
+        # Replace the old ZoomTool as retaining the same one can lead
+        # to issues where the zoom out/in limit is not reset on
+        # resizing the plot.
+        for idx, overlay in enumerate(self._plot.overlays):
+            if isinstance(overlay, ZoomTool):
+                self._plot.overlays[idx] = ZoomTool(self._plot)
 
     def _update_plot(self):
         """Refresh the plot's axes and data. """
         if (
-            self.x is None
-            or self.y is None
+            self.x == ""
+            or self.y == ""
             or self.color_by is None
             or self.data_arrays == []
         ):
@@ -280,16 +391,10 @@ class BasePlot(BaseDataView):
             self.recenter_plot()
             return
 
-        x_index = self.analysis_model.value_names.index(self.x)
-        y_index = self.analysis_model.value_names.index(self.y)
+        self._update_plot_x_data()
+        self._update_plot_y_data()
+
         c_index = self.analysis_model.value_names.index(self.color_by)
-
-        # Set the axis labels
-        self._plot.x_axis.title = self.x
-        self._plot.y_axis.title = self.y
-
-        self._plot_data.set_data("x", self.data_arrays[x_index])
-        self._plot_data.set_data("y", self.data_arrays[y_index])
         self._plot_data.set_data("color_by", self.data_arrays[c_index])
 
     def _check_scheduled_updates(self):
@@ -297,8 +402,8 @@ class BasePlot(BaseDataView):
         callback for the _plot_updater timer.
         """
         if self.update_required:
-            self._update_displayable_value_names()
             self._update_data_arrays()
+            self._update_displayable_value_names()
             self._update_plot()
             self.update_required = False
 
@@ -307,57 +412,12 @@ class BasePlot(BaseDataView):
         self.recenter_plot()
 
     def recenter_plot(self):
-        """ Sets the size of the current plot to have some spacing between the
-        largest/smallest value and the plot edge. Also returns the new values
-        (X min, X max, Y min, Y max) if the plot area changes or None if it
-        does not.
+        """ Sets the size of the current plot to have some spacing
+        between the largest/smallest value and the plot edge.
         """
-        if self.x is None or self.y is None:
-            return None
-
-        x_data = self._plot_data.get_data("x")
-        y_data = self._plot_data.get_data("y")
-
-        if len(x_data) > 1:
-            x_max = max(x_data)
-            x_min = min(x_data)
-            x_size = abs(x_max - x_min)
-            x_max = x_max + 0.1 * x_size
-            x_min = x_min - 0.1 * x_size
-
-            y_max = max(y_data)
-            y_min = min(y_data)
-            y_size = abs(y_max - y_min)
-            y_max = y_max + 0.1 * abs(y_size)
-            y_min = y_min - 0.1 * abs(y_size)
-
-            self._set_plot_range(x_min, x_max, y_min, y_max)
-
-            return x_min, x_max, y_min, y_max
-
-        elif len(x_data) == 1:
-            self._set_plot_range(
-                x_data[0] - 0.5,
-                x_data[0] + 0.5,
-                y_data[0] - 0.5,
-                y_data[0] + 0.5,
-            )
-            # Replace the old ZoomTool as retaining the same one can lead
-            # to issues where the zoom out/in limit is not reset on
-            # resizing the plot.
-
-            for idx, overlay in enumerate(self._plot.overlays):
-                if isinstance(overlay, ZoomTool):
-                    self._plot.overlays[idx] = ZoomTool(self._plot)
-
-            return (
-                x_data[0] - 0.5,
-                x_data[0] + 0.5,
-                y_data[0] - 0.5,
-                y_data[0] + 0.5,
-            )
-
-        return None
+        x_bounds = self.recenter_x_axis()
+        y_bounds = self.recenter_y_axis()
+        return (*x_bounds, *y_bounds)
 
     @on_trait_change("analysis_model:selected_step_indices")
     def update_selected_points(self):
@@ -394,10 +454,8 @@ class BasePlot(BaseDataView):
         y_high: Float
             Maximum value for y range of plot
         """
-        self._plot.range2d.x_range.low_setting = x_low
-        self._plot.range2d.x_range.high_setting = x_high
-        self._plot.range2d.y_range.low_setting = y_low
-        self._plot.range2d.y_range.high_setting = y_high
+        self._set_plot_x_range(x_low, x_high)
+        self._set_plot_y_range(y_low, y_high)
 
     def _get_plot_range(self):
         """ Helper method to get the size of the current _plot
@@ -460,13 +518,12 @@ class Plot(BasePlot):
         __continuous_colormaps_names, depends_on="_available_colormaps"
     )
 
-    view = View(
-        VGroup(
-            HGroup(Item("x"), Item("y"), UItem("color_options")),
-            UItem("_plot", editor=ComponentEditor()),
-            VGroup(UItem("reset_plot", enabled_when="reset_enabled")),
+    def _axis_hgroup_default(self):
+        return HGroup(
+            Item("x", editor=EnumEditor(name="displayable_value_names")),
+            Item("y", editor=EnumEditor(name="displayable_value_names")),
+            UItem("color_options"),
         )
-    )
 
     @on_trait_change("color_plot")
     def change_plot_style(self):
@@ -540,8 +597,8 @@ class Plot(BasePlot):
     @on_trait_change("color_by")
     def _update_color_plot(self):
         if (
-            self.x is None
-            or self.y is None
+            self.x == ""
+            or self.y == ""
             or self.color_by is None
             or self.data_arrays == []
         ):
