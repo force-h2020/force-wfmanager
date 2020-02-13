@@ -47,6 +47,8 @@ class UINotificationHooksManager(BaseUIHooksManager):
         notification_model.pub_url = (
                 "tcp://127.0.0.1:"+str(pub_port))
         notification_model.identifier = ""
+        notification_model.pub2_url = (
+                "tcp://127.0.0.1:" + str(task.zmq_server._pub2_port))
 
     def after_execution(self, task):
         """Removes the :class:`UINotificationModel
