@@ -381,7 +381,7 @@ class WfManagerSetupTask(Task):
         except subprocess.CalledProcessError as e:
             # Ignore any error of execution.
             log.exception(
-                "force_bdss returned a " "non-zero value after execution"
+                "force_bdss returned a non-zero value after execution"
             )
             self._clean_tmp_workflow(workflow_path, silent=True)
             raise e
