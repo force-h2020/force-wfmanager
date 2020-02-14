@@ -61,7 +61,7 @@ class ZMQServer(threading.Thread):
         self._on_error_callback = on_error_callback
 
         self._context = self._get_context()
-        self._pub_socket = None
+        self._sub_socket = None
         self._sync_socket = None
         self._inproc_socket = None
         self.ports = None
@@ -77,8 +77,8 @@ class ZMQServer(threading.Thread):
 
         try:
             (
-                self._pub_socket,
-                pub_port,
+                self._sub_socket,
+                sub_port,
                 self._sync_socket,
                 sync_port,
                 self._inproc_socket,
@@ -95,13 +95,13 @@ class ZMQServer(threading.Thread):
             )
             return
 
-        self.ports = (pub_port, sync_port)
+        self.ports = (sub_port, sync_port)
 
         self._pub2_socket, self._pub2_port = self._setup_pub_sockets()
 
         try:
             poller = self._get_poller()
-            poller.register(self._pub_socket)
+            poller.register(self._sub_socket)
             poller.register(self._sync_socket)
             poller.register(self._inproc_socket)
         except Exception as e:
@@ -136,7 +136,7 @@ class ZMQServer(threading.Thread):
                 return
 
             for socket_name, socket in [
-                ("pub", self._pub_socket),
+                ("pub", self._sub_socket),
                 ("sync", self._sync_socket),
             ]:
 
@@ -221,10 +221,10 @@ class ZMQServer(threading.Thread):
     def _setup_sockets(self):
         """Sets up the sockets."""
         context = self._context
-        pub_socket = context.socket(zmq.SUB)
-        pub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
-        pub_socket.setsockopt(zmq.LINGER, 0)
-        pub_port = pub_socket.bind_to_random_port("tcp://*")
+        sub_socket = context.socket(zmq.SUB)
+        sub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
+        sub_socket.setsockopt(zmq.LINGER, 0)
+        sub_port = sub_socket.bind_to_random_port("tcp://*")
 
         sync_socket = context.socket(zmq.REP)
         sync_socket.setsockopt(zmq.LINGER, 0)
@@ -232,7 +232,7 @@ class ZMQServer(threading.Thread):
 
         inproc_socket = context.socket(zmq.PAIR)
         inproc_socket.bind("inproc://stop")
-        return pub_socket, pub_port, sync_socket, sync_port, inproc_socket
+        return sub_socket, sub_port, sync_socket, sync_port, inproc_socket
 
     def _setup_pub_sockets(self):
         """Sets up the publishing sockets."""
@@ -249,10 +249,10 @@ class ZMQServer(threading.Thread):
         """
         self.ports = None
         try:
-            self._pub_socket.close()
+            self._sub_socket.close()
         except Exception:
             pass
-        self._pub_socket = None
+        self._sub_socket = None
 
         try:
             self._pub2_socket.close()
