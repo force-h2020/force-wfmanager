@@ -87,6 +87,9 @@ class WfManagerSetupTask(Task):
     #: Indicates whether the 'run' toolbar and side pane buttons are active
     run_enabled = Bool(True)
 
+    #: Indicates whether the computation is paused and waits to resume
+    _paused = Bool(False)
+
     #: Indicates whether the saving and loading menu/toolbar buttons are
     #: active.
     save_load_enabled = Bool(True)
@@ -179,6 +182,22 @@ class WfManagerSetupTask(Task):
                     image=ImageResource("baseline_play_arrow_black_48dp"),
                     method="run_bdss",
                     enabled_name="run_enabled",
+                    image_size=(64, 64),
+                ),
+                TaskAction(
+                    name="Stop",
+                    tooltip="Stop Workflow",
+                    method="stop_bdss",
+                    enabled_name="computation_running",
+                    image=ImageResource("baseline_stop_black_18dp"),
+                    image_size=(64, 64),
+                ),
+                TaskAction(
+                    name="Pause",
+                    tooltip="Pause Workflow",
+                    method="pause_bdss",
+                    enabled_name="computation_running",
+                    image=ImageResource("baseline_pause_black_18dp"),
                     image_size=(64, 64),
                 ),
                 TaskAction(
@@ -434,7 +453,6 @@ class WfManagerSetupTask(Task):
         exception: Exception or None
             If the execution raised an exception of any sort.
         """
-
         for hook_manager in self.ui_hooks_managers:
             try:
                 hook_manager.after_execution(self)
@@ -646,6 +664,29 @@ class WfManagerSetupTask(Task):
                 "Error when running BDSS",
             )
             self.computation_running = False
+
+    def stop_bdss(self):
+        self.zmq_server._pub2_socket.send_multipart(
+            [x.encode("utf-8") for x in ["MESSAGE", "STOP_BDSS", ""]]
+        )
+        self._paused = False
+
+    def pause_bdss(self):
+        if self._paused:
+            message = "RESUME_BDSS"
+        else:
+            message = "PAUSE_BDSS"
+        self.zmq_server._pub2_socket.send_multipart(
+            [x.encode("utf-8") for x in ["MESSAGE", message, ""]]
+        )
+        self._paused = not self._paused
+
+    def kill_bdss(self):
+        try:
+            for pid in self.executor._processes:
+                self.executor._processes[pid].terminate()
+        except Exception as e:
+            log.error(f"Can't kill the executor processes: {e}")
 
     # Plugin Status
     def lookup_plugins(self):

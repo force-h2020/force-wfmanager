@@ -121,6 +121,20 @@ class WfManagerReviewTask(Task):
                     image_size=(64, 64),
                 ),
                 TaskAction(
+                    name="Stop",
+                    tooltip="Stop Workflow",
+                    method="setup_task.stop_bdss",
+                    image=ImageResource("baseline_stop_black_18dp"),
+                    image_size=(64, 64),
+                ),
+                TaskAction(
+                    name="Pause",
+                    tooltip="Pause Workflow",
+                    method="setup_task.pause_bdss",
+                    image=ImageResource("baseline_pause_black_18dp"),
+                    image_size=(64, 64),
+                ),
+                TaskAction(
                     name="Setup Workflow",
                     tooltip="Setup Workflow",
                     image=ImageResource("outline_build_black_48dp"),
