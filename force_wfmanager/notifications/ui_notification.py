@@ -90,7 +90,7 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
         self._sub_socket = self._context.socket(zmq.SUB)
         self._sub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
         self._sub_socket.setsockopt(zmq.LINGER, 0)
-        self._sub_socket.connect(model.pub2_url)
+        self._sub_socket.connect(model.sub_url)
 
         msg = [
             x.encode("utf-8")

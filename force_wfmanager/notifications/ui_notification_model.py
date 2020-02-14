@@ -19,4 +19,5 @@ class UINotificationModel(BaseNotificationListenerModel):
     #: Unique identifier assigned by the UI to recognize the connection.
     identifier = Str()
 
-    pub2_url = ZMQSocketURL()
+    #: The socket URL where the UI messages will be found. PubSub port.
+    sub_url = ZMQSocketURL()

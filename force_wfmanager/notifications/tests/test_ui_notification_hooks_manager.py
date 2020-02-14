@@ -50,7 +50,7 @@ class TestUINotificationHooksManager(unittest.TestCase):
 
         self.assertEqual(model.pub_url, "tcp://127.0.0.1:54537")
         self.assertEqual(model.sync_url, "tcp://127.0.0.1:54538")
-        self.assertEqual(model.pub2_url, "tcp://127.0.0.1:54531")
+        self.assertEqual(model.sub_url, "tcp://127.0.0.1:54531")
 
         manager.after_execution(mock_task)
 
