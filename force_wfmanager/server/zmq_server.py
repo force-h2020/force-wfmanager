@@ -66,6 +66,8 @@ class ZMQServer(threading.Thread):
         self._inproc_socket = None
         self.ports = None
 
+        self._pub2_socket, self._pub2_port = None, None
+
     def run(self):
         if self.state != ZMQServer.STATE_STOPPED:
             return
@@ -94,6 +96,8 @@ class ZMQServer(threading.Thread):
             return
 
         self.ports = (pub_port, sync_port)
+
+        self._pub2_socket, self._pub2_port = self._setup_pub_sockets()
 
         try:
             poller = self._get_poller()
@@ -230,6 +234,14 @@ class ZMQServer(threading.Thread):
         inproc_socket.bind("inproc://stop")
         return pub_socket, pub_port, sync_socket, sync_port, inproc_socket
 
+    def _setup_pub_sockets(self):
+        """Sets up the publishing sockets."""
+        context = self._context
+        pub_socket = context.socket(zmq.PUB)
+        pub_socket.setsockopt(zmq.LINGER, 0)
+        pub_port = pub_socket.bind_to_random_port("tcp://*")
+        return pub_socket, pub_port
+
     def _close_network_sockets_noexc(self):
         """Closes all the network sockets: pub and sync sockets.
         This method throws away all exceptions that the operation might
@@ -241,6 +253,12 @@ class ZMQServer(threading.Thread):
         except Exception:
             pass
         self._pub_socket = None
+
+        try:
+            self._pub2_socket.close()
+        except Exception:
+            pass
+        self._pub2_socket = None
 
         try:
             self._sync_socket.close()
