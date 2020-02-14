@@ -259,7 +259,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             send_event(
                 MCOProgressEvent(
                     optimal_point=[DataValue(value=1.0)],
-                    optimal_kpis=[DataValue(value=2.0)]
+                    optimal_kpis=[DataValue(value=2.0)],
                 )
             )
 
@@ -423,20 +423,27 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
                 return mock_error.call_args[0][1]
 
-            for exc, msg in [
-                (Exception("boom"), "boom"),
-                (
-                    subprocess.CalledProcessError(1, "fake_command"),
-                    "Command 'fake_command' returned non-zero exit "
-                    "status 1",
-                ),
-                (OSError("whatever"), "whatever"),
-            ]:
-                self.assertTrue(
-                    _check_exception_behavior(exc).startswith(
-                        "Execution of BDSS failed. \n\n" + msg
-                    )
+            # msg = "Command 'fake_command' returned non-zero exit status 1"
+            # exc = subprocess.CalledProcessError(1, "fake_command")
+            # self.assertTrue(
+            #     _check_exception_behavior(exc).startswith(
+            #         "Execution of BDSS failed. \n\n" + msg
+            #     )
+            # )
+            msg = "boom"
+            exc = Exception(msg)
+            self.assertTrue(
+                _check_exception_behavior(exc).startswith(
+                    "Execution of BDSS failed. \n\n" + msg
                 )
+            )
+            msg = "whatever"
+            exc = OSError(msg)
+            self.assertTrue(
+                _check_exception_behavior(exc).startswith(
+                    "Execution of BDSS failed. \n\n" + msg
+                )
+            )
 
     def test_run_bdss_write_failure(self):
         with mock.patch(WORKFLOW_WRITER_PATH) as mock_writer, mock.patch(
