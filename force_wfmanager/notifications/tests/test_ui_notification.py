@@ -38,8 +38,13 @@ class TestUINotification(unittest.TestCase):
         ]
 
         self.pub_socket = mock.Mock(spec=zmq.Socket)
+        self.pub2_socket = mock.Mock(spec=zmq.Socket)
         self.context = mock.Mock(spec=zmq.Context)
-        self.context.socket.side_effect = [self.pub_socket, self.sync_socket]
+        self.context.socket.side_effect = [
+            self.pub_socket,
+            self.sync_socket,
+            self.pub2_socket,
+        ]
         listener.__class__._create_context = mock.Mock(
             return_value=self.context
         )
@@ -87,15 +92,16 @@ class TestUINotification(unittest.TestCase):
             listener.deliver("not an event")
 
     def test_finalize(self):
-        listener = self.listener
-        listener.initialize(self.model)
-        listener.finalize()
+        self.listener.initialize(self.model)
+        self.assertTrue(self.listener._poller_running)
+        self.listener.finalize()
         self.assertTrue(self.context.term.called)
         self.assertTrue(self.sync_socket.close.called)
         self.assertTrue(self.pub_socket.close.called)
-        self.assertIsNone(listener._context)
-        self.assertIsNone(listener._sync_socket)
-        self.assertIsNone(listener._pub_socket)
+        self.assertIsNone(self.listener._context)
+        self.assertIsNone(self.listener._sync_socket)
+        self.assertIsNone(self.listener._pub_socket)
+        self.assertFalse(self.listener._poller_running)
 
     def test_initialize(self):
         listener = self.listener
