@@ -4,6 +4,7 @@ import logging
 import subprocess
 import tempfile
 import textwrap
+from subprocess import SubprocessError
 
 from pyface.api import (
     FileDialog,
@@ -448,11 +449,18 @@ class WfManagerSetupTask(Task):
         self.computation_running = False
 
         if exception is not None:
-            error(
-                None,
-                "Execution of BDSS failed. \n\n{}".format(str(exception)),
-                "Error when running BDSS",
-            )
+            log.warning(f"exception")
+            if str(exception) == "BDSS stopped" or isinstance(exception, SubprocessError):
+                information(
+                    None,
+                    "Execution of BDSS stoped by the user.",
+                )
+            else:
+                error(
+                    None,
+                    f"Execution of BDSS failed. \n\n{exception}",
+                    "Error when running BDSS",
+                )
 
     # Handling of BDSS events via ZMQ server
     def _server_event_callback(self, event):
