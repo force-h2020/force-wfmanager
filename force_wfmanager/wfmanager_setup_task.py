@@ -468,11 +468,10 @@ class WfManagerSetupTask(Task):
 
         if exception is not None:
             log.warning(f"exception")
-            if str(exception) == "BDSS stopped" or isinstance(exception, SubprocessError):
-                information(
-                    None,
-                    "Execution of BDSS stoped by the user.",
-                )
+            if str(exception) == "BDSS stopped" or isinstance(
+                exception, SubprocessError
+            ):
+                information(None, "Execution of BDSS stoped by the user.")
             else:
                 error(
                     None,
