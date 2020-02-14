@@ -38,12 +38,12 @@ class TestUINotification(unittest.TestCase):
         ]
 
         self.pub_socket = mock.Mock(spec=zmq.Socket)
-        self.pub2_socket = mock.Mock(spec=zmq.Socket)
+        self.sub_socket = mock.Mock(spec=zmq.Socket)
         self.context = mock.Mock(spec=zmq.Context)
         self.context.socket.side_effect = [
             self.pub_socket,
             self.sync_socket,
-            self.pub2_socket,
+            self.sub_socket,
         ]
         listener.__class__._create_context = mock.Mock(
             return_value=self.context

@@ -21,10 +21,11 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
     #: The ZMQ context. If None, it means that the service is unavailable.
     _context = Instance(zmq.Context)
 
-    #: The pubsub socket.
+    #: The Publisher pubsub socket.
     _pub_socket = Instance(zmq.Socket)
 
-    _pub2_socket = Instance(zmq.Socket)
+    #: The Subscriber pubsub socket.
+    _sub_socket = Instance(zmq.Socket)
 
     #: The synchronization socket to communicate with the server (UI)
     _sync_socket = Instance(zmq.Socket)
@@ -50,15 +51,15 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
         if self._sync_socket:
             self._sync_socket.close()
 
-        if self._pub2_socket:
-            self._pub2_socket.close()
+        if self._sub_socket:
+            self._sub_socket.close()
 
         if self._context:
             self._context.term()
 
         self._pub_socket = None
         self._sync_socket = None
-        self._pub2_socket = None
+        self._sub_socket = None
         self._context = None
 
     def _create_context(self):
@@ -86,10 +87,10 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
         self._sync_socket.setsockopt(zmq.LINGER, 0)
         self._sync_socket.connect(model.sync_url)
 
-        self._pub2_socket = self._context.socket(zmq.SUB)
-        self._pub2_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
-        self._pub2_socket.setsockopt(zmq.LINGER, 0)
-        self._pub2_socket.connect(model.pub2_url)
+        self._sub_socket = self._context.socket(zmq.SUB)
+        self._sub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
+        self._sub_socket.setsockopt(zmq.LINGER, 0)
+        self._sub_socket.connect(model.pub2_url)
 
         msg = [
             x.encode("utf-8")
@@ -125,7 +126,7 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
             return
 
         poll_executor = ThreadPoolExecutor(max_workers=1)
-        poll_executor.submit(self.setup_poller, self._pub2_socket)
+        poll_executor.submit(self.setup_poller, self._sub_socket)
 
     def setup_poller(self, pub_socket):
         """ Instantiates a zmq.Poller and listens to the `pub_socket` until the
