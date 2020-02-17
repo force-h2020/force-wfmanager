@@ -467,7 +467,6 @@ class WfManagerSetupTask(Task):
         self.computation_running = False
 
         if exception is not None:
-            log.warning(f"exception")
             if str(exception) == "BDSS stopped" or isinstance(
                 exception, SubprocessError
             ):

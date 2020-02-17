@@ -537,3 +537,11 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         with mock.patch.object(self.setup_task, "run_bdss") as mock_run:
             self.setup_task.run_button_clicked()
             mock_run.assert_called()
+
+    def test__bdss_done(self):
+        with mock.patch("force_wfmanager.wfmanager_setup_task.information") as mock_info:
+            exception = subprocess.SubprocessError()
+            self.setup_task._bdss_done(exception)
+            mock_info.assert_called_with(
+                None, "Execution of BDSS stoped by the user."
+            )
