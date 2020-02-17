@@ -147,9 +147,11 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
             try:
                 msg, identifier, serialized_data = data
             except ValueError:
-                log.error(f"Incompatible data received: expected "
-                            f"(msg, identifier, data), but got {data} "
-                            f"instead.")
+                log.error(
+                    f"Incompatible data received: expected "
+                    f"(msg, identifier, data), but got {data} "
+                    f"instead."
+                )
             else:
                 if identifier == "STOP_BDSS":
                     self._poller_running = False
