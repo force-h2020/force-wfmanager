@@ -665,9 +665,7 @@ class WfManagerSetupTask(Task):
             self.computation_running = False
 
     def stop_bdss(self):
-        self.zmq_server._pub_socket.send_multipart(
-            [x.encode("utf-8") for x in ["MESSAGE", "STOP_BDSS", ""]]
-        )
+        self.zmq_server.publish_message("STOP_BDSS")
         self._paused = False
 
     def pause_bdss(self):
@@ -675,9 +673,7 @@ class WfManagerSetupTask(Task):
             message = "RESUME_BDSS"
         else:
             message = "PAUSE_BDSS"
-        self.zmq_server._pub_socket.send_multipart(
-            [x.encode("utf-8") for x in ["MESSAGE", message, ""]]
-        )
+        self.zmq_server.publish_message(message)
         self._paused = not self._paused
 
     def kill_bdss(self):

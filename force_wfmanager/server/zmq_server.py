@@ -344,3 +344,9 @@ class ZMQServer(threading.Thread):
             self._on_event_callback(event)
         except Exception:
             log.exception("on_event_callback raised exception")
+
+    def publish_message(self, message):
+        """ Sends the `message` to the zmq.PUB socket."""
+        self._pub_socket.send_multipart(
+            [x.encode("utf-8") for x in ["MESSAGE", message, ""]]
+        )
