@@ -287,7 +287,7 @@ class TestUINotification(unittest.TestCase):
                 (
                     "force_wfmanager.notifications.ui_notification",
                     "ERROR",
-                    "Incompatible data received: expected (msg, identifier, data), "
-                    "but got ['MGS', 'STOP_BDSS'] instead.",
+                    "Incompatible data received: expected (msg, identifier, "
+                    "data), but got ['MGS', 'STOP_BDSS'] instead.",
                 )
             )
