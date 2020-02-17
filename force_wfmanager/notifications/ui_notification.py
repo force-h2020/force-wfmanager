@@ -83,14 +83,14 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
         self._pub_socket.setsockopt(zmq.LINGER, 0)
         self._pub_socket.connect(model.pub_url)
 
-        self._sync_socket = self._context.socket(zmq.REQ)
-        self._sync_socket.setsockopt(zmq.LINGER, 0)
-        self._sync_socket.connect(model.sync_url)
-
         self._sub_socket = self._context.socket(zmq.SUB)
         self._sub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
         self._sub_socket.setsockopt(zmq.LINGER, 0)
         self._sub_socket.connect(model.sub_url)
+
+        self._sync_socket = self._context.socket(zmq.REQ)
+        self._sync_socket.setsockopt(zmq.LINGER, 0)
+        self._sync_socket.connect(model.sync_url)
 
         msg = [
             x.encode("utf-8")
@@ -126,24 +126,24 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
             return
 
         poll_executor = ThreadPoolExecutor(max_workers=1)
-        poll_executor.submit(self.setup_poller, self._sub_socket)
+        poll_executor.submit(self.run_poller, self._sub_socket)
 
-    def setup_poller(self, pub_socket):
-        """ Instantiates a zmq.Poller and listens to the `pub_socket` until the
+    def run_poller(self, sub_socket):
+        """ Instantiates a zmq.Poller bound to the `sub_socket` until the
         self._poller_running is not set to False. The self._poller_running is
         set to false either when a `STOP_BDSS` message is received, or when the
         Listener is finalized.
         """
         poller = zmq.Poller()
-        poller.register(pub_socket)
+        poller.register(sub_socket)
         self._poller_running = True
 
         while self._poller_running:
             events = dict(poller.poll())
-            if pub_socket not in events:
+            if sub_socket not in events:
                 continue
 
-            data = [x.decode("utf-8") for x in pub_socket.recv_multipart()]
+            data = [x.decode("utf-8") for x in sub_socket.recv_multipart()]
             try:
                 msg, identifier, serialized_data = data
                 if identifier == "STOP_BDSS":

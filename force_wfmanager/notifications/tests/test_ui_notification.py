@@ -1,5 +1,6 @@
 import unittest
 from testfixtures import LogCapture
+from threading import Event
 
 from force_bdss.api import (
     MCOStartEvent,
@@ -23,6 +24,9 @@ except ImportError:
 import zmq
 
 
+UI_MIXIN = "force_bdss.ui_hooks.ui_notification_mixins.UIEventNotificationMixin."
+
+
 class TestUINotification(unittest.TestCase):
     def setUp(self):
         factory = mock.Mock(spec=UINotificationFactory)
@@ -39,11 +43,19 @@ class TestUINotification(unittest.TestCase):
 
         self.pub_socket = mock.Mock(spec=zmq.Socket)
         self.sub_socket = mock.Mock(spec=zmq.Socket)
+        self.sub_socket.recv_multipart.side_effect = [
+            [x.encode("utf-8") for x in ["MSG", "an_id", "1"]],
+            [x.encode("utf-8") for x in ["MGS", "PAUSE_BDSS", "1"]],
+            [x.encode("utf-8") for x in ["MGS", "PAUSE_BDSS", "1"]],
+            [x.encode("utf-8") for x in ["MGS", "RESUME_BDSS", "1"]],
+            [x.encode("utf-8") for x in ["MGS", "STOP_BDSS", "1"]],
+        ]
+
         self.context = mock.Mock(spec=zmq.Context)
         self.context.socket.side_effect = [
             self.pub_socket,
-            self.sync_socket,
             self.sub_socket,
+            self.sync_socket,
         ]
         listener.__class__._create_context = mock.Mock(
             return_value=self.context
@@ -205,3 +217,32 @@ class TestUINotification(unittest.TestCase):
 
         listener._close_and_clear_sockets()
         self.assertIsNone(listener._context)
+
+    def test_run_poller(self):
+        class DummyPoller:
+            def __init__(self):
+                self.socket = None
+
+            def poll(self):
+                return {self.socket: None}
+
+            def register(self, socket):
+                self.socket = socket
+
+        stop_event = Event()
+        pause_event = Event()
+        with mock.patch("zmq.Poller", return_value=DummyPoller()):
+            with mock.patch(
+                UI_MIXIN + "send_stop"
+            ) as mock_stop, mock.patch(
+                UI_MIXIN + "send_pause"
+            ) as mock_pause, mock.patch(
+                UI_MIXIN + "send_resume"
+            ) as mock_resume:
+                self.listener.set_stop_event(stop_event)
+                self.listener.set_pause_event(pause_event)
+                self.listener.run_poller(self.sub_socket)
+                self.assertEqual(1, mock_stop.call_count)
+                self.assertEqual(2, mock_pause.call_count)
+                self.assertEqual(1, mock_resume.call_count)
+                self.assertFalse(self.listener._poller_running)
