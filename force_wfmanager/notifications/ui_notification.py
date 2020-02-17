@@ -146,6 +146,11 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
             data = [x.decode("utf-8") for x in sub_socket.recv_multipart()]
             try:
                 msg, identifier, serialized_data = data
+            except ValueError:
+                log.error(f"Incompatible data received: expected "
+                            f"(msg, identifier, data), but got {data} "
+                            f"instead.")
+            else:
                 if identifier == "STOP_BDSS":
                     self._poller_running = False
                     self.send_stop()
@@ -153,8 +158,6 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
                     self.send_pause()
                 if identifier == "RESUME_BDSS":
                     self.send_resume()
-            except Exception as e:
-                log.warning(f"Poller exception {e}")
 
     def deliver(self, event):
         """ Serializes as JSON and sends a BaseDriverEvent (see
