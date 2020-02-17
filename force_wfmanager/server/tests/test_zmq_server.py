@@ -471,3 +471,12 @@ class TestZMQServer(unittest.TestCase):
         self.assertEqual(errors[0][0], ZMQServer.ERROR_TYPE_WARNING)
         self.assertIn("Unable to retrieve data", errors[0][1])
         self.assertEqual(server.state, ZMQServer.STATE_WAITING)
+
+    def test_publish_message(self):
+        events = []
+        errors = []
+        with self.mock_server(events, errors) as server:
+            with mock.patch.object(MockSocket, "send_multipart") as send:
+                server._pub_socket = MockSocket()
+                server.publish_message("My message")
+                send.assert_called_with([b"MESSAGE", b"My message", b""])
