@@ -126,7 +126,7 @@ class TestZMQServer(unittest.TestCase):
         mock_sub_socket = MockSocket()
         mock_sync_socket = MockSocket()
         mock_inproc_socket = MockSocket()
-        mock_pub2_socket = MockSocket()
+        mock_pub_socket = MockSocket()
 
         def cb(event):
             events_received.append(event)
@@ -146,7 +146,7 @@ class TestZMQServer(unittest.TestCase):
                 mock_sub_socket,
                 mock_sync_socket,
                 mock_inproc_socket,
-                mock_pub2_socket
+                mock_pub_socket
             ]
             mock_get_context.return_value = mock_context
 

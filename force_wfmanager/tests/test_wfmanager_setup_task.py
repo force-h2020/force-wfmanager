@@ -1,4 +1,3 @@
-import subprocess
 from unittest import mock, TestCase
 
 from testfixtures import LogCapture
