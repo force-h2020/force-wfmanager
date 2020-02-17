@@ -1,5 +1,5 @@
 from unittest import mock, TestCase
-
+import subprocess
 from testfixtures import LogCapture
 
 from pyface.constant import OK, CANCEL, YES
@@ -422,13 +422,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
                 return mock_error.call_args[0][1]
 
-            # msg = "Command 'fake_command' returned non-zero exit status 1"
-            # exc = subprocess.CalledProcessError(1, "fake_command")
-            # self.assertTrue(
-            #     _check_exception_behavior(exc).startswith(
-            #         "Execution of BDSS failed. \n\n" + msg
-            #     )
-            # )
             msg = "boom"
             exc = Exception(msg)
             self.assertTrue(
@@ -442,6 +435,27 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 _check_exception_behavior(exc).startswith(
                     "Execution of BDSS failed. \n\n" + msg
                 )
+            )
+
+    def test__execute_bdss_failure(self):
+        with mock.patch("subprocess.check_call") as mock_call:
+            mock_call.side_effect = subprocess.CalledProcessError(
+                1, "fake_command"
+            )
+            with LogCapture() as capture:
+                with self.assertRaises(subprocess.CalledProcessError):
+                    self.setup_task._execute_bdss("")
+            capture.check(
+                (
+                    "force_wfmanager.wfmanager_setup_task",
+                    "ERROR",
+                    "force_bdss returned a non-zero value after execution",
+                ),
+                (
+                    "force_wfmanager.wfmanager_setup_task",
+                    "ERROR",
+                    "Unable to delete temporary workflow file at ",
+                ),
             )
 
     def test_run_bdss_write_failure(self):
@@ -503,3 +517,23 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             with self.assertTraitChanges(setup_task, "workflow_model"):
                 setup_task.selected_contributed_ui.run_workflow = True
         _mock_run.assert_called()
+
+    def test_control_buttons(self):
+        with mock.patch(
+            "force_wfmanager.server.zmq_server.ZMQServer.publish_message"
+        ) as mock_publish:
+            self.setup_task.stop_bdss()
+            self.assertFalse(self.setup_task._paused)
+            mock_publish.assert_called_with("STOP_BDSS")
+
+            self.setup_task.pause_bdss()
+            self.assertTrue(self.setup_task._paused)
+            mock_publish.assert_called_with("PAUSE_BDSS")
+
+            self.setup_task.pause_bdss()
+            self.assertFalse(self.setup_task._paused)
+            mock_publish.assert_called_with("RESUME_BDSS")
+
+        with mock.patch.object(self.setup_task, "run_bdss") as mock_run:
+            self.setup_task.run_button_clicked()
+            mock_run.assert_called()

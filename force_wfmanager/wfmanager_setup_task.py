@@ -432,8 +432,8 @@ class WfManagerSetupTask(Task):
             # Ignore deletion errors, in case the file magically
             # vanished in the meantime
             log.exception(
-                "Unable to delete temporary "
-                "workflow file at {}".format(workflow_path)
+                f"Unable to delete temporary workflow file at "
+                f"{workflow_path}"
             )
             if not silent:
                 raise e
