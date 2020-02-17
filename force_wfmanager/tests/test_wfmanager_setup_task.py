@@ -539,7 +539,9 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             mock_run.assert_called()
 
     def test__bdss_done(self):
-        with mock.patch("force_wfmanager.wfmanager_setup_task.information") as mock_info:
+        with mock.patch(
+            "force_wfmanager.wfmanager_setup_task.information"
+        ) as mock_info:
             exception = subprocess.SubprocessError()
             self.setup_task._bdss_done(exception)
             mock_info.assert_called_with(
