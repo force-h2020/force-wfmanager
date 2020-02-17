@@ -62,7 +62,7 @@ class ZMQServer(threading.Thread):
 
         self._context = self._get_context()
         self._sub_socket = None
-        self._pub2_socket = None
+        self._pub_socket = None
         self._sync_socket = None
         self._inproc_socket = None
         self.ports = None
@@ -78,7 +78,7 @@ class ZMQServer(threading.Thread):
             (
                 self._sub_socket,
                 sub_port,
-                self._pub2_socket,
+                self._pub_socket,
                 _pub_port,
                 self._sync_socket,
                 sync_port,
@@ -258,10 +258,10 @@ class ZMQServer(threading.Thread):
         self._sub_socket = None
 
         try:
-            self._pub2_socket.close()
+            self._pub_socket.close()
         except Exception:
             pass
-        self._pub2_socket = None
+        self._pub_socket = None
 
         try:
             self._sync_socket.close()
