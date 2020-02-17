@@ -104,6 +104,8 @@ class BasePlot(BaseDataView):
     # View
     # ----
 
+    toggle_automatic_update = Bool(True)
+
     axis_hgroup = Instance(HGroup)
 
     def _axis_hgroup_default(self):
@@ -393,6 +395,8 @@ class BasePlot(BaseDataView):
 
         self._update_plot_x_data()
         self._update_plot_y_data()
+        if self.toggle_automatic_update:
+            self.recenter_plot()
 
         c_index = self.analysis_model.value_names.index(self.color_by)
         self._plot_data.set_data("color_by", self.data_arrays[c_index])
@@ -524,6 +528,7 @@ class Plot(BasePlot):
             Item("x", editor=EnumEditor(name="displayable_value_names")),
             Item("y", editor=EnumEditor(name="displayable_value_names")),
             UItem("color_options"),
+            Item("toggle_automatic_update", label="Axis auto update"),
         )
 
     @on_trait_change("color_plot")

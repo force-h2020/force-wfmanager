@@ -45,6 +45,7 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [])
         self.assertTrue(self.plot.plot_updater.active)
+        self.assertTrue(self.plot.toggle_automatic_update)
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ("density", "pressure")
@@ -196,6 +197,7 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertEqual([], self.plot.data_arrays[1])
 
     def test_select_plot_axis(self):
+        self.plot.toggle_automatic_update = False
         self.analysis_model.value_names = ("a", "b", "c", "d")
         self.analysis_model.add_evaluation_step((1.0, 2.0, 3.0, 4.0))
         self.check_update_is_requested_and_apply()
@@ -259,6 +261,16 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             self.plot.y = "c"
             mock_update_plot_y_data.assert_called()
             mock_recenter_y_axis.assert_called()
+
+        self.plot.toggle_automatic_update = True
+        with mock.patch(
+            "force_wfmanager.ui.review.plot.BasePlot._update_plot"
+        ) as mock_update:
+            self.plot._update_plot()
+            mock_update.assert_called()
+
+        self.plot._update_plot()
+        self.assertEqual((1.5, 4.5, 2.7, 3.3), self.plot._get_plot_range())
 
     def test_remove_value_names(self):
         self.analysis_model.value_names = ("density", "pressure")
