@@ -676,13 +676,6 @@ class WfManagerSetupTask(Task):
         self.zmq_server.publish_message(message)
         self._paused = not self._paused
 
-    def kill_bdss(self):
-        try:
-            for pid in self.executor._processes:
-                self.executor._processes[pid].terminate()
-        except Exception as e:
-            log.error(f"Can't kill the executor processes: {e}")
-
     # Plugin Status
     def lookup_plugins(self):
 
