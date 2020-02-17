@@ -24,7 +24,9 @@ except ImportError:
 import zmq
 
 
-UI_MIXIN = "force_bdss.ui_hooks.ui_notification_mixins.UIEventNotificationMixin."
+UI_MIXIN = (
+    "force_bdss.ui_hooks.ui_notification_mixins.UIEventNotificationMixin."
+)
 
 
 class TestUINotification(unittest.TestCase):
@@ -219,22 +221,13 @@ class TestUINotification(unittest.TestCase):
         self.assertIsNone(listener._context)
 
     def test_run_poller(self):
-        class DummyPoller:
-            def __init__(self):
-                self.socket = None
-
-            def poll(self):
-                return {self.socket: None}
-
-            def register(self, socket):
-                self.socket = socket
-
         stop_event = Event()
         pause_event = Event()
-        with mock.patch("zmq.Poller", return_value=DummyPoller()):
-            with mock.patch(
-                UI_MIXIN + "send_stop"
-            ) as mock_stop, mock.patch(
+
+        with mock.patch(
+            "zmq.Poller.poll", return_value={self.sub_socket: None}
+        ):
+            with mock.patch(UI_MIXIN + "send_stop") as mock_stop, mock.patch(
                 UI_MIXIN + "send_pause"
             ) as mock_pause, mock.patch(
                 UI_MIXIN + "send_resume"
