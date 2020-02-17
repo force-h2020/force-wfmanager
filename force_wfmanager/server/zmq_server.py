@@ -62,11 +62,10 @@ class ZMQServer(threading.Thread):
 
         self._context = self._get_context()
         self._sub_socket = None
+        self._pub2_socket = None
         self._sync_socket = None
         self._inproc_socket = None
         self.ports = None
-
-        self._pub2_socket, self._pub2_port = None, None
 
     def run(self):
         if self.state != ZMQServer.STATE_STOPPED:
@@ -80,7 +79,7 @@ class ZMQServer(threading.Thread):
                 self._sub_socket,
                 sub_port,
                 self._pub2_socket,
-                self._pub2_port,
+                _pub_port,
                 self._sync_socket,
                 sync_port,
                 self._inproc_socket,
@@ -97,7 +96,7 @@ class ZMQServer(threading.Thread):
             )
             return
 
-        self.ports = (sub_port, sync_port)
+        self.ports = (sub_port, _pub_port, sync_port)
 
         try:
             poller = self._get_poller()
