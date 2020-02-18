@@ -678,10 +678,6 @@ class WfManagerSetupTask(Task):
             pause_task.image = ImageResource("baseline_skip_next_black_18dp.png")
             pause_task.name = "Resume"
 
-        # state = self.window._get_state(self)
-        # self.window._active_state = None
-        # self.window._active_state = state
-
         self.zmq_server.publish_message(message)
         self._paused = not self._paused
 
