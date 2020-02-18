@@ -1,6 +1,13 @@
 from traits.api import (
-    Either, HasStrictTraits, Instance, List, Property, Tuple, on_trait_change,
-    Event, Int
+    Either,
+    HasStrictTraits,
+    Instance,
+    List,
+    Property,
+    Tuple,
+    on_trait_change,
+    Event,
+    Int
 )
 from traitsui.api import TabularEditor, UItem, View
 from traitsui.tabular_adapter import TabularAdapter

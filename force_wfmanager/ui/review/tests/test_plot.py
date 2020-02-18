@@ -1,21 +1,23 @@
 import mock
-import time
 import unittest
 import warnings
 
 from chaco.api import Plot as ChacoPlot
 from chaco.api import ColormappedScatterPlot, ScatterPlot
 from chaco.abstract_colormap import AbstractColormap
+from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+from traits.api import push_exception_handler, TraitError
+from traits.testing.api import UnittestTools
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.plot import BasePlot, Plot
-from traits.api import push_exception_handler, TraitError
 
 push_exception_handler(reraise_exceptions=True)
 
 
-class TestAnyPlot(unittest.TestCase):
+class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
     def setUp(self):
+        super().setUp()
         self.analysis_model = AnalysisModel()
         self.plot = BasePlot(analysis_model=self.analysis_model)
 
@@ -30,27 +32,26 @@ class TestAnyPlot(unittest.TestCase):
         self.assertTrue(self.plot.update_required)
         self.assertTrue(self.plot.plot_updater.active)
         # update
-        self.plot.update_data_arrays()
-        self.plot._update_plot()
-        self.plot.update_required = False
+        self.plot._check_scheduled_updates()
 
     def test_init(self):
         self.assertEqual(len(self.analysis_model.value_names), 0)
         self.assertEqual(len(self.analysis_model.evaluation_steps), 0)
-        self.assertEqual(len(self.plot._data_arrays), 0)
-        self.assertIsNone(self.plot.x)
-        self.assertIsNone(self.plot.y)
-        self.assertIsNone(self.plot.update_data_arrays())
+        self.assertEqual(len(self.plot.data_arrays), 0)
+        self.assertEqual("", self.plot.x)
+        self.assertEqual("", self.plot.y)
+        self.assertIsNone(self.plot._update_data_arrays())
         self.plot._update_plot()
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [])
         self.assertTrue(self.plot.plot_updater.active)
+        self.assertTrue(self.plot.toggle_automatic_update)
 
     def test_init_data_arrays(self):
         self.analysis_model.value_names = ("density", "pressure")
-        self.assertIsNone(self.plot.x)
-        self.assertIsNone(self.plot.y)
-        self.assertEqual([[], []], self.plot._data_arrays)
+        self.assertEqual("", self.plot.x)
+        self.assertEqual("", self.plot.y)
+        self.assertEqual([[], []], self.plot.data_arrays)
 
     def test_plot(self):
         self.analysis_model.value_names = ("density", "pressure")
@@ -63,47 +64,70 @@ class TestAnyPlot(unittest.TestCase):
     def test_plot_mixed_data(self):
         self.analysis_model.value_names = ("1", "2", "str")
         self.analysis_model.add_evaluation_step((1, 2, "string"))
+        self.check_update_is_requested_and_apply()
         self.assertEqual("1", self.plot.x)
         self.assertEqual("2", self.plot.y)
-        self.assertListEqual(self.plot._value_names, ["1", "2"])
-        self.check_update_is_requested_and_apply()
+        self.assertListEqual(self.plot.displayable_value_names, ["1", "2"])
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [1])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [2])
-        self.assertListEqual([[1], [2], ["string"]], self.plot._data_arrays)
+        self.assertListEqual([[1], [2], ["string"]], self.plot.data_arrays)
 
         self.analysis_model.add_evaluation_step((3, 4, "another string"))
         self.check_update_is_requested_and_apply()
         self.assertEqual("1", self.plot.x)
         self.assertEqual("2", self.plot.y)
-        self.assertListEqual(self.plot._value_names, ["1", "2"])
+        self.assertListEqual(self.plot.displayable_value_names, ["1", "2"])
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [1, 3])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [2, 4])
         self.assertListEqual(
+            self.plot.data_arrays,
             [[1, 3], [2, 4], ["string", "another string"]],
-            self.plot._data_arrays,
         )
+
+        self.analysis_model.add_evaluation_step((5, "unexpected string", 6))
+        self.check_update_is_requested_and_apply()
+        self.assertEqual("1", self.plot.x)
+        self.assertEqual("1", self.plot.y)
+        self.assertListEqual(
+            self.plot.data_arrays,
+            [
+                [1, 3, 5],
+                [2, 4, "unexpected string"],
+                ["string", "another string", 6],
+            ],
+        )
+
+        self.analysis_model.add_evaluation_step(("oops", 1, 2))
+        self.check_update_is_requested_and_apply()
+        self.assertEqual("", self.plot.x)
+        self.assertEqual("", self.plot.y)
+
+    def test_displayable_mask(self):
+        self.assertTrue(self.plot.displayable_data_mask(1))
+        self.assertTrue(self.plot.displayable_data_mask(42.0))
+        self.assertFalse(self.plot.displayable_data_mask(None))
+
+        another_plot = BasePlot(
+            analysis_model=self.analysis_model,
+            displayable_data_mask=lambda object: isinstance(object, str),
+        )
+        self.assertTrue(another_plot.displayable_data_mask("string"))
+        self.assertFalse(another_plot.displayable_data_mask(1))
 
     def test_plot_updater(self):
         self.assertTrue(self.plot.plot_updater.active)
+
         with mock.patch(
             "force_wfmanager.ui.review.plot."
             + self.plot.__class__.__name__
             + "._update_plot"
         ) as mock_update_plot:
+            with self.event_loop_until_condition(
+                lambda: not self.plot.update_required
+            ):
+                self.analysis_model.value_names = ("density", "pressure")
+                self.analysis_model.add_evaluation_step((1.010, 101325))
 
-            self.assertFalse(self.plot.update_required)
-
-            # check that after a cycle no update is done
-            time.sleep(1.1)
-            mock_update_plot.assert_not_called()
-
-            self.analysis_model.value_names = ("density", "pressure")
-            self.analysis_model.add_evaluation_step((1.010, 101325))
-            self.analysis_model.add_evaluation_step((1.100, 101423))
-            self.assertTrue(self.plot.update_required)
-
-            # wait a cycle for the update
-            time.sleep(1.1)
             mock_update_plot.assert_called()
 
     def test_check_scheduled_updates(self):
@@ -112,7 +136,7 @@ class TestAnyPlot(unittest.TestCase):
             + self.plot.__class__.__name__
             + "._update_plot"
         ) as mock_update_plot:
-            self.assertFalse(self.plot.update_required)
+            self.plot.update_required = False
             self.plot._check_scheduled_updates()
             mock_update_plot.assert_not_called()
 
@@ -122,18 +146,16 @@ class TestAnyPlot(unittest.TestCase):
             self.assertFalse(self.plot.update_required)
 
     def test_push_new_evaluation_steps(self):
-        self.assertFalse(self.plot.update_required)
-
         self.analysis_model.value_names = ("density", "pressure")
         self.analysis_model.add_evaluation_step((1.010, 101325))
         self.analysis_model.add_evaluation_step((1.100, 101423))
 
         self.check_update_is_requested_and_apply()
 
-        self.assertEqual(len(self.plot._data_arrays), 2)
+        self.assertEqual(len(self.plot.data_arrays), 2)
 
-        first_data_array = self.plot._data_arrays[0]
-        second_data_array = self.plot._data_arrays[1]
+        first_data_array = self.plot.data_arrays[0]
+        second_data_array = self.plot.data_arrays[1]
 
         self.assertEqual(first_data_array, [1.010, 1.100])
         self.assertEqual(second_data_array, [101325, 101423])
@@ -159,46 +181,96 @@ class TestAnyPlot(unittest.TestCase):
 
     def test_reinitialize_model(self):
         self.analysis_model.value_names = ("density", "pressure")
-        self.analysis_model.add_evaluation_step((1.010, 101325))
-        self.analysis_model.add_evaluation_step((1.100, 101423))
+        self.analysis_model.add_evaluation_step((1.01, 101325))
+        self.analysis_model.add_evaluation_step((1.10, 101423))
         self.check_update_is_requested_and_apply()
 
-        self.assertEqual(len(self.plot._data_arrays), 2)
+        self.assertEqual(len(self.plot.data_arrays), 2)
 
-        first_data_array = self.plot._data_arrays[0]
-        second_data_array = self.plot._data_arrays[1]
-
-        self.assertEqual(first_data_array, [1.010, 1.100])
-        self.assertEqual(second_data_array, [101325, 101423])
+        self.assertEqual(self.plot.data_arrays[0], [1.01, 1.10])
+        self.assertEqual(self.plot.data_arrays[1], [101325, 101423])
 
         self.analysis_model.clear_steps()
         self.check_update_is_requested_and_apply()
 
-        self.assertEqual(first_data_array, [])
-        self.assertEqual(second_data_array, [])
+        self.assertEqual([], self.plot.data_arrays[0])
+        self.assertEqual([], self.plot.data_arrays[1])
 
     def test_select_plot_axis(self):
-        self.analysis_model.value_names = ("density", "pressure")
-        self.analysis_model.add_evaluation_step((1.010, 101325))
-        self.analysis_model.add_evaluation_step((1.100, 101423))
+        self.plot.toggle_automatic_update = False
+        self.analysis_model.value_names = ("a", "b", "c", "d")
+        self.analysis_model.add_evaluation_step((1.0, 2.0, 3.0, 4.0))
         self.check_update_is_requested_and_apply()
+        self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [1.0])
+        self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [2.0])
+        self.assertEqual((0.5, 1.5, 1.5, 2.5), self.plot._get_plot_range())
 
+        self.analysis_model.add_evaluation_step((5.0, 4.0, 3.0, 2.0))
+        self.check_update_is_requested_and_apply()
         self.assertEqual(
-            self.plot._plot_data.get_data("x").tolist(), [1.010, 1.100]
+            self.plot._plot_data.get_data("x").tolist(), [1.0, 5.0]
         )
         self.assertEqual(
-            self.plot._plot_data.get_data("y").tolist(), [101325, 101423]
+            self.plot._plot_data.get_data("y").tolist(), [2.0, 4.0]
+        )
+        self.assertEqual((0.5, 1.5, 1.5, 2.5), self.plot._get_plot_range())
+
+        self.plot.x = "b"
+        self.assertEqual(
+            self.plot._plot_data.get_data("x").tolist(), [2.0, 4.0]
+        )
+        self.assertEqual(
+            self.plot._plot_data.get_data("y").tolist(), [2.0, 4.0]
+        )
+        self.assertEqual(
+            (
+                2.0 - 0.1 * (4.0 - 2.0 + 0.5 * (4.0 + 2.0)),
+                4.0 + 0.1 * (4.0 - 2.0 + 0.5 * (4.0 + 2.0)),
+                1.5,
+                2.5,
+            ),
+            self.plot._get_plot_range(),
         )
 
-        self.plot.x = "pressure"
-        self.plot.y = "density"
+        self.plot.y = "a"
+        self.assertEqual(
+            self.plot._plot_data.get_data("x").tolist(), [2.0, 4.0]
+        )
+        self.assertEqual(
+            self.plot._plot_data.get_data("y").tolist(), [1.0, 5.0]
+        )
+        self.assertEqual(
+            (
+                2.0 - 0.1 * (4.0 - 2.0 + 0.5 * (4.0 + 2.0)),
+                4.0 + 0.1 * (4.0 - 2.0 + 0.5 * (4.0 + 2.0)),
+                1.0 - 0.1 * (5.0 - 1.0 + 0.5 * (5.0 + 1.0)),
+                5.0 + 0.1 * (5.0 - 1.0 + 0.5 * (5.0 + 1.0)),
+            ),
+            self.plot._get_plot_range(),
+        )
 
-        self.assertEqual(
-            self.plot._plot_data.get_data("x").tolist(), [101325, 101423]
-        )
-        self.assertEqual(
-            self.plot._plot_data.get_data("y").tolist(), [1.010, 1.100]
-        )
+        with mock.patch(
+            "force_wfmanager.ui.review.plot."
+            + self.plot.__class__.__name__
+            + "._update_plot_y_data"
+        ) as mock_update_plot_y_data, mock.patch(
+            "force_wfmanager.ui.review.plot."
+            + self.plot.__class__.__name__
+            + ".recenter_y_axis"
+        ) as mock_recenter_y_axis:
+            self.plot.y = "c"
+            mock_update_plot_y_data.assert_called()
+            mock_recenter_y_axis.assert_called()
+
+        self.plot.toggle_automatic_update = True
+        with mock.patch(
+            "force_wfmanager.ui.review.plot.BasePlot._update_plot"
+        ) as mock_update:
+            self.plot._update_plot()
+            mock_update.assert_called()
+
+        self.plot._update_plot()
+        self.assertEqual((1.5, 4.5, 2.7, 3.3), self.plot._get_plot_range())
 
     def test_remove_value_names(self):
         self.analysis_model.value_names = ("density", "pressure")
@@ -213,10 +285,11 @@ class TestAnyPlot(unittest.TestCase):
             self.plot._plot_data.get_data("y").tolist(), [101325, 101423]
         )
 
-        self.analysis_model.numerical_value_names = []
+        self.analysis_model.clear()
+        self.check_update_is_requested_and_apply()
 
-        self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [])
-        self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [])
+        self.assertEqual([], self.plot._plot_data.get_data("x").tolist())
+        self.assertEqual([], self.plot._plot_data.get_data("y").tolist())
 
     def test_change_in_value_names_size(self):
         self.analysis_model.value_names = ("density", "pressure")
@@ -226,8 +299,8 @@ class TestAnyPlot(unittest.TestCase):
         self.analysis_model.value_names = ("density",)
         self.analysis_model.add_evaluation_step((1.010,))
 
-        self.assertEqual(1, len(self.plot._data_arrays))
-        self.assertEqual(0, len(self.plot._data_arrays[0]))
+        self.assertEqual(1, len(self.plot.data_arrays))
+        self.assertEqual(0, len(self.plot.data_arrays[0]))
 
     def test_selection(self):
         self.analysis_model.value_names = ("density", "pressure")
@@ -260,7 +333,7 @@ class TestAnyPlot(unittest.TestCase):
 
         # No data
         result = self.plot.recenter_plot()
-        self.assertIsNone(result)
+        self.assertEqual((-1, 1, -1, 1), result)
         self.assertFalse(self.plot._get_reset_enabled())
 
         # One data point
@@ -268,9 +341,9 @@ class TestAnyPlot(unittest.TestCase):
         self.analysis_model.add_evaluation_step((2, 3))
         self.check_update_is_requested_and_apply()
         committed_range = self.plot.recenter_plot()
+        self.assertEqual((1.5, 2.5, 2.5, 3.5), committed_range)
         actual_range = self.plot._get_plot_range()
-        self.assertEqual(committed_range, (1.5, 2.5, 2.5, 3.5))
-        self.assertEqual(committed_range, actual_range)
+        self.assertEqual(actual_range, committed_range)
         self.assertTrue(self.plot._get_reset_enabled())
 
         # More than 1 data point
@@ -279,22 +352,37 @@ class TestAnyPlot(unittest.TestCase):
         self.plot.recenter_plot()
         committed_range = self.plot.recenter_plot()
         actual_range = self.plot._get_plot_range()
-        self.assertEqual(committed_range, (1.9, 3.1, 2.9, 4.1))
+        self.assertEqual(committed_range, (1.65, 3.35, 2.55, 4.45))
         self.assertEqual(committed_range, actual_range)
         self.assertTrue(self.plot._get_reset_enabled())
         self.plot._plot.range2d.x_range.low = -10
         self.plot.reset_plot = True
-        self.assertEqual(self.plot._plot.range2d.x_range.low, 1.9)
+        self.assertEqual(self.plot._plot.range2d.x_range.low, 1.65)
+
+    def test_calculate_axis_bounds(self):
+        data = [1.0]
+        self.assertEqual((0.5, 1.5), self.plot.calculate_axis_bounds(data))
+        data = []
+        self.assertEqual((-1.0, 1.0), self.plot.calculate_axis_bounds(data))
+        data = [1.0, 2.0, 3.0]
+        self.assertEqual(
+            (
+                1.0 - 0.1 * (3.0 - 1.0 + 0.5 * (3.0 + 1.0)),
+                3.0 + 0.1 * (3.0 - 1.0 + 0.5 * (3.0 + 1.0)),
+            ),
+            self.plot.calculate_axis_bounds(data),
+        )
 
 
-class TestPlot(TestAnyPlot):
+class TestPlot(TestBasePlot):
     def setUp(self):
-        super(TestPlot, self).setUp()
+        super().setUp()
         self.plot = Plot(analysis_model=self.analysis_model)
 
     def test_cmapped_plot(self):
         self.analysis_model.value_names = ("density", "pressure", "color")
         self.analysis_model.add_evaluation_step((1.010, 101325, 1))
+        self.check_update_is_requested_and_apply()
         self.plot.color_plot = True
         self.plot.color_by = "color"
         with warnings.catch_warnings():
@@ -327,6 +415,7 @@ class TestPlot(TestAnyPlot):
     def test_ranges_are_kept(self):
         self.analysis_model.value_names = ("density", "pressure", "color")
         self.analysis_model.add_evaluation_step((1.010, 101325, 1))
+        self.check_update_is_requested_and_apply()
         self.plot._set_plot_range(0.5, 2, 100000, 103000)
         self.plot.color_plot = True
         self.plot.color_by = "color"
