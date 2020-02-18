@@ -675,7 +675,9 @@ class WfManagerSetupTask(Task):
             pause_task.name = "Pause"
         else:
             message = "PAUSE_BDSS"
-            pause_task.image = ImageResource("baseline_skip_next_black_18dp.png")
+            pause_task.image = ImageResource(
+                "baseline_skip_next_black_18dp.png"
+            )
             pause_task.name = "Resume"
 
         self.zmq_server.publish_message(message)
