@@ -668,17 +668,31 @@ class WfManagerSetupTask(Task):
         self._paused = False
 
     def pause_bdss(self):
-        pause_task = self.tool_bars[0].items[2]
+        """Pause an MCO run"""
+
         if self._paused:
             message = "RESUME_BDSS"
-            pause_task.image = ImageResource("baseline_pause_black_18dp.png")
-            pause_task.name = "Pause"
         else:
             message = "PAUSE_BDSS"
-            pause_task.image = ImageResource(
-                "baseline_skip_next_black_18dp.png"
-            )
-            pause_task.name = "Resume"
+
+        # NOTE: this is a workaround to sync the status of the setup
+        # task and review task tool bar icons. We should look to
+        # implement a better solution including a single instance
+        # of the SToolBar object containing the Run, Stop and Pause
+        # buttons for the MCO
+        for pause_task in [
+            self.tool_bars[0].items[2],
+            self.review_task.tool_bars[0].items[2]
+        ]:
+            if self._paused:
+                pause_task.image = ImageResource(
+                    "baseline_pause_black_18dp.png")
+                pause_task.name = "Pause"
+            else:
+                pause_task.image = ImageResource(
+                    "baseline_skip_next_black_18dp.png"
+                )
+                pause_task.name = "Resume"
 
         self.zmq_server.publish_message(message)
         self._paused = not self._paused
