@@ -104,6 +104,7 @@ class BasePlot(BaseDataView):
     # View
     # ----
 
+    #: Controls the automatic axis update in the `_update_plot` call
     toggle_automatic_update = Bool(True)
 
     axis_hgroup = Instance(HGroup)
