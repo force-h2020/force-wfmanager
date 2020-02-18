@@ -668,10 +668,20 @@ class WfManagerSetupTask(Task):
         self._paused = False
 
     def pause_bdss(self):
+        pause_task = self.tool_bars[0].items[2]
         if self._paused:
             message = "RESUME_BDSS"
+            pause_task.image = ImageResource("baseline_pause_black_18dp.png")
+            pause_task.name = "Pause"
         else:
             message = "PAUSE_BDSS"
+            pause_task.image = ImageResource("baseline_skip_next_black_18dp.png")
+            pause_task.name = "Resume"
+
+        # state = self.window._get_state(self)
+        # self.window._active_state = None
+        # self.window._active_state = state
+
         self.zmq_server.publish_message(message)
         self._paused = not self._paused
 
