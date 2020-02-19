@@ -306,6 +306,34 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 self.review_task.analysis_model.evaluation_steps,
             )
 
+    def test_open_empty_analysis_model(self):
+        mock_open = mock.mock_open()
+        with mock.patch(
+            RESULTS_FILE_DIALOG_PATH
+        ) as mock_file_dialog, mock.patch(
+            RESULTS_JSON_LOAD_PATH
+        ) as mock_json, mock.patch(
+            RESULTS_FILE_OPEN_PATH, mock_open, create=True
+        ):
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
+            mock_json.return_value = {"version": "1", "workflow": {}}
+            old_workflow = self.review_task.workflow_model
+            self.review_task.open_project()
+
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_json.called)
+
+            self.assertIsNot(old_workflow, self.review_task.workflow_model)
+            self.assertIsNot(
+                self.setup_task.workflow_model, self.review_task.workflow_model
+            )
+            self.assertEqual(
+                tuple(), self.review_task.analysis_model.value_names
+            )
+            self.assertEqual(
+                [], self.review_task.analysis_model.evaluation_steps
+            )
+
     def test_open_project_failure(self):
         mock_open = mock.mock_open()
         mock_open.side_effect = IOError("OUPS")
