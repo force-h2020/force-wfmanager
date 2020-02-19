@@ -213,7 +213,11 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 old_workflow, self.setup_task.side_pane.workflow_tree.model
             )
 
-            self.setup_task.open_workflow()
+            with mock.patch(
+                "force_wfmanager.wfmanager_setup_task.load_analysis_model"
+            ) as mock_read:
+                mock_read.return_value = {}
+                self.setup_task.open_workflow()
 
             self.assertTrue(mock_reader.called)
 
@@ -221,6 +225,14 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertNotEqual(
                 old_workflow, self.setup_task.side_pane.workflow_tree.model
             )
+
+            with mock.patch(INFORMATION_PATH) as mock_information:
+                with mock.patch(
+                    "force_wfmanager.wfmanager_setup_task.load_analysis_model"
+                ) as mock_read:
+                    mock_read.return_value = {"some": "data"}
+                    self.setup_task.open_workflow()
+                    mock_information.assert_called()
 
     def test_read_failure(self):
         with mock.patch(FILE_DIALOG_PATH) as mock_file_dialog, mock.patch(
@@ -259,7 +271,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             send_event(
                 MCOProgressEvent(
                     optimal_point=[DataValue(value=1.0)],
-                    optimal_kpis=[DataValue(value=2.0)]
+                    optimal_kpis=[DataValue(value=2.0)],
                 )
             )
 

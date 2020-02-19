@@ -20,7 +20,6 @@ from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
 from .mock_methods import (
-    mock_file_reader,
     mock_file_writer,
     mock_dialog,
     mock_return_args,
@@ -41,7 +40,7 @@ RESULTS_WRITER_PATH = (
 RESULTS_READER_PATH = "force_wfmanager.io.project_io.WorkflowReader"
 RESULTS_ERROR_PATH = "force_wfmanager.wfmanager_review_task.error"
 ANALYSIS_WRITE_PATH = (
-    "force_wfmanager.io.analysis_model_io." "write_analysis_model"
+    "force_wfmanager.io.analysis_model_io.write_analysis_model"
 )
 ANALYSIS_FILE_OPEN_PATH = "force_wfmanager.io.analysis_model_io.open"
 
@@ -92,6 +91,10 @@ def get_probe_wfmanager_tasks(wf_manager=None, contributed_uis=None):
         task.create_dock_panes()
 
     return tasks[0], tasks[1]
+
+
+def return_workflow(file_path):
+    return Workflow()
 
 
 class TestWFManagerTasks(GuiTestAssistant, TestCase):
@@ -269,7 +272,11 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             old_analysis = copy.deepcopy(self.review_task.analysis_model)
             self.assertEqual(old_workflow, self.setup_task.workflow_model)
 
-            self.review_task.open_project()
+            with mock.patch(
+                    "force_bdss.io.workflow_reader.WorkflowReader.read"
+            ) as mock_read:
+                mock_read.side_effect = return_workflow
+                self.review_task.open_project()
 
             self.assertTrue(mock_open.called)
             self.assertTrue(mock_json.called)
@@ -318,7 +325,11 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_json.return_value = {"version": "1", "workflow": {}}
             old_workflow = self.review_task.workflow_model
-            self.review_task.open_project()
+            with mock.patch(
+                "force_bdss.io.workflow_reader.WorkflowReader.read"
+            ) as mock_read:
+                mock_read.side_effect = return_workflow
+                self.review_task.open_project()
 
             self.assertTrue(mock_open.called)
             self.assertTrue(mock_json.called)
