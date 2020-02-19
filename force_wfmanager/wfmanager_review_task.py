@@ -345,16 +345,6 @@ class WfManagerReviewTask(Task):
             # share the analysis model with the setup_task
             self.analysis_model.from_dict(analysis_model_dict)
             self.setup_task.analysis_model = self.analysis_model
-
-        except KeyError as e:
-            error(
-                None,
-                "Unable to find analysis model:\n\n{}".format(str(e)),
-                "Error when loading project",
-            )
-            log.exception("KeyError when loading project")
-            return False
-
         except IOError as e:
             error(
                 None,
