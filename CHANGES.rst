@@ -75,8 +75,8 @@ Documentation
 Maintenance and code organization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Updated traitsui to version 6.1.3-2 (#275, #288, #341)
-* Updated pyface to version 6.1.2-1 (#275, #288, #341)
+* Updated traitsui to version 6.1.3-5 (#275, #288, #341, #356)
+* Updated pyface to version 6.1.2-5 (#275, #288, #341, #356)
 * Updated chaco to version 4.8.0-1 (#341)
 * Updated qt to version 4.8.7-19 (#288)
 * Updated pyzmq to version 16.0.0-7 (#288)
