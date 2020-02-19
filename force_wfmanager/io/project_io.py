@@ -1,7 +1,7 @@
 import logging
 import json
 
-from force_bdss.api import Workflow, WorkflowWriter, WorkflowReader
+from force_bdss.api import WorkflowWriter, WorkflowReader
 
 log = logging.getLogger(__name__)
 
@@ -34,8 +34,9 @@ def write_project_file(workflow_model, analysis_model, file_path):
 
 
 def load_project_file(factory_registry, file_path):
-    """ Load contents of JSON file into:attr:`Workflow` and
-    :attr:`AnalysisModel`.
+    """ Passes the `file_path` to the WorkflowReader and
+    the analysis model loader, to create a Workflow object and
+    an analysis model dictionary.
 
     Parameters
     ----------
@@ -50,16 +51,23 @@ def load_project_file(factory_registry, file_path):
     analysis_model_dict: dict
         Dictionary of analysis model to read, needs to be parsed by
         the analysis model object of the workflow to be loaded in
-    workflow_model:
-        Workflow model
+    workflow_model: Workflow
+        Workflow instance
+    """
+    analysis_model_dict = load_analysis_model(file_path)
+
+    reader = WorkflowReader(factory_registry)
+    workflow_model = reader.read(file_path)
+
+    return analysis_model_dict, workflow_model
+
+
+def load_analysis_model(file_path):
+    """ Opens the `file_path` file and loads the json. Returns the
+    'analysis_model' value from the JSON, or an empty dictionary.
     """
     with open(file_path, "r") as fp:
         project_json = json.load(fp)
 
     analysis_model_dict = project_json.get("analysis_model", {})
-    reader = WorkflowReader(factory_registry)
-    workflow_data = reader.parse_data(project_json)
-
-    workflow_model = Workflow.from_json(factory_registry, workflow_data)
-
-    return analysis_model_dict, workflow_model
+    return analysis_model_dict
