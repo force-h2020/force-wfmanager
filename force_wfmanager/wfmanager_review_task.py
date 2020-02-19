@@ -353,7 +353,6 @@ class WfManagerReviewTask(Task):
             )
             log.exception("Error loading project file")
             return False
-
         except Exception as e:
             error(
                 None,
