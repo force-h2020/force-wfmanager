@@ -4,6 +4,28 @@ Changelog
 Release 0.4.0
 -------------
 
+Released:
+
+Release notes
+~~~~~~~~~~~~~
+
+Version 0.4.0 is a major update to the Fore WfManager package, and includes a number of
+backward incompatible changes, including:
+
+* Major refactoring of source code file tree t
+
+The following people contributed
+code changes for this release:
+
+* Matthew Evans
+* James Johnson
+* Frank Longford
+* Nicola De Mitri
+* Petr Kungurtsev
+
+Release 0.4.0
+-------------
+
 - Rearranged source code file tree to represent current workflow (PR#260)
 
 
