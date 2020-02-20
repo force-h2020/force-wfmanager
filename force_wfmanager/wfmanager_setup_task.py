@@ -46,6 +46,7 @@ from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.setup.system_state import SystemState
 
 from force_wfmanager.wfmanager import TaskToggleGroupAccelerator
+from force_wfmanager.io.project_io import load_analysis_model
 
 
 log = logging.getLogger(__name__)
@@ -320,51 +321,6 @@ class WfManagerSetupTask(Task):
     #   Private Methods
     # ------------------
 
-    def _write_workflow(self, file_path):
-        """ Creates a JSON file in the file_path and write the workflow
-        description in it
-        Parameters
-        ----------
-        file_path: str
-            The file_path pointing to the file in which you want to write the
-            workflow
-        Returns
-        -------
-        Boolean:
-            True if it was a success to write in the file, False otherwise
-        """
-        for hook_manager in self.ui_hooks_managers:
-            try:
-                hook_manager.before_save(self)
-            except Exception:
-                log.exception(
-                    "Failed before_save hook "
-                    "for hook manager {}".format(
-                        hook_manager.__class__.__name__
-                    )
-                )
-
-        try:
-            write_workflow_file(self.workflow_model, file_path)
-        except IOError as e:
-            error(
-                None,
-                "Cannot save in the requested file:\n\n{}".format(str(e)),
-                "Error when saving workflow",
-            )
-            log.exception("Error when saving workflow")
-            return False
-        except Exception as e:
-            error(
-                None,
-                "Cannot save the workflow:\n\n{}".format(str(e)),
-                "Error when saving workflow",
-            )
-            log.exception("Error when saving workflow")
-            return False
-        else:
-            return True
-
     def _execute_bdss(self, workflow_path):
         """Secondary thread executor routine.
         This executes the BDSS and wait for its completion.
@@ -540,7 +496,63 @@ class WfManagerSetupTask(Task):
                 "Error when reading file",
             )
         else:
-            self.current_file = file_path
+            analysis_model = load_analysis_model(file_path)
+            if not analysis_model:
+                self.current_file = file_path
+            else:
+                information(
+                    None,
+                    "Project file found instead of Workflow "
+                    "file during start up.",
+                    informative="Analysis data will not be "
+                    "loaded into WfManager upon launch. You can load a "
+                    "Project file using 'Open Project' in the Review Task."
+                )
+
+    def _write_workflow(self, file_path):
+        """ Creates a JSON file in the file_path and write the workflow
+        description in it
+        Parameters
+        ----------
+        file_path: str
+            The file_path pointing to the file in which you want to write the
+            workflow
+        Returns
+        -------
+        Boolean:
+            True if it was a success to write in the file, False otherwise
+        """
+        for hook_manager in self.ui_hooks_managers:
+            try:
+                hook_manager.before_save(self)
+            except Exception:
+                log.exception(
+                    "Failed before_save hook "
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__
+                    )
+                )
+
+        try:
+            write_workflow_file(self.workflow_model, file_path)
+        except IOError as e:
+            error(
+                None,
+                "Cannot save in the requested file:\n\n{}".format(str(e)),
+                "Error when saving workflow",
+            )
+            log.exception("Error when saving workflow")
+            return False
+        except Exception as e:
+            error(
+                None,
+                "Cannot save the workflow:\n\n{}".format(str(e)),
+                "Error when saving workflow",
+            )
+            log.exception("Error when saving workflow")
+            return False
+        else:
+            return True
 
     def save_workflow(self):
         """ Saves the workflow into the currently used file. If there is no
