@@ -1,5 +1,5 @@
 from traits.api import (
-    Instance, Unicode, on_trait_change, Property,
+    Instance, Str, on_trait_change, Property,
     cached_property, List, Button, Tuple
 )
 from traitsui.api import (
@@ -23,7 +23,7 @@ class MCOParameterView(BaseMCOOptionsView):
     # -------------------
 
     #: The human readable name of the MCOParameterView class
-    name = Unicode('Parameters')
+    name = Str('Parameters')
 
     # --------------------
     # Dependent Attributes

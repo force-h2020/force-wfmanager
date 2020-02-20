@@ -1,7 +1,7 @@
 from functools import partial, wraps
 
 from traits.api import (
-    Event, Instance, Property, Unicode, on_trait_change
+    Event, Instance, Property, Str, on_trait_change
 )
 from traitsui.api import (
     Action, Group, Menu, ModelView, TextEditor,
@@ -198,7 +198,7 @@ class WorkflowTree(ModelView):
 
     #: The error message currently displayed in the UI.
     selected_error = Property(
-        Unicode(),
+        Str,
         depends_on="system_state.selected_view.[error_message,label]"
     )
 
@@ -420,7 +420,7 @@ class WorkflowTree(ModelView):
 
         # Update the error list with verification checks that occur
         # outside the foce_bdss
-        if self.workflow_view.model.mco is not None:
+        if self.workflow_view.model.mco_model is not None:
             errors += (
                 self.workflow_view.mco_view[0]
                 .parameter_view.verify_model_names()
@@ -646,7 +646,7 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def new_mco(self, ui_info, object):
         """Adds a new mco to the workflow"""
-        object.set_mco(self.system_state.entity_creator.model)
+        object.model.mco_model = self.system_state.entity_creator.model
         self.system_state.entity_creator.reset_model()
 
     @triggers_verify
@@ -673,7 +673,7 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def delete_mco(self, ui_info, object):
         """Delete a mco from the workflow"""
-        self.workflow_view.set_mco(None)
+        self.workflow_view.model.mco_model = None
 
     @triggers_verify
     def delete_notification_listener(self, ui_info, object):

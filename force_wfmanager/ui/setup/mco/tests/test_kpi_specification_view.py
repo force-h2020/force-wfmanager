@@ -15,15 +15,15 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
     def setUp(self):
         self.registry = get_basic_variable_names_registry()
         self.workflow = self.registry.workflow
-        self.param1 = self.workflow.mco.parameters[0]
-        self.param2 = self.workflow.mco.parameters[1]
-        self.param3 = self.workflow.mco.parameters[2]
+        self.param1 = self.workflow.mco_model.parameters[0]
+        self.param2 = self.workflow.mco_model.parameters[1]
+        self.param3 = self.workflow.mco_model.parameters[2]
         self.data_source1 = self.workflow.execution_layers[0].data_sources[0]
         self.data_source2 = self.workflow.execution_layers[0].data_sources[1]
-        self.workflow.mco.kpis.append(KPISpecification())
+        self.workflow.mco_model.kpis.append(KPISpecification())
 
         self.kpi_view = KPISpecificationView(
-            model=self.workflow.mco,
+            model=self.workflow.mco_model,
             variable_names_registry=self.registry
         )
 
@@ -48,14 +48,14 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         )
         self.assertEqual('KPI', self.kpi_view.model_views[0].label)
 
-        self.workflow.mco.kpis[0].name = 'T1'
+        self.workflow.mco_model.kpis[0].name = 'T1'
 
         self.assertEqual(
             "KPI: T1 (MINIMISE)",
             self.kpi_view.model_views[0].label
         )
 
-        self.workflow.mco.kpis[0].objective = 'MAXIMISE'
+        self.workflow.mco_model.kpis[0].objective = 'MAXIMISE'
 
         self.assertEqual(
             "KPI: T1 (MAXIMISE)",
@@ -71,7 +71,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
             self.assertEqual('KPI', kpi_model_view.label)
 
         with self.assertTraitChanges(kpi_model_view, 'label', count=1):
-            self.workflow.mco.kpis[0].name = 'T1'
+            self.workflow.mco_model.kpis[0].name = 'T1'
             self.assertEqual('KPI: T1 (MINIMISE)', kpi_model_view.label)
 
     def test_add_kpi(self):
@@ -80,7 +80,7 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         self.assertEqual(1, len(self.kpi_view.kpi_name_options))
 
         self.kpi_view._add_kpi_button_fired()
-        self.assertEqual(2, len(self.workflow.mco.kpis))
+        self.assertEqual(2, len(self.workflow.mco_model.kpis))
         self.assertEqual(2, len(self.kpi_view.model_views))
 
         kpi_model_view = self.kpi_view.model_views[1]
@@ -95,14 +95,14 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
         self.kpi_view.selected_model_view = kpi_model_view
         self.kpi_view._remove_kpi_button_fired()
 
-        self.assertEqual(0, len(self.workflow.mco.kpis))
+        self.assertEqual(0, len(self.workflow.mco_model.kpis))
         self.assertEqual(0, len(self.kpi_view.model_views))
         self.assertIsNone(self.kpi_view.selected_model_view)
 
         self.kpi_view._add_kpi_button_fired()
         self.kpi_view._add_kpi_button_fired()
         self.kpi_view._add_kpi_button_fired()
-        self.assertEqual(3, len(self.workflow.mco.kpis))
+        self.assertEqual(3, len(self.workflow.mco_model.kpis))
         self.assertEqual(self.kpi_view.model_views[2],
                          self.kpi_view.selected_model_view)
 
@@ -128,17 +128,17 @@ class TestKPISpecificationView(unittest.TestCase, UnittestTools):
     def test__kpi_names_check(self):
 
         self.data_source1.output_slot_info = [OutputSlotInfo(name='T1')]
-        self.workflow.mco.kpis[0].name = 'T1'
+        self.workflow.mco_model.kpis[0].name = 'T1'
         error_message = self.kpi_view.verify_model_names()
         self.assertEqual(0, len(error_message))
 
         self.data_source2.output_slot_info = [OutputSlotInfo(name='T2')]
         self.kpi_view._add_kpi_button_fired()
-        self.workflow.mco.kpis[1].name = 'T2'
+        self.workflow.mco_model.kpis[1].name = 'T2'
         error_message = self.kpi_view.verify_model_names()
         self.assertEqual(0, len(error_message))
 
-        self.workflow.mco.kpis[0].name = 'T2'
+        self.workflow.mco_model.kpis[0].name = 'T2'
         error_message = self.kpi_view.verify_model_names()
         self.assertEqual(1, len(error_message))
         self.assertIn(

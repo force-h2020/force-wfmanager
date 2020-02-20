@@ -1,6 +1,6 @@
 from traits.api import (
     Bool, Callable, Dict, Either, HasStrictTraits, Instance, List, ReadOnly,
-    Property, Unicode, on_trait_change
+    Property, Str, on_trait_change
 )
 from traitsui.api import (
     HSplit, HTMLEditor, InstanceEditor, Menu, TreeEditor, TreeNode, UItem,
@@ -20,10 +20,10 @@ class PluginModelView(HasStrictTraits):
     in the TreeEditor of the NewEntityCreator.
     """
     #: An instance of an external Envisage Plugin.
-    id = Unicode()
+    id = Str()
 
     #: The name of the PluginModelView
-    name = Unicode("plugin")
+    name = Str("plugin")
 
     #: A list of all the factories which are derived from :attr:`plugin`.
     #: The factories will all be of type BaseFactory
@@ -37,7 +37,7 @@ class Root(HasStrictTraits):
     plugins = List(PluginModelView)
 
     #: A name for the Root node
-    name = Unicode("root")
+    name = Str("root")
 
 
 class NewEntityCreator(HasStrictTraits):
@@ -68,14 +68,14 @@ class NewEntityCreator(HasStrictTraits):
     plugins_root = Instance(Root)
 
     #: A message to be displayed if there are no config options
-    _no_config_options_msg = ReadOnly(Unicode)
+    _no_config_options_msg = ReadOnly(Str)
 
     #: Option for the user to manually control the visibility of the
     #: configuration option display
     config_visible = Bool(True)
 
     # Factory name to be displayed in view_header
-    factory_name = Unicode()
+    factory_name = Str()
 
     # --------------------
     # Dependent Attributes
@@ -102,11 +102,11 @@ class NewEntityCreator(HasStrictTraits):
     # --------------
 
     #: HTML header containing the factory name
-    view_header = Property(Instance(Unicode), depends_on='factory_name')
+    view_header = Property(Str, depends_on='factory_name')
 
     #: HTML containing a model description, obtained from the model's
     #: get_name and get_description methods.
-    model_description_HTML = Property(Unicode, depends_on="model")
+    model_description_HTML = Property(Str, depends_on="model")
 
     #: A Bool which is True if model has a view with at least one user
     #: editable attribute, False otherwise.

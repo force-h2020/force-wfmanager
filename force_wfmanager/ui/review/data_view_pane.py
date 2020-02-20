@@ -1,11 +1,11 @@
 from pyface.tasks.api import TraitsTaskPane
 from traits.api import (
-    Button, Dict, Enum, Instance, List, on_trait_change, Type, Unicode)
+    Button, Dict, Enum, Instance, List, on_trait_change, Type, Str)
 from traitsui.api import EnumEditor, HGroup, UItem, VGroup, View
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.plot import Plot
-from force_wfmanager.ui.review.data_view import BaseDataView
+from force_wfmanager.ui.review.base_data_view import BaseDataView
 from force_wfmanager.ui.ui_utils import class_description
 
 
@@ -39,7 +39,7 @@ class DataViewPane(TraitsTaskPane):
     data_view_selection = Enum(values="available_data_views")
 
     #: Human readable descriptions of each data view, for the UI
-    data_view_descriptions = Dict(Type(BaseDataView), Unicode())
+    data_view_descriptions = Dict(Type(BaseDataView), Str())
 
     #: Modal view for changing the selected plot
     selection_changer = View(

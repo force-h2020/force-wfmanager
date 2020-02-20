@@ -1,5 +1,5 @@
 from traits.api import (
-    Bool, Event, Instance, List, Unicode,
+    Bool, Event, Instance, List, Str,
     on_trait_change, HasTraits, Property
 )
 
@@ -33,7 +33,7 @@ class BaseMCOOptionsView(HasTraits):
     # -----------------------
 
     #: Defines the human readable name for the View
-    name = Unicode('Options')
+    name = Str('Options')
 
     #: List of option ModelViews to display in ListEditor notebook
     model_views = List(Instance(BaseMCOOptionsModelView))
@@ -53,7 +53,7 @@ class BaseMCOOptionsView(HasTraits):
     #: An error message for issues in this modelview. Set by the function
     #: :func:`verify_tree
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    error_message = Unicode()
+    error_message = Str()
 
     #: Event to request a verification check on the workflow
     #: Listens to: `model.name`,`model.objective`
@@ -64,7 +64,7 @@ class BaseMCOOptionsView(HasTraits):
     # ------------------
 
     #: The human readable name of the KPI View
-    label = Property(Instance(Unicode), depends_on='name')
+    label = Property(Str, depends_on='name')
 
     def __init__(self, model=None, *args, **kwargs):
         super(BaseMCOOptionsView, self).__init__(*args, **kwargs)

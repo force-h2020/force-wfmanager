@@ -1,5 +1,5 @@
 from traits.api import (
-    Bool, Event, Instance, List, Property, Unicode,
+    Bool, Event, Instance, List, Property, Str,
     on_trait_change, Either, Tuple
 )
 from traitsui.api import (
@@ -40,7 +40,7 @@ class BaseMCOOptionsModelView(ModelView):
     #: An error message for issues in this modelview. Updated by
     #: :func:`verify_tree
     #: <force_wfmanager.ui.setup.workflow_tree.WorkflowTree.verify_tree>`
-    error_message = Unicode()
+    error_message = Str()
 
     #: Event to request a verification check on the workflow
     #: Listens to: :attr:`model.name <model>` and :attr:`model.type <model>`

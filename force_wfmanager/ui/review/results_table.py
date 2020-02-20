@@ -1,6 +1,13 @@
 from traits.api import (
-    Either, HasStrictTraits, Instance, List, Property, Tuple, on_trait_change,
-    Event, Int
+    Either,
+    HasStrictTraits,
+    Instance,
+    List,
+    Property,
+    Tuple,
+    on_trait_change,
+    Event,
+    Int
 )
 from traitsui.api import TabularEditor, UItem, View
 from traitsui.tabular_adapter import TabularAdapter
@@ -74,7 +81,6 @@ class ResultsTable(HasStrictTraits):
     def _update_adapter(self):
         self.tabular_adapter.columns = (
             [name for name in self.analysis_model.value_names])
-        self.tabular_adapter.format = '% 5.4E'
 
     # Response to model change
     @on_trait_change('analysis_model.selected_step_indices')

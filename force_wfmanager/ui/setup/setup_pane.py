@@ -1,6 +1,6 @@
 from pyface.tasks.api import TraitsTaskPane
 from traits.api import (
-    Bool, Button, Instance, Property, Unicode,
+    Bool, Button, Instance, Property, Str,
     on_trait_change, cached_property
 )
 from traitsui.api import (
@@ -43,7 +43,7 @@ class SetupPane(TraitsTaskPane):
     selected_model = Instance(BaseModel)
 
     #: An error message for the entire workflow
-    error_message = Unicode()
+    error_message = Str()
 
     # --------------------
     #  Button Attributes
@@ -61,7 +61,7 @@ class SetupPane(TraitsTaskPane):
 
     #: The string displayed on the 'add new entity' button.
     add_new_entity_label = Property(
-        Unicode(), depends_on='system_state:selected_factory_name'
+        Str, depends_on='system_state:selected_factory_name'
     )
 
     #: A Boolean indicating whether the currently selected modelview is

@@ -1,5 +1,5 @@
 from traits.api import (
-    List, Property, Unicode, cached_property,
+    List, Property, Str, cached_property,
     on_trait_change, Button
 )
 from traitsui.api import (
@@ -23,7 +23,7 @@ class KPISpecificationView(BaseMCOOptionsView):
     # ------------------
 
     #: The human readable name of the KPI View
-    name = Unicode('KPIs')
+    name = Str('KPIs')
 
     # ------------------
     #     Properties
@@ -31,13 +31,13 @@ class KPISpecificationView(BaseMCOOptionsView):
 
     #: The names of the KPIs in the Workflow.
     kpi_names = Property(
-        List(Unicode), depends_on='model.kpis.name'
+        List(Str), depends_on='model.kpis.name'
     )
 
     #: A list names, each representing a variable
     #: that could become a KPI
     kpi_name_options = Property(
-        List(Unicode),
+        List(Str),
         depends_on='variable_names_registry.data_source_outputs'
     )
 

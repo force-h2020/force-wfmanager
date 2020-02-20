@@ -1,6 +1,6 @@
 from envisage.api import Plugin
 from envisage.ui.tasks.api import TaskFactory
-from traits.api import Either, List, Unicode
+from traits.api import Either, List, Str
 
 from force_bdss.api import IFactoryRegistry
 from force_wfmanager.ui import IContributedUI
@@ -19,7 +19,7 @@ class WfManagerPlugin(Plugin):
 
     tasks = List(contributes_to=TASKS)
 
-    workflow_file = Either(None, Unicode())
+    workflow_file = Either(None, Str())
 
     # -----------------
     #      Defaults

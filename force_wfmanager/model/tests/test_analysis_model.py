@@ -15,7 +15,7 @@ class TestAnalysisModel(TestCase):
         self.assertEqual(self.analysis.selected_step_indices, None)
 
     def test_add_evaluation_step(self):
-        self.analysis.value_names = ('foo', 'bar')
+        self.analysis.value_names = ("foo", "bar")
 
         with self.assertRaises(ValueError):
             self.analysis.add_evaluation_step((1, 2, 3))
@@ -29,7 +29,7 @@ class TestAnalysisModel(TestCase):
             self.analysis.add_evaluation_step(())
 
     def test_change_selection(self):
-        self.analysis.value_names = ['foo', 'bar']
+        self.analysis.value_names = ["foo", "bar"]
         self.analysis.add_evaluation_step((1, 2))
         self.analysis.add_evaluation_step((3, 4))
         self.analysis.add_evaluation_step((5, 6))
@@ -56,12 +56,12 @@ class TestAnalysisModel(TestCase):
         with self.assertRaises(TraitError):
             self.analysis.selected_step_indices = ["hello"]
 
-        self.analysis.value_names = ('bar', 'baz')
+        self.analysis.value_names = ("bar", "baz")
         self.assertEqual(self.analysis.selected_step_indices, None)
         self.assertEqual(self.analysis.evaluation_steps, [])
 
     def test_clear(self):
-        self.analysis.value_names = ('foo', 'bar')
+        self.analysis.value_names = ("foo", "bar")
         self.analysis.add_evaluation_step((1, 2))
         self.analysis.add_evaluation_step((3, 4))
         self.analysis.add_evaluation_step((5, 6))
@@ -84,63 +84,73 @@ class TestAnalysisModel(TestCase):
         self.assertEqual(self.analysis.selected_step_indices, None)
 
     def test_as_json(self):
-        self.analysis.value_names = ('foo', 'bar', 'label')
-        self.analysis.add_evaluation_step((1, 2, 'x'))
-        self.analysis.add_evaluation_step((3, 4, 'y'))
-        self.analysis.add_evaluation_step((5, 6, 'z'))
-        json_rep = {'foo': [1, 3, 5],
-                    'bar': [2, 4, 6],
-                    'label': ['x', 'y', 'z']}
+        self.analysis.value_names = ("foo", "bar", "label")
+        self.analysis.add_evaluation_step((1, 2, "x"))
+        self.analysis.add_evaluation_step((3, 4, "y"))
+        self.analysis.add_evaluation_step((5, 6, "z"))
+        json_rep = {
+            "foo": [1, 3, 5],
+            "bar": [2, 4, 6],
+            "label": ["x", "y", "z"],
+        }
 
         self.assertEqual(self.analysis.as_json(), json_rep)
 
     def test_from_dict(self):
-        json_rep = {'foo': [1, 3, 5],
-                    'bar': [2, 4, 6],
-                    'label': ['x', 'y', 'z']}
-        self.analysis.value_names = ('notfoo', 'notbar', 'notlabel')
+        json_rep = {
+            "foo": [1, 3, 5],
+            "bar": [2, 4, 6],
+            "label": ["x", "y", "z"],
+        }
+        self.analysis.value_names = ("notfoo", "notbar", "notlabel")
 
-        self.analysis.add_evaluation_step((11, 22, 'xx'))
-        self.analysis.add_evaluation_step((55, 66, 'zz'))
+        self.analysis.add_evaluation_step((11, 22, "xx"))
+        self.analysis.add_evaluation_step((55, 66, "zz"))
 
         self.analysis.from_dict(json_rep)
-        self.assertEqual(self.analysis.value_names, ('foo', 'bar', 'label'))
+        self.assertEqual(self.analysis.value_names, ("foo", "bar", "label"))
         self.assertEqual(len(self.analysis.evaluation_steps), 3)
-        self.assertEqual(self.analysis.evaluation_steps[0], (1, 2, 'x'))
-        self.assertEqual(self.analysis.evaluation_steps[1], (3, 4, 'y'))
-        self.assertEqual(self.analysis.evaluation_steps[2], (5, 6, 'z'))
+        self.assertEqual(self.analysis.evaluation_steps[0], (1, 2, "x"))
+        self.assertEqual(self.analysis.evaluation_steps[1], (3, 4, "y"))
+        self.assertEqual(self.analysis.evaluation_steps[2], (5, 6, "z"))
 
     def test_write_to_json(self):
-        json_rep = {'foo': [1, 3, 5],
-                    'bar': [2, 4, 6],
-                    'label': ['x', 'y', 'z']}
+        json_rep = {
+            "foo": [1, 3, 5],
+            "bar": [2, 4, 6],
+            "label": ["x", "y", "z"],
+        }
         self.analysis.from_dict(json_rep)
         self.assertEqual(self.analysis.as_json(), json_rep)
         mock_open = mock.mock_open()
-        with mock.patch('__main__.open', mock_open, create=True):
-            with mock_open('blah', 'w') as fp:
+        with mock.patch("__main__.open", mock_open, create=True):
+            with mock_open("blah", "w") as fp:
                 success = self.analysis.write_to_json(fp)
 
         self.assertTrue(success)
 
     def test_write_to_csv(self):
-        json_rep = {'foo': [1, 3, 5],
-                    'bar': [2, 4, 6],
-                    'label': ['x', 'y', 'z']}
+        json_rep = {
+            "foo": [1, 3, 5],
+            "bar": [2, 4, 6],
+            "label": ["x", "y", "z"],
+        }
         self.analysis.from_dict(json_rep)
         self.assertEqual(self.analysis.as_json(), json_rep)
         mock_open = mock.mock_open()
-        with mock.patch('__main__.open', mock_open, create=True):
-            with mock_open('blah', 'w') as fp:
+        with mock.patch("__main__.open", mock_open, create=True):
+            with mock_open("blah", "w") as fp:
                 success = self.analysis.write_to_csv(fp)
 
         self.assertTrue(success)
         handle = mock_open()
 
-        csv_string = ['foo, bar, label\n',
-                      '1, 2, x\n',
-                      '3, 4, y\n',
-                      '5, 6, z\n']
+        csv_string = [
+            "foo, bar, label\n",
+            "1, 2, x\n",
+            "3, 4, y\n",
+            "5, 6, z\n",
+        ]
 
         # unfortunately this doesn't enforce the order of the call
         # but I think this is probably overkill anyway...
