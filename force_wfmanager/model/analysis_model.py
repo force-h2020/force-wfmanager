@@ -2,7 +2,14 @@ import json
 import logging
 
 from traits.api import (
-    Bool, Either, HasStrictTraits, Int, List, Property, Tuple, on_trait_change
+    Bool,
+    Either,
+    HasStrictTraits,
+    Int,
+    List,
+    Property,
+    Tuple,
+    on_trait_change,
 )
 
 log = logging.getLogger(__name__)
@@ -48,8 +55,9 @@ class AnalysisModel(HasStrictTraits):
     #: in the allowed range of values.
     #: Listens to :attr:`Plot._plot_index_datasource
     #: <force_wfmanager.central_pane.plot.Plot._plot_index_datasource>`
-    selected_step_indices = Property(Either(None, List(Int)),
-                                     depends_on="_selected_step_indices")
+    selected_step_indices = Property(
+        Either(None, List(Int)), depends_on="_selected_step_indices"
+    )
 
     # ------------------
     #     Listeners
@@ -71,13 +79,13 @@ class AnalysisModel(HasStrictTraits):
         """
         if values is not None:
             for value in values:
-                if (isinstance(value, int) and not
-                        (0 <= value < len(self._evaluation_steps))):
+                if isinstance(value, int) and not (
+                    0 <= value < len(self._evaluation_steps)
+                ):
                     raise ValueError(
                         "Invalid value for selection index {}. Current "
                         "number of steps = {}".format(
-                            value,
-                            len(self._evaluation_steps)
+                            value, len(self._evaluation_steps)
                         )
                     )
 
@@ -102,14 +110,17 @@ class AnalysisModel(HasStrictTraits):
             A pair of values, which can be of any type.
         """
         if len(self.value_names) == 0:
-            raise ValueError("Cannot add evaluation step to an empty "
-                             "Analysis model")
+            raise ValueError(
+                "Cannot add evaluation step to an empty " "Analysis model"
+            )
 
         if len(evaluation_step) != len(self.value_names):
             raise ValueError(
                 "Size of evaluation step '{}' is incompatible "
                 "with the number of value names {}.".format(
-                    evaluation_step, self.value_names))
+                    evaluation_step, self.value_names
+                )
+            )
 
         self._evaluation_steps.append(evaluation_step)
         self._export_enabled = True
@@ -134,11 +145,11 @@ class AnalysisModel(HasStrictTraits):
 
         """
         self._clear_evaluation_steps()
-        self.value_names = tuple(key for key in data.keys())
+        self.value_names = tuple(data.keys())
+        if not self.value_names:
+            return
         for ind, _ in enumerate(data[self.value_names[0]]):
-            step = []
-            for column in self.value_names:
-                step.append(data[column][ind])
+            step = tuple(data[column][ind] for column in self.value_names)
             self.add_evaluation_step(step)
 
     def as_json(self):
@@ -174,10 +185,7 @@ class AnalysisModel(HasStrictTraits):
         if not self._export_enabled:
             return False
 
-        json.dump(self.as_json(),
-                  fp,
-                  sort_keys=False,
-                  indent=4)
+        json.dump(self.as_json(), fp, sort_keys=False, indent=4)
 
         return True
 
@@ -197,10 +205,10 @@ class AnalysisModel(HasStrictTraits):
         if not self._export_enabled:
             return False
 
-        fp.write(', '.join(self.value_names) + '\n')
+        fp.write(", ".join(self.value_names) + "\n")
         for step in self.evaluation_steps:
             # val can have arbitrary type, so cannot
             # e.g. specify a floating point precision
-            fp.write(', '.join([str(val) for val in step]) + '\n')
+            fp.write(", ".join([str(val) for val in step]) + "\n")
 
         return True
