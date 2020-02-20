@@ -1,5 +1,4 @@
 import logging
-import copy
 
 from pyface.api import ImageResource, FileDialog, OK, error
 from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
@@ -354,21 +353,14 @@ class WfManagerReviewTask(Task):
 
             # create two separate workflows, so that setup task can be
             # edited without changing the review task copy
-            self.setup_task.workflow_model = copy.copy(self.workflow_model)
+            new_workflow = Workflow.from_json(
+                self.factory_registry, self.workflow_model.__getstate__()
+            )
+            self.setup_task.workflow_model = new_workflow
 
             # share the analysis model with the setup_task
             self.analysis_model.from_dict(analysis_model_dict)
             self.setup_task.analysis_model = self.analysis_model
-
-        except KeyError as e:
-            error(
-                None,
-                "Unable to find analysis model:\n\n{}".format(str(e)),
-                "Error when loading project",
-            )
-            log.exception("KeyError when loading project")
-            return False
-
         except IOError as e:
             error(
                 None,
@@ -377,7 +369,6 @@ class WfManagerReviewTask(Task):
             )
             log.exception("Error loading project file")
             return False
-
         except Exception as e:
             error(
                 None,

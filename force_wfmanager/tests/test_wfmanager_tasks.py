@@ -20,7 +20,6 @@ from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
 from .mock_methods import (
-    mock_file_reader,
     mock_file_writer,
     mock_dialog,
     mock_return_args,
@@ -41,7 +40,7 @@ RESULTS_WRITER_PATH = (
 RESULTS_READER_PATH = "force_wfmanager.io.project_io.WorkflowReader"
 RESULTS_ERROR_PATH = "force_wfmanager.wfmanager_review_task.error"
 ANALYSIS_WRITE_PATH = (
-    "force_wfmanager.io.analysis_model_io." "write_analysis_model"
+    "force_wfmanager.io.analysis_model_io.write_analysis_model"
 )
 ANALYSIS_FILE_OPEN_PATH = "force_wfmanager.io.analysis_model_io.open"
 
@@ -92,6 +91,10 @@ def get_probe_wfmanager_tasks(wf_manager=None, contributed_uis=None):
         task.create_dock_panes()
 
     return tasks[0], tasks[1]
+
+
+def return_workflow(file_path):
+    return Workflow()
 
 
 class TestWFManagerTasks(GuiTestAssistant, TestCase):
@@ -269,7 +272,11 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             old_analysis = copy.deepcopy(self.review_task.analysis_model)
             self.assertEqual(old_workflow, self.setup_task.workflow_model)
 
-            self.review_task.open_project()
+            with mock.patch(
+                    "force_bdss.io.workflow_reader.WorkflowReader.read"
+            ) as mock_read:
+                mock_read.side_effect = return_workflow
+                self.review_task.open_project()
 
             self.assertTrue(mock_open.called)
             self.assertTrue(mock_json.called)
@@ -306,6 +313,38 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 self.review_task.analysis_model.evaluation_steps,
             )
 
+    def test_open_empty_analysis_model(self):
+        mock_open = mock.mock_open()
+        with mock.patch(
+            RESULTS_FILE_DIALOG_PATH
+        ) as mock_file_dialog, mock.patch(
+            RESULTS_JSON_LOAD_PATH
+        ) as mock_json, mock.patch(
+            RESULTS_FILE_OPEN_PATH, mock_open, create=True
+        ):
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
+            mock_json.return_value = {"version": "1", "workflow": {}}
+            old_workflow = self.review_task.workflow_model
+            with mock.patch(
+                "force_bdss.io.workflow_reader.WorkflowReader.read"
+            ) as mock_read:
+                mock_read.side_effect = return_workflow
+                self.review_task.open_project()
+
+            self.assertTrue(mock_open.called)
+            self.assertTrue(mock_json.called)
+
+            self.assertIsNot(old_workflow, self.review_task.workflow_model)
+            self.assertIsNot(
+                self.setup_task.workflow_model, self.review_task.workflow_model
+            )
+            self.assertEqual(
+                tuple(), self.review_task.analysis_model.value_names
+            )
+            self.assertEqual(
+                [], self.review_task.analysis_model.evaluation_steps
+            )
+
     def test_open_project_failure(self):
         mock_open = mock.mock_open()
         mock_open.side_effect = IOError("OUPS")
@@ -322,46 +361,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             mock_error.assert_called_with(
                 None, error_msg, "Error when loading project"
             )
-
-        mock_open = mock.mock_open()
-        with mock.patch(
-            RESULTS_FILE_DIALOG_PATH
-        ) as mock_file_dialog, mock.patch(
-            RESULTS_JSON_LOAD_PATH
-        ) as mock_json, mock.patch(
-            RESULTS_ERROR_PATH
-        ) as mock_error, mock.patch(
-            RESULTS_FILE_OPEN_PATH, mock_open, create=True
-        ), mock.patch(
-            RESULTS_READER_PATH
-        ) as mock_reader:
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
-            mock_reader.side_effect = mock_file_reader
-            mock_json.return_value = {
-                "asdfsadf": {"x": [1], "y": [2]},
-                "123456": "1",
-                "blah": {},
-            }
-
-            success = self.review_task.open_project()
-            old_workflow = self.review_task.workflow_model
-            old_analysis = self.review_task.analysis_model
-            self.assertTrue(mock_open.called)
-            self.assertTrue(mock_json.called)
-            self.assertFalse(success)
-            # it should not get to the stage where the wfreader is called
-            self.assertFalse(mock_reader.called)
-            mock_error.assert_called_with(
-                None,
-                "Unable to find analysis model:\n\n{}".format(
-                    "'analysis_model'"
-                ),
-                "Error when loading project",
-            )
-            self.assertEqual(old_workflow, self.setup_task.workflow_model)
-            self.assertEqual(old_analysis, self.setup_task.analysis_model)
-            self.assertEqual(old_workflow, self.review_task.workflow_model)
-            self.assertEqual(old_analysis, self.review_task.analysis_model)
 
         mock_open = mock.mock_open()
         error = ValueError("some wrong value")
