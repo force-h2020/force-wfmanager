@@ -694,10 +694,12 @@ class WfManagerSetupTask(Task):
                     "baseline_skip_next_black_18dp.png"
                 )
                 pause_task.name = "Resume"
+                pause_task.tooltip = "Resume BDSS"
             else:
                 pause_task.image = ImageResource(
                     "baseline_pause_black_18dp.png")
                 pause_task.name = " Pause"
+                pause_task.tooltip = "Pause BDSS"
 
     # Plugin Status
     def lookup_plugins(self):
