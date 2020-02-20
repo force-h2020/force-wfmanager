@@ -59,10 +59,11 @@ Fixes
 * Updated TraitsUI to include TabularEditor fixes (#288)
 * Startup issues with broken application memento file fixed (#290, #293, #314)
 * Removed any usages of deprecated HasTraits.set_method (#294)
-* Occurences of trait assignment before super HasTraits class __init__ called removed (#313)
+* Occurrences of trait assignment before super HasTraits class __init__ called removed (#313)
 * References to ``BaseFactory.plugin`` attribute removed (#331, #332), whilst name and id attributes
   retained for error reporting
 * References to ``Workflow.mco`` attribute updated to ``Workflow.mco_model`` (#336)
+* Fix introduced to prevent user from accidentally overwriting project file (#355)
 
 Documentation
 ~~~~~~~~~~~~~
