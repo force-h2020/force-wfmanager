@@ -502,10 +502,11 @@ class WfManagerSetupTask(Task):
             else:
                 information(
                     None,
-                    "Project file was loaded instead of the "
-                    "Workflow file. Analysis data was discarded "
-                    "and will not be displayed.\nYou can load a "
-                    "Project file using 'Open Project'.",
+                    "Project file found instead of Workflow "
+                    "file during start up.",
+                    informative="Analysis data will not be "
+                    "loaded into WfManager upon launch. You can load a "
+                    "Project file using 'Open Project' in the Review Task."
                 )
 
     def _write_workflow(self, file_path):
