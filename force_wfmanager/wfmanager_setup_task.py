@@ -193,7 +193,7 @@ class WfManagerSetupTask(Task):
                     image_size=(64, 64),
                 ),
                 TaskAction(
-                    name="Pause",
+                    name=" Pause",
                     tooltip="Pause Workflow",
                     method="pause_bdss",
                     enabled_name="computation_running",
@@ -669,12 +669,17 @@ class WfManagerSetupTask(Task):
 
     def pause_bdss(self):
         """Pause an MCO run"""
-
         if self._paused:
             message = "RESUME_BDSS"
         else:
             message = "PAUSE_BDSS"
+        self.zmq_server.publish_message(message)
+        self._paused = not self._paused
 
+    @on_trait_change("_paused")
+    def _pause_fired(self):
+        """ Updates the state of the 'Pause' / 'Resume' when the
+        `_paused` state changes."""
         # NOTE: this is a workaround to sync the status of the setup
         # task and review task tool bar icons. We should look to
         # implement a better solution including a single instance
@@ -686,16 +691,13 @@ class WfManagerSetupTask(Task):
         ]:
             if self._paused:
                 pause_task.image = ImageResource(
-                    "baseline_pause_black_18dp.png")
-                pause_task.name = "Pause"
-            else:
-                pause_task.image = ImageResource(
                     "baseline_skip_next_black_18dp.png"
                 )
                 pause_task.name = "Resume"
-
-        self.zmq_server.publish_message(message)
-        self._paused = not self._paused
+            else:
+                pause_task.image = ImageResource(
+                    "baseline_pause_black_18dp.png")
+                pause_task.name = " Pause"
 
     # Plugin Status
     def lookup_plugins(self):
