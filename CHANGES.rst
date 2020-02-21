@@ -33,7 +33,9 @@ Features
   , #350, #351), providing custom UI views of data returned from a MCO run
 * Developers can contribute ``ContributedUI`` subclasses (#324, #327, #328),
   providing custom UI views of simplified Workflow builders
-* New Stop / Pause functionality from the UI during a BDSS run (#354)
+* New Stop / Pause functionality from the UI during a BDSS run (#354, #360)
+* Additional metadata on ``BaseDataSourceModel`` traits allow them to be validated in
+  the UI (#296)
 
 
 Changes
