@@ -12,7 +12,9 @@ Release notes
 Version 0.4.0 is a major update to the Force WfManager package, and includes a number of
 backward incompatible changes, including:
 
-* Major refactoring of source code file tree
+* Major refactoring of source code file tree (no more ``central_pane``, ``left_side_pane`` modules)
+* Renaming of many ``<name>ModelView`` subclasses to ``<name>View`` subclasses where appropriate
+* Renaming of ``WfManagerResultsTask`` class to ``WfManagerReviewTask``
 
 The following people contributed
 code changes for this release:
@@ -28,10 +30,10 @@ Features
 ~~~~~~~~
 
 * Developers can contribute ``BaseDataView`` subclasses (#268, #270, #271, #276 #319, #323, #349
-  , #350, #351),
-  providing custom UI views of data returned from a MCO run
+  , #350, #351), providing custom UI views of data returned from a MCO run
 * Developers can contribute ``ContributedUI`` subclasses (#324, #327, #328),
   providing custom UI views of simplified Workflow builders
+* New Stop / Pause functionality from the UI during a BDSS run (#354)
 
 
 Changes
@@ -42,6 +44,7 @@ Changes
   (#260, #279, #287, #304)
 * TreeEditor view refactored (#285, #298, #299, #304, #313, #325) to better guide user through
   Build Workflow ---> Run MCO ---> View Results process
+* Replacement of many ``ModelView`` traits subclasses with ``HasTraits`` (#302)
 * Individual MCOParameter and KPI views now combined into a shared notebook style view
   (#304, #313)
 * ZMQ serialisation / deserialization of ``BaseDriverEvent`` objects ported to ``force_bdss``
