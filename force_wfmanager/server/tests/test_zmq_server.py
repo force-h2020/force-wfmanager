@@ -123,9 +123,10 @@ class TestZMQServer(unittest.TestCase):
 
     @contextlib.contextmanager
     def mock_server(self, events_received, errors_received):
-        mock_pub_socket = MockSocket()
+        mock_sub_socket = MockSocket()
         mock_sync_socket = MockSocket()
         mock_inproc_socket = MockSocket()
+        mock_pub_socket = MockSocket()
 
         def cb(event):
             events_received.append(event)
@@ -142,9 +143,10 @@ class TestZMQServer(unittest.TestCase):
             mock_get_poller.return_value = MockPoller()
             mock_context = mock.Mock()
             mock_context.socket.side_effect = [
-                mock_pub_socket,
+                mock_sub_socket,
                 mock_sync_socket,
                 mock_inproc_socket,
+                mock_pub_socket
             ]
             mock_get_context.return_value = mock_context
 
@@ -176,7 +178,7 @@ class TestZMQServer(unittest.TestCase):
                 "id": "force_bdss.events.mco_events.MCOStartEvent",
                 "model_data": {},
             }
-            server._pub_socket.data = [
+            server._sub_socket.data = [
                 x.encode("utf-8")
                 for x in ["MESSAGE", "xxx", json.dumps(event_data)]
             ]
@@ -263,7 +265,7 @@ class TestZMQServer(unittest.TestCase):
         errors = []
         with LogCapture(level=logging.ERROR) as capture:
             with self.mock_started_server(events, errors) as server:
-                server._pub_socket.data = [
+                server._sub_socket.data = [
                     x.encode("utf-8") for x in ["HELLO", "xxx", "1"]
                 ]
                 wait_condition(lambda: len(capture.records) == 1)
@@ -289,7 +291,7 @@ class TestZMQServer(unittest.TestCase):
                 "id": "force_bdss.events.mco_events.MCOStartEvent",
                 "model_data": {},
             }
-            server._pub_socket.data = [
+            server._sub_socket.data = [
                 x.encode("utf-8")
                 for x in ["MESSAGE", "xxx", json.dumps(event_data)]
             ]
@@ -312,17 +314,17 @@ class TestZMQServer(unittest.TestCase):
                     lambda: server.state == ZMQServer.STATE_RECEIVING
                 )
 
-                server._pub_socket.data = [
+                server._sub_socket.data = [
                     x.encode("utf-8") for x in ["MESSAGE", "xxx"]
                 ]
                 wait_condition(lambda: len(capture.records) == 1)
 
-                server._pub_socket.data = [
+                server._sub_socket.data = [
                     x.encode("utf-8") for x in ["WHATEVER", "xxx", ""]
                 ]
                 wait_condition(lambda: len(capture.records) == 2)
 
-                server._pub_socket.data = [
+                server._sub_socket.data = [
                     x.encode("utf-8") for x in ["MESSAGE", "xxx", "bonkers"]
                 ]
                 wait_condition(lambda: len(capture.records) == 3)
@@ -469,3 +471,12 @@ class TestZMQServer(unittest.TestCase):
         self.assertEqual(errors[0][0], ZMQServer.ERROR_TYPE_WARNING)
         self.assertIn("Unable to retrieve data", errors[0][1])
         self.assertEqual(server.state, ZMQServer.STATE_WAITING)
+
+    def test_publish_message(self):
+        events = []
+        errors = []
+        with self.mock_server(events, errors) as server:
+            with mock.patch.object(MockSocket, "send_multipart") as send:
+                server._pub_socket = MockSocket()
+                server.publish_message("My message")
+                send.assert_called_with([b"MESSAGE", b"My message", b""])

@@ -61,6 +61,7 @@ class ZMQServer(threading.Thread):
         self._on_error_callback = on_error_callback
 
         self._context = self._get_context()
+        self._sub_socket = None
         self._pub_socket = None
         self._sync_socket = None
         self._inproc_socket = None
@@ -74,11 +75,15 @@ class ZMQServer(threading.Thread):
         log.info("Server started")
 
         try:
-            (self._pub_socket,
-             pub_port,
-             self._sync_socket,
-             sync_port,
-             self._inproc_socket) = self._setup_sockets()
+            (
+                self._sub_socket,
+                sub_port,
+                self._pub_socket,
+                _pub_port,
+                self._sync_socket,
+                sync_port,
+                self._inproc_socket,
+            ) = self._setup_sockets()
         except Exception as e:
             log.exception("Unable to setup sockets")
             self._close_all_sockets_noexc()
@@ -87,15 +92,15 @@ class ZMQServer(threading.Thread):
                 self.ERROR_TYPE_CRITICAL,
                 "Unable to setup server sockets: {}.\n"
                 "The server is now stopped. You will be unable to "
-                "receive progress information from the BDSS.".format(
-                    str(e)))
+                "receive progress information from the BDSS.".format(str(e)),
+            )
             return
 
-        self.ports = (pub_port, sync_port)
+        self.ports = (sub_port, _pub_port, sync_port)
 
         try:
             poller = self._get_poller()
-            poller.register(self._pub_socket)
+            poller.register(self._sub_socket)
             poller.register(self._sync_socket)
             poller.register(self._inproc_socket)
         except Exception as e:
@@ -106,8 +111,8 @@ class ZMQServer(threading.Thread):
                 self.ERROR_TYPE_CRITICAL,
                 "Unable to register sockets to poller: {}.\n"
                 "The server is now stopped. You will be unable to "
-                "receive progress information from the BDSS.".format(
-                    str(e)))
+                "receive progress information from the BDSS.".format(str(e)),
+            )
             return
 
         self.state = ZMQServer.STATE_WAITING
@@ -124,41 +129,48 @@ class ZMQServer(threading.Thread):
                     "Unable to poll sockets: {}.\n"
                     "The server is now stopped. You will be unable to "
                     "receive progress information from the BDSS.".format(
-                        str(e)))
+                        str(e)
+                    ),
+                )
                 return
 
             for socket_name, socket in [
-                    ("pub", self._pub_socket),
-                    ("sync", self._sync_socket),
-                    ]:
+                ("pub", self._sub_socket),
+                ("sync", self._sync_socket),
+            ]:
 
                 if socket not in events:
                     continue
 
                 try:
-                    data = [x.decode('utf-8') for x in socket.recv_multipart()]
+                    data = [x.decode("utf-8") for x in socket.recv_multipart()]
                 except Exception as e:
                     log.exception("Unable to retrieve data")
                     self._on_error_callback(
                         self.ERROR_TYPE_WARNING,
                         "Unable to retrieve data from socket: {}.".format(
-                            str(e)))
+                            str(e)
+                        ),
+                    )
                     continue
 
                 try:
                     handle = getattr(
-                        self,
-                        "_handle_"+self.state+"_"+socket_name)
+                        self, "_handle_" + self.state + "_" + socket_name
+                    )
                 except AttributeError:
-                    log.error("State {} cannot handle {} data. "
-                              "Discarding.".format(self.state, socket_name))
+                    log.error(
+                        "State {} cannot handle {} data. "
+                        "Discarding.".format(self.state, socket_name)
+                    )
                     continue
 
                 try:
                     handle(data)
                 except Exception as e:
-                    log.exception("Handler {} raised exception.".format(
-                        handle))
+                    log.exception(
+                        "Handler {} raised exception.".format(handle)
+                    )
                     self._close_all_sockets_noexc()
                     self.state = ZMQServer.STATE_STOPPED
                     self._on_error_callback(
@@ -166,14 +178,16 @@ class ZMQServer(threading.Thread):
                         "Handler {} raised exception {}\n"
                         "The server is now stopped. You will be unable to "
                         "receive progress information from the BDSS.".format(
-                            handle, str(e)))
+                            handle, str(e)
+                        ),
+                    )
                     return
 
             if self._inproc_socket in events:
                 self._inproc_socket.recv()
                 self._close_network_sockets_noexc()
                 self.state = ZMQServer.STATE_STOPPED
-                self._inproc_socket.send(''.encode('utf-8'))
+                self._inproc_socket.send("".encode("utf-8"))
                 self._inproc_socket.close()
                 return
 
@@ -206,8 +220,12 @@ class ZMQServer(threading.Thread):
     def _setup_sockets(self):
         """Sets up the sockets."""
         context = self._context
-        pub_socket = context.socket(zmq.SUB)
-        pub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
+        sub_socket = context.socket(zmq.SUB)
+        sub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
+        sub_socket.setsockopt(zmq.LINGER, 0)
+        sub_port = sub_socket.bind_to_random_port("tcp://*")
+
+        pub_socket = context.socket(zmq.PUB)
         pub_socket.setsockopt(zmq.LINGER, 0)
         pub_port = pub_socket.bind_to_random_port("tcp://*")
 
@@ -217,7 +235,15 @@ class ZMQServer(threading.Thread):
 
         inproc_socket = context.socket(zmq.PAIR)
         inproc_socket.bind("inproc://stop")
-        return pub_socket, pub_port, sync_socket, sync_port, inproc_socket
+        return (
+            sub_socket,
+            sub_port,
+            pub_socket,
+            pub_port,
+            sync_socket,
+            sync_port,
+            inproc_socket,
+        )
 
     def _close_network_sockets_noexc(self):
         """Closes all the network sockets: pub and sync sockets.
@@ -225,6 +251,12 @@ class ZMQServer(threading.Thread):
         encounter, and performs closing on all sockets without halting.
         """
         self.ports = None
+        try:
+            self._sub_socket.close()
+        except Exception:
+            pass
+        self._sub_socket = None
+
         try:
             self._pub_socket.close()
         except Exception:
@@ -272,7 +304,7 @@ class ZMQServer(threading.Thread):
             log.error("Unknown protocol received {}".format(protocol))
             return
 
-        self._sync_socket.send_multipart([x.encode('utf-8') for x in data])
+        self._sync_socket.send_multipart([x.encode("utf-8") for x in data])
 
         self.state = ZMQServer.STATE_RECEIVING
 
@@ -287,7 +319,7 @@ class ZMQServer(threading.Thread):
             log.error("Unknown msg request received {}".format(msg))
             return
 
-        self._sync_socket.send_multipart([x.encode('utf-8') for x in data])
+        self._sync_socket.send_multipart([x.encode("utf-8") for x in data])
 
         self.state = ZMQServer.STATE_WAITING
 
@@ -312,3 +344,9 @@ class ZMQServer(threading.Thread):
             self._on_event_callback(event)
         except Exception:
             log.exception("on_event_callback raised exception")
+
+    def publish_message(self, message):
+        """ Sends the `message` to the zmq.PUB socket."""
+        self._pub_socket.send_multipart(
+            [x.encode("utf-8") for x in ["MESSAGE", message, ""]]
+        )

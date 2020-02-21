@@ -4,6 +4,7 @@ import logging
 import subprocess
 import tempfile
 import textwrap
+from subprocess import SubprocessError
 
 from pyface.api import (
     FileDialog,
@@ -86,6 +87,9 @@ class WfManagerSetupTask(Task):
 
     #: Indicates whether the 'run' toolbar and side pane buttons are active
     run_enabled = Bool(True)
+
+    #: Indicates whether the computation is paused and waits to resume
+    _paused = Bool(False)
 
     #: Indicates whether the saving and loading menu/toolbar buttons are
     #: active.
@@ -179,6 +183,22 @@ class WfManagerSetupTask(Task):
                     image=ImageResource("baseline_play_arrow_black_48dp"),
                     method="run_bdss",
                     enabled_name="run_enabled",
+                    image_size=(64, 64),
+                ),
+                TaskAction(
+                    name="Stop",
+                    tooltip="Stop Workflow",
+                    method="stop_bdss",
+                    enabled_name="computation_running",
+                    image=ImageResource("baseline_stop_black_18dp"),
+                    image_size=(64, 64),
+                ),
+                TaskAction(
+                    name=" Pause",
+                    tooltip="Pause Workflow",
+                    method="pause_bdss",
+                    enabled_name="computation_running",
+                    image=ImageResource("baseline_pause_black_18dp"),
                     image_size=(64, 64),
                 ),
                 TaskAction(
@@ -337,7 +357,7 @@ class WfManagerSetupTask(Task):
         except subprocess.CalledProcessError as e:
             # Ignore any error of execution.
             log.exception(
-                "force_bdss returned a " "non-zero value after execution"
+                "force_bdss returned a non-zero value after execution"
             )
             self._clean_tmp_workflow(workflow_path, silent=True)
             raise e
@@ -368,8 +388,8 @@ class WfManagerSetupTask(Task):
             # Ignore deletion errors, in case the file magically
             # vanished in the meantime
             log.exception(
-                "Unable to delete temporary "
-                "workflow file at {}".format(workflow_path)
+                f"Unable to delete temporary workflow file at "
+                f"{workflow_path}"
             )
             if not silent:
                 raise e
@@ -389,7 +409,6 @@ class WfManagerSetupTask(Task):
         exception: Exception or None
             If the execution raised an exception of any sort.
         """
-
         for hook_manager in self.ui_hooks_managers:
             try:
                 hook_manager.after_execution(self)
@@ -404,11 +423,16 @@ class WfManagerSetupTask(Task):
         self.computation_running = False
 
         if exception is not None:
-            error(
-                None,
-                "Execution of BDSS failed. \n\n{}".format(str(exception)),
-                "Error when running BDSS",
-            )
+            if str(exception) == "BDSS stopped" or isinstance(
+                exception, SubprocessError
+            ):
+                information(None, "Execution of BDSS stoped by the user.")
+            else:
+                error(
+                    None,
+                    f"Execution of BDSS failed. \n\n{exception}",
+                    "Error when running BDSS",
+                )
 
     # Handling of BDSS events via ZMQ server
     def _server_event_callback(self, event):
@@ -650,6 +674,44 @@ class WfManagerSetupTask(Task):
                 "Error when running BDSS",
             )
             self.computation_running = False
+
+    def stop_bdss(self):
+        self.zmq_server.publish_message("STOP_BDSS")
+        self._paused = False
+
+    def pause_bdss(self):
+        """Pause an MCO run"""
+        if self._paused:
+            message = "RESUME_BDSS"
+        else:
+            message = "PAUSE_BDSS"
+        self.zmq_server.publish_message(message)
+        self._paused = not self._paused
+
+    @on_trait_change("_paused")
+    def _pause_fired(self):
+        """ Updates the state of the 'Pause' / 'Resume' when the
+        `_paused` state changes."""
+        # NOTE: this is a workaround to sync the status of the setup
+        # task and review task tool bar icons. We should look to
+        # implement a better solution including a single instance
+        # of the SToolBar object containing the Run, Stop and Pause
+        # buttons for the MCO
+        for pause_task in [
+            self.tool_bars[0].items[2],
+            self.review_task.tool_bars[0].items[2]
+        ]:
+            if self._paused:
+                pause_task.image = ImageResource(
+                    "baseline_skip_next_black_18dp.png"
+                )
+                pause_task.name = "Resume"
+                pause_task.tooltip = "Resume BDSS"
+            else:
+                pause_task.image = ImageResource(
+                    "baseline_pause_black_18dp.png")
+                pause_task.name = " Pause"
+                pause_task.tooltip = "Pause BDSS"
 
     # Plugin Status
     def lookup_plugins(self):
