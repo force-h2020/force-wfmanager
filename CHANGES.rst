@@ -46,7 +46,7 @@ Changes
   (#260, #279, #287, #304)
 * TreeEditor view refactored (#285, #298, #299, #304, #313, #325) to better guide user through
   Build Workflow ---> Run MCO ---> View Results process
-* Replacement of many ``ModelView`` traits subclasses with ``HasTraits`` (#302)
+* Replacement of many ``ModelView`` traits subclasses with ``HasTraits`` (#304)
 * Individual MCOParameter and KPI views now combined into a shared notebook style view
   (#304, #313)
 * ZMQ serialisation / deserialization of ``BaseDriverEvent`` objects ported to ``force_bdss``
