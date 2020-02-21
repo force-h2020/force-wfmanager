@@ -3,7 +3,9 @@ from envisage.ui.tasks.tasks_plugin import TasksPlugin
 
 from traits.trait_types import Int
 
-from force_bdss.data_sources.base_data_source_model import BaseDataSourceModel
+from force_bdss.tests.probe_classes.data_source import (
+    ProbeDataSourceModel, ProbeDataSourceFactory
+)
 from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
@@ -46,6 +48,12 @@ class ProbeWfManager(WfManager):
         self.run = self._create_windows
 
 
-class ProbeDataSourceModel(BaseDataSourceModel):
+class ProbeDataSourceModel2(ProbeDataSourceModel):
 
-    test_trait = Int(13, desc='Test trait')
+    test_trait = Int(13, desc='Test trait', verify=True)
+
+
+class ProbeDataSourceFactory2(ProbeDataSourceFactory):
+
+    def get_model_class(self):
+        return ProbeDataSourceModel2

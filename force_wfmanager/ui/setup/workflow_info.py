@@ -63,7 +63,7 @@ class WorkflowInfo(HasTraits):
                           editor=ImageEditor(scale=True,
                                              allow_upscaling=False,
                                              preserve_aspect_ratio=True)),
-                    visible_when="selected_factory == 'Workflow'"
+                    visible_when="selected_factory_name == 'Workflow'"
                 )
             ),
             Group(
@@ -71,7 +71,7 @@ class WorkflowInfo(HasTraits):
                           editor=ListStrEditor(editable=False)),
                 show_border=True,
                 label='Available Plugins',
-                visible_when="selected_factory not in ['KPI']"
+                visible_when="selected_factory_name not in ['KPI']"
             ),
             Group(
                 UReadonly('workflow_filename_message', editor=TextEditor()),

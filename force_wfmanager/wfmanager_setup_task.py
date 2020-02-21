@@ -454,6 +454,7 @@ class WfManagerSetupTask(Task):
         if isinstance(event, MCOStartEvent):
             self.analysis_model.clear()
             self.analysis_model.value_names = tuple(event.serialize())
+            self.computation_running = True
         elif isinstance(event, MCOProgressEvent):
             self.analysis_model.add_evaluation_step(event.serialize())
 
@@ -639,8 +640,6 @@ class WfManagerSetupTask(Task):
             if result is not YES:
                 return
 
-        # Flag that a computation is running
-        self.computation_running = True
         # Run any plugin injected ui hooks before execution
         # For example, the UI Notification Hooks Manager sets up sockets
         # to communicate with the server before executing a workflow
