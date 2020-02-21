@@ -41,11 +41,10 @@ class UINotificationHooksManager(BaseUIHooksManager):
             notification_model = nl_factory.create_model()
             model.notification_listeners.append(notification_model)
 
-        pub_port, sync_port = task.zmq_server.ports
-        notification_model.sync_url = (
-                "tcp://127.0.0.1:"+str(sync_port))
-        notification_model.pub_url = (
-                "tcp://127.0.0.1:"+str(pub_port))
+        sub_port, pub_port, sync_port = task.zmq_server.ports
+        notification_model.sync_url = "tcp://127.0.0.1:" + str(sync_port)
+        notification_model.pub_url = "tcp://127.0.0.1:" + str(sub_port)
+        notification_model.sub_url = "tcp://127.0.0.1:" + str(pub_port)
         notification_model.identifier = ""
 
     def after_execution(self, task):
