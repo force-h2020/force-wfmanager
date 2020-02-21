@@ -52,6 +52,7 @@ Changes
 * ZMQ serialisation / deserialization of ``BaseDriverEvent`` objects ported to ``force_bdss``
   (#334, #339, #340, #342, #345)
 * Replaced (now obsolete) ``Unicode`` traits in favour of ``Str`` (#348)
+* ``UINotificationListener`` class now only delivers events of type ``UIEventMixin`` (#362)
 
 
 Fixes
