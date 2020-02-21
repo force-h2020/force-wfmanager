@@ -9,6 +9,8 @@ from force_bdss.api import (
     BaseDriverEvent,
     UIEventNotificationMixin,
 )
+from force_bdss.api import UIEventMixin
+
 
 log = logging.getLogger(__name__)
 
@@ -182,11 +184,15 @@ class UINotification(BaseNotificationListener, UIEventNotificationMixin):
         if not isinstance(event, BaseDriverEvent):
             raise TypeError("Event is not a BaseDriverEvent")
 
-        data = event.dumps_json()
+        if isinstance(event, UIEventMixin):
+            data = event.dumps_json()
 
-        self._pub_socket.send_multipart(
-            [x.encode("utf-8") for x in ["MESSAGE", self._identifier, data]]
-        )
+            self._pub_socket.send_multipart(
+                [
+                    x.encode("utf-8")
+                    for x in ["MESSAGE", self._identifier, data]
+                ]
+            )
 
     def finalize(self):
         """ Disconnects from the ZMQServer."""

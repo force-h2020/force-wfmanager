@@ -3,6 +3,7 @@ from testfixtures import LogCapture
 from threading import Event
 
 from force_bdss.api import (
+    BaseDriverEvent,
     MCOStartEvent,
     MCOProgressEvent,
     MCOFinishEvent,
@@ -104,6 +105,12 @@ class TestUINotification(unittest.TestCase):
             TypeError, "Event is not a BaseDriverEvent"
         ):
             listener.deliver("not an event")
+
+        with mock.patch.object(
+            listener._pub_socket, "send_multipart"
+        ) as mock_send:
+            listener.deliver(BaseDriverEvent())
+        mock_send.assert_not_called()
 
     def test_finalize(self):
         self.listener.initialize(self.model)
