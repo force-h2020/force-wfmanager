@@ -30,7 +30,7 @@ before_install:
     - if [[ ${TRAVIS_OS_NAME} == "linux" ]] ; then export PATH=${HOME}/edm/bin:${PATH} ; fi
     - if [[ ${TRAVIS_OS_NAME} == "osx" ]]; then export PATH="${PATH}:/usr/local/bin" ; fi
     - edm install --version 3.6 -y click setuptools
-    - git clone git://github.com/force-h2020/force-bdss.git
+    - git clone git://github.com/force-h2020/force-bdss.git -b dev/data-source-event
     - pushd force-bdss
     - edm run -- python -m ci build-env && edm run -- python -m ci install && popd
     - if [[ ${TRAVIS_OS_NAME} == "linux" ]] ; then sudo apt-get install --yes libglu1-mesa-dev mesa-common-dev; fi
