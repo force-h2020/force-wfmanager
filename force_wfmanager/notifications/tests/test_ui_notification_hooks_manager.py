@@ -30,7 +30,7 @@ class TestUINotificationHooksManager(unittest.TestCase):
         mock_registry = mock.Mock(spec=FactoryRegistry)
         mock_task.factory_registry = mock_registry
         mock_server = mock.Mock(spec=ZMQServer)
-        mock_server.ports = (54537, 54538)
+        mock_server.ports = (54537, 54531, 54538)
         mock_task.zmq_server = mock_server
         mock_registry.notification_listener_factory_by_id.return_value \
             = self.nl_factory
@@ -49,6 +49,7 @@ class TestUINotificationHooksManager(unittest.TestCase):
 
         self.assertEqual(model.pub_url, "tcp://127.0.0.1:54537")
         self.assertEqual(model.sync_url, "tcp://127.0.0.1:54538")
+        self.assertEqual(model.sub_url, "tcp://127.0.0.1:54531")
 
         manager.after_execution(mock_task)
 

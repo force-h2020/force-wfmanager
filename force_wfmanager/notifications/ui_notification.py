@@ -1,15 +1,19 @@
+from concurrent.futures import ThreadPoolExecutor
 import logging
-
 import zmq
 
-from traits.api import Instance, String
+from traits.api import Instance, String, Bool
 
-from force_bdss.api import BaseNotificationListener, BaseDriverEvent
+from force_bdss.api import (
+    BaseNotificationListener,
+    BaseDriverEvent,
+    UIEventNotificationMixin,
+)
 
 log = logging.getLogger(__name__)
 
 
-class UINotification(BaseNotificationListener):
+class UINotification(BaseNotificationListener, UIEventNotificationMixin):
     """
     Notification engine for the UI. Uses zeromq for the traffic handling.
     """
@@ -17,11 +21,18 @@ class UINotification(BaseNotificationListener):
     #: The ZMQ context. If None, it means that the service is unavailable.
     _context = Instance(zmq.Context)
 
-    #: The pubsub socket.
+    #: The Publisher pubsub socket.
     _pub_socket = Instance(zmq.Socket)
+
+    #: The Subscriber pubsub socket.
+    _sub_socket = Instance(zmq.Socket)
 
     #: The synchronization socket to communicate with the server (UI)
     _sync_socket = Instance(zmq.Socket)
+
+    #: zmq.Poller state. If not `_poller_running`, then the Listener
+    #: doesn't poll the Publishing socket on the WfManager side.
+    _poller_running = Bool(False)
 
     #: Unique identifier from the UI. To be returned in the protocol.
     _identifier = String()
@@ -40,11 +51,15 @@ class UINotification(BaseNotificationListener):
         if self._sync_socket:
             self._sync_socket.close()
 
+        if self._sub_socket:
+            self._sub_socket.close()
+
         if self._context:
             self._context.term()
 
         self._pub_socket = None
         self._sync_socket = None
+        self._sub_socket = None
         self._context = None
 
     def _create_context(self):
@@ -67,6 +82,11 @@ class UINotification(BaseNotificationListener):
         self._pub_socket = self._context.socket(zmq.PUB)
         self._pub_socket.setsockopt(zmq.LINGER, 0)
         self._pub_socket.connect(model.pub_url)
+
+        self._sub_socket = self._context.socket(zmq.SUB)
+        self._sub_socket.setsockopt(zmq.SUBSCRIBE, "".encode("utf-8"))
+        self._sub_socket.setsockopt(zmq.LINGER, 0)
+        self._sub_socket.connect(model.sub_url)
 
         self._sync_socket = self._context.socket(zmq.REQ)
         self._sync_socket.setsockopt(zmq.LINGER, 0)
@@ -105,6 +125,42 @@ class UINotification(BaseNotificationListener):
             self._close_and_clear_sockets()
             return
 
+        poll_executor = ThreadPoolExecutor(max_workers=1)
+        poll_executor.submit(self.run_poller, self._sub_socket)
+
+    def run_poller(self, sub_socket):
+        """ Instantiates a zmq.Poller bound to the `sub_socket` until the
+        self._poller_running is not set to False. The self._poller_running is
+        set to false either when a `STOP_BDSS` message is received, or when the
+        Listener is finalized.
+        """
+        poller = zmq.Poller()
+        poller.register(sub_socket)
+        self._poller_running = True
+
+        while self._poller_running:
+            events = dict(poller.poll())
+            if sub_socket not in events:
+                continue
+
+            data = [x.decode("utf-8") for x in sub_socket.recv_multipart()]
+            try:
+                msg, identifier, serialized_data = data
+            except ValueError:
+                log.error(
+                    f"Incompatible data received: expected "
+                    f"(msg, identifier, data), but got {data} "
+                    f"instead."
+                )
+            else:
+                if identifier == "STOP_BDSS":
+                    self._poller_running = False
+                    self.send_stop()
+                if identifier == "PAUSE_BDSS":
+                    self.send_pause()
+                if identifier == "RESUME_BDSS":
+                    self.send_resume()
+
     def deliver(self, event):
         """ Serializes as JSON and sends a BaseDriverEvent (see
         :class:`force_bdss.events.base_driver_event.BaseDriverEvent`)
@@ -136,6 +192,7 @@ class UINotification(BaseNotificationListener):
         """ Disconnects from the ZMQServer."""
         if not self._context:
             return
+        self._poller_running = False
 
         msg = [x.encode("utf-8") for x in ["GOODBYE", self._identifier]]
         self._sync_socket.send_multipart(msg)

@@ -24,3 +24,7 @@ During the execution of the ``force_bdss``, the results are displayed in the
 table located in the main pane of the GUI. Those results are also displayed in
 the plot, the user can choose what results to plot and the clicked point in
 the plot is synchronised with the selected row in the table.
+
+The execution of the ``force_bdss`` can be by paused (via "Pause") and resumed (via the same
+UI element but with the "Resume" tooltip). The execution can be stopped (via "Stop"), and then
+``force_bdss`` process is terminated.
