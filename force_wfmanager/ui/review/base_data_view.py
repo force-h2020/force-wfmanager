@@ -1,5 +1,10 @@
 from traits.api import (
-    Bool, Instance, HasStrictTraits, List, Callable, provides
+    Bool,
+    Instance,
+    HasStrictTraits,
+    List,
+    Callable,
+    provides,
 )
 
 from force_wfmanager.model.analysis_model import AnalysisModel
@@ -37,8 +42,10 @@ class BaseDataView(HasStrictTraits):
     def _displayable_data_mask_default(self):
         """ Default mask for data coming from the analysis model.
         Verifies that the data entry is numerical value."""
+
         def is_numerical(data_entry):
             return isinstance(data_entry, (int, float))
+
         return is_numerical
 
     def _update_displayable_value_names(self):

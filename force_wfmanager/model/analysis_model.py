@@ -111,7 +111,7 @@ class AnalysisModel(HasStrictTraits):
         """
         if len(self.value_names) == 0:
             raise ValueError(
-                "Cannot add evaluation step to an empty " "Analysis model"
+                "Cannot add evaluation step to an empty Analysis model"
             )
 
         if len(evaluation_step) != len(self.value_names):
