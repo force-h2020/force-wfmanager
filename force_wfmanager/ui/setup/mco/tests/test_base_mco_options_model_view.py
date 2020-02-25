@@ -3,6 +3,7 @@ import unittest
 from traits.testing.unittest_tools import UnittestTools
 
 from force_bdss.api import KPISpecification
+from force_bdss.tests.probe_classes.mco import ProbeMCOFactory
 
 from force_wfmanager.ui.setup.mco.base_mco_options_model_view import (
     BaseMCOOptionsModelView
@@ -46,7 +47,7 @@ class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
 
     def test_verify_mco_options(self):
 
-        factory = ProbeMCOFactory2({'id': '0', 'name': 'plugin'})
+        factory = ProbeMCOFactory({'id': '0', 'name': 'plugin'})
         parameter_factory = factory.parameter_factories[0]
         model = parameter_factory.create_model()
         self.mco_options_model_view.model=model

@@ -49,31 +49,3 @@ class ProbeWfManager(WfManager):
 
         # 'Run' the application by creating windows without an event loop
         self.run = self._create_windows
-
-
-class ProbeDataSourceModel2(ProbeDataSourceModel):
-
-    test_trait = Int(13, desc='Test trait', verify=True)
-
-
-class ProbeDataSourceFactory2(ProbeDataSourceFactory):
-
-    def get_model_class(self):
-        return ProbeDataSourceModel2
-
-
-class ProbeParameter2(ProbeParameter):
-
-    test_trait = Int(13, desc='Test trait', verify=True)
-
-
-class ProbeParameterFactory2(ProbeParameterFactory):
-
-    def get_model_class(self):
-        return ProbeParameter2
-
-
-class ProbeMCOFactory2(ProbeMCOFactory):
-
-    def get_parameter_factory_classes(self):
-        return [ProbeParameterFactory2]
