@@ -6,6 +6,9 @@ from traits.trait_types import Int
 from force_bdss.tests.probe_classes.data_source import (
     ProbeDataSourceModel, ProbeDataSourceFactory
 )
+from force_bdss.tests.probe_classes.mco import (
+    ProbeParameter, ProbeParameterFactory, ProbeMCOFactory
+)
 from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
@@ -57,3 +60,20 @@ class ProbeDataSourceFactory2(ProbeDataSourceFactory):
 
     def get_model_class(self):
         return ProbeDataSourceModel2
+
+
+class ProbeParameter2(ProbeParameter):
+
+    test_trait = Int(13, desc='Test trait', verify=True)
+
+
+class ProbeParameterFactory2(ProbeParameterFactory):
+
+    def get_model_class(self):
+        return ProbeParameter2
+
+
+class ProbeMCOFactory2(ProbeMCOFactory):
+
+    def get_parameter_factory_classes(self):
+        return [ProbeParameterFactory2]
