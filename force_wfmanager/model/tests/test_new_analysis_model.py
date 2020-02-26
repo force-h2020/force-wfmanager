@@ -280,3 +280,27 @@ class TestAnalysisModel(TestCase):
         self.assertFalse(self.model.export_enabled)
         self.assertEqual([], self.model.evaluation_steps)
         self.assertTupleEqual(self.model.header, ())
+
+    def test_selected_step_indices(self):
+        self.assertIsNone(self.model.selected_step_indices)
+
+        header = ("a", "b", "c")
+        data = ((1, 2, 3), (4, 5, 6))
+        self.model.notify(header)
+        for entry in data:
+            self.model.notify(entry)
+
+        self.assertIsNone(self.model.selected_step_indices)
+        self.model.selected_step_indices = [1]
+        self.assertListEqual(self.model.selected_step_indices, [1])
+        self.model.selected_step_indices = [1, 2]
+        self.assertListEqual(self.model.selected_step_indices, [1, 2])
+        error = (
+            "Invalid value for selection index 3. "
+            "It must be a positive Int less or equal to 1"
+        )
+        with self.assertRaisesRegex(ValueError, error):
+            self.model.selected_step_indices = [1, 3]
+
+        with self.assertRaises(TraitError):
+            self.model.selected_step_indices = [-1]

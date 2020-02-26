@@ -11,7 +11,9 @@ from traits.api import (
     Tuple,
     TraitError,
     Dict,
+    Either,
 )
+from force_bdss.local_traits import PositiveInt
 
 log = logging.getLogger(__name__)
 
@@ -43,6 +45,15 @@ class AnalysisModel(HasStrictTraits):
     #: If there are results, then they can be exported
     export_enabled = Property(Bool(), depends_on="_export_enabled")
 
+    #: Selected step, used for highlighting in the table/plot.
+    #: If selected, it must be in the allowed range of values.
+    _selected_step_indices = Either(None, List(PositiveInt()))
+
+    #: Property that informs about the currently selected step.
+    selected_step_indices = Property(
+        Either(None, List(PositiveInt)), depends_on="_selected_step_indices"
+    )
+
     def _header_default(self):
         return ()
 
@@ -54,6 +65,27 @@ class AnalysisModel(HasStrictTraits):
 
     def _get_evaluation_steps(self):
         return self._evaluation_steps
+
+    def _get_selected_step_indices(self):
+        return self._selected_step_indices
+
+    def _set_selected_step_indices(self, values):
+        """ Check the requested indices of selected rows, and use the
+        requested values if they exist in the table, or are None.
+        """
+        if values is None:
+            self._selected_step_indices = values
+            return
+
+        for value in values:
+            if value > len(self.evaluation_steps):
+                raise ValueError(
+                    f"Invalid value for selection index {value}. "
+                    "It must be a positive Int less or equal to "
+                    f"{len(self.evaluation_steps)-1}"
+                )
+
+        self._selected_step_indices = values
 
     def notify(self, data):
         """ Public method to add `data` to the AnalysisModel.
