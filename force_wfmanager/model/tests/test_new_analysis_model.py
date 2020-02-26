@@ -190,6 +190,22 @@ class TestAnalysisModel(TestCase):
         data = ((1, 2, 3), (4, 5, 6))
         state_dict = {"header": header, 1: data[0], 2: data[1]}
 
+        error = (
+            "AnalysisModel can't be instantiated from a data dictionary"
+            " that does not contain a header."
+        )
+        with LogCapture() as capture:
+            with self.assertRaisesRegex(KeyError, error):
+                AnalysisModel().from_json({1: data[0], 2: data[1]})
+        capture.check(
+            (
+                "force_wfmanager.model.new_analysis_model",
+                "ERROR",
+                "AnalysisModel can't be instantiated from a data dictionary that does not "
+                "contain a header.",
+            )
+        )
+
         with mock.patch.object(AnalysisModel, "clear") as mock_clear:
             model = AnalysisModel()
             model.from_json(state_dict)
@@ -213,6 +229,20 @@ class TestAnalysisModel(TestCase):
 
         self.model._export_enabled = False
         self.assertFalse(self.model.dump_json(None))
+
+        header = ("a", "b", "c")
+        data = ((1, 2, 3), (4, 5, 6))
+        state_dict = {"header": header, 1: data[0], 3: data[1]}
+        with LogCapture() as capture:
+            AnalysisModel().from_json(state_dict)
+        capture.check(
+            (
+                "force_wfmanager.model.new_analysis_model",
+                "WARNING",
+                "Can't find a row with index 2. This index will "
+                "be skipped in the AnalysisModel.",
+            )
+        )
 
     def test_write_csv(self):
         header = ("a", "b", "c")

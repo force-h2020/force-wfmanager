@@ -159,11 +159,12 @@ class AnalysisModel(HasStrictTraits):
         try:
             header = data["header"]
         except KeyError as e:
-            log.error(
+            error = (
                 "AnalysisModel can't be instantiated from a data dictionary"
-                "that does not contain a 'header'."
+                " that does not contain a header."
             )
-            raise e
+            log.error(error)
+            raise KeyError(error)
         else:
             self.notify(tuple(header))
 
