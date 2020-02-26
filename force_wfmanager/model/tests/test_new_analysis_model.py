@@ -201,8 +201,8 @@ class TestAnalysisModel(TestCase):
             (
                 "force_wfmanager.model.new_analysis_model",
                 "ERROR",
-                "AnalysisModel can't be instantiated from a data dictionary that does not "
-                "contain a header.",
+                "AnalysisModel can't be instantiated from a data dictionary "
+                "that does not contain a header.",
             )
         )
 

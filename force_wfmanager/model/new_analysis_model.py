@@ -158,7 +158,7 @@ class AnalysisModel(HasStrictTraits):
 
         try:
             header = data["header"]
-        except KeyError as e:
+        except KeyError:
             error = (
                 "AnalysisModel can't be instantiated from a data dictionary"
                 " that does not contain a header."
