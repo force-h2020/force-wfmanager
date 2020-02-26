@@ -1,61 +1,53 @@
+import csv
 import json
 import logging
 
 from traits.api import (
     Bool,
     Str,
-    Either,
     HasStrictTraits,
-    Int,
     List,
     Property,
     Tuple,
-    on_trait_change,
+    TraitError,
+    Dict,
 )
 
 log = logging.getLogger(__name__)
 
 
-class NewAnalysisModel(HasStrictTraits):
+class AnalysisModel(HasStrictTraits):
 
     #: Tuple of column names of the analysis model. The names are defined
     #: by the MCOStartEvent parsed in ``_server_event_mainthread()`` in
     #: :class:`WFManagerSetupTask
     #: <force_wfmanager.wfmanager_setup_task.WfManagerSetupTask>`.
-    value_names = Tuple(Str())
+    header = Tuple()
 
-    #: Shadow trait of the `evaluation_steps` property
-    #: Listens to: :attr:`value_names`
+    #: The current row of the model. The received data is added to the
+    #: `_row_data` first, before the whole row is added to the model table.
+    _row_data = Dict(key_trait=Str)
+
+    #: Private trait of the `evaluation_steps` property
     _evaluation_steps = List(Tuple())
 
-    #: Tracks whether the current state of AnalysisModel can be exported
-    _export_enabled = Bool(False)
-
     #: Evaluation steps, each evaluation step is a tuple of parameter values,
-    #: received from the bdss. Each value can be of any type. The order of
+    #: received from the a single Worjflow execution. The order of
     #: the parameters in each evaluation step must match the order of
     #: value_names
     evaluation_steps = Property(List(Tuple()), depends_on="_evaluation_steps")
 
+    #: Tracks whether the current state of AnalysisModel can be exported
+    _export_enabled = Bool(False)
+
     #: If there are results, then they can be exported
     export_enabled = Property(Bool(), depends_on="_export_enabled")
 
-    #: Selected step, used for highlighting in the table/plot.
-    #: Listens to: :attr:`value_names`
-    _selected_step_indices = Either(None, List(Int()))
+    def _header_default(self):
+        return ()
 
-    #: Property that informs about the currently selected step.
-    #: Can be None if nothing is selected. If selected, it must be
-    #: in the allowed range of values.
-    #: Listens to :attr:`Plot._plot_index_datasource
-    #: <force_wfmanager.central_pane.plot.Plot._plot_index_datasource>`
-    selected_step_indices = Property(
-        Either(None, List(Int)), depends_on="_selected_step_indices"
-    )
-
-    # ------------------
-    #     Listeners
-    # ------------------
+    def _row_data_default(self):
+        return dict.fromkeys(self.header)
 
     def _get_export_enabled(self):
         return self._export_enabled
@@ -63,57 +55,86 @@ class NewAnalysisModel(HasStrictTraits):
     def _get_evaluation_steps(self):
         return self._evaluation_steps
 
-    def _get_selected_step_indices(self):
-        return self._selected_step_indices
+    def notify(self, data):
+        if not self.header:
+            self._add_header(data)
+        else:
+            self._add_data(data)
 
-    def _set_selected_step_indices(self, values):
-        """ Check the requested indices of selected rows, and use the
-        requested values if they exist in the table, or are None.
+    def _add_header(self, header):
+        """ Creates the header of the AnalysisModel. Updates the
+        current row to the default value with the header values as
+        the keys."""
+        try:
+            self.header = header
+        except TraitError as e:
+            log.error(
+                f"The Header of the AnalysisModel can't be defined by "
+                f"the {header}. A list or tuple of strings is required."
+            )
+            raise e
+        else:
+            self._row_data = self._row_data_default()
 
+    def _add_data(self, data):
+        try:
+            for key, value in data.items():
+                self._add_cell(key, value)
+        except AttributeError:
+            self._add_cells(data)
+            self._finalize_row()
+
+    def _add_cell(self, label, value):
+        """ Inserts a `value` into the `label` cell of the current
+        row (self.row_data)"""
+        if label in self.header:
+            self._row_data.update({label: value})
+        else:
+            log.warning(
+                f"The AnalysisModel does not have the {label} column."
+                f"The value {value} has not been added to the table."
+            )
+
+    def _add_cells(self, data):
+        """ Inserts the `data` to the `self.row_data`, starting from the
+        first cell until every `data` element is inserted, or `self.row_data`
+        is not completed.`"""
+        for column, value in zip(self.header, data):
+            self._row_data[column] = value
+
+    def _finalize_row(self):
+        """ Finalizes the `self.row_data` update: adds the row data to
+        the table, and empties the row data for the next row."""
+        row_data = tuple(
+            self._row_data.get(label, None) for label in self.header
+        )
+        self._add_evaluation_step(row_data)
+        self._row_data = self._row_data_default()
+
+    def clear_steps(self):
+        """ Removes all entries in the list :attr:`evaluation_steps` and sets
+        :attr:`selected_step_indices` to None but does not clear
+        :attr:`value_names`
         """
-        if values is not None:
-            for value in values:
-                if isinstance(value, int) and not (
-                    0 <= value < len(self._evaluation_steps)
-                ):
-                    raise ValueError(
-                        "Invalid value for selection index {}. Current "
-                        "number of steps = {}".format(
-                            value, len(self._evaluation_steps)
-                        )
-                    )
-
-        self._selected_step_indices = values
-
-    @on_trait_change("value_names")
-    def _clear_evaluation_steps(self):
         self._evaluation_steps[:] = []
-        self._selected_step_indices = None
         self._export_enabled = False
 
-    # ------------------
-    #   Public Methods
-    # ------------------
-
-    def add_evaluation_step(self, evaluation_step):
-        """Add the result of an optimisation run to the AnalysisModel
+    def _add_evaluation_step(self, evaluation_step):
+        """ Add the completed row data to the evaluation steps table.
 
         Parameters
         ---------
-        evaluation_step: Tuple
-            A pair of values, which can be of any type.
+        evaluation_step: tuple
         """
-        if len(self.value_names) == 0:
+        if len(self.header) == 0:
             raise ValueError(
                 "Cannot add evaluation step to an empty Analysis model"
             )
 
-        if len(evaluation_step) != len(self.value_names):
+        if len(evaluation_step) != len(self.header):
             raise ValueError(
-                "Size of evaluation step '{}' is incompatible "
-                "with the number of value names {}.".format(
-                    evaluation_step, self.value_names
-                )
+                "Size of evaluation step is incompatible with the length of "
+                "the header."
             )
 
         self._evaluation_steps.append(evaluation_step)
@@ -123,86 +144,74 @@ class NewAnalysisModel(HasStrictTraits):
         """ Sets :attr:`value_names` to be empty, removes all entries in the
         list :attr:`evaluation_steps` and sets :attr:`selected_step_indices`
         to None"""
-        self.value_names = ()
-        self._clear_evaluation_steps()
+        self.header = self._header_default()
+        self.clear_steps()
 
-    def clear_steps(self):
-        """ Removes all entries in the list :attr:`evaluation_steps` and sets
-        :attr:`selected_step_indices` to None but does not clear
-        :attr:`value_names`
-        """
-        self._clear_evaluation_steps()
-
-    def from_dict(self, data):
+    def from_json(self, data):
         """ Delete all current data and load :attr:`value_names` and
         :attr:`evaluation_steps` from a dictionary.
 
         """
-        self._clear_evaluation_steps()
-        self.value_names = tuple(data.keys())
-        if not self.value_names:
+        self.clear()
+        if not data:
             return
-        for ind, _ in enumerate(data[self.value_names[0]]):
-            step = tuple(data[column][ind] for column in self.value_names)
-            self.add_evaluation_step(step)
 
-    def as_json(self):
-        """ Returns a JSON representation with column names as keys and
-        values stored as lists under those keys.
+        try:
+            header = data["header"]
+        except KeyError as e:
+            log.error(
+                "AnalysisModel can't be instantiated from a data dictionary"
+                "that does not contain a 'header'."
+            )
+            raise e
+        else:
+            self.notify(tuple(header))
 
-        Returns
-        -------
-        dict: a dictionary containing the JSON representation.
+        for index in range(1, len(data)):
+            try:
+                step = data[index]
+            except KeyError:
+                log.warning(
+                    f"Can't find a row with index {index}. This index will "
+                    f"be skipped in the AnalysisModel."
+                )
+            else:
+                self.notify(step)
 
-        """
-        json_representation = {}
-        for name in self.value_names:
-            json_representation[name] = []
-        for step in self.evaluation_steps:
-            for ind, name in enumerate(self.value_names):
-                json_representation[name].append(step[ind])
-
-        return json_representation
-
-    def write_to_json(self, fp):
-        """ Write the current state of the AnalysisModel to a file in JSON format.
-
-        Parameters
-        ----------
-        fp (a .write() supporting file-like object).
+    def __getstate__(self):
+        """ Returns a dictionary representation with column names as keys
+        and column values as values.
 
         Returns
         -------
-        bool: whether the write was successful or not.
+        data: a dictionary containing the column-wise representation of
+        the `self`.
 
         """
-        if not self._export_enabled:
+        data = {"header": self.header}
+        for index, row in enumerate(self.evaluation_steps, start=1):
+            data[index] = row
+
+        return data
+
+    def dump_json(self, filename, *, mode="w"):
+        """ Writes the AnalysisModel to a `filename` file in json format."""
+        if not self.export_enabled:
             return False
 
-        json.dump(self.as_json(), fp, sort_keys=False, indent=4)
-
+        with open(filename, mode) as file:
+            json.dump(self.__getstate__(), file, indent=4)
         return True
 
-    def write_to_csv(self, fp):
-        """ Write the current state of the AnalysisModel to a file in a CSV format,
-        that includes column names in the first line.
-
-        Parameters
-        ----------
-        fp (a .write() supporting file-like object).
-
-        Returns
-        -------
-        bool: whether the write was successful or not.
-
-        """
-        if not self._export_enabled:
+    def dump_csv(self, filename, *, mode="w"):
+        """ Writes the AnalysisModel to a `filename` file in csv format."""
+        if not self.export_enabled:
             return False
 
-        fp.write(", ".join(self.value_names) + "\n")
-        for step in self.evaluation_steps:
-            # val can have arbitrary type, so cannot
-            # e.g. specify a floating point precision
-            fp.write(", ".join([str(val) for val in step]) + "\n")
+        with open(filename, mode) as file:
+            writer = csv.writer(file)
+            writer.writerow(self.header)
+            for step in self.evaluation_steps:
+                writer.writerow(step)
 
         return True
