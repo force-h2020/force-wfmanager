@@ -56,6 +56,11 @@ class AnalysisModel(HasStrictTraits):
         return self._evaluation_steps
 
     def notify(self, data):
+        """ Public method to add `data` to the AnalysisModel.
+        If no `header` is set up, the `data` is considered to be a
+        `header`. Otherwise, the `data` is treated as to be added to
+        the current row.
+        """
         if not self.header:
             self._add_header(data)
         else:
@@ -77,6 +82,11 @@ class AnalysisModel(HasStrictTraits):
             self._row_data = self._row_data_default()
 
     def _add_data(self, data):
+        """ For a prepared AnalysisModel (when the header is already set up),
+        adds `data` to the current row. The way the `data` is added depends
+        on the format of the argument.
+        If `data` is a dict-like object, `_add_cell` is called.
+        Otherwise, `_add_cells` is called."""
         try:
             for key, value in data.items():
                 self._add_cell(key, value)
@@ -85,8 +95,8 @@ class AnalysisModel(HasStrictTraits):
             self._finalize_row()
 
     def _add_cell(self, label, value):
-        """ Inserts a `value` into the `label` cell of the current
-        row (self.row_data)"""
+        """ Inserts a `value` into the column of the current row
+        (self.row_data) with the `label` label."""
         if label in self.header:
             self._row_data.update({label: value})
         else:
