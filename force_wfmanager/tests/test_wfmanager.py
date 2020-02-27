@@ -9,7 +9,7 @@ from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
 from force_bdss.api import Workflow
 
-from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.model.new_analysis_model import AnalysisModel
 from force_wfmanager.tests import fixtures
 from force_wfmanager.wfmanager import TaskWindowClosePrompt
 
