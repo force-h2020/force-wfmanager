@@ -7,11 +7,10 @@ from traits.api import Bool, Instance, List, on_trait_change
 
 from force_bdss.api import Workflow
 
-from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.model.new_analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.wfmanager import TaskToggleGroupAccelerator
-from force_wfmanager.io.analysis_model_io import write_analysis_model
 from force_wfmanager.io.project_io import write_project_file, load_project_file
 
 log = logging.getLogger(__name__)
@@ -247,7 +246,7 @@ class WfManagerReviewTask(Task):
 
         """
         try:
-            write_analysis_model(self.analysis_model, file_path)
+            self.analysis_model.dump_json(file_path)
         except IOError as e:
             error(
                 None,
