@@ -212,7 +212,7 @@ class AnalysisModel(HasStrictTraits):
 
         for index in range(1, len(data)):
             try:
-                step = data[index]
+                step = data[str(index)]
             except KeyError:
                 log.warning(
                     f"Can't find a row with index {index}. This index will "

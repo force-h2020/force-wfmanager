@@ -192,7 +192,7 @@ class TestAnalysisModel(TestCase):
     def test_json(self):
         header = ("a", "b", "c")
         data = ((1, 2, 3), (4, 5, 6))
-        state_dict = {"header": header, 1: data[0], 2: data[1]}
+        state_dict = {"header": header, "1": data[0], "2": data[1]}
 
         error = (
             "AnalysisModel can't be instantiated from a data dictionary"
@@ -200,7 +200,7 @@ class TestAnalysisModel(TestCase):
         )
         with LogCapture() as capture:
             with self.assertRaisesRegex(KeyError, error):
-                AnalysisModel().from_json({1: data[0], 2: data[1]})
+                AnalysisModel().from_json({"1": data[0], "2": data[1]})
         capture.check(
             (
                 "force_wfmanager.model.new_analysis_model",
@@ -236,7 +236,7 @@ class TestAnalysisModel(TestCase):
 
         header = ("a", "b", "c")
         data = ((1, 2, 3), (4, 5, 6))
-        state_dict = {"header": header, 1: data[0], 3: data[1]}
+        state_dict = {"header": header, "1": data[0], "3": data[1]}
         with LogCapture() as capture:
             AnalysisModel().from_json(state_dict)
         capture.check(
@@ -251,7 +251,7 @@ class TestAnalysisModel(TestCase):
     def test_write_csv(self):
         header = ("a", "b", "c")
         data = ((1, 2, 3), (4, 5, 6))
-        state_dict = {"header": header, 1: data[0], 2: data[1]}
+        state_dict = {"header": header, "1": data[0], "2": data[1]}
         self.model.from_json(state_dict)
         tmp_file = tempfile.NamedTemporaryFile()
         filename = tmp_file.name
