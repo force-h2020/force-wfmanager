@@ -255,7 +255,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
     def test_dispatch_mco_event(self):
         send_event = self.setup_task._server_event_callback
-        self.assertEqual(self.setup_task.analysis_model.value_names, ())
+        self.assertEqual(self.setup_task.analysis_model.header, ())
         with self.event_loop():
             send_event(MCOStartEvent(parameter_names=["x"], kpi_names=["y"]))
 
@@ -263,7 +263,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             len(self.setup_task.analysis_model.evaluation_steps), 0
         )
         self.assertEqual(
-            self.setup_task.analysis_model.value_names, ("x", "y")
+            self.setup_task.analysis_model.header, ("x", "y")
         )
 
         with self.event_loop():
@@ -311,8 +311,8 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
     def test_run_bdss(self):
 
-        self.setup_task.analysis_model.value_names = ("x",)
-        self.setup_task.analysis_model.add_evaluation_step((2.0,))
+        self.setup_task.analysis_model.header = ("x",)
+        self.setup_task.analysis_model.notify((2.0,))
         mock_open = mock.mock_open()
         with mock.patch(CONFIRM_PATH) as mock_confirm, mock.patch(
             FILE_DIALOG_PATH
@@ -390,8 +390,8 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             )
 
     def test_run_bdss_cancel(self):
-        self.setup_task.analysis_model.value_names = ("x",)
-        self.setup_task.analysis_model.add_evaluation_step((2.0,))
+        self.setup_task.analysis_model.header = ("x",)
+        self.setup_task.analysis_model.notify((2.0,))
         with mock.patch(CONFIRM_PATH) as mock_confirm:
             mock_confirm.side_effect = mock_confirm_function(CANCEL)
 

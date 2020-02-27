@@ -24,7 +24,6 @@ from force_bdss.api import (
     BaseExtensionPlugin,
     BaseUIHooksManager,
     IFactoryRegistry,
-    MCOProgressEvent,
     MCOStartEvent,
     InvalidFileException,
     Workflow,
@@ -34,7 +33,7 @@ from force_wfmanager.io.workflow_io import (
     write_workflow_file,
     load_workflow_file,
 )
-from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.model.new_analysis_model import AnalysisModel
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.ui import (
@@ -453,10 +452,13 @@ class WfManagerSetupTask(Task):
         action appropriately according to the type"""
         if isinstance(event, MCOStartEvent):
             self.analysis_model.clear()
-            self.analysis_model.value_names = tuple(event.serialize())
             self.computation_running = True
-        elif isinstance(event, MCOProgressEvent):
-            self.analysis_model.add_evaluation_step(event.serialize())
+        try:
+            event_data = event.serialize()
+        except AttributeError:
+            return
+
+        self.analysis_model.notify(event_data)
 
     # Error Display
     def _show_error_dialog(self, message):

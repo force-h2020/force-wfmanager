@@ -17,7 +17,7 @@ from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.review.results_pane import ResultsPane
-from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.model.new_analysis_model import AnalysisModel
 
 from .mock_methods import (
     mock_file_writer,
