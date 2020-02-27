@@ -238,7 +238,7 @@ class BasePlot(BaseDataView):
             # If there are no displayable_value_names, set the plot view
             # to a default state.
             # This occurs when the analysis model is cleared, or no data
-            # from the self.data_arrays is displayable.
+            # from the self.analysis_model is displayable.
             self._plot.x_axis.title = ""
             self._plot.y_axis.title = ""
             self.x = ""
@@ -288,7 +288,7 @@ class BasePlot(BaseDataView):
     def _update_plot_x_data(self):
         """ Update data points displayed by the x axis.
         Sets the x-`self._plot_data` to corresponding data in the
-        `self.data_arrays`.
+        `self.analysis_model`.
         This method is called by the `_update_plot` method during
         the callback update.
         This method is called when the `x` axis is changed.
@@ -297,8 +297,6 @@ class BasePlot(BaseDataView):
             self._plot_data.set_data("x", [])
         else:
             self._plot.x_axis.title = self.x
-            x_index = self.analysis_model.header.index(self.x)
-            # self._plot_data.set_data("x", self.data_arrays[x_index])
             self._plot_data.set_data("x", self.analysis_model.column(self.x))
 
     def recenter_x_axis(self):
@@ -328,7 +326,7 @@ class BasePlot(BaseDataView):
     def _update_plot_y_data(self):
         """ Update data points displayed by the y axis.
         Sets the y-`self._plot_data` to corresponding data in the
-        `self.data_arrays`.
+        `self.analysis_model`.
         This method is called by the `_update_plot` method during
         the callback update.
         This method is called when the `y` axis is changed.
@@ -337,8 +335,6 @@ class BasePlot(BaseDataView):
             self._plot_data.set_data("y", [])
         else:
             self._plot.y_axis.title = self.y
-            y_index = self.analysis_model.header.index(self.y)
-            # self._plot_data.set_data("y", self.data_arrays[y_index])
             self._plot_data.set_data("y", self.analysis_model.column(self.y))
 
     def recenter_y_axis(self):
@@ -401,8 +397,6 @@ class BasePlot(BaseDataView):
         if self.toggle_automatic_update:
             self.recenter_plot()
 
-        c_index = self.analysis_model.header.index(self.color_by)
-        # self._plot_data.set_data("color_by", self.data_arrays[c_index])
         self._plot_data.set_data("color_by", self.analysis_model.column(self.color_by))
 
     def _check_scheduled_updates(self):
@@ -410,7 +404,6 @@ class BasePlot(BaseDataView):
         callback for the _plot_updater timer.
         """
         if self.update_required:
-            # self._update_data_arrays()
             self._update_displayable_value_names()
             self._update_plot()
             self._reset_zoomtool()
@@ -615,6 +608,4 @@ class Plot(BasePlot):
             self._plot_data.set_data("color_by", [])
             return
 
-        c_index = self.analysis_model.header.index(self.color_by)
-        # self._plot_data.set_data("color_by", self.data_arrays[c_index])
         self._plot_data.set_data("color_by", self.analysis_model.column(self.color_by))
