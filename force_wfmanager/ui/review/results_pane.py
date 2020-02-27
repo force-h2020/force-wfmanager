@@ -2,7 +2,7 @@ from pyface.tasks.api import TraitsDockPane
 from traits.api import Instance
 from traitsui.api import VGroup, View, UItem
 
-from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.model.new_analysis_model import AnalysisModel
 from force_wfmanager.ui.review.results_table import ResultsTable
 
 
@@ -21,10 +21,10 @@ class ResultsPane(TraitsDockPane):
     # ------------------
 
     #: An internal identifier for this pane
-    id = 'force_wfmanager.results_pane'
+    id = "force_wfmanager.results_pane"
 
     #: Name displayed as the title of this pane
-    name = 'Results Table'
+    name = "Results Table"
 
     #: Remove the possibility to close the pane
     closable = False
@@ -50,13 +50,9 @@ class ResultsPane(TraitsDockPane):
     # View
     # ----
 
-    traits_view = View(VGroup(
-        UItem('results_table', style='custom'),
-    ))
+    traits_view = View(VGroup(UItem("results_table", style="custom")))
 
     # Defaults
 
     def _results_table_default(self):
-        return ResultsTable(
-            analysis_model=self.analysis_model
-        )
+        return ResultsTable(analysis_model=self.analysis_model)
