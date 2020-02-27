@@ -361,9 +361,8 @@ class BasePlot(BaseDataView):
             axis_max = max(data) * 1.0
             axis_min = min(data)
             axis_spread = abs(axis_max - axis_min)
-            axis_mean = 0.5 * (axis_max + axis_min)
-            axis_max = axis_max + 0.1 * (axis_spread + axis_mean)
-            axis_min = axis_min - 0.1 * (axis_spread + axis_mean)
+            axis_max = axis_max + 0.1 * axis_spread
+            axis_min = axis_min - 0.1 * axis_spread
             bounds = (axis_min, axis_max)
         elif len(data) == 1:
             bounds = (data[0] - 0.5, data[0] + 0.5)
