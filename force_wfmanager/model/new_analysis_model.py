@@ -12,8 +12,8 @@ from traits.api import (
     TraitError,
     Dict,
     Either,
+    Int
 )
-from force_bdss.local_traits import PositiveInt
 
 log = logging.getLogger(__name__)
 
@@ -47,11 +47,11 @@ class AnalysisModel(HasStrictTraits):
 
     #: Selected step, used for highlighting in the table/plot.
     #: If selected, it must be in the allowed range of values.
-    _selected_step_indices = Either(None, List(PositiveInt()))
+    _selected_step_indices = Either(None, List(Int()))
 
     #: Property that informs about the currently selected step.
     selected_step_indices = Property(
-        Either(None, List(PositiveInt)), depends_on="_selected_step_indices"
+        Either(None, List(Int)), depends_on="_selected_step_indices"
     )
 
     def _header_default(self):
@@ -78,7 +78,7 @@ class AnalysisModel(HasStrictTraits):
             return
 
         for value in values:
-            if value > len(self.evaluation_steps):
+            if value > len(self.evaluation_steps) or value < 0:
                 raise ValueError(
                     f"Invalid value for selection index {value}. "
                     "It must be a positive Int less or equal to "

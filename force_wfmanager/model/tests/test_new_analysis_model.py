@@ -305,6 +305,9 @@ class TestAnalysisModel(TestCase):
         )
         with self.assertRaisesRegex(ValueError, error):
             self.model.selected_step_indices = [1, 3]
-
-        with self.assertRaises(TraitError):
+        error = (
+            "Invalid value for selection index -1. "
+            "It must be a positive Int less or equal to 1"
+        )
+        with self.assertRaisesRegex(ValueError, error):
             self.model.selected_step_indices = [-1]
