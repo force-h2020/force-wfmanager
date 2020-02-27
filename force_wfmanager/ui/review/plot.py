@@ -297,7 +297,7 @@ class BasePlot(BaseDataView):
             self._plot_data.set_data("x", [])
         else:
             self._plot.x_axis.title = self.x
-            x_index = self.analysis_model.value_names.index(self.x)
+            x_index = self.analysis_model.header.index(self.x)
             self._plot_data.set_data("x", self.data_arrays[x_index])
 
     def recenter_x_axis(self):
@@ -336,7 +336,7 @@ class BasePlot(BaseDataView):
             self._plot_data.set_data("y", [])
         else:
             self._plot.y_axis.title = self.y
-            y_index = self.analysis_model.value_names.index(self.y)
+            y_index = self.analysis_model.header.index(self.y)
             self._plot_data.set_data("y", self.data_arrays[y_index])
 
     def recenter_y_axis(self):
@@ -399,7 +399,7 @@ class BasePlot(BaseDataView):
         if self.toggle_automatic_update:
             self.recenter_plot()
 
-        c_index = self.analysis_model.value_names.index(self.color_by)
+        c_index = self.analysis_model.header.index(self.color_by)
         self._plot_data.set_data("color_by", self.data_arrays[c_index])
 
     def _check_scheduled_updates(self):
@@ -612,6 +612,6 @@ class Plot(BasePlot):
             self._plot_data.set_data("color_by", [])
             return
 
-        c_index = self.analysis_model.value_names.index(self.color_by)
+        c_index = self.analysis_model.header.index(self.color_by)
         self._plot_data.set_data("color_by", self.data_arrays[c_index])
         self._plot_data.set_data("color_by", self.data_arrays[c_index])
