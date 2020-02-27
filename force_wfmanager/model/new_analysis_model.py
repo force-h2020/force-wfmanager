@@ -12,7 +12,7 @@ from traits.api import (
     TraitError,
     Dict,
     Either,
-    Int
+    Int,
 )
 
 log = logging.getLogger(__name__)
@@ -181,6 +181,29 @@ class AnalysisModel(HasStrictTraits):
 
         self._evaluation_steps.append(evaluation_step)
         self._export_enabled = True
+
+    def column(self, label):
+        """ Returns a list of values from the column of the AnalysisModel.
+        If `label` is a string, the corresponding column index is inferred
+        from the AnalysisModel.header.
+        If `label` is an int, it defines the column index."""
+        column_error = ValueError(
+            f"Column of the AnalysisModel with label {label}"
+            " doesn't exist. The label must be a string or int."
+        )
+
+        if label in self.header:
+            index = self.header.index(label)
+        elif isinstance(label, int):
+            index = label
+        else:
+            raise column_error
+
+        if index >= len(self.header):
+            raise column_error
+
+        data = [step[index] for step in self.evaluation_steps]
+        return data
 
     def clear(self):
         """ Sets :attr:`value_names` to be empty, removes all entries in the

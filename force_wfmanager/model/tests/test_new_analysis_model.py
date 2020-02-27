@@ -174,6 +174,36 @@ class TestAnalysisModel(TestCase):
         mock_header.assert_called_once()
         mock_data.assert_called_once()
 
+    def test_column(self):
+        header = ("a", "b", "c")
+        data = ((1, 2, 3), (4, 5, 6))
+        state_dict = {"header": header, "1": data[0], "2": data[1]}
+        self.model.from_json(state_dict)
+
+        column_by_id = self.model.column(0)
+        column_by_label = self.model.column("a")
+        self.assertListEqual(column_by_id, column_by_label)
+        self.assertListEqual(column_by_label, [1, 4])
+
+        column_by_id = self.model.column(-1)
+        column_by_label = self.model.column("c")
+        self.assertListEqual(column_by_id, column_by_label)
+        self.assertListEqual(column_by_label, [3, 6])
+
+        error = (
+            "Column of the AnalysisModel with label 2"
+            " doesn't exist. The label must be a string or int."
+        )
+        with self.assertRaisesRegex(ValueError, error):
+            self.model.column("2")
+
+        error = (
+            "Column of the AnalysisModel with label 100"
+            " doesn't exist. The label must be a string or int."
+        )
+        with self.assertRaisesRegex(ValueError, error):
+            self.model.column(100)
+
     def test___getstate__(self):
         header = ("a", "b", "c")
         data = ((1, 2, 3), (4, 5, 6))
