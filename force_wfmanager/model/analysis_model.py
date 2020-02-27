@@ -35,7 +35,7 @@ class AnalysisModel(HasStrictTraits):
     _evaluation_steps = List(Tuple())
 
     #: Evaluation steps, each evaluation step is a tuple of parameter values,
-    #: received from the a single Worjflow execution. The order of
+    #: received from the a single Workflow execution. The order of
     #: the parameters in each evaluation step must match the order of
     #: value_names
     evaluation_steps = Property(List(Tuple()), depends_on="_evaluation_steps")
