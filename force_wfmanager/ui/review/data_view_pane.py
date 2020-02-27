@@ -11,7 +11,7 @@ from traits.api import (
 )
 from traitsui.api import EnumEditor, HGroup, UItem, VGroup, View
 
-from force_wfmanager.model.new_analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.plot import Plot
 from force_wfmanager.ui.review.base_data_view import BaseDataView
 from force_wfmanager.ui.ui_utils import class_description

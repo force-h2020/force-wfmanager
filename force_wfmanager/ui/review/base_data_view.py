@@ -7,7 +7,7 @@ from traits.api import (
     provides,
 )
 
-from force_wfmanager.model.new_analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 
 
 from .i_data_view import IDataView

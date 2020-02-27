@@ -7,7 +7,7 @@ from traits.api import Bool, Instance, List, on_trait_change
 
 from force_bdss.api import Workflow
 
-from force_wfmanager.model.new_analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.wfmanager import TaskToggleGroupAccelerator

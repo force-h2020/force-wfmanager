@@ -3,7 +3,7 @@ from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from traits.testing.api import UnittestTools
 
 from force_wfmanager.ui.review.base_data_view import BaseDataView
-from force_wfmanager.model.new_analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 
 
 class TestBaseDataView(GuiTestAssistant, TestCase, UnittestTools):

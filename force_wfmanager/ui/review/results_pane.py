@@ -2,7 +2,7 @@ from pyface.tasks.api import TraitsDockPane
 from traits.api import Instance
 from traitsui.api import VGroup, View, UItem
 
-from force_wfmanager.model.new_analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.results_table import ResultsTable
 
 

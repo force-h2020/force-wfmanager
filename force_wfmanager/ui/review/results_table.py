@@ -13,7 +13,7 @@ from traitsui.api import TabularEditor, UItem, View
 from traitsui.tabular_adapter import TabularAdapter
 from traitsui.table_column import ListColumn
 
-from force_wfmanager.model.new_analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 
 
 class ResultsTable(HasStrictTraits):

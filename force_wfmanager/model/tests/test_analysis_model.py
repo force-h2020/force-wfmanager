@@ -5,7 +5,7 @@ from unittest import mock, TestCase
 
 from traits.trait_errors import TraitError
 
-from force_wfmanager.model.new_analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 
 
 class TestAnalysisModel(TestCase):
@@ -35,7 +35,7 @@ class TestAnalysisModel(TestCase):
             with self.assertRaises(TraitError):
                 self.model._add_header(wrong_header)
         capture.check(
-            ("force_wfmanager.model.new_analysis_model", "ERROR", log_error)
+            ("force_wfmanager.model.analysis_model", "ERROR", log_error)
         )
 
     def test_header_update(self):
@@ -67,7 +67,7 @@ class TestAnalysisModel(TestCase):
             self.model._add_cell(label=label, value=value)
         capture.check(
             (
-                "force_wfmanager.model.new_analysis_model",
+                "force_wfmanager.model.analysis_model",
                 "WARNING",
                 log_warning,
             )
@@ -256,7 +256,7 @@ class TestAnalysisModel(TestCase):
                 AnalysisModel().from_json({"1": data[0], "2": data[1]})
         capture.check(
             (
-                "force_wfmanager.model.new_analysis_model",
+                "force_wfmanager.model.analysis_model",
                 "ERROR",
                 "AnalysisModel can't be instantiated from a data dictionary "
                 "that does not contain a header.",
@@ -294,7 +294,7 @@ class TestAnalysisModel(TestCase):
             AnalysisModel().from_json(state_dict)
         capture.check(
             (
-                "force_wfmanager.model.new_analysis_model",
+                "force_wfmanager.model.analysis_model",
                 "WARNING",
                 "Can't find a row with index 2. This index will "
                 "be skipped in the AnalysisModel.",

@@ -33,7 +33,7 @@ from force_wfmanager.io.workflow_io import (
     write_workflow_file,
     load_workflow_file,
 )
-from force_wfmanager.model.new_analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.plugins.plugin_dialog import PluginDialog
 from force_wfmanager.server.zmq_server import ZMQServer
 from force_wfmanager.ui import (

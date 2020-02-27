@@ -9,7 +9,7 @@ from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from traits.api import push_exception_handler, TraitError
 from traits.testing.api import UnittestTools
 
-from force_wfmanager.model.new_analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.plot import BasePlot, Plot
 
 push_exception_handler(reraise_exceptions=True)

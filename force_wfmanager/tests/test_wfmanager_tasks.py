@@ -17,7 +17,7 @@ from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.setup.setup_pane import SetupPane
 from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.review.results_pane import ResultsPane
-from force_wfmanager.model.new_analysis_model import AnalysisModel
+from force_wfmanager.model.analysis_model import AnalysisModel
 
 from .mock_methods import mock_file_writer, mock_dialog, mock_return_args
 from force_wfmanager.tests.dummy_classes.dummy_wfmanager import DummyWfManager
@@ -38,7 +38,7 @@ RESULTS_ERROR_PATH = "force_wfmanager.wfmanager_review_task.error"
 ANALYSIS_WRITE_PATH = (
     "force_wfmanager.io.analysis_model_io.write_analysis_model"
 )
-ANALYSIS_FILE_OPEN_PATH = "force_wfmanager.model.new_analysis_model.open"
+ANALYSIS_FILE_OPEN_PATH = "force_wfmanager.model.analysis_model.open"
 
 
 def get_probe_wfmanager_tasks(wf_manager=None, contributed_uis=None):
