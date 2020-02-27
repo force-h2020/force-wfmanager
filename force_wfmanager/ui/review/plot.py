@@ -397,7 +397,9 @@ class BasePlot(BaseDataView):
         if self.toggle_automatic_update:
             self.recenter_plot()
 
-        self._plot_data.set_data("color_by", self.analysis_model.column(self.color_by))
+        self._plot_data.set_data(
+            "color_by", self.analysis_model.column(self.color_by)
+        )
 
     def _check_scheduled_updates(self):
         """ Update the plot if an update was required. This function is a
@@ -608,4 +610,6 @@ class Plot(BasePlot):
             self._plot_data.set_data("color_by", [])
             return
 
-        self._plot_data.set_data("color_by", self.analysis_model.column(self.color_by))
+        self._plot_data.set_data(
+            "color_by", self.analysis_model.column(self.color_by)
+        )

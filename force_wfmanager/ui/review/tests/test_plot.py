@@ -136,7 +136,9 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.check_update_is_requested_and_apply()
         first_data_array = list(self.plot._plot_data.get_data("x"))
         second_data_array = list(self.plot._plot_data.get_data("y"))
-        self.assertListEqual(first_data_array, [1.010, 1.100, 1.123, 1.156, 1.242])
+        self.assertListEqual(
+            first_data_array, [1.010, 1.100, 1.123, 1.156, 1.242]
+        )
         self.assertListEqual(
             second_data_array, [101325, 101423, 102000, 102123, 102453]
         )
