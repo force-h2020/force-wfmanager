@@ -54,6 +54,8 @@ class AnalysisModel(HasStrictTraits):
         Either(None, List(Int)), depends_on="_selected_step_indices"
     )
 
+    is_empty = Property(Bool(), depends_on="_evaluation_steps")
+
     def _header_default(self):
         return ()
 
@@ -86,6 +88,9 @@ class AnalysisModel(HasStrictTraits):
                 )
 
         self._selected_step_indices = values
+
+    def _get_is_empty(self):
+        return not bool(len(self.evaluation_steps))
 
     def notify(self, data):
         """ Public method to add `data` to the AnalysisModel.

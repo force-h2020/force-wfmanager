@@ -204,6 +204,16 @@ class TestAnalysisModel(TestCase):
         with self.assertRaisesRegex(ValueError, error):
             self.model.column(100)
 
+    def test_is_empty(self):
+        self.assertTrue(self.model.is_empty)
+
+        header = ("a", "b", "c")
+        data = ((1, 2, 3), (4, 5, 6))
+        state_dict = {"header": header, "1": data[0], "2": data[1]}
+        self.model.from_json(state_dict)
+
+        self.assertFalse(self.model.is_empty)
+
     def test___getstate__(self):
         header = ("a", "b", "c")
         data = ((1, 2, 3), (4, 5, 6))
