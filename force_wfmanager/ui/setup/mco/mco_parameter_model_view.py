@@ -65,5 +65,3 @@ class MCOParameterModelView(BaseMCOOptionsModelView):
                 self.model.type = self.available_variables[index][1]
             except ValueError:
                 self.model.type = ''
-
-        self.model_change()

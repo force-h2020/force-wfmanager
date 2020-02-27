@@ -48,7 +48,7 @@ class TestUiUtils(unittest.TestCase):
     def test_model_info(self):
 
         self.assertEqual(model_info(None), [])
-        self.assertEqual(len(model_info(self.model)), 4)
+        self.assertEqual(len(model_info(self.model)), 5)
 
     def test_class_description(self):
 

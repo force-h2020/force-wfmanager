@@ -12,9 +12,6 @@ from force_bdss.tests.probe_classes.probe_extension_plugin import (
 from force_wfmanager.tests.dummy_classes.dummy_model_info import (
     DummyModelInfo
 )
-from force_wfmanager.tests.probe_classes import (
-    ProbeDataSourceModel2 as ProbeDataSourceModelDescription
-)
 from force_wfmanager.ui.setup.new_entity_creator import (
      NewEntityCreator
 )
@@ -106,7 +103,7 @@ class TestNewEntityModel(unittest.TestCase):
     def test_description_editable_data_source(self):
         model, _ = self._get_data_selector()
         model.selected_factory = model.factories[0]
-        model.model = ProbeDataSourceModelDescription(
+        model.model = ProbeDataSourceModel(
             model.selected_factory)
 
         self.assertIn("Test trait",

@@ -72,8 +72,7 @@ class BaseMCOOptionsModelView(ModelView):
 
         return _combobox_values
 
-    # Assign an on_trait_change decorator to specify traits to listen to
-    # in child class implementation
+    @on_trait_change('model.+verify')
     def model_change(self):
         """Raise verify workflow event upon change in model"""
         self.verify_workflow_event = True

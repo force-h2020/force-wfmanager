@@ -1,10 +1,11 @@
 from traits.testing.unittest_tools import UnittestTools
 
-from force_bdss.api import (OutputSlotInfo, InputSlotInfo, BaseDataSourceModel)
+from force_bdss.api import OutputSlotInfo, InputSlotInfo, BaseDataSourceModel
+from force_bdss.tests.probe_classes.data_source import ProbeDataSourceFactory
 
-from force_wfmanager.tests.probe_classes import ProbeDataSourceFactory2
-from force_wfmanager.ui.setup.process.data_source_view import \
+from force_wfmanager.ui.setup.process.data_source_view import (
     DataSourceView
+)
 from force_wfmanager.ui.setup.tests.wfmanager_base_test_case import (
     WfManagerBaseTestCase
 )
@@ -111,7 +112,7 @@ class TestDataSourceView(WfManagerBaseTestCase, UnittestTools):
 
     def test_verify_data_source(self):
 
-        factory = ProbeDataSourceFactory2({'id': '0', 'name': 'plugin'})
+        factory = ProbeDataSourceFactory({'id': '0', 'name': 'plugin'})
         model = factory.create_model()
         data_source_view = DataSourceView(
             model=model,

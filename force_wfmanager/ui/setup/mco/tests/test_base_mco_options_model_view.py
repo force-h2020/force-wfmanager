@@ -3,6 +3,7 @@ import unittest
 from traits.testing.unittest_tools import UnittestTools
 
 from force_bdss.api import KPISpecification
+from force_bdss.tests.probe_classes.mco import ProbeMCOFactory
 
 from force_wfmanager.ui.setup.mco.base_mco_options_model_view import (
     BaseMCOOptionsModelView
@@ -12,7 +13,6 @@ from force_wfmanager.ui.setup.mco.base_mco_options_model_view import (
 class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
 
     def setUp(self):
-
         self.mco_options_model_view = BaseMCOOptionsModelView()
 
     def test_mco_options_model_view_init(self):
@@ -43,3 +43,14 @@ class TestBaseMCOOptionsModelView(unittest.TestCase, UnittestTools):
             'KPI is not named',
             error_message[0].local_error
         )
+
+    def test_verify_mco_options(self):
+
+        factory = ProbeMCOFactory({'id': '0', 'name': 'plugin'})
+        parameter_factory = factory.parameter_factories[0]
+        model = parameter_factory.create_model()
+        self.mco_options_model_view.model = model
+
+        with self.assertTraitChanges(
+                self.mco_options_model_view, 'verify_workflow_event', 1):
+            model.test_trait = 10
