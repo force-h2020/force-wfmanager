@@ -221,6 +221,11 @@ class AnalysisModel(HasStrictTraits):
             else:
                 self.notify(step)
 
+    def to_json(self):
+        """ Returns a dictionary representation with column names as keys
+        and column values as values."""
+        return self.__getstate__()
+
     def __getstate__(self):
         """ Returns a dictionary representation with column names as keys
         and column values as values.

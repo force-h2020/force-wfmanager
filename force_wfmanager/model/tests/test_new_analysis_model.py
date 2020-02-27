@@ -185,6 +185,10 @@ class TestAnalysisModel(TestCase):
         state = self.model.__getstate__()
         self.assertDictEqual(state, state_dict)
 
+        with mock.patch.object(AnalysisModel, "__getstate__") as mock_getstate:
+            AnalysisModel().to_json()
+        mock_getstate.assert_called_once()
+
     def test_json(self):
         header = ("a", "b", "c")
         data = ((1, 2, 3), (4, 5, 6))
