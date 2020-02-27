@@ -293,12 +293,13 @@ class BasePlot(BaseDataView):
         the callback update.
         This method is called when the `x` axis is changed.
         """
-        if self.x == "" or len(self.data_arrays) == 0:
+        if self.x == "" or self.analysis_model.is_empty:
             self._plot_data.set_data("x", [])
         else:
             self._plot.x_axis.title = self.x
             x_index = self.analysis_model.header.index(self.x)
-            self._plot_data.set_data("x", self.data_arrays[x_index])
+            # self._plot_data.set_data("x", self.data_arrays[x_index])
+            self._plot_data.set_data("x", self.analysis_model.column(self.x))
 
     def recenter_x_axis(self):
         """ Resets the bounds on the x-axis of the plot. If now x axis
@@ -332,12 +333,13 @@ class BasePlot(BaseDataView):
         the callback update.
         This method is called when the `y` axis is changed.
         """
-        if self.y == "" or len(self.data_arrays) == 0:
+        if self.y == "" or self.analysis_model.is_empty:
             self._plot_data.set_data("y", [])
         else:
             self._plot.y_axis.title = self.y
             y_index = self.analysis_model.header.index(self.y)
-            self._plot_data.set_data("y", self.data_arrays[y_index])
+            # self._plot_data.set_data("y", self.data_arrays[y_index])
+            self._plot_data.set_data("y", self.analysis_model.column(self.y))
 
     def recenter_y_axis(self):
         """ Resets the bounds on the x-axis of the plot. If now y axis
@@ -387,7 +389,7 @@ class BasePlot(BaseDataView):
             self.x == ""
             or self.y == ""
             or self.color_by is None
-            or self.data_arrays == []
+            or self.analysis_model.is_empty
         ):
             self._plot_data.set_data("x", [])
             self._plot_data.set_data("y", [])
@@ -400,14 +402,15 @@ class BasePlot(BaseDataView):
             self.recenter_plot()
 
         c_index = self.analysis_model.header.index(self.color_by)
-        self._plot_data.set_data("color_by", self.data_arrays[c_index])
+        # self._plot_data.set_data("color_by", self.data_arrays[c_index])
+        self._plot_data.set_data("color_by", self.analysis_model.column(self.color_by))
 
     def _check_scheduled_updates(self):
         """ Update the plot if an update was required. This function is a
         callback for the _plot_updater timer.
         """
         if self.update_required:
-            self._update_data_arrays()
+            # self._update_data_arrays()
             self._update_displayable_value_names()
             self._update_plot()
             self._reset_zoomtool()
@@ -607,11 +610,11 @@ class Plot(BasePlot):
             self.x == ""
             or self.y == ""
             or self.color_by is None
-            or self.data_arrays == []
+            or self.analysis_model.is_empty
         ):
             self._plot_data.set_data("color_by", [])
             return
 
         c_index = self.analysis_model.header.index(self.color_by)
-        self._plot_data.set_data("color_by", self.data_arrays[c_index])
-        self._plot_data.set_data("color_by", self.data_arrays[c_index])
+        # self._plot_data.set_data("color_by", self.data_arrays[c_index])
+        self._plot_data.set_data("color_by", self.analysis_model.column(self.color_by))
