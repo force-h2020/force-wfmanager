@@ -13,6 +13,7 @@ from traits.api import (
     Dict,
     Either,
     Int,
+    on_trait_change
 )
 
 log = logging.getLogger(__name__)
@@ -158,12 +159,14 @@ class AnalysisModel(HasStrictTraits):
         self._add_evaluation_step(row_data)
         self._row_data = self._row_data_default()
 
+    @on_trait_change("header")
     def clear_steps(self):
         """ Removes all entries in the list :attr:`evaluation_steps` and sets
         :attr:`selected_step_indices` to None but does not clear
         :attr:`value_names`
         """
         self._evaluation_steps[:] = []
+        self._selected_step_indices = None
         self._export_enabled = False
 
     def _add_evaluation_step(self, evaluation_step):
@@ -215,7 +218,6 @@ class AnalysisModel(HasStrictTraits):
         list :attr:`evaluation_steps` and sets :attr:`selected_step_indices`
         to None"""
         self.header = self._header_default()
-        self.clear_steps()
 
     def from_json(self, data):
         """ Delete all current data and load :attr:`value_names` and

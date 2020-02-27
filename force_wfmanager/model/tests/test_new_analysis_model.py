@@ -38,6 +38,17 @@ class TestAnalysisModel(TestCase):
             ("force_wfmanager.model.new_analysis_model", "ERROR", log_error)
         )
 
+    def test_header_update(self):
+        header = ("a", "b", "c")
+        data = ((1, 2, 3), (4, 5, 6))
+        state_dict = {"header": header, "1": data[0], "2": data[1]}
+        self.model.from_json(state_dict)
+
+        self.assertTupleEqual(self.model.header, header)
+        self.model.header = ("new", )
+        self.assertTupleEqual(self.model.header, ("new", ))
+        self.assertEqual([], self.model.evaluation_steps)
+
     def test__add_cell(self):
         header = ("a", "b", "c")
         self.model._add_header(header)
@@ -169,6 +180,8 @@ class TestAnalysisModel(TestCase):
         ) as mock_data:
             model = AnalysisModel()
             model.notify(None)
+            # This line is necessary because the header must be set
+            # in order to add data to the model.
             model.header = ("",)
             model.notify(None)
         mock_header.assert_called_once()
