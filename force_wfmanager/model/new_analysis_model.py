@@ -55,6 +55,7 @@ class AnalysisModel(HasStrictTraits):
         Either(None, List(Int)), depends_on="_selected_step_indices"
     )
 
+    #: Indicates whether there is any data stored in the AnalysisModel
     is_empty = Property(Bool(), depends_on="_evaluation_steps")
 
     def _header_default(self):
