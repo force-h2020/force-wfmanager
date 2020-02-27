@@ -28,6 +28,9 @@ class TestBaseDataView(GuiTestAssistant, TestCase, UnittestTools):
         self.assertFalse(another_plot.displayable_data_mask(1))
 
     def test__update_displayable_value_names(self):
+        self.plot._update_displayable_value_names()
+        self.assertEqual([], self.plot.displayable_value_names)
+
         self.analysis_model.header = ("1", "2", "str")
         self.analysis_model.notify((1, 2, "string"))
         self.plot._update_displayable_value_names()

@@ -57,11 +57,10 @@ class BaseDataView(HasStrictTraits):
         current plot (`self.displayable_data_mask(entry) == False`), then
         that value name is removed from `self._displayable_value_names`.
         """
-        if len(self.analysis_model.evaluation_steps) == 0:
-            self.displayable_value_names[:] = []
-            return
-
-        if len(self.analysis_model.header) == 0:
+        if (
+            len(self.analysis_model.evaluation_steps) == 0
+            or len(self.analysis_model.header) == 0
+        ):
             self.displayable_value_names[:] = []
             return
 
