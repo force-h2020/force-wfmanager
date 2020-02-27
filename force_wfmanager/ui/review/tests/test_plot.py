@@ -37,21 +37,13 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
     def test_init(self):
         self.assertEqual(len(self.analysis_model.header), 0)
         self.assertEqual(len(self.analysis_model.evaluation_steps), 0)
-        self.assertEqual(len(self.plot.data_arrays), 0)
         self.assertEqual("", self.plot.x)
         self.assertEqual("", self.plot.y)
-        self.assertIsNone(self.plot._update_data_arrays())
         self.plot._update_plot()
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [])
         self.assertTrue(self.plot.plot_updater.active)
         self.assertTrue(self.plot.toggle_automatic_update)
-
-    def test_init_data_arrays(self):
-        self.analysis_model.header = ("density", "pressure")
-        self.assertEqual("", self.plot.x)
-        self.assertEqual("", self.plot.y)
-        self.assertEqual([[], []], self.plot.data_arrays)
 
     def test_plot(self):
         self.analysis_model.header = ("density", "pressure")
@@ -70,7 +62,6 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertListEqual(self.plot.displayable_value_names, ["1", "2"])
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [1])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [2])
-        self.assertListEqual([[1], [2], ["string"]], self.plot.data_arrays)
 
         self.analysis_model.notify((3, 4, "another string"))
         self.check_update_is_requested_and_apply()
@@ -79,40 +70,16 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertListEqual(self.plot.displayable_value_names, ["1", "2"])
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [1, 3])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [2, 4])
-        self.assertListEqual(
-            self.plot.data_arrays,
-            [[1, 3], [2, 4], ["string", "another string"]],
-        )
 
         self.analysis_model.notify((5, "unexpected string", 6))
         self.check_update_is_requested_and_apply()
         self.assertEqual("1", self.plot.x)
         self.assertEqual("1", self.plot.y)
-        self.assertListEqual(
-            self.plot.data_arrays,
-            [
-                [1, 3, 5],
-                [2, 4, "unexpected string"],
-                ["string", "another string", 6],
-            ],
-        )
 
         self.analysis_model.notify(("oops", 1, 2))
         self.check_update_is_requested_and_apply()
         self.assertEqual("", self.plot.x)
         self.assertEqual("", self.plot.y)
-
-    def test_displayable_mask(self):
-        self.assertTrue(self.plot.displayable_data_mask(1))
-        self.assertTrue(self.plot.displayable_data_mask(42.0))
-        self.assertFalse(self.plot.displayable_data_mask(None))
-
-        another_plot = BasePlot(
-            analysis_model=self.analysis_model,
-            displayable_data_mask=lambda object: isinstance(object, str),
-        )
-        self.assertTrue(another_plot.displayable_data_mask("string"))
-        self.assertFalse(another_plot.displayable_data_mask(1))
 
     def test_plot_updater(self):
         self.assertTrue(self.plot.plot_updater.active)
@@ -149,33 +116,28 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.analysis_model.header = ("density", "pressure")
         self.analysis_model.notify((1.010, 101325))
         self.analysis_model.notify((1.100, 101423))
-
         self.check_update_is_requested_and_apply()
-
-        self.assertEqual(len(self.plot.data_arrays), 2)
-
-        first_data_array = self.plot.data_arrays[0]
-        second_data_array = self.plot.data_arrays[1]
-
-        self.assertEqual(first_data_array, [1.010, 1.100])
-        self.assertEqual(second_data_array, [101325, 101423])
+        first_data_array = list(self.plot._plot_data.get_data("x"))
+        second_data_array = list(self.plot._plot_data.get_data("y"))
+        self.assertListEqual(first_data_array, [1.010, 1.100])
+        self.assertListEqual(second_data_array, [101325, 101423])
 
         # Append only one evaluation step
         self.analysis_model.notify((1.123, 102000))
-
         self.check_update_is_requested_and_apply()
-
-        self.assertEqual(first_data_array, [1.010, 1.100, 1.123])
-        self.assertEqual(second_data_array, [101325, 101423, 102000])
+        first_data_array = list(self.plot._plot_data.get_data("x"))
+        second_data_array = list(self.plot._plot_data.get_data("y"))
+        self.assertListEqual(first_data_array, [1.010, 1.100, 1.123])
+        self.assertListEqual(second_data_array, [101325, 101423, 102000])
 
         # Append two evaluation steps at the same time
         self.analysis_model.notify((1.156, 102123))
         self.analysis_model.notify((1.242, 102453))
-
         self.check_update_is_requested_and_apply()
-
-        self.assertEqual(first_data_array, [1.010, 1.100, 1.123, 1.156, 1.242])
-        self.assertEqual(
+        first_data_array = list(self.plot._plot_data.get_data("x"))
+        second_data_array = list(self.plot._plot_data.get_data("y"))
+        self.assertListEqual(first_data_array, [1.010, 1.100, 1.123, 1.156, 1.242])
+        self.assertListEqual(
             second_data_array, [101325, 101423, 102000, 102123, 102453]
         )
 
@@ -185,16 +147,17 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.analysis_model.notify((1.10, 101423))
         self.check_update_is_requested_and_apply()
 
-        self.assertEqual(len(self.plot.data_arrays), 2)
-
-        self.assertEqual(self.plot.data_arrays[0], [1.01, 1.10])
-        self.assertEqual(self.plot.data_arrays[1], [101325, 101423])
+        first_data_array = list(self.plot._plot_data.get_data("x"))
+        second_data_array = list(self.plot._plot_data.get_data("y"))
+        self.assertListEqual(first_data_array, [1.01, 1.10])
+        self.assertListEqual(second_data_array, [101325, 101423])
 
         self.analysis_model.clear_steps()
         self.check_update_is_requested_and_apply()
-
-        self.assertEqual([], self.plot.data_arrays[0])
-        self.assertEqual([], self.plot.data_arrays[1])
+        first_data_array = list(self.plot._plot_data.get_data("x"))
+        second_data_array = list(self.plot._plot_data.get_data("y"))
+        self.assertEqual([], first_data_array)
+        self.assertEqual([], second_data_array)
 
     def test_select_plot_axis(self):
         self.plot.toggle_automatic_update = False
@@ -290,17 +253,6 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
 
         self.assertEqual([], self.plot._plot_data.get_data("x").tolist())
         self.assertEqual([], self.plot._plot_data.get_data("y").tolist())
-
-    def test_change_in_value_names_size(self):
-        self.analysis_model.header = ("density", "pressure")
-        self.analysis_model.notify((1.010, 101325))
-        self.analysis_model.notify((1.100, 101423))
-
-        self.analysis_model.header = ("density",)
-        self.analysis_model.notify((1.010,))
-
-        self.assertEqual(1, len(self.plot.data_arrays))
-        self.assertEqual(0, len(self.plot.data_arrays[0]))
 
     def test_selection(self):
         self.analysis_model.header = ("density", "pressure")
