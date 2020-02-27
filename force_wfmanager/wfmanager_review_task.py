@@ -358,7 +358,7 @@ class WfManagerReviewTask(Task):
             self.setup_task.workflow_model = new_workflow
 
             # share the analysis model with the setup_task
-            self.analysis_model.from_dict(analysis_model_dict)
+            self.analysis_model.from_json(analysis_model_dict)
             self.setup_task.analysis_model = self.analysis_model
         except IOError as e:
             error(
