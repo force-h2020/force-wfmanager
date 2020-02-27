@@ -6,48 +6,41 @@ from force_wfmanager.ui.review.base_data_view import BaseDataView
 from force_wfmanager.model.new_analysis_model import AnalysisModel
 
 
-class TestAnyPlot(GuiTestAssistant, TestCase, UnittestTools):
+class TestBaseDataView(GuiTestAssistant, TestCase, UnittestTools):
     def setUp(self):
         super().setUp()
         self.analysis_model = AnalysisModel()
         self.plot = BaseDataView(analysis_model=self.analysis_model)
 
-    def test__update_data_arrays(self):
-        self.assertEqual(0, len(self.plot.data_arrays))
+    def test_initialize(self):
+        self.assertFalse(self.plot.is_active_view)
 
-        self.analysis_model.header = ("one", "two")
-        self.assertEqual(0, len(self.analysis_model.evaluation_steps))
-        self.plot._update_data_arrays()
-        self.assertListEqual(self.plot.data_arrays, [[], []])
+    def test_displayable_mask(self):
+        self.assertTrue(self.plot.displayable_data_mask(1))
+        self.assertTrue(self.plot.displayable_data_mask(42.0))
+        self.assertFalse(self.plot.displayable_data_mask(None))
 
-        self.analysis_model.notify((1, 2))
-        self.analysis_model.notify((3, 4))
-
-        self.plot._update_data_arrays()
-        self.assertListEqual(
-            self.plot.data_arrays[0],
-            [
-                self.analysis_model.evaluation_steps[0][0],
-                self.analysis_model.evaluation_steps[1][0],
-            ],
+        another_plot = BaseDataView(
+            analysis_model=self.analysis_model,
+            displayable_data_mask=lambda object: isinstance(object, str),
         )
+        self.assertTrue(another_plot.displayable_data_mask("string"))
+        self.assertFalse(another_plot.displayable_data_mask(1))
 
-        self.assertListEqual(
-            self.plot.data_arrays[1],
-            [
-                self.analysis_model.evaluation_steps[0][1],
-                self.analysis_model.evaluation_steps[1][1],
-            ],
-        )
+    def test__update_displayable_value_names(self):
+        self.analysis_model.header = ("1", "2", "str")
+        self.analysis_model.notify((1, 2, "string"))
+        self.plot._update_displayable_value_names()
+        self.assertListEqual(self.plot.displayable_value_names, ["1", "2"])
 
-        self.analysis_model.clear()
-        self.assertEqual(0, len(self.analysis_model.header))
-        self.assertEqual(0, len(self.analysis_model.evaluation_steps))
+        self.analysis_model.notify((3, 4, "another string"))
+        self.plot._update_displayable_value_names()
+        self.assertListEqual(self.plot.displayable_value_names, ["1", "2"])
 
-        self.plot._update_data_arrays()
+        self.analysis_model.notify((5, "unexpected string", 6))
+        self.plot._update_displayable_value_names()
+        self.assertListEqual(self.plot.displayable_value_names, ["1"])
+
+        self.analysis_model.notify(("oops", 1, 2))
+        self.plot._update_displayable_value_names()
         self.assertListEqual(self.plot.displayable_value_names, [])
-        self.assertListEqual(self.plot.data_arrays, [])
-
-        self.analysis_model.header = ("one", "two")
-        self.plot._update_data_arrays()
-        self.assertListEqual(self.plot.data_arrays, [[], []])
