@@ -26,19 +26,12 @@ class BaseDataView(HasStrictTraits):
     #: Short description for the UI selection (to be overwritten)
     description = "Base Data View"
 
-    #: List containing the data arrays from the
-    #: analysis_mode.evaluation steps.
-    data_arrays = List(List())
-
     #: A list of displayable columns from the analysis model's value names
     displayable_value_names = List()
 
     #: a Callable: object -> Bool that indicates if the object
     #: can be displayed by the BasePlot instance.
     displayable_data_mask = Callable()
-
-    def _data_arrays_default(self):
-        return [[] for _ in range(len(self.analysis_model.header))]
 
     def _displayable_data_mask_default(self):
         """ Default mask for data coming from the analysis model.
@@ -94,49 +87,3 @@ class BaseDataView(HasStrictTraits):
         # displayable columns, we update the `self.numerical_value_names`.
         if len(self.displayable_value_names) != len(_displayable_value_names):
             self.displayable_value_names[:] = _displayable_value_names
-
-    def _update_data_arrays(self):
-        """ This method is a part of the `_check_scheduled_updates`
-        callback function.
-        Update the data arrays used by the plot. It assumes that the
-        AnalysisModel object is valid. Which means that the number of
-        value_names is equal to the number of element in each evaluation step
-        (e.g. value_names=["viscosity", "pressure"] then each evaluation step
-        is a two dimensions tuple). Only the number of evaluation
-        steps can change, not their values.
-
-        Note: evaluation steps is row-based (one tuple = one row). The data
-        arrays are column based. The transformation happens here.
-        """
-        data_dim = len(self.analysis_model.header)
-
-        # If there is no data yet, or the data has been removed, make sure the
-        # plot is updated accordingly (empty arrays)
-        if data_dim == 0:
-            self.data_arrays = self._data_arrays_default()
-            return
-
-        # In this case, the value_names have changed, so we need to
-        # synchronize the number of data arrays to the newly found data
-        # dimensionality before adding new data to them. Of course, this also
-        # means to remove the current content.
-        if data_dim != len(self.data_arrays):
-            self.data_arrays = self._data_arrays_default()
-
-        evaluation_steps = self.analysis_model.evaluation_steps.copy()
-
-        # If the number of evaluation steps is less than the number of element
-        # in the data arrays, it certainly means that the model has been
-        # reinitialized. The only thing we can do is recompute the data arrays.
-        if len(evaluation_steps) < len(self.data_arrays[0]):
-            for data_array in self.data_arrays:
-                data_array[:] = []
-
-        # Update the data arrays with the newly added evaluation_steps
-        new_evaluation_steps = evaluation_steps[len(self.data_arrays[0]):]
-        for evaluation_step in new_evaluation_steps:
-            # Fan out the data in the appropriate arrays. The model guarantees
-            # that the size of the evaluation step and the data_dim are the
-            # same.
-            for index in range(data_dim):
-                self.data_arrays[index].append(evaluation_step[index])
