@@ -7,7 +7,8 @@ from traits.api import (
     provides,
 )
 
-from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.model.new_analysis_model import AnalysisModel
+
 
 from .i_data_view import IDataView
 
@@ -37,7 +38,7 @@ class BaseDataView(HasStrictTraits):
     displayable_data_mask = Callable()
 
     def _data_arrays_default(self):
-        return [[] for _ in range(len(self.analysis_model.value_names))]
+        return [[] for _ in range(len(self.analysis_model.header))]
 
     def _displayable_data_mask_default(self):
         """ Default mask for data coming from the analysis model.
@@ -67,7 +68,7 @@ class BaseDataView(HasStrictTraits):
             self.displayable_value_names[:] = []
             return
 
-        if len(self.analysis_model.value_names) == 0:
+        if len(self.analysis_model.header) == 0:
             self.displayable_value_names[:] = []
             return
 
@@ -76,7 +77,7 @@ class BaseDataView(HasStrictTraits):
         masked_value_names = [
             name
             for (value, name) in zip(
-                evaluation_step, self.analysis_model.value_names
+                evaluation_step, self.analysis_model.header
             )
             if self.displayable_data_mask(value)
         ]
@@ -107,7 +108,7 @@ class BaseDataView(HasStrictTraits):
         Note: evaluation steps is row-based (one tuple = one row). The data
         arrays are column based. The transformation happens here.
         """
-        data_dim = len(self.analysis_model.value_names)
+        data_dim = len(self.analysis_model.header)
 
         # If there is no data yet, or the data has been removed, make sure the
         # plot is updated accordingly (empty arrays)

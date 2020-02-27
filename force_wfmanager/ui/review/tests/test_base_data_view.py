@@ -3,7 +3,7 @@ from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from traits.testing.api import UnittestTools
 
 from force_wfmanager.ui.review.base_data_view import BaseDataView
-from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.model.new_analysis_model import AnalysisModel
 
 
 class TestAnyPlot(GuiTestAssistant, TestCase, UnittestTools):
@@ -15,13 +15,13 @@ class TestAnyPlot(GuiTestAssistant, TestCase, UnittestTools):
     def test__update_data_arrays(self):
         self.assertEqual(0, len(self.plot.data_arrays))
 
-        self.analysis_model.value_names = ("one", "two")
+        self.analysis_model.header = ("one", "two")
         self.assertEqual(0, len(self.analysis_model.evaluation_steps))
         self.plot._update_data_arrays()
         self.assertListEqual(self.plot.data_arrays, [[], []])
 
-        self.analysis_model.add_evaluation_step((1, 2))
-        self.analysis_model.add_evaluation_step((3, 4))
+        self.analysis_model.notify((1, 2))
+        self.analysis_model.notify((3, 4))
 
         self.plot._update_data_arrays()
         self.assertListEqual(
@@ -41,13 +41,13 @@ class TestAnyPlot(GuiTestAssistant, TestCase, UnittestTools):
         )
 
         self.analysis_model.clear()
-        self.assertEqual(0, len(self.analysis_model.value_names))
+        self.assertEqual(0, len(self.analysis_model.header))
         self.assertEqual(0, len(self.analysis_model.evaluation_steps))
 
         self.plot._update_data_arrays()
         self.assertListEqual(self.plot.displayable_value_names, [])
         self.assertListEqual(self.plot.data_arrays, [])
 
-        self.analysis_model.value_names = ("one", "two")
+        self.analysis_model.header = ("one", "two")
         self.plot._update_data_arrays()
         self.assertListEqual(self.plot.data_arrays, [[], []])
