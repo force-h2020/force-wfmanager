@@ -1,11 +1,6 @@
 from envisage.core_plugin import CorePlugin
 from envisage.ui.tasks.tasks_plugin import TasksPlugin
 
-from traits.trait_types import Int
-
-from force_bdss.tests.probe_classes.data_source import (
-    ProbeDataSourceModel, ProbeDataSourceFactory
-)
 from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
@@ -46,14 +41,3 @@ class ProbeWfManager(WfManager):
 
         # 'Run' the application by creating windows without an event loop
         self.run = self._create_windows
-
-
-class ProbeDataSourceModel2(ProbeDataSourceModel):
-
-    test_trait = Int(13, desc='Test trait', verify=True)
-
-
-class ProbeDataSourceFactory2(ProbeDataSourceFactory):
-
-    def get_model_class(self):
-        return ProbeDataSourceModel2
