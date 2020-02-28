@@ -25,6 +25,8 @@ from force_bdss.api import (
     BaseUIHooksManager,
     IFactoryRegistry,
     MCOStartEvent,
+    MCOProgressEvent,
+    MCORuntimeEvent,
     InvalidFileException,
     Workflow,
 )
@@ -458,12 +460,11 @@ class WfManagerSetupTask(Task):
         if isinstance(event, MCOStartEvent):
             self.analysis_model.clear()
             self.computation_running = True
-        try:
+        if isinstance(
+            event, (MCOStartEvent, MCOProgressEvent, MCORuntimeEvent)
+        ):
             event_data = event.serialize()
-        except AttributeError:
-            return
-
-        self.analysis_model.notify(event_data)
+            self.analysis_model.notify(event_data)
 
     # Error Display
     def _show_error_dialog(self, message):
