@@ -27,7 +27,7 @@ def write_project_file(workflow_model, analysis_model, file_path):
         # :class:`WorkflowReader`, and dump to JSON
         project_json = {}
         writer = WorkflowWriter()
-        project_json["analysis_model"] = analysis_model.as_json()
+        project_json["analysis_model"] = analysis_model.to_json()
         project_json["workflow"] = writer.get_workflow_data(workflow_model)
         project_json["version"] = writer.version
         json.dump(project_json, output, indent=4)

@@ -11,7 +11,6 @@ from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.wfmanager import TaskToggleGroupAccelerator
-from force_wfmanager.io.analysis_model_io import write_analysis_model
 from force_wfmanager.io.project_io import write_project_file, load_project_file
 
 log = logging.getLogger(__name__)
@@ -228,13 +227,10 @@ class WfManagerReviewTask(Task):
 
         current_file = dialog.path
 
-        if self._write_analysis(current_file):
-            return True
-
-        return False
+        return self._write_analysis(current_file)
 
     def _write_analysis(self, file_path):
-        """ Write the contents of the analysis model to a JSON file.
+        """ Write the contents of the analysis model to file.
 
         Parameters
         ----------
@@ -247,11 +243,11 @@ class WfManagerReviewTask(Task):
 
         """
         try:
-            write_analysis_model(self.analysis_model, file_path)
+            self.analysis_model.write(file_path)
         except IOError as e:
             error(
                 None,
-                "Cannot save in the requested file:\n\n{}".format(str(e)),
+                f"Cannot save in the requested file:\n\n{e}",
                 "Error when saving the results table",
             )
             log.exception("Error when saving AnalysisModel")
@@ -259,7 +255,7 @@ class WfManagerReviewTask(Task):
         except Exception as e:
             error(
                 None,
-                "Cannot save the results table:\n\n{}".format(str(e)),
+                f"Cannot save the results table:\n\n{e}",
                 "Error when saving results",
             )
             log.exception("Error when saving results")
@@ -359,7 +355,7 @@ class WfManagerReviewTask(Task):
             self.setup_task.workflow_model = new_workflow
 
             # share the analysis model with the setup_task
-            self.analysis_model.from_dict(analysis_model_dict)
+            self.analysis_model.from_json(analysis_model_dict)
             self.setup_task.analysis_model = self.analysis_model
         except IOError as e:
             error(

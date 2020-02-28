@@ -19,11 +19,7 @@ from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.review.results_pane import ResultsPane
 from force_wfmanager.model.analysis_model import AnalysisModel
 
-from .mock_methods import (
-    mock_file_writer,
-    mock_dialog,
-    mock_return_args,
-)
+from .mock_methods import mock_file_writer, mock_dialog, mock_return_args
 from force_wfmanager.tests.dummy_classes.dummy_wfmanager import DummyWfManager
 
 from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
@@ -42,7 +38,7 @@ RESULTS_ERROR_PATH = "force_wfmanager.wfmanager_review_task.error"
 ANALYSIS_WRITE_PATH = (
     "force_wfmanager.io.analysis_model_io.write_analysis_model"
 )
-ANALYSIS_FILE_OPEN_PATH = "force_wfmanager.io.analysis_model_io.open"
+ANALYSIS_FILE_OPEN_PATH = "force_wfmanager.model.analysis_model.open"
 
 
 def get_probe_wfmanager_tasks(wf_manager=None, contributed_uis=None):
@@ -129,6 +125,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 FileDialog, OK, "test_file.json"
             )
 
+            self.review_task.analysis_model._export_enabled = True
             self.assertTrue(self.review_task.export_analysis_model_as())
             self.assertTrue(mock_file_dialog.called)
             self.assertTrue(mock_open.called)
@@ -162,7 +159,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertFalse(mock_open.called)
 
         mock_open = mock.mock_open()
-        mock_open.side_effect = IOError("OUPS")
         with mock.patch(
             RESULTS_FILE_DIALOG_PATH
         ) as mock_file_dialog, mock.patch(
@@ -173,13 +169,17 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             mock_error.side_effect = mock_return_args
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK, "")
 
+            self.review_task.analysis_model._export_enabled = True
             self.assertFalse(self.review_task.export_analysis_model_as())
             self.assertTrue(mock_file_dialog.called)
-            self.assertTrue(mock_open.called)
+            self.assertFalse(mock_open.called)
 
             mock_error.assert_called_with(
                 None,
-                "Cannot save in the requested file:\n\nOUPS",
+                (
+                    "Cannot save in the requested file:\n\n"
+                    "AnalysisModel can only write to .json or .csv formats."
+                ),
                 "Error when saving the results table",
             )
 
@@ -192,7 +192,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         ), mock.patch(
             RESULTS_ERROR_PATH
         ) as mock_error:
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK, "")
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK, "f.csv")
 
             self.assertFalse(self.review_task.export_analysis_model_as())
             self.assertTrue(mock_file_dialog.called)
@@ -261,7 +261,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_json.return_value = {
-                "analysis_model": {"x": [1], "y": [2]},
+                "analysis_model": {"header": ["x", "y"], "1": [1, 2]},
                 "version": "1",
                 "workflow": {},
             }
@@ -273,7 +273,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertEqual(old_workflow, self.setup_task.workflow_model)
 
             with mock.patch(
-                    "force_bdss.io.workflow_reader.WorkflowReader.read"
+                "force_bdss.io.workflow_reader.WorkflowReader.read"
             ) as mock_read:
                 mock_read.side_effect = return_workflow
                 self.review_task.open_project()
@@ -291,22 +291,20 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 old_workflow, self.setup_task.side_pane.workflow_tree.model
             )
             self.assertNotEqual(
-                old_analysis.value_names,
-                self.review_task.analysis_model.value_names,
+                old_analysis.header, self.review_task.analysis_model.header
             )
             self.assertNotEqual(
-                old_analysis.value_names,
-                self.setup_task.analysis_model.value_names,
+                old_analysis.header, self.setup_task.analysis_model.header
             )
             self.assertEqual(
-                self.review_task.analysis_model.value_names, ("x", "y")
+                self.review_task.analysis_model.header, ("x", "y")
             )
             self.assertEqual(
                 self.review_task.analysis_model.evaluation_steps, [(1, 2)]
             )
             self.assertEqual(
-                self.setup_task.analysis_model.value_names,
-                self.review_task.analysis_model.value_names,
+                self.setup_task.analysis_model.header,
+                self.review_task.analysis_model.header,
             )
             self.assertEqual(
                 self.setup_task.analysis_model.evaluation_steps,
@@ -338,9 +336,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertIsNot(
                 self.setup_task.workflow_model, self.review_task.workflow_model
             )
-            self.assertEqual(
-                tuple(), self.review_task.analysis_model.value_names
-            )
+            self.assertEqual(tuple(), self.review_task.analysis_model.header)
             self.assertEqual(
                 [], self.review_task.analysis_model.evaluation_steps
             )

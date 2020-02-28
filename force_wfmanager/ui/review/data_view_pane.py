@@ -1,6 +1,14 @@
 from pyface.tasks.api import TraitsTaskPane
 from traits.api import (
-    Button, Dict, Enum, Instance, List, on_trait_change, Type, Str)
+    Button,
+    Dict,
+    Enum,
+    Instance,
+    List,
+    on_trait_change,
+    Type,
+    Str,
+)
 from traitsui.api import EnumEditor, HGroup, UItem, VGroup, View
 
 from force_wfmanager.model.analysis_model import AnalysisModel
@@ -20,7 +28,7 @@ class DataViewPane(TraitsTaskPane):
     # ------------------
 
     #: An internal identifier for this pane
-    id = 'force_wfmanager.data_view_pane'
+    id = "force_wfmanager.data_view_pane"
 
     #: The data view being displayed
     data_view = Instance(BaseDataView)
@@ -46,25 +54,24 @@ class DataViewPane(TraitsTaskPane):
         HGroup(
             UItem(
                 "data_view_selection",
-                editor=EnumEditor(name='data_view_descriptions'),
+                editor=EnumEditor(name="data_view_descriptions"),
                 style="custom",
             ),
             label="Graph type",
-            show_border=True
+            show_border=True,
         ),
         # NOTE: Making the dialog resizable is a (less than optimal) workaround
         # for a visualization issue on MacOS: see enthought/traitsui#587
         resizable=True,
-        kind="livemodal"
+        kind="livemodal",
     )
 
     #: View
-    traits_view = View(VGroup(
-            VGroup(
-                UItem('change_view'),
-            ),
-            UItem('data_view', style='custom')
-        ))
+    traits_view = View(
+        VGroup(
+            VGroup(UItem("change_view")), UItem("data_view", style="custom")
+        )
+    )
 
     def _data_view_default(self):
         plot_data_view = Plot(analysis_model=self.analysis_model)
@@ -99,7 +106,7 @@ class DataViewPane(TraitsTaskPane):
         self.update_descriptions()
         self.edit_traits(view="selection_changer")
 
-    @on_trait_change('data_view_selection')
+    @on_trait_change("data_view_selection")
     def switch_data_view(self, data_view_type):
         # Store current instance
         current_type = type(self.data_view)

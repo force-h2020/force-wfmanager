@@ -24,8 +24,9 @@ from force_bdss.api import (
     BaseExtensionPlugin,
     BaseUIHooksManager,
     IFactoryRegistry,
-    MCOProgressEvent,
     MCOStartEvent,
+    MCOProgressEvent,
+    MCORuntimeEvent,
     InvalidFileException,
     Workflow,
 )
@@ -450,13 +451,20 @@ class WfManagerSetupTask(Task):
     def _server_event_mainthread(self, event):
         """Invoked by the main thread.
         Handles the event received by the server, dispatching its
-        action appropriately according to the type"""
+        action appropriately according to the type.
+        Note: All the decision making related to the AnalysisModel
+        should be done by the AnalysisModel, not the setup taks.
+        The AnalysisModel should receive the event instance and process
+        the events itself.
+        """
         if isinstance(event, MCOStartEvent):
             self.analysis_model.clear()
-            self.analysis_model.value_names = tuple(event.serialize())
             self.computation_running = True
-        elif isinstance(event, MCOProgressEvent):
-            self.analysis_model.add_evaluation_step(event.serialize())
+        if isinstance(
+            event, (MCOStartEvent, MCOProgressEvent, MCORuntimeEvent)
+        ):
+            event_data = event.serialize()
+            self.analysis_model.notify(event_data)
 
     # Error Display
     def _show_error_dialog(self, message):
@@ -531,7 +539,7 @@ class WfManagerSetupTask(Task):
                     "file during start up.",
                     informative="Analysis data will not be "
                     "loaded into WfManager upon launch. You can load a "
-                    "Project file using 'Open Project' in the Review Task."
+                    "Project file using 'Open Project' in the Review Task.",
                 )
 
     def _write_workflow(self, file_path):
@@ -698,7 +706,7 @@ class WfManagerSetupTask(Task):
         # buttons for the MCO
         for pause_task in [
             self.tool_bars[0].items[2],
-            self.review_task.tool_bars[0].items[2]
+            self.review_task.tool_bars[0].items[2],
         ]:
             if self._paused:
                 pause_task.image = ImageResource(
@@ -708,7 +716,8 @@ class WfManagerSetupTask(Task):
                 pause_task.tooltip = "Resume BDSS"
             else:
                 pause_task.image = ImageResource(
-                    "baseline_pause_black_18dp.png")
+                    "baseline_pause_black_18dp.png"
+                )
                 pause_task.name = " Pause"
                 pause_task.tooltip = "Pause BDSS"
 

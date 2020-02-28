@@ -21,10 +21,10 @@ class ResultsPane(TraitsDockPane):
     # ------------------
 
     #: An internal identifier for this pane
-    id = 'force_wfmanager.results_pane'
+    id = "force_wfmanager.results_pane"
 
     #: Name displayed as the title of this pane
-    name = 'Results Table'
+    name = "Results Table"
 
     #: Remove the possibility to close the pane
     closable = False
@@ -50,13 +50,9 @@ class ResultsPane(TraitsDockPane):
     # View
     # ----
 
-    traits_view = View(VGroup(
-        UItem('results_table', style='custom'),
-    ))
+    traits_view = View(VGroup(UItem("results_table", style="custom")))
 
     # Defaults
 
     def _results_table_default(self):
-        return ResultsTable(
-            analysis_model=self.analysis_model
-        )
+        return ResultsTable(analysis_model=self.analysis_model)
