@@ -227,13 +227,10 @@ class WfManagerReviewTask(Task):
 
         current_file = dialog.path
 
-        if self._write_analysis(current_file):
-            return True
-
-        return False
+        return self._write_analysis(current_file)
 
     def _write_analysis(self, file_path):
-        """ Write the contents of the analysis model to a JSON file.
+        """ Write the contents of the analysis model to file.
 
         Parameters
         ----------
@@ -246,7 +243,7 @@ class WfManagerReviewTask(Task):
 
         """
         try:
-            self.analysis_model.dump_json(file_path)
+            self.analysis_model.write(file_path)
         except IOError as e:
             error(
                 None,

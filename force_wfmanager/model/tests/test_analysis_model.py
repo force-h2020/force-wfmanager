@@ -317,6 +317,18 @@ class TestAnalysisModel(TestCase):
         self.model._export_enabled = False
         self.assertFalse(self.model.dump_csv(None))
 
+    def test_write(self):
+        with mock.patch.object(AnalysisModel, "dump_csv") as mock_csv:
+            AnalysisModel().write("filename.csv")
+        mock_csv.assert_called_with("filename.csv", mode="w")
+
+        with mock.patch.object(AnalysisModel, "dump_json") as mock_json:
+            AnalysisModel().write("filename.json")
+        mock_json.assert_called_with("filename.json", mode="w")
+
+        with self.assertRaises(IOError):
+            AnalysisModel().write("filename.format")
+
     def test_clear(self):
         header = ("a", "b", "c")
         data = ((1, 2, 3), (4, 5, 6))

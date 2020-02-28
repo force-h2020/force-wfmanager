@@ -273,6 +273,14 @@ class AnalysisModel(HasStrictTraits):
 
         return data
 
+    def write(self, filename, *, mode="w"):
+        if filename.endswith(".csv"):
+            self.dump_csv(filename, mode=mode)
+        elif filename.endswith(".json"):
+            self.dump_json(filename, mode=mode)
+        else:
+            raise IOError
+
     def dump_json(self, filename, *, mode="w"):
         """ Writes the AnalysisModel to a `filename` file in json format."""
         if not self.export_enabled:
