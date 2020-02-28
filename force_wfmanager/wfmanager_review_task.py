@@ -247,7 +247,7 @@ class WfManagerReviewTask(Task):
         except IOError as e:
             error(
                 None,
-                "Cannot save in the requested file:\n\n{}".format(str(e)),
+                f"Cannot save in the requested file:\n\n{e}",
                 "Error when saving the results table",
             )
             log.exception("Error when saving AnalysisModel")
@@ -255,7 +255,7 @@ class WfManagerReviewTask(Task):
         except Exception as e:
             error(
                 None,
-                "Cannot save the results table:\n\n{}".format(str(e)),
+                f"Cannot save the results table:\n\n{e}",
                 "Error when saving results",
             )
             log.exception("Error when saving results")

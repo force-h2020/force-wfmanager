@@ -159,7 +159,6 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertFalse(mock_open.called)
 
         mock_open = mock.mock_open()
-        mock_open.side_effect = IOError("OUPS")
         with mock.patch(
             RESULTS_FILE_DIALOG_PATH
         ) as mock_file_dialog, mock.patch(
@@ -173,11 +172,14 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.review_task.analysis_model._export_enabled = True
             self.assertFalse(self.review_task.export_analysis_model_as())
             self.assertTrue(mock_file_dialog.called)
-            self.assertTrue(mock_open.called)
+            self.assertFalse(mock_open.called)
 
             mock_error.assert_called_with(
                 None,
-                "Cannot save in the requested file:\n\nOUPS",
+                (
+                    "Cannot save in the requested file:\n\n"
+                    "AnalysisModel can only write to .json or .csv formats."
+                ),
                 "Error when saving the results table",
             )
 
@@ -190,7 +192,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         ), mock.patch(
             RESULTS_ERROR_PATH
         ) as mock_error:
-            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK, "")
+            mock_file_dialog.side_effect = mock_dialog(FileDialog, OK, "f.csv")
 
             self.assertFalse(self.review_task.export_analysis_model_as())
             self.assertTrue(mock_file_dialog.called)
