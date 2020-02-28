@@ -326,7 +326,8 @@ class TestAnalysisModel(TestCase):
             AnalysisModel().write("filename.json")
         mock_json.assert_called_with("filename.json", mode="w")
 
-        with self.assertRaises(IOError):
+        error = "AnalysisModel can only write to .json or .csv formats."
+        with self.assertRaisesRegex(IOError, error):
             AnalysisModel().write("filename.format")
 
     def test_clear(self):

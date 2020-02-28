@@ -13,7 +13,7 @@ from traits.api import (
     Dict,
     Either,
     Int,
-    on_trait_change
+    on_trait_change,
 )
 
 log = logging.getLogger(__name__)
@@ -279,7 +279,9 @@ class AnalysisModel(HasStrictTraits):
         elif filename.endswith(".json"):
             self.dump_json(filename, mode=mode)
         else:
-            raise IOError
+            raise IOError(
+                "AnalysisModel can only write to .json or .csv formats."
+            )
 
     def dump_json(self, filename, *, mode="w"):
         """ Writes the AnalysisModel to a `filename` file in json format."""
