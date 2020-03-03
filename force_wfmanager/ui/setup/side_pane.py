@@ -1,5 +1,5 @@
 from pyface.tasks.api import TraitsDockPane
-from traits.api import Bool, Button, Instance, on_trait_change
+from traits.api import Bool, Button, Instance, on_trait_change, Property
 from traitsui.api import UItem, VGroup, View
 
 from force_bdss.api import IFactoryRegistry, Workflow
@@ -78,7 +78,7 @@ class SidePane(TraitsDockPane):
 
     traits_view = View(
         VGroup(
-            UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
+            UItem('workflow_tree', style='custom'),
             UItem('run_button', enabled_when="run_enabled")
         )
     )
