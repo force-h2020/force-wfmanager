@@ -77,6 +77,9 @@ class WfManagerSetupTask(Task):
     #: Current workflow file on which the application is writing
     current_file = File()
 
+    #: Setup Pane containing the object views to edit
+    setup_pane = Instance(SetupPane)
+
     #: Side Pane containing the tree editor for the Workflow and the Run button
     side_pane = Instance(SidePane)
 
@@ -259,6 +262,9 @@ class WfManagerSetupTask(Task):
     def _workflow_model_default(self):
         return Workflow()
 
+    def _setup_pane_default(self):
+        return SetupPane(system_state=self.system_state)
+
     def _side_pane_default(self):
         return SidePane(
             workflow_model=self.workflow_model,
@@ -316,10 +322,11 @@ class WfManagerSetupTask(Task):
 
     @on_trait_change("computation_running")
     def update_pane_active_status(self):
-        """Disables the saving/loading toolbar buttons and the TreePane UI
+        """Disables the saving/loading toolbar buttons and the SetupPane UI
         if a computation is running, and re-enables them when it finishes."""
 
         self.side_pane.ui_enabled = not self.computation_running
+        self.setup_pane.ui_enabled = not self.computation_running
         self.save_load_enabled = not self.computation_running
         self.run_enabled = not self.computation_running
 
@@ -479,7 +486,7 @@ class WfManagerSetupTask(Task):
         """ Creates the central pane which contains the layer info part
         (factory selection and new object configuration editors)
         """
-        return SetupPane(system_state=self.system_state)
+        return self.setup_pane
 
     def create_dock_panes(self):
         """ Creates the dock panes """
