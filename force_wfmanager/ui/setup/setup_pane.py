@@ -217,7 +217,7 @@ class SetupPane(TraitsTaskPane):
                             show_border=True,
                         ),
                     ),
-                enabled_when="ui_enabled"
+                    enabled_when="ui_enabled"
                 ),
             ),
             width=500,
