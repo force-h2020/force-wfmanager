@@ -331,6 +331,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             hook_manager = self.setup_task.ui_hooks_managers[0]
 
             self.assertTrue(self.setup_task.side_pane.ui_enabled)
+            self.assertTrue(self.setup_task.setup_pane.ui_enabled)
             self.assertFalse(hook_manager.before_execution_called)
             self.assertFalse(hook_manager.after_execution_called)
 
@@ -341,6 +342,11 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
             with self.event_loop_until_condition(
                 lambda: self.setup_task.side_pane.ui_enabled
+            ):
+                pass
+
+            with self.event_loop_until_condition(
+                lambda: self.setup_task.setup_pane.ui_enabled
             ):
                 pass
 
@@ -422,6 +428,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 mock_chk_call.side_effect = exception
 
                 self.assertTrue(self.setup_task.side_pane.ui_enabled)
+                self.assertTrue(self.setup_task.setup_pane.ui_enabled)
 
                 with self.event_loop_until_condition(
                     lambda: mock_chk_call.called
@@ -429,6 +436,10 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                     self.setup_task.run_bdss()
 
                 ui_enabled = self.setup_task.side_pane.ui_enabled
+                with self.event_loop_until_condition(lambda: ui_enabled):
+                    pass
+
+                ui_enabled = self.setup_task.setup_pane.ui_enabled
                 with self.event_loop_until_condition(lambda: ui_enabled):
                     pass
 
@@ -480,10 +491,12 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             mock_error.side_effect = mock_return_args
 
             self.assertTrue(self.setup_task.side_pane.ui_enabled)
+            self.assertTrue(self.setup_task.setup_pane.ui_enabled)
 
             self.setup_task.run_bdss()
 
             self.assertTrue(self.setup_task.side_pane.ui_enabled)
+            self.assertTrue(self.setup_task.setup_pane.ui_enabled)
 
             self.assertEqual(
                 mock_error.call_args[0][1], "Unable to run BDSS: write failed"

@@ -78,6 +78,7 @@ class TestSetupPane(GuiTestAssistant, TestCase):
         self.assertEqual(self.setup_pane.system_state,
                          self.system_state)
         self.assertTrue(self.setup_pane.main_view_visible)
+        self.assertTrue(self.setup_pane.ui_enabled)
 
     def test_mco_view(self):
 

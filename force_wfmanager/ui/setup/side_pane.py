@@ -66,7 +66,7 @@ class SidePane(TraitsDockPane):
     #: Run button for running the computation
     run_button = Button('Run')
 
-    #: Enables or disables the workflow tree.
+    #: Enables or disables features of the side pane during runtime.
     ui_enabled = Bool(True)
 
     #: Enable or disable the run button.
@@ -78,7 +78,7 @@ class SidePane(TraitsDockPane):
 
     traits_view = View(
         VGroup(
-            UItem('workflow_tree', style='custom', enabled_when="ui_enabled"),
+            UItem('workflow_tree', style='custom'),
             UItem('run_button', enabled_when="run_enabled")
         )
     )
@@ -102,9 +102,10 @@ class SidePane(TraitsDockPane):
 
     @on_trait_change('workflow_tree.workflow_view.valid')
     def update_run_btn_status(self):
-        """Enables/Disables the run button if the workflow is valid/invalid"""
+        """Enables/Disables the run button if the workflow is valid/invalid
+        or if a computation is running"""
         self.run_enabled = (
-                self.workflow_tree.workflow_view.valid and self.ui_enabled
+            self.workflow_tree.workflow_view.valid and self.ui_enabled
         )
 
     @on_trait_change('workflow_model', post_init=True)

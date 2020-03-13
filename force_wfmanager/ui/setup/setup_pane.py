@@ -33,6 +33,9 @@ class SetupPane(TraitsTaskPane):
     #: Name displayed as the title of this pane
     name = 'Setup Pane'
 
+    #: Enables or disables the object views displayed
+    ui_enabled = Bool(True)
+
     # ------------------
     # Derived Attributes
     # ------------------
@@ -145,7 +148,8 @@ class SetupPane(TraitsTaskPane):
                         editor=InstanceEditor(),
                         style="custom",
                         ),
-                    visible_when="main_view_visible"
+                    visible_when="main_view_visible",
+                    enabled_when="ui_enabled"
                 ),
                 # MCO Parameter and KPI views
                 VGroup(
@@ -154,8 +158,8 @@ class SetupPane(TraitsTaskPane):
                         editor=InstanceEditor(),
                         style="custom",
                     ),
-                    visible_when="mco_view_visible"
-
+                    visible_when="mco_view_visible",
+                    enabled_when="ui_enabled"
                 ),
                 # Process Tree Views
                 HGroup(
@@ -213,6 +217,7 @@ class SetupPane(TraitsTaskPane):
                             show_border=True,
                         ),
                     ),
+                    enabled_when="ui_enabled"
                 ),
             ),
             width=500,
