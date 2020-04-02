@@ -357,18 +357,18 @@ class BasePlot(BaseDataView):
 
     @staticmethod
     def calculate_axis_bounds(data):
-        set_size = len(set(data))
-        if set_size > 1:
-            axis_max = max(data) * 1.0
-            axis_min = min(data)
-            axis_spread = abs(axis_max - axis_min)
-            axis_max = axis_max + 0.1 * axis_spread
-            axis_min = axis_min - 0.1 * axis_spread
-            bounds = (axis_min, axis_max)
-        elif set_size == 1:
-            bounds = (data[0] - 0.5, data[0] + 0.5)
-        else:
+        if len(data) < 1:
             bounds = (-1, 1)
+        if (len(data) > 1) and (data[0] != data[1]):
+                axis_max = max(data) * 1.0
+                axis_min = min(data)
+                axis_spread = abs(axis_max - axis_min)
+                axis_max = axis_max + 0.1 * axis_spread
+                axis_min = axis_min - 0.1 * axis_spread
+                bounds = (axis_min, axis_max)
+        else:
+            bounds = (data[0] - 0.5, data[0] + 0.5)
+
         return bounds
 
     def _reset_zoomtool(self):
