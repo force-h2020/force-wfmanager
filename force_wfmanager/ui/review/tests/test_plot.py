@@ -230,7 +230,7 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             mock_update.assert_called()
 
         self.plot._update_plot()
-        self.assertEqual((1.8, 4.2, 3.0, 3.0), self.plot._get_plot_range())
+        self.assertEqual((1.8, 4.2, 2.5, 3.5), self.plot._get_plot_range())
 
     def test_remove_value_names(self):
         self.analysis_model.header = ("density", "pressure")
