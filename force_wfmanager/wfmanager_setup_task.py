@@ -172,9 +172,10 @@ class WfManagerSetupTask(Task):
                 TaskAction(
                     name="About WorkflowManager...", method="open_about"
                 ),
-                name="&Help",
+                name="&Help",  id='Help'
             ),
             SMenu(TaskToggleGroupAccelerator(), id="View", name="&View"),
+            id='mymenu'
         )
         return menu_bar
 
@@ -211,7 +212,8 @@ class WfManagerSetupTask(Task):
                     image=ImageResource("baseline_bar_chart_black_48dp"),
                     method="switch_task",
                     image_size=(64, 64),
-                ),
+                    id='View Results'
+                ), id='running'
             ),
             SToolBar(
                 TaskAction(
