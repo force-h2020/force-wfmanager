@@ -285,10 +285,8 @@ class WfManagerSetupTask(Task):
             for task in self.window.tasks:
                 if task.name == "Review":
                     self.review_task = task
-                    self.review_task.run_enabled = self.run_enabled
                 elif task.name == "Workflow Setup":
                     self.setup_task = task
-                    self.setup_task.run_enabled = self.run_enabled
 
     # ------------------
     #   Private Methods

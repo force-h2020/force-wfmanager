@@ -44,9 +44,6 @@ class WfManagerReviewTask(Task):
     #: and table
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
-    #: Is the 'run' toolbar button active
-    run_enabled = Bool(True)
-
     #: Are the saving and loading menu/toolbar buttons active
     save_load_enabled = Bool(True)
 
@@ -303,10 +300,6 @@ class WfManagerReviewTask(Task):
             return True
 
     # Synchronization with Setup Task
-
-    @on_trait_change("setup_task.run_enabled")
-    def sync_run_enabled(self):
-        self.run_enabled = self.setup_task.run_enabled
 
     @on_trait_change("setup_task.save_load_enabled")
     def sync_save_load_enabled(self):
