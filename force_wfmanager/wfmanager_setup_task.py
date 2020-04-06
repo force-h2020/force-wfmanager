@@ -6,6 +6,7 @@ import tempfile
 import textwrap
 from subprocess import SubprocessError
 
+
 from pyface.api import (
     FileDialog,
     GUI,
@@ -49,7 +50,6 @@ from force_wfmanager.ui.setup.system_state import SystemState
 
 from force_wfmanager.wfmanager import TaskToggleGroupAccelerator
 from force_wfmanager.io.project_io import load_analysis_model
-
 
 log = logging.getLogger(__name__)
 
@@ -122,6 +122,12 @@ class WfManagerSetupTask(Task):
     #: Review Task
     review_task = Instance(Task)
 
+    #: Setup Task: this will be a self-reference
+    # that allows the TaskActions added by the global task extension
+    # to refer to methods defined by the setup task instance,
+    # whether that extension is added to setup or review.
+    setup_task = Instance(Task)
+
     #: A list of plugin contributed UIs
     contributed_uis = List(ContributedUI)
 
@@ -135,77 +141,11 @@ class WfManagerSetupTask(Task):
     def _menu_bar_default(self):
         """A menu bar with functions relevant to the Setup task.
         """
-        menu_bar = SMenuBar(
-            SMenu(
-                TaskAction(name="Exit", method="exit", accelerator="Ctrl+Q"),
-                name="&Workflow Manager",
-            ),
-            SMenu(
-                TaskAction(
-                    name="Open Workflow...",
-                    method="open_workflow",
-                    enabled_name="save_load_enabled",
-                    accelerator="Ctrl+O",
-                ),
-                TaskAction(
-                    id="Save",
-                    name="Save Workflow",
-                    method="save_workflow",
-                    enabled_name="save_load_enabled",
-                    accelerator="Ctrl+S",
-                ),
-                TaskAction(
-                    name="Save Workflow as...",
-                    method="save_workflow_as",
-                    enabled_name="save_load_enabled",
-                    accelerator="Shift+Ctrl+S",
-                ),
-                TaskAction(name="Plugins...", method="open_plugins"),
-                TaskAction(name="Exit", method="exit"),
-                # NOTE: Setting id='File' here will automatically create
-                #       a exit menu item, I guess this is QT being 'helpful'.
-                #       This menu item calls application.exit, which bypasses
-                #       our custom exit which prompts for a save before exiting
-                name="&File",
-            ),
-            SMenu(
-                TaskAction(
-                    name="About WorkflowManager...", method="open_about"
-                ),
-                name="&Help",  id='Help'
-            ),
-            SMenu(TaskToggleGroupAccelerator(), id="View", name="&View"),
-            id='mymenu'
-        )
-        return menu_bar
+        return SMenuBar( id='mymenu')
 
     def _tool_bars_default(self):
         return [
             SToolBar(
-                TaskAction(
-                    name="Run",
-                    tooltip="Run Workflow",
-                    image=ImageResource("baseline_play_arrow_black_48dp"),
-                    method="run_bdss",
-                    enabled_name="run_enabled",
-                    image_size=(64, 64),
-                ),
-                TaskAction(
-                    name="Stop",
-                    tooltip="Stop Workflow",
-                    method="stop_bdss",
-                    enabled_name="computation_running",
-                    image=ImageResource("baseline_stop_black_18dp"),
-                    image_size=(64, 64),
-                ),
-                TaskAction(
-                    name=" Pause",
-                    tooltip="Pause Workflow",
-                    method="pause_bdss",
-                    enabled_name="computation_running",
-                    image=ImageResource("baseline_pause_black_18dp"),
-                    image_size=(64, 64),
-                ),
                 TaskAction(
                     name="View Results",
                     tooltip="View Results",
@@ -346,6 +286,9 @@ class WfManagerSetupTask(Task):
                 if task.name == "Review":
                     self.review_task = task
                     self.review_task.run_enabled = self.run_enabled
+                elif task.name == "Workflow Setup":
+                    self.setup_task = task
+                    self.setup_task.run_enabled = self.run_enabled
 
     # ------------------
     #   Private Methods
@@ -507,141 +450,6 @@ class WfManagerSetupTask(Task):
         """
         self.zmq_server.stop()
 
-    # Workflow Methods
-    def open_workflow(self):
-        """ Shows a dialog to open a workflow file """
-
-        dialog = FileDialog(
-            action="open", wildcard="JSON files (*.json)|*.json|"
-        )
-        result = dialog.open()
-        file_path = dialog.path
-
-        if result is OK:
-            self.load_workflow(file_path)
-
-    def load_workflow(self, file_path):
-        """ Loads a workflow from the specified file name
-        Parameters
-        ----------
-        file_path: str
-            The path to the workflow file
-        """
-        try:
-            self.workflow_model = load_workflow_file(
-                self.factory_registry, file_path
-            )
-        except (InvalidFileException, FileNotFoundError) as e:
-            error(
-                None,
-                "Cannot read the requested file:\n\n{}".format(str(e)),
-                "Error when reading file",
-            )
-        else:
-            analysis_model = load_analysis_model(file_path)
-            if not analysis_model:
-                self.current_file = file_path
-            else:
-                information(
-                    None,
-                    "Project file found instead of Workflow "
-                    "file during start up.",
-                    informative="Analysis data will not be "
-                    "loaded into WfManager upon launch. You can load a "
-                    "Project file using 'Open Project' in the Review Task.",
-                )
-
-    def _write_workflow(self, file_path):
-        """ Creates a JSON file in the file_path and write the workflow
-        description in it
-        Parameters
-        ----------
-        file_path: str
-            The file_path pointing to the file in which you want to write the
-            workflow
-        Returns
-        -------
-        Boolean:
-            True if it was a success to write in the file, False otherwise
-        """
-        for hook_manager in self.ui_hooks_managers:
-            try:
-                hook_manager.before_save(self)
-            except Exception:
-                log.exception(
-                    "Failed before_save hook "
-                    "for hook manager {}".format(
-                        hook_manager.__class__.__name__
-                    )
-                )
-
-        try:
-            write_workflow_file(self.workflow_model, file_path)
-        except IOError as e:
-            error(
-                None,
-                "Cannot save in the requested file:\n\n{}".format(str(e)),
-                "Error when saving workflow",
-            )
-            log.exception("Error when saving workflow")
-            return False
-        except Exception as e:
-            error(
-                None,
-                "Cannot save the workflow:\n\n{}".format(str(e)),
-                "Error when saving workflow",
-            )
-            log.exception("Error when saving workflow")
-            return False
-        else:
-            return True
-
-    def save_workflow(self):
-        """ Saves the workflow into the currently used file. If there is no
-        current file, it shows a dialog """
-        if len(self.current_file) == 0:
-            return self.save_workflow_as()
-
-        if not self._write_workflow(self.current_file):
-            self.current_file = ""
-            return False
-        return True
-
-    def save_workflow_as(self):
-        """ Shows a dialog to save the workflow into a JSON file """
-        dialog = FileDialog(
-            action="save as",
-            default_filename="workflow.json",
-            wildcard="JSON files (*.json)|*.json|",
-        )
-
-        result = dialog.open()
-
-        if result is not OK:
-            return
-
-        current_file = dialog.path
-
-        if self._write_workflow(current_file):
-            self.current_file = current_file
-            return True
-        return False
-
-    def open_about(self):
-        """Opens an information dialog"""
-        information(
-            None,
-            textwrap.dedent(
-                """
-                Workflow Manager: a UI application for Business Decision System.
-
-                Developed as part of the FORCE project (Horizon 2020/NMBP-23-2016/721027).
-
-                This software is released under the BSD license.
-                """  # noqa
-            ),
-            "About WorkflowManager",
-        )
 
     # BDSS Interaction
     def run_bdss(self):
@@ -800,3 +608,146 @@ class WfManagerSetupTask(Task):
     def run_bdss_custom_ui(self):
         self.update_workflow_custom_ui()
         self.run_bdss()
+
+    #########################################################
+    # FILE MENU
+    #########################################################
+
+    def open_workflow(self):
+        """ Shows a dialog to open a workflow file """
+
+        dialog = FileDialog(
+            action="open", wildcard="JSON files (*.json)|*.json|"
+        )
+        result = dialog.open()
+        file_path = dialog.path
+
+        if result is OK:
+            self.load_workflow(file_path)
+
+    def load_workflow(self, file_path):
+        """ Loads a workflow from the specified file name
+        Parameters
+        ----------
+        file_path: str
+            The path to the workflow file
+        """
+        try:
+            self.workflow_model = load_workflow_file(
+                self.factory_registry, file_path
+            )
+        except (InvalidFileException, FileNotFoundError) as e:
+            error(
+                None,
+                "Cannot read the requested file:\n\n{}".format(str(e)),
+                "Error when reading file",
+            )
+        else:
+            analysis_model = load_analysis_model(file_path)
+            if not analysis_model:
+                self.current_file = file_path
+            else:
+                information(
+                    None,
+                    "Project file found instead of Workflow "
+                    "file during start up.",
+                    informative="Analysis data will not be "
+                                "loaded into WfManager upon launch. You can load a "
+                                "Project file using 'Open Project' in the Review Task.",
+                )
+
+    def _write_workflow(self, file_path):
+        """ Creates a JSON file in the file_path and write the workflow
+        description in it
+        Parameters
+        ----------
+        file_path: str
+            The file_path pointing to the file in which you want to write the
+            workflow
+        Returns
+        -------
+        Boolean:
+            True if it was a success to write in the file, False otherwise
+        """
+        for hook_manager in self.ui_hooks_managers:
+            try:
+                hook_manager.before_save(self)
+            except Exception:
+                log.exception(
+                    "Failed before_save hook "
+                    "for hook manager {}".format(
+                        hook_manager.__class__.__name__
+                    )
+                )
+
+        try:
+            write_workflow_file(self.workflow_model, file_path)
+        except IOError as e:
+            error(
+                None,
+                "Cannot save in the requested file:\n\n{}".format(str(e)),
+                "Error when saving workflow",
+            )
+            log.exception("Error when saving workflow")
+            return False
+        except Exception as e:
+            error(
+                None,
+                "Cannot save the workflow:\n\n{}".format(str(e)),
+                "Error when saving workflow",
+            )
+            log.exception("Error when saving workflow")
+            return False
+        else:
+            return True
+
+    def save_workflow(self):
+        """ Saves the workflow into the currently used file. If there is no
+        current file, it shows a dialog """
+        if len(self.current_file) == 0:
+            return self.save_workflow_as()
+
+        if not self._write_workflow(self.current_file):
+            self.current_file = ""
+            return False
+        return True
+
+    def save_workflow_as(self):
+        """ Shows a dialog to save the workflow into a JSON file """
+        dialog = FileDialog(
+            action="save as",
+            default_filename="workflow.json",
+            wildcard="JSON files (*.json)|*.json|",
+        )
+
+        result = dialog.open()
+
+        if result is not OK:
+            return
+
+        current_file = dialog.path
+
+        if self._write_workflow(current_file):
+            self.current_file = current_file
+            return True
+        return False
+
+    def open_about(self):
+        """Opens an information dialog"""
+        information(
+            None,
+            textwrap.dedent(
+                """
+                Workflow Manager: a UI application for Business Decision System.
+
+                Developed as part of the FORCE project (Horizon 2020/NMBP-23-2016/721027).
+
+                This software is released under the BSD license.
+                """  # noqa
+            ),
+            "About WorkflowManager",
+        )
+
+
+
+
