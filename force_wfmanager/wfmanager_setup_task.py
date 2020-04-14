@@ -17,7 +17,7 @@ from pyface.api import (
     error,
     information,
 )
-from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction
+from pyface.tasks.action.api import SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
 from traits.api import Bool, File, Instance, List, on_trait_change, Str
 
@@ -141,7 +141,7 @@ class WfManagerSetupTask(Task):
     def _menu_bar_default(self):
         """A menu bar with functions relevant to the Setup task.
         """
-        return SMenuBar( id='mymenu')
+        return SMenuBar(id='mymenu')
 
     def _tool_bars_default(self):
         return [
@@ -450,7 +450,6 @@ class WfManagerSetupTask(Task):
         """
         self.zmq_server.stop()
 
-
     # BDSS Interaction
     def run_bdss(self):
         """ Run the BDSS computation """
@@ -511,32 +510,6 @@ class WfManagerSetupTask(Task):
             message = "PAUSE_BDSS"
         self.zmq_server.publish_message(message)
         self._paused = not self._paused
-
-    @on_trait_change("_paused")
-    def _pause_fired(self):
-        """ Updates the state of the 'Pause' / 'Resume' when the
-        `_paused` state changes."""
-        # NOTE: this is a workaround to sync the status of the setup
-        # task and review task tool bar icons. We should look to
-        # implement a better solution including a single instance
-        # of the SToolBar object containing the Run, Stop and Pause
-        # buttons for the MCO
-        for pause_task in [
-            self.tool_bars[0].items[2],
-            self.review_task.tool_bars[0].items[2],
-        ]:
-            if self._paused:
-                pause_task.image = ImageResource(
-                    "baseline_skip_next_black_18dp.png"
-                )
-                pause_task.name = "Resume"
-                pause_task.tooltip = "Resume BDSS"
-            else:
-                pause_task.image = ImageResource(
-                    "baseline_pause_black_18dp.png"
-                )
-                pause_task.name = " Pause"
-                pause_task.tooltip = "Pause BDSS"
 
     # Plugin Status
     def lookup_plugins(self):
@@ -652,8 +625,10 @@ class WfManagerSetupTask(Task):
                     "Project file found instead of Workflow "
                     "file during start up.",
                     informative="Analysis data will not be "
-                                "loaded into WfManager upon launch. You can load a "
-                                "Project file using 'Open Project' in the Review Task.",
+                                "loaded into WfManager upon launch. "
+                                "You can load a "
+                                "Project file using 'Open Project' in "
+                                "the Review Task.",
                 )
 
     def _write_workflow(self, file_path):
@@ -747,7 +722,3 @@ class WfManagerSetupTask(Task):
             ),
             "About WorkflowManager",
         )
-
-
-
-
