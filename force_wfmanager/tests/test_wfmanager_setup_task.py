@@ -573,5 +573,5 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             exception = subprocess.SubprocessError()
             self.setup_task._bdss_done(exception)
             mock_info.assert_called_with(
-                None, "Execution of BDSS stoped by the user."
+                None, "Execution of BDSS stopped by the user."
             )

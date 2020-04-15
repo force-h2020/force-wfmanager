@@ -387,7 +387,7 @@ class WfManagerSetupTask(Task):
             if str(exception) == "BDSS stopped" or isinstance(
                 exception, SubprocessError
             ):
-                information(None, "Execution of BDSS stoped by the user.")
+                information(None, "Execution of BDSS stopped by the user.")
             else:
                 error(
                     None,
