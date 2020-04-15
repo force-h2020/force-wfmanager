@@ -19,7 +19,8 @@ from pyface.api import (
 )
 from pyface.tasks.action.api import SMenuBar, SToolBar, TaskAction
 from pyface.tasks.api import PaneItem, Task, TaskLayout
-from traits.api import Bool, File, Instance, List, on_trait_change, Str
+from traits.api import (
+    Bool, File, Instance, List, on_trait_change, Str, Property)
 
 from force_bdss.api import (
     BaseExtensionPlugin,
@@ -94,6 +95,10 @@ class WfManagerSetupTask(Task):
 
     #: Indicates whether the computation is paused and waits to resume
     _paused = Bool(False)
+
+    #: Utility property used to indicate switch between 'Pause' and 'Resume'
+    #: toolbar objects
+    _not_paused = Property(Bool, depends_on='_paused')
 
     #: Indicates whether the saving and loading menu/toolbar buttons are
     #: active.
@@ -244,6 +249,11 @@ class WfManagerSetupTask(Task):
     # ------------------
     #     Listeners
     # ------------------
+
+    def _get__not_paused(self):
+        """Simple property used to control visibility of Resume' toolbar
+        object"""
+        return not self._paused
 
     # Synchronization with side pane (Tree Pane)
     @on_trait_change("side_pane.run_enabled")

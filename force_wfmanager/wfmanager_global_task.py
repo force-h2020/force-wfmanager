@@ -131,7 +131,17 @@ class WfManagerGlobalTask(TaskExtension):
                     tooltip="Pause Workflow",
                     method="setup_task.pause_bdss",
                     enabled_name='setup_task.computation_running',
+                    visible_name='setup_task._not_paused',
                     image=ImageResource("baseline_pause_black_18dp"),
+                    image_size=(64, 64),
+                ),
+                TaskAction(
+                    name="Resume",
+                    tooltip="Resume Workflow",
+                    method="setup_task.pause_bdss",
+                    enabled_name='setup_task.computation_running',
+                    visible_name='setup_task._paused',
+                    image=ImageResource("baseline_skip_next_black_18dp"),
                     image_size=(64, 64),
                 ),
         )
