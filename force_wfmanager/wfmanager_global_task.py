@@ -80,7 +80,8 @@ class WfManagerGlobalTask(TaskExtension):
                     enabled_name="save_load_enabled",
                     accelerator="Shift+Ctrl+S",
                 ),
-                TaskAction(name="Plugins...", method="setup_task.open_plugins"),
+                TaskAction(name="Plugins...",
+                           method="setup_task.open_plugins"),
                 TaskAction(name="Exit", method="exit"),
                 # NOTE: Setting id='File' here will automatically create
                 #       a exit menu item, I guess this is QT being 'helpful'.
@@ -99,7 +100,8 @@ class WfManagerGlobalTask(TaskExtension):
         """
         return SMenu(
                 TaskAction(
-                    name="About WorkflowManager...", method="setup_task.open_about"
+                    name="About WorkflowManager...",
+                    method="setup_task.open_about"
                 ),
                 name="&Help",  id='Help'
             )
@@ -113,7 +115,7 @@ class WfManagerGlobalTask(TaskExtension):
                     tooltip="Run Workflow",
                     image=ImageResource("baseline_play_arrow_black_48dp"),
                     method="setup_task.run_bdss",
-                    enabled_name='setup_task.run_enabled',
+                    enabled_name="setup_task.run_enabled",
                     image_size=(64, 64),
                 ),
                 TaskAction(
@@ -132,4 +134,4 @@ class WfManagerGlobalTask(TaskExtension):
                     image=ImageResource("baseline_pause_black_18dp"),
                     image_size=(64, 64),
                 ),
-            )
+        )

@@ -551,19 +551,13 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             self.assertFalse(self.setup_task._paused)
             mock_publish.assert_called_with("STOP_BDSS")
 
-            pause_task = self.setup_task.tool_bars[0].items[2]
-
             self.setup_task.pause_bdss()
             self.assertTrue(self.setup_task._paused)
             mock_publish.assert_called_with("PAUSE_BDSS")
-            self.assertEqual("Resume", pause_task.name)
-            self.assertEqual("Resume BDSS", pause_task.tooltip)
 
             self.setup_task.pause_bdss()
             self.assertFalse(self.setup_task._paused)
             mock_publish.assert_called_with("RESUME_BDSS")
-            self.assertEqual(" Pause", pause_task.name)
-            self.assertEqual("Pause BDSS", pause_task.tooltip)
 
         with mock.patch.object(self.setup_task, "run_bdss") as mock_run:
             self.setup_task.run_button_clicked()

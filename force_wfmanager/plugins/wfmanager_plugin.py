@@ -9,9 +9,6 @@ from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
 from force_wfmanager.wfmanager_global_task import WfManagerGlobalTask
 
-from pyface.tasks.action.api import SchemaAddition
-from pyface.tasks.action.api import SMenu, SMenuBar, SToolBar, TaskAction, SGroup
-from pyface.api import ImageResource, FileDialog, OK, error
 
 class WfManagerPlugin(Plugin):
     """ The Plugin containing the Workflow Manager UI. This contains the
@@ -43,12 +40,12 @@ class WfManagerPlugin(Plugin):
     def _contributed_task_extensions_default(self):
         return [WfManagerGlobalTask()]
 
-
     # -----------------
     #  Private Methods
     # -----------------
 
     def _create_setup_task(self):
+
         factory_registry = self.application.get_service(
             IFactoryRegistry
         )
@@ -75,4 +72,3 @@ class WfManagerPlugin(Plugin):
         )
 
         return wf_manager_review_task
-
