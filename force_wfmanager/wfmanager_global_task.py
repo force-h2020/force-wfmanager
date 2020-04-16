@@ -64,20 +64,20 @@ class WfManagerGlobalTask(TaskExtension):
                 TaskAction(
                     name="Open Workflow...",
                     method="setup_task.open_workflow",
-                    enabled_name="save_load_enabled",
+                    enabled_name="setup_task.save_load_enabled",
                     accelerator="Ctrl+O",
                 ),
                 TaskAction(
                     id="Save",
                     name="Save Workflow",
                     method="setup_task.save_workflow",
-                    enabled_name="save_load_enabled",
+                    enabled_name="setup_task.save_load_enabled",
                     accelerator="Ctrl+S",
                 ),
                 TaskAction(
                     name="Save Workflow as...",
                     method="setup_task.save_workflow_as",
-                    enabled_name="save_load_enabled",
+                    enabled_name="setup_task.save_load_enabled",
                     accelerator="Shift+Ctrl+S",
                 ),
                 TaskAction(name="Plugins...",
