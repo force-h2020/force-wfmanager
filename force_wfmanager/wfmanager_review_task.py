@@ -44,9 +44,6 @@ class WfManagerReviewTask(Task):
     #: and table
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
-    #: Are the saving and loading menu/toolbar buttons active
-    save_load_enabled = Bool(True)
-
     #: Is the results saving button enabled, i.e. are there results?
     export_results_enabled = Bool(False)
 
@@ -298,12 +295,6 @@ class WfManagerReviewTask(Task):
         else:
             self.current_file = file_path
             return True
-
-    # Synchronization with Setup Task
-
-    @on_trait_change("setup_task.save_load_enabled")
-    def sync_save_load_enabled(self):
-        self.save_load_enabled = self.setup_task.save_load_enabled
 
     # Synchronization with Window
 
