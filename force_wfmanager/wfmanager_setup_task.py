@@ -128,9 +128,9 @@ class WfManagerSetupTask(Task):
     review_task = Instance(Task)
 
     #: Setup Task: this will be a self-reference
-    # that allows the TaskActions added by the global task extension
-    # to refer to methods defined by the setup task instance,
-    # whether that extension is added to setup or review.
+    #: that allows the TaskActions added by the global task extension
+    #: to refer to methods defined by the setup task instance,
+    #: whether that extension is added to setup or review.
     setup_task = Instance(Task)
 
     #: A list of plugin contributed UIs
@@ -293,9 +293,9 @@ class WfManagerSetupTask(Task):
     def sync_review_task(self):
         if self.window is not None:
             for task in self.window.tasks:
-                if task.name == "Review":
+                if task.id == "force_wfmanager.wfmanager_review_task":
                     self.review_task = task
-                elif task.name == "Workflow Setup":
+                elif task.id == "force_wfmanager.wfmanager_setup_task":
                     self.setup_task = task
 
     # ------------------
@@ -551,7 +551,7 @@ class WfManagerSetupTask(Task):
         self.window.activate_task(self.review_task)
 
     def exit(self):
-        self.window.close()
+        self.window.application.exit()
 
     # Custom UI Methods
     def ui_select(self):
@@ -630,13 +630,13 @@ class WfManagerSetupTask(Task):
             else:
                 information(
                     None,
-                    "Project file found instead of Workflow "
-                    "file during start up.",
-                    informative="Analysis data will not be "
-                                "loaded into WfManager upon launch. "
-                                "You can load a "
-                                "Project file using 'Open Project' in "
-                                "the Review Task.",
+                    ("Project file found instead of Workflow "
+                     "file during start up."),
+                    informative=("Analysis data will not be "
+                                 "loaded into WfManager upon launch. "
+                                 "You can load a "
+                                 "Project file using 'Open Project' in "
+                                 "the Review Task."),
                 )
 
     def _write_workflow(self, file_path):

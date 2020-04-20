@@ -1,4 +1,5 @@
 import logging
+import platform
 
 from pyface.tasks.action.api import SMenu, SToolBar, TaskAction
 from pyface.api import ImageResource
@@ -11,6 +12,18 @@ from envisage.ui.tasks.task_extension import TaskExtension
 from pyface.tasks.action.api import SchemaAddition
 
 log = logging.getLogger(__name__)
+
+IS_WINDOWS = (platform.system() == "Windows")
+
+
+class ExitAction(TaskAction):
+    """ A standard 'Quit' (Mac) or 'Exit' (Windows) menu action. """
+
+    accelerator = "Alt+F4" if IS_WINDOWS else "Ctrl+Q"
+    method = "setup_task.exit"
+
+    def _name_default(self):
+        return u"Exit" if IS_WINDOWS else u"Quit"
 
 
 class WfManagerGlobalTask(TaskExtension):
@@ -82,11 +95,7 @@ class WfManagerGlobalTask(TaskExtension):
                 ),
                 TaskAction(name="Plugins...",
                            method="setup_task.open_plugins"),
-                TaskAction(name="Exit", method="exit"),
-                # NOTE: Setting id='File' here will automatically create
-                #       a exit menu item, I guess this is QT being 'helpful'.
-                #       This menu item calls application.exit, which bypasses
-                #       our custom exit which prompts for a save before exiting
+                ExitAction(),
                 name="&File",
             )
 
