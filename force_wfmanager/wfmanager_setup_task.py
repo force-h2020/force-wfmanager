@@ -137,10 +137,6 @@ class WfManagerSetupTask(Task):
         """
         menu_bar = SMenuBar(
             SMenu(
-                TaskAction(name="Exit", method="exit", accelerator="Ctrl+Q"),
-                name="&Workflow Manager",
-            ),
-            SMenu(
                 TaskAction(
                     name="Open Workflow...",
                     method="open_workflow",
@@ -161,11 +157,6 @@ class WfManagerSetupTask(Task):
                     accelerator="Shift+Ctrl+S",
                 ),
                 TaskAction(name="Plugins...", method="open_plugins"),
-                TaskAction(name="Exit", method="exit"),
-                # NOTE: Setting id='File' here will automatically create
-                #       a exit menu item, I guess this is QT being 'helpful'.
-                #       This menu item calls application.exit, which bypasses
-                #       our custom exit which prompts for a save before exiting
                 name="&File",
             ),
             SMenu(
@@ -758,9 +749,6 @@ class WfManagerSetupTask(Task):
         """Switches to the review task and verifies startup setting are
         correct for toolbars/menus etc."""
         self.window.activate_task(self.review_task)
-
-    def exit(self):
-        self.window.close()
 
     # Custom UI Methods
     def ui_select(self):

@@ -63,10 +63,6 @@ class WfManagerReviewTask(Task):
         at the application level."""
         menu_bar = SMenuBar(
             SMenu(
-                TaskAction(name="Exit", method="exit", accelerator="Ctrl+Q"),
-                name="&Workflow Manager",
-            ),
-            SMenu(
                 TaskAction(
                     name="Open Workflow...",
                     method="setup_task.open_workflow",
@@ -93,8 +89,6 @@ class WfManagerReviewTask(Task):
                 TaskAction(
                     name="Plugins...", method="setup_task.open_plugins"
                 ),
-                TaskAction(name="Exit", method="exit"),
-                name="&File",
             ),
             SMenu(
                 TaskAction(
@@ -417,6 +411,3 @@ class WfManagerReviewTask(Task):
     def switch_task(self):
         if self.setup_task is not None:
             self.window.activate_task(self.setup_task)
-
-    def exit(self):
-        self.window.close()
