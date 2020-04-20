@@ -133,20 +133,6 @@ class TestWfManager(GuiTestAssistant, TestCase):
             self.assertEqual(self.wfmanager.windows[0].active_task,
                              self.setup_task)
 
-    def test_result_task_exit(self):
-        with self.create_tasks():
-            for window in self.wfmanager.windows:
-                window.close = mock.Mock(return_value=True)
-            self.review_task.exit()
-            self.assertTrue(self.review_task.window.close.called)
-
-    def test_setup_task_exit(self):
-        with self.create_tasks():
-            for window in self.wfmanager.windows:
-                window.close = mock.Mock(return_value=True)
-            self.setup_task.exit()
-            self.assertTrue(self.setup_task.window.close.called)
-
 
 class TestTaskWindowClosePrompt(TestCase):
 
