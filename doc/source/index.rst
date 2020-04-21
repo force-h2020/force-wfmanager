@@ -15,6 +15,7 @@ User Manual
 
    Introduction <introduction>
    Concept <concept>
+   GUI Design <design>
    License <license>
 
 API Reference
