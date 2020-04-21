@@ -551,7 +551,7 @@ class WfManagerSetupTask(Task):
         self.window.activate_task(self.review_task)
 
     def exit(self):
-        self.window.application.exit()
+        self.window.close()
 
     # Custom UI Methods
     def ui_select(self):
