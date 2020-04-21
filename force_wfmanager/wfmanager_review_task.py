@@ -54,7 +54,6 @@ class WfManagerReviewTask(Task):
         """A menu bar with functions relevant to the Review task.
         Functions associated to the shared methods are located
         at the application level."""
-
         return SMenuBar(id='mymenu')
 
     def _tool_bars_default(self):
