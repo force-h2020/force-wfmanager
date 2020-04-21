@@ -1,7 +1,7 @@
 import logging
 
 from pyface.api import ImageResource, FileDialog, OK, error
-from pyface.tasks.action.api import SMenuBar, SMenu, TaskAction, SToolBar
+from pyface.tasks.action.api import SMenuBar, TaskAction, SToolBar
 from pyface.tasks.api import Task, TaskLayout, PaneItem
 from traits.api import Bool, Instance, List, on_trait_change
 
@@ -10,7 +10,6 @@ from force_bdss.api import Workflow
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.review.results_pane import ResultsPane
-from force_wfmanager.wfmanager import TaskToggleGroupAccelerator
 from force_wfmanager.io.project_io import write_project_file, load_project_file
 
 log = logging.getLogger(__name__)
@@ -45,12 +44,6 @@ class WfManagerReviewTask(Task):
     #: and table
     analysis_model = Instance(AnalysisModel, allow_none=False)
 
-    #: Is the 'run' toolbar button active
-    run_enabled = Bool(True)
-
-    #: Are the saving and loading menu/toolbar buttons active
-    save_load_enabled = Bool(True)
-
     #: Is the results saving button enabled, i.e. are there results?
     export_results_enabled = Bool(False)
 
@@ -61,73 +54,12 @@ class WfManagerReviewTask(Task):
         """A menu bar with functions relevant to the Review task.
         Functions associated to the shared methods are located
         at the application level."""
-        menu_bar = SMenuBar(
-            SMenu(
-                TaskAction(
-                    name="Open Workflow...",
-                    method="setup_task.open_workflow",
-                    enabled_name="save_load_enabled",
-                    accelerator="Ctrl+O",
-                ),
-                TaskAction(
-                    name="Save Workflow",
-                    method="setup_task.save_workflow",
-                    enabled_name="save_load_enabled",
-                    accelerator="Ctrl+S",
-                ),
-                TaskAction(
-                    name="Save Workflow as...",
-                    method="setup_task.save_workflow_as",
-                    enabled_name="save_load_enabled",
-                    accelerator="Shift+Ctrl+S",
-                ),
-                TaskAction(
-                    name="Save Results as...",
-                    method="export_analysis_model_as",
-                    enabled_name="export_results_enabled",
-                ),
-                TaskAction(
-                    name="Plugins...", method="setup_task.open_plugins"
-                ),
-            ),
-            SMenu(
-                TaskAction(
-                    name="About WorkflowManager...",
-                    method="setup_task.open_about",
-                ),
-                name="&Help",
-            ),
-            SMenu(TaskToggleGroupAccelerator(), id="View", name="&View"),
-        )
-        return menu_bar
+
+        return SMenuBar(id='mymenu')
 
     def _tool_bars_default(self):
         return [
             SToolBar(
-                TaskAction(
-                    name="Run",
-                    tooltip="Run Workflow",
-                    image=ImageResource("baseline_play_arrow_black_48dp"),
-                    method="setup_task.run_bdss",
-                    enabled_name="run_enabled",
-                    image_size=(64, 64),
-                ),
-                TaskAction(
-                    name="Stop",
-                    tooltip="Stop Workflow",
-                    method="setup_task.stop_bdss",
-                    enabled_name="setup_task.computation_running",
-                    image=ImageResource("baseline_stop_black_18dp"),
-                    image_size=(64, 64),
-                ),
-                TaskAction(
-                    name="Pause",
-                    tooltip="Pause Workflow",
-                    method="setup_task.pause_bdss",
-                    enabled_name="setup_task.computation_running",
-                    image=ImageResource("baseline_pause_black_18dp"),
-                    image_size=(64, 64),
-                ),
                 TaskAction(
                     name="Setup Workflow",
                     tooltip="Setup Workflow",
@@ -158,13 +90,6 @@ class WfManagerReviewTask(Task):
                     image=ImageResource("baseline_save_black_48dp"),
                     method="export_analysis_model_as",
                     enabled_name="export_results_enabled",
-                    image_size=(64, 64),
-                ),
-                TaskAction(
-                    name="Plugins",
-                    tooltip="View state of loaded plugins",
-                    image=ImageResource("baseline_power_black_48dp"),
-                    method="setup_task.open_plugins",
                     image_size=(64, 64),
                 ),
             ),
@@ -371,16 +296,6 @@ class WfManagerReviewTask(Task):
         else:
             self.current_file = file_path
             return True
-
-    # Synchronization with Setup Task
-
-    @on_trait_change("setup_task.run_enabled")
-    def sync_run_enabled(self):
-        self.run_enabled = self.setup_task.run_enabled
-
-    @on_trait_change("setup_task.save_load_enabled")
-    def sync_save_load_enabled(self):
-        self.save_load_enabled = self.setup_task.save_load_enabled
 
     # Synchronization with Window
 

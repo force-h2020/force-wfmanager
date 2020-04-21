@@ -2,22 +2,25 @@ from envisage.api import Plugin
 from envisage.ui.tasks.api import TaskFactory
 from traits.api import Either, List, Str
 
+
 from force_bdss.api import IFactoryRegistry
 from force_wfmanager.ui import IContributedUI
 from force_wfmanager.wfmanager_review_task import WfManagerReviewTask
 from force_wfmanager.wfmanager_setup_task import WfManagerSetupTask
+from force_wfmanager.wfmanager_global_task import WfManagerGlobalTask
 
 
 class WfManagerPlugin(Plugin):
     """ The Plugin containing the Workflow Manager UI. This contains the
     factories which create the Tasks (currently Setup & Review)"""
 
-    TASKS = 'envisage.ui.tasks.tasks'
-
     id = 'force_wfmanager.wfmanager_plugin'
     name = 'Workflow Manager'
 
-    tasks = List(contributes_to=TASKS)
+    tasks = List(contributes_to='envisage.ui.tasks.tasks')
+
+    contributed_task_extensions = \
+        List(contributes_to='envisage.ui.tasks.task_extensions')
 
     workflow_file = Either(None, Str())
 
@@ -31,14 +34,18 @@ class WfManagerPlugin(Plugin):
                             factory=self._create_setup_task),
                 TaskFactory(id='force_wfmanager.wfmanager_review_task',
                             name='Workflow Manager (Review)',
-                            factory=self._create_review_task)
+                            factory=self._create_review_task),
                 ]
+
+    def _contributed_task_extensions_default(self):
+        return [WfManagerGlobalTask()]
 
     # -----------------
     #  Private Methods
     # -----------------
 
     def _create_setup_task(self):
+
         factory_registry = self.application.get_service(
             IFactoryRegistry
         )
@@ -50,6 +57,7 @@ class WfManagerPlugin(Plugin):
             factory_registry=factory_registry,
             contributed_uis=contributed_uis
         )
+
         if self.workflow_file is not None:
             wf_manager_setup_task.load_workflow(self.workflow_file)
 

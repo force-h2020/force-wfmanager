@@ -15,7 +15,6 @@ log = logging.getLogger(__name__)
 class WfManager(TasksApplication):
     id = 'force_wfmanager.wfmanager'
     name = 'Workflow Manager'
-
     window_size = Either(Tuple(Int, Int), None)
 
     def __init__(self, *args, **kwargs):
