@@ -14,7 +14,7 @@ User Manual
    :maxdepth: 1
 
    Introduction <introduction>
-   Concept <concept/index>
+   Concept <concept>
    License <license>
 
 API Reference
