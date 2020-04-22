@@ -78,7 +78,7 @@ class TaskWindowClosePrompt(TaskWindow):
         setup_task = None
         for window in self.application.windows:
             for task in window.tasks:
-                if task.name == "Workflow Setup":
+                if task.id == "force_wfmanager.wfmanager_setup_task":
                     setup_task = task
         # If we don't have a setup task for some reason, just close
         if setup_task is None:

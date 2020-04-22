@@ -550,9 +550,6 @@ class WfManagerSetupTask(Task):
         correct for toolbars/menus etc."""
         self.window.activate_task(self.review_task)
 
-    def exit(self):
-        self.window.close()
-
     # Custom UI Methods
     def ui_select(self):
         plugins = [

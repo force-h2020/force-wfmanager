@@ -302,7 +302,7 @@ class WfManagerReviewTask(Task):
     def sync_setup_task(self):
         if self.window is not None:
             for task in self.window.tasks:
-                if task.name == "Workflow Setup":
+                if task.id == "force_wfmanager.wfmanager_setup_task":
                     self.setup_task = task
                     self.analysis_model = self.setup_task.analysis_model
 
@@ -325,6 +325,3 @@ class WfManagerReviewTask(Task):
     def switch_task(self):
         if self.setup_task is not None:
             self.window.activate_task(self.setup_task)
-
-    def exit(self):
-        self.window.close()

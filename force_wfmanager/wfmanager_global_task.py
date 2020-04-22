@@ -1,14 +1,13 @@
 import logging
 
-from pyface.tasks.action.api import SMenu, SToolBar, TaskAction
 from pyface.api import ImageResource
-from traits.api import List
+from pyface.tasks.action.api import (
+    SMenu, SToolBar, TaskAction, SchemaAddition)
+from envisage.ui.tasks.task_extension import TaskExtension
+from traits.api import List, Callable
 
 from force_wfmanager.wfmanager import TaskToggleGroupAccelerator
 
-from traits.api import Callable
-from envisage.ui.tasks.task_extension import TaskExtension
-from pyface.tasks.action.api import SchemaAddition
 
 log = logging.getLogger(__name__)
 
