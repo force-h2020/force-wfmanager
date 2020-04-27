@@ -1,4 +1,4 @@
-Copyright (c) 2017, FORCE consortium
+Copyright (c) 2017, Enthought Ltd
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
