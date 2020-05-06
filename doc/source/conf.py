@@ -54,6 +54,7 @@ def mock_modules():
 # General Configuration
 # ---------------------
 
+
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
@@ -66,20 +67,6 @@ extensions = [
     'sphinx.ext.napoleon',
     'traits.util.trait_documenter'
 ]
-
-try:
-    import enthought_sphinx_theme
-
-    html_theme_path = [enthought_sphinx_theme.theme_path]
-    html_theme = 'enthought'
-except ImportError as exc:
-    import warnings
-    msg = '''Can't find Enthought Sphinx Theme, using default.
-                Exception was: {}
-                Enthought Sphinx Theme can be downloaded from
-                https://github.com/enthought/enthought-sphinx-theme'''
-    warnings.warn(RuntimeWarning(msg.format(exc)))
-
 
 templates_path = ['_templates']
 source_suffix = '.rst'
