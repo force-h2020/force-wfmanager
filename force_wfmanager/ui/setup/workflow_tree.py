@@ -643,38 +643,57 @@ class WorkflowTree(ModelView):
         """Adds a new execution layer to the workflow"""
         object.add_execution_layer(ExecutionLayer())
 
+    @staticmethod
+    def transfer_parameters_and_kpis(old_model, new_model):
+        """ Set an MCO model's parameters and kpis to those of another.
+
+        Parameters
+        ----------
+        old_model: BaseMCOModel
+            The old model, from which you want to transfer the parameters/kpis.
+        new_model: BaseMCOModel
+            The new model, to which you want to transfer the parameters/kpis.
+
+        Afterall the user might want to change the optimizer,
+        # but keep the same parameters and kpis.
+        # model = Workflow
+        # Set the new model's parameters and kpis to that of the old.
+
+        Raises
+        ------
+        AttributeError
+            If the old model has no parameters.
+
+        Notes
+        -----
+        Each parameter's factory attribute should refer to a new
+        instance of the relevant MCOParameterFactory, that references
+        the appropriate (i.e. of the new model rather than the old)
+        MCOFactory, plugin-id and plugin-name.
+        This is done by calling MCOParameterFactory(<new MCOFactory>).
+        """
+        try:
+            params_new = []
+            for p in old_model.parameters:
+                p.factory = p.factory.__class__(new_model.factory)
+                params_new.append(p)
+            new_model.parameters = params_new
+            new_model.kpis = [k for k in old_model.kpis]
+        except AttributeError:
+            pass
+
     @triggers_verify
     def new_mco(self, ui_info, object):
         """Adds a new mco to the workflow"""
 
-        # Try and set the new MCO model's parameters and kpis to those
-        # of the old. Afterall the user might want to change the optimizer,
-        # but keep the same parameters and kpis.
-        try:
+        # keep a reference to the old model
+        old_model = object.model.mco_model
 
-            # Get the old model's parameters and kpis.
-            # AttributeError thrown if these do not exist.
-            params = object.model.mco_model.parameters
-            kpis = object.model.mco_model.kpis
+        # change to the new model
+        object.model.mco_model = self.system_state.entity_creator.model
 
-            # change to the new model
-            object.model.mco_model = self.system_state.entity_creator.model
-
-            # Set the new model's parameters and kpis to that of the old.
-            # Each parameter's factory attribute should refer to a new
-            # instance of the relevant MCOParameterFactory, that references
-            # the appropriate MCOFactory, plugin-id and plugin-name.
-            # This is done by calling MCOParameterFactory(<new MCOFactory>).
-            params_new = []
-            for p in params:
-                p.factory = p.factory.__class__(object.model.mco_model.factory)
-                params_new.append(p)
-            object.model.mco_model.parameters = params_new
-            object.model.mco_model.kpis = [k for k in kpis]
-
-        except AttributeError:
-            # change to the new model
-            object.model.mco_model = self.system_state.entity_creator.model
+        # copy the old model's parameters and kpis
+        self.transfer_parameters_and_kpis(old_model, object.model.mco_model)
 
         # update
         self.system_state.entity_creator.reset_model()
