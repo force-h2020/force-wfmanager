@@ -654,11 +654,6 @@ class WorkflowTree(ModelView):
         new_model: BaseMCOModel
             The new model, to which you want to transfer the parameters/kpis.
 
-        Afterall the user might want to change the optimizer,
-        # but keep the same parameters and kpis.
-        # model = Workflow
-        # Set the new model's parameters and kpis to that of the old.
-
         Raises
         ------
         AttributeError
