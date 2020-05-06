@@ -646,7 +646,37 @@ class WorkflowTree(ModelView):
     @triggers_verify
     def new_mco(self, ui_info, object):
         """Adds a new mco to the workflow"""
-        object.model.mco_model = self.system_state.entity_creator.model
+
+        # Try and set the new MCO model's parameters and kpis to those
+        # of the old. Afterall the user might want to change the optimizer,
+        # but keep the same parameters and kpis.
+        try:
+
+            # Get the old model's parameters and kpis.
+            # AttributeError thrown if these do not exist.
+            params = object.model.mco_model.parameters
+            kpis = object.model.mco_model.kpis
+
+            # change to the new model
+            object.model.mco_model = self.system_state.entity_creator.model
+
+            # Set the new model's parameters and kpis to that of the old.
+            # Each parameter's factory attribute should refer to a new
+            # instance of the relevant MCOParameterFactory, that references
+            # the appropriate MCOFactory, plugin-id and plugin-name.
+            # This is done by calling MCOParameterFactory(<new MCOFactory>).
+            params_new = []
+            for p in params:
+                p.factory = p.factory.__class__(object.model.mco_model.factory)
+                params_new.append(p)
+            object.model.mco_model.parameters = params_new
+            object.model.mco_model.kpis = [k for k in kpis]
+
+        except AttributeError:
+            # change to the new model
+            object.model.mco_model = self.system_state.entity_creator.model
+
+        # update
         self.system_state.entity_creator.reset_model()
 
     @triggers_verify
