@@ -147,6 +147,10 @@ class TestWorkflowTree(WfManagerBaseTestCase):
 
         # create old model
         old_factory = DummyMCOFactory(plugin={'id': 'bcy356', 'name': 'old'})
+        old_factory.parameter_factory_classes = [
+            RangedVectorMCOParameterFactory,
+            RangedMCOParameterFactory
+        ]
         old_model = BaseMCOModel(factory=old_factory)
         old_model.parameters = [
             RangedMCOParameter(
@@ -163,6 +167,10 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         # create new model, that we want to transfer the parameters and
         # kpis to.
         new_factory = DummyMCOFactory(plugin={'id': 'xxui1', 'name': 'new'})
+        new_factory.parameter_factory_classes = [
+            RangedVectorMCOParameterFactory,
+            RangedMCOParameterFactory
+        ]
         new_model = BaseMCOModel(factory=new_factory)
 
         # workflow tree to work with

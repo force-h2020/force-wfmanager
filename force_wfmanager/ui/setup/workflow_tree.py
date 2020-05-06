@@ -673,10 +673,13 @@ class WorkflowTree(ModelView):
         This is done by calling MCOParameterFactory(<new MCOFactory>).
         """
         try:
+            new_factory = new_model.factory
             params_new = []
             for p in old_model.parameters:
-                p.factory = p.factory.__class__(new_model.factory)
-                params_new.append(p)
+                for factory_cls in new_factory.parameter_factory_classes:
+                    if isinstance(p.factory, factory_cls):
+                        p.factory = factory_cls(new_factory)
+                        params_new.append(p)
             new_model.parameters = params_new
             new_model.kpis = [k for k in old_model.kpis]
         except AttributeError:
