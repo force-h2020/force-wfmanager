@@ -10,6 +10,8 @@ from force_bdss.api import (
     RangedMCOParameterFactory,
     RangedVectorMCOParameter,
     RangedVectorMCOParameterFactory,
+    CategoricalMCOParameter,
+    CategoricalMCOParameterFactory
 )
 
 from force_bdss.tests.dummy_classes.mco import DummyMCOFactory
@@ -149,7 +151,8 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         old_factory = DummyMCOFactory(plugin={'id': 'bcy356', 'name': 'old'})
         old_factory.parameter_factory_classes = [
             RangedVectorMCOParameterFactory,
-            RangedMCOParameterFactory
+            RangedMCOParameterFactory,
+            CategoricalMCOParameterFactory
         ]
         old_model = BaseMCOModel(factory=old_factory)
         old_model.parameters = [
@@ -160,6 +163,10 @@ class TestWorkflowTree(WfManagerBaseTestCase):
             RangedVectorMCOParameter(
                 initial_value=[1.0, 1.0],
                 factory=RangedMCOParameterFactory(old_factory)
+            ),
+            CategoricalMCOParameter(
+                categories=['A', 'B', 'C'],
+                factory=CategoricalMCOParameterFactory(old_factory)
             )
         ]
         old_model.kpis = []
@@ -169,7 +176,7 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         new_factory = DummyMCOFactory(plugin={'id': 'xxui1', 'name': 'new'})
         new_factory.parameter_factory_classes = [
             RangedVectorMCOParameterFactory,
-            RangedMCOParameterFactory
+            RangedMCOParameterFactory,
         ]
         new_model = BaseMCOModel(factory=new_factory)
 
@@ -183,8 +190,12 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         # transfer the parameters and kpis
         workflow_tree.transfer_parameters_and_kpis(old_model, new_model)
 
-        # have two parameters been transferred?
+        # have ONLY two parameters been transferred?
+        # (the third categorical parameter of the old_model
+        # should not be transferred as it is not allowed by the new model).
         self.assertEqual(2, len(new_model.parameters))
+        for p in new_model.parameters:
+            self.assertNotIsInstance(p, CategoricalMCOParameter)
 
         # has the correct plugin id been transferred?
         self.assertEqual(
