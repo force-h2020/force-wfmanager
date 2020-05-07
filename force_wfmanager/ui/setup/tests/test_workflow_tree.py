@@ -192,7 +192,7 @@ class TestWorkflowTree(WfManagerBaseTestCase):
 
         # have ONLY two parameters been transferred?
         # (the third categorical parameter of the old_model
-        # should not be transferred as it is not allowed by the new model).
+        # should not be filtered out as it is not allowed by the new model).
         self.assertEqual(2, len(new_model.parameters))
         for p in new_model.parameters:
             self.assertNotIsInstance(p, CategoricalMCOParameter)
