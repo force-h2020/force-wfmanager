@@ -6,7 +6,15 @@ from force_bdss.api import (
     BaseMCOModel,
     KPISpecification,
     VerifierError,
+    RangedMCOParameter,
+    RangedMCOParameterFactory,
+    RangedVectorMCOParameter,
+    RangedVectorMCOParameterFactory,
+    CategoricalMCOParameter,
+    CategoricalMCOParameterFactory
 )
+
+from force_bdss.tests.dummy_classes.mco import DummyMCOFactory
 
 from force_wfmanager.tests.dummy_classes.dummy_mco_options_view import (
     DummyBaseMCOOptionsView,
@@ -136,6 +144,64 @@ class TestWorkflowTree(WfManagerBaseTestCase):
         self.assertIsNone(self.system_state.add_new_entity)
         self.assertIsNone(self.system_state.remove_entity)
         self.assertIsNone(self.system_state.entity_creator)
+
+    def test_transfer_parameters(self):
+
+        # create old model
+        old_factory = DummyMCOFactory(plugin={'id': 'bcy356', 'name': 'old'})
+        old_factory.parameter_factory_classes = [
+            RangedVectorMCOParameterFactory,
+            RangedMCOParameterFactory,
+            CategoricalMCOParameterFactory
+        ]
+        old_model = BaseMCOModel(factory=old_factory)
+        old_model.parameters = [
+            RangedMCOParameter(
+                initial_value=1.0,
+                factory=RangedVectorMCOParameterFactory(old_factory)
+            ),
+            RangedVectorMCOParameter(
+                initial_value=[1.0, 1.0],
+                factory=RangedMCOParameterFactory(old_factory)
+            ),
+            CategoricalMCOParameter(
+                categories=['A', 'B', 'C'],
+                factory=CategoricalMCOParameterFactory(old_factory)
+            )
+        ]
+        old_model.kpis = []
+
+        # create new model, that we want to transfer the parameters and
+        # kpis to.
+        new_factory = DummyMCOFactory(plugin={'id': 'xxui1', 'name': 'new'})
+        new_factory.parameter_factory_classes = [
+            RangedVectorMCOParameterFactory,
+            RangedMCOParameterFactory,
+        ]
+        new_model = BaseMCOModel(factory=new_factory)
+
+        # workflow tree to work with
+        workflow_tree = WorkflowTree(
+            model=Workflow(),
+            _factory_registry=self.factory_registry,
+            system_state=self.system_state,
+        )
+
+        # transfer the parameters and kpis
+        workflow_tree.transfer_parameters_and_kpis(old_model, new_model)
+
+        # have ONLY two parameters been transferred?
+        # (the third categorical parameter of the old_model
+        # should not be filtered out as it is not allowed by the new model).
+        self.assertEqual(2, len(new_model.parameters))
+        for p in new_model.parameters:
+            self.assertNotIsInstance(p, CategoricalMCOParameter)
+
+        # has the correct plugin id been transferred?
+        self.assertEqual(
+            'xxui1',
+            new_model.parameters[0].factory.mco_factory.plugin_id
+        )
 
     def test_new_mco(self):
 

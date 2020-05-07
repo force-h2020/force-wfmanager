@@ -643,10 +643,57 @@ class WorkflowTree(ModelView):
         """Adds a new execution layer to the workflow"""
         object.add_execution_layer(ExecutionLayer())
 
+    @staticmethod
+    def transfer_parameters_and_kpis(old_model, new_model):
+        """ Set an MCO model's parameters and kpis to those of another.
+
+        Parameters
+        ----------
+        old_model: BaseMCOModel
+            The old model, from which you want to transfer the parameters/kpis.
+        new_model: BaseMCOModel
+            The new model, to which you want to transfer the parameters/kpis.
+
+        Raises
+        ------
+        AttributeError
+            If the old model has no parameters.
+
+        Notes
+        -----
+        Each parameter's factory attribute should refer to a new
+        instance of the relevant MCOParameterFactory, that references
+        the appropriate (i.e. of the new model rather than the old)
+        MCOFactory, plugin-id and plugin-name.
+        This is done by calling MCOParameterFactory(<new MCOFactory>).
+        """
+        try:
+            new_factory = new_model.factory
+            params_new = []
+            for p in old_model.parameters:
+                for factory_cls in new_factory.parameter_factory_classes:
+                    if isinstance(p.factory, factory_cls):
+                        p.factory = factory_cls(new_factory)
+                        params_new.append(p)
+            new_model.parameters = params_new
+            new_model.kpis = [k for k in old_model.kpis]
+        except AttributeError:
+            pass
+
     @triggers_verify
     def new_mco(self, ui_info, object):
         """Adds a new mco to the workflow"""
+
+        # keep a reference to the old model
+        old_model = object.model.mco_model
+
+        # change to the new model
         object.model.mco_model = self.system_state.entity_creator.model
+
+        # copy the old model's parameters and kpis
+        self.transfer_parameters_and_kpis(old_model, object.model.mco_model)
+
+        # update
         self.system_state.entity_creator.reset_model()
 
     @triggers_verify
