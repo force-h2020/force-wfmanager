@@ -8,6 +8,9 @@
   optional colourmap to be applied to a third variable.
 
 """
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
 import logging
 
 from chaco.api import ArrayPlotData, ArrayDataSource, ScatterInspectorOverlay

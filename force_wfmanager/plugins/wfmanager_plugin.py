@@ -1,3 +1,6 @@
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
 from envisage.api import Plugin
 from envisage.ui.tasks.api import TaskFactory
 from traits.api import Either, List, Str

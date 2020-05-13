@@ -1,3 +1,6 @@
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
 import logging
 
 from envisage.ui.tasks.api import TasksApplication, TaskWindow

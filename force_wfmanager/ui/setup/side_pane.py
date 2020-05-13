@@ -1,3 +1,6 @@
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
 from pyface.tasks.api import TraitsDockPane
 from traits.api import Bool, Button, Instance, on_trait_change
 from traitsui.api import UItem, VGroup, View
