@@ -1,3 +1,7 @@
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
+
 def write_analysis_model(analysis_model, file_path):
     """ Write the contents of the analysis model to a JSON or CSV file.
 

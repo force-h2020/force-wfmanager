@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
 #
 # FORCE documentation build configuration file, created by
 # sphinx-quickstart on Mon Feb 02 16:26:16 2015.

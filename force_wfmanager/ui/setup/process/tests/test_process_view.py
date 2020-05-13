@@ -1,3 +1,6 @@
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
 from force_wfmanager.ui.setup.process.process_view import (
     ProcessView
 )

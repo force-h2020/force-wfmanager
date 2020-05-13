@@ -1,3 +1,6 @@
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
 from .contributed_ui.contributed_ui import ContributedUI  # noqa
 from .contributed_ui.contributed_ui import ContributedUIHandler  # noqa
 from .contributed_ui.i_contributed_ui import IContributedUI  # noqa

@@ -1,3 +1,6 @@
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
 from traitsui.api import Item, VGroup
 
 from force_bdss.api import plugin_id, Workflow

@@ -1,3 +1,6 @@
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
 from traits.api import Interface, Instance, Bool
 
 from force_wfmanager.model.analysis_model import AnalysisModel
