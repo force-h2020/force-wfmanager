@@ -31,6 +31,13 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
         Item('name', object='model',
              editor=EnumEditor(name='object._combobox_values')),
         Item("objective", object='model'),
+        Item("target_value", object='model',
+             visible_when='model.objective=="TARGET"'),
+        Item("use_bounds", object='model'),
+        Item("lower_bound", object='model',
+             visible_when='model.use_bounds'),
+        Item("upper_bound", object='model',
+             visible_when='model.use_bounds'),
         Item('auto_scale', object='model'),
         Item("scale_factor", object='model',
              visible_when='not model.auto_scale'),
@@ -45,6 +52,7 @@ class KPISpecificationModelView(BaseMCOOptionsModelView):
         return "KPI: {} ({})".format(self.model.name, self.model.objective)
 
     #: Listeners
-    @on_trait_change('model.[name,objective]')
+    @on_trait_change('model.[name,objective,use_bounds,'
+                     'lower_bound,upper_bound,target_value]')
     def kpi_model_change(self):
         self.model_change()
