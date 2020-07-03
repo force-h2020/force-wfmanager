@@ -22,12 +22,6 @@ matrix:
       - EDM_INSTALLER_PREFIX="edm_"
         EDM_INSTALLER_SUFFIX=".pkg"
 
-addons:
-  apt:
-    packages:
-    - libxkbcommon-x11-0
-    - libxcb-icccm4
-
 before_install:
     - export EDM_INSTALLER=${EDM_INSTALLER_PREFIX}${EDM_FULL}${EDM_INSTALLER_SUFFIX}
     - wget https://package-data.enthought.com/edm/${EDM_OS}/${EDM_X_Y}/${EDM_INSTALLER}
