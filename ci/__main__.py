@@ -10,14 +10,14 @@ DEFAULT_PYTHON_VERSION = "3.6"
 PYTHON_VERSIONS = ["3.6"]
 
 ADDITIONAL_CORE_DEPS = [
-    "pyface==7.0.0-3",
+    "pyface>=6.1.2-5",
     "pygments==2.2.0-1",
-    "pyqt==4.11.4-7",
-    "qt==4.8.7-10",
+    "pyqt5==5.14.2-3",
     "sip==4.17-4",
-    "traitsui==7.0.0-2",
+    "traits>=6.0.0-1",
+    "traitsui==7.0.0-1",
     "numpy>=1.15.4-2",
-    "chaco==4.8.0-4",
+    "chaco>=4.8.0-1",
     "pyzmq==16.0.0-7",
     "mock==2.0.0-3"
 ]
