@@ -358,6 +358,9 @@ def htmlformat(factory_title=None, factory_description=None,
                     display: block;
                 }}
             </style>
+        <script type="text/javascript" id="MathJax-script" async
+          src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+        </script>
         </head>
         <body>
             {body}
