@@ -220,9 +220,10 @@ class SetupPane(TraitsTaskPane):
                             show_border=True,
                         ),
                     ),
-                    enabled_when="ui_enabled"
+                    enabled_when="ui_enabled",
                 ),
             ),
+            scrollable=True,
             width=500,
         )
 
