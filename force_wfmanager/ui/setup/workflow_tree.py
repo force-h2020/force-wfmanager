@@ -366,6 +366,7 @@ class WorkflowTree(ModelView):
             ),
             width=500,
             resizable=True,
+            scrollable=True,
         )
 
         return view
