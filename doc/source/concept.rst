@@ -32,7 +32,6 @@ The main window should have multiple tabs,
       the setup of the MCO.
     - third tab has data visualization.
 
-
 Workflow configuration
 ----------------------
 
@@ -43,6 +42,8 @@ The tab content will be split into two parts:
 
 Each individual component can be double clicked to expose its configuration options. A dialog
 with the appropriate information will be shown.
+
+.. image:: _images/workflow.png
 
 Execution
 ---------
@@ -58,6 +59,8 @@ is configuration for:
 Once again, the available MCO come from a palette that is plugin based. 
 
 The second part shows the outputs of the various executions.
+
+.. image:: _images/execution.png
 
 When everything is set, we can start the pipeline, which should keep running regardless
 if the workflow manager is running or not, meaning that can operate in
@@ -78,6 +81,7 @@ As the various runs from the MCO complete, the KPIs are extracted. The associate
 and the KPIs are shown in the third tab, which provides both a tabular view (excel-like) and
 a plot view (with chaco) of the points.
 
+.. image:: _images/analysis.png
 
 Design notes
 ------------
