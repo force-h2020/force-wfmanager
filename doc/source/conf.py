@@ -12,10 +12,7 @@ from docutils.utils import get_source_line
 import sys
 import os
 
-try:
-    from force_wfmanager.version import __version__ as RELEASE
-except ModuleNotFoundError:
-    RELEASE = '0.5.0'
+from force_wfmanager.version import __version__ as RELEASE
 
 
 def _warn_node(self, msg, node, **kwargs):

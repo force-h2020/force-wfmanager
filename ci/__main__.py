@@ -22,7 +22,9 @@ ADDITIONAL_CORE_DEPS = [
     "mock==2.0.0-3"
 ]
 
-ADDITIONAL_PIP_DEPS = []
+ADDITIONAL_PIP_DEPS = [
+    'force_bdss>=0.4.0'
+]
 
 
 @click.group()
