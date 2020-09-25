@@ -12,6 +12,12 @@ from docutils.utils import get_source_line
 import sys
 import os
 
+try:
+    from force_wfmanager.version import __version__ as RELEASE
+except ModuleNotFoundError:
+    RELEASE = '0.5.0'
+
+
 def _warn_node(self, msg, node, **kwargs):
     if not msg.startswith('nonlocal image URI found:'):
         self._warnfunc(msg, '%s:%s' % get_source_line(node), **kwargs)
@@ -19,8 +25,6 @@ def _warn_node(self, msg, node, **kwargs):
 sys.path.insert(0, os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "..")
     )
-
-from force_wfmanager.version import __version__ as RELEASE
 
 sphinx.environment.BuildEnvironment.warn_node = _warn_node
 
