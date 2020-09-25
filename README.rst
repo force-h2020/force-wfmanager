@@ -16,12 +16,15 @@ It is implemented under the Formulations and Computational Engineering (FORCE) p
 Installation
 ------------
 
-To install ``force-bdss`` and the ``force-wfmanager``, please see the following
-`instructions <https://github.com/force-h2020/force-bdss/blob/master/doc/source/installation.rst>`_.
+For full installation instructions and developer documentation, please see the `FORCE BDSS
+ReadTheDocs <https://force-bdss.readthedocs.io/en/latest/installation.html>`_ page.
 
 Documentation
 -------------
 
-To build the Sphinx documentation in the ``doc/build`` directory run::
+Full user documentation is being hosted at the
+`FORCE WfManager ReadTheDocs <https://force-workflow-manager.readthedocs.io/en/latest/>`_ page.
 
- python -m ci docs
+Alternatively, to build the documentation locally in the ``doc/build`` directory, run::
+
+    python -m ci docs
