@@ -4,6 +4,60 @@ Changelog
 Release 0.5.0
 -------------
 
+Released:
+
+Release notes
+~~~~~~~~~~~~~
+
+Version 0.5.0 is a major update to the Force WfManager application
+
+The following people contributed
+code changes for this release:
+
+* Frank Longford
+* Petr Kungurtsev
+* Sean Parsons
+
+Features
+~~~~~~~~
+* Verification of UI input now takes place upon changes to any MCO parameter or KPI
+  trait (#364)
+* KPIs and Parameters are now retained in the UI when switching MCO as long as they are
+  supported by new backend (#383)
+* KPI view has additional options to support target and bound options (#387)
+* Support for MathJax in HTML descriptions of model traits (#401)
+
+Changes
+~~~~~~~~
+* Adaptation of UI event pathway to new ``UIEventMixin`` class introduced in the BDSS (#362)
+* ``AnalysisModel`` and ``BaseDataView`` classes heavily refactored to support type checking
+  of KPI values (#365)
+* Editing of the workflow is no longer allowed during an MCO run (#370)
+* Introduction of a shared toolbar between application Tasks (#374, #375)
+* Removed unnecessary Exit method from File menu bar (#387)
+
+Fixes
+~~~~~
+* Bugfix to ``computation_running`` trait on ``WfManagerSetupTask`` (#360)
+* Fix plot axis bounds for repeating values (#373)
+* Workaround provided to prevent screen size from auto-resizing (#402)
+
+Documentation
+~~~~~~~~~~~~~
+* Included PR template for reviewers (#376)
+* Included concept design documentation and screenshots (#379)
+* Added source code headers (#385)
+* Fix ReadTheDocs build failures (#407)
+
+Maintenance and code organization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* Migrated to PyQt5 (#394)
+* Included traits 6.1.1-1 as a dependency (#395, #400)
+* Updated traitsui to version 7.0.1-2 (#388, #400)
+* Updated pyface to version 7.0.1-2 (#388, #400)
+* Updated pyqt to version 5.14.2-3 (#394)
+
+
 Release 0.4.0
 -------------
 
