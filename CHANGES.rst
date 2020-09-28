@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Release 0.6.0
+-------------
+
+Released:
+
 Release 0.5.0
 -------------
 
