@@ -56,6 +56,7 @@ Maintenance and code organization
 * Updated traitsui to version 7.0.1-2 (#388, #400)
 * Updated pyface to version 7.0.1-2 (#388, #400)
 * Updated pyqt to version 5.14.2-3 (#394)
+* Updated force_bdss to version 0.5.0 (#408)
 
 
 Release 0.4.0
