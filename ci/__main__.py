@@ -23,7 +23,7 @@ ADDITIONAL_CORE_DEPS = [
 ]
 
 ADDITIONAL_PIP_DEPS = [
-    'force_bdss>=0.4.0'
+    'force_bdss>=0.5.0'
 ]
 
 
