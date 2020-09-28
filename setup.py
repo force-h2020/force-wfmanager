@@ -45,7 +45,4 @@ setup(
             "UINotificationPlugin",
         ]
     },
-    install_requires=[
-        "force_bdss>=0.4.0",
-    ]
 )
