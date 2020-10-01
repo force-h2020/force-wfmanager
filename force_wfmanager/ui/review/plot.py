@@ -56,9 +56,6 @@ class BasePlot(BaseDataView):
     #: The plot ordinate axis name
     y = Str()
 
-    #: Optional third parameter used to set colour of points
-    color_by = Enum(values="displayable_value_names")
-
     #: Optional title to display above the figure
     title = Str("Plot")
 
@@ -116,6 +113,7 @@ class BasePlot(BaseDataView):
         return HGroup(
             Item("x", editor=EnumEditor(name="displayable_value_names")),
             Item("y", editor=EnumEditor(name="displayable_value_names")),
+            Item("toggle_automatic_update", label="Axis auto update"),
         )
 
     def default_traits_view(self):
@@ -209,12 +207,11 @@ class BasePlot(BaseDataView):
         return self._get_plot_data_default()
 
     def _get_plot_data_default(self):
-        """ Creates empty plot data in three colums: x, y, color_by.
+        """ Creates empty plot data in two columns: x, y
         """
         plot_data = ArrayPlotData()
         plot_data.set_data("x", [])
         plot_data.set_data("y", [])
-        plot_data.set_data("color_by", [])
         return plot_data
 
     # ----------
@@ -387,7 +384,6 @@ class BasePlot(BaseDataView):
         if (
             self.x == ""
             or self.y == ""
-            or self.color_by is None
             or self.analysis_model.is_empty
         ):
             self._plot_data.set_data("x", [])
@@ -399,10 +395,6 @@ class BasePlot(BaseDataView):
         self._update_plot_y_data()
         if self.toggle_automatic_update:
             self.recenter_plot()
-
-        self._plot_data.set_data(
-            "color_by", self.analysis_model.column(self.color_by)
-        )
 
     def _check_scheduled_updates(self):
         """ Update the plot if an update was required. This function is a
@@ -493,6 +485,9 @@ class Plot(BasePlot):
     # Regular Attributes
     # ------------------
 
+    #: Optional third parameter used to set colour of points
+    color_by = Enum(values="displayable_value_names")
+
     #: Colour options button:
     color_options = Button("Color...")
 
@@ -533,6 +528,11 @@ class Plot(BasePlot):
             Item("toggle_automatic_update", label="Axis auto update"),
         )
 
+    def __plot_data_default(self):
+        plot_data = self._get_plot_data_default()
+        plot_data.set_data("color_by", [])
+        return plot_data
+
     @on_trait_change("color_plot")
     def change_plot_style(self):
         ranges = self._get_plot_range()
@@ -554,6 +554,10 @@ class Plot(BasePlot):
         if isinstance(self._axis, ColormappedScatterPlot):
             _range = self._axis.color_mapper.range
             self._axis.color_mapper = cmap(_range)
+
+    def _update_plot(self):
+        super(Plot, self)._update_plot()
+        self._update_color_plot()
 
     def _color_options_fired(self):
         """ Event handler for :attr:`color_options` button. """
