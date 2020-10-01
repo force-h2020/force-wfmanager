@@ -529,6 +529,7 @@ class Plot(BasePlot):
         )
 
     def __plot_data_default(self):
+        """Extends plot data objects to add third dimension for color"""
         plot_data = self._get_plot_data_default()
         plot_data.set_data("color_by", [])
         return plot_data
@@ -556,6 +557,9 @@ class Plot(BasePlot):
             self._axis.color_mapper = cmap(_range)
 
     def _update_plot(self):
+        """Overloads parent method to include additional updates for
+        color values on plot
+        """
         super(Plot, self)._update_plot()
         self._update_color_plot()
 
