@@ -20,6 +20,9 @@ _ERROR = 'Unable to interpolate curve through data points'
 
 class CurveScatterPlot(Plot):
 
+    #: Short description for the UI selection
+    description = "Scatter plot with curve overlay"
+
     #: Toggle to determine whether to overlay curve in the display
     toggle_display_curve = Bool()
 

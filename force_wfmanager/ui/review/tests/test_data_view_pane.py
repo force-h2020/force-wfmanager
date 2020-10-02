@@ -7,6 +7,7 @@ import unittest
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
 from force_wfmanager.ui.review.plot import Plot
+from force_wfmanager.ui.review.curve_scatter_plot import CurveScatterPlot
 
 
 DATA_VIEW_PANE_EDIT_TRAITS_PATH = (
@@ -45,10 +46,11 @@ class TestDataViewPane(unittest.TestCase):
 
     def test_load_and_set_default_data_views(self):
         # This test class doesn't test the application, so there is no
-        # plugin discovery. One default plot will be found as it's the only
-        # one which is automatically populated.
+        # plugin discovery. Two default plots will be found as they are the
+        # only ones that are automatically populated.
         self.assertIn(Plot, self.pane.available_data_views)
-        self.assertEqual(len(self.pane.available_data_views), 1)
+        self.assertIn(CurveScatterPlot, self.pane.available_data_views)
+        self.assertEqual(len(self.pane.available_data_views), 2)
 
     def test_data_view_descriptions(self):
         # the "change" button needs to be fired to populate the descriptions
