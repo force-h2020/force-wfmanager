@@ -36,7 +36,7 @@ class TestCurveScatterPlot(TestCase):
 
     def test_axis_hgroup_default(self):
         self.assertListEqual(
-            ['x', 'y', 'toggle_automatic_update',
+            ['x', 'y', 'color_options', 'toggle_automatic_update',
              'toggle_display_curve', '_curve_error'],
             item_info_from_group(self.plot.axis_hgroup.content))
 
