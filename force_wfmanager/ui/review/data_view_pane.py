@@ -16,6 +16,7 @@ from traitsui.api import EnumEditor, HGroup, UItem, VGroup, View
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.plot import Plot
+from force_wfmanager.ui.review.curve_scatter_plot import CurveScatterPlot
 from force_wfmanager.ui.review.base_data_view import BaseDataView
 from force_wfmanager.ui.ui_utils import class_description
 
@@ -86,8 +87,9 @@ class DataViewPane(TraitsTaskPane):
         to extract their custom data views.
 
         """
-        # "Plot" is added first as it serves as the default selection.
-        available_data_views = [Plot]
+        # "Plot" and "CurveScatterPlot" are added first as they serve as
+        # the default selection.
+        available_data_views = [Plot, CurveScatterPlot]
         if self.task is not None and self.task.window is not None:
             # This is skipped if the current class is instantiated outside
             # of an application (e.g. specific tests)

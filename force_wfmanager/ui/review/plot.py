@@ -528,9 +528,9 @@ class Plot(BasePlot):
             Item("toggle_automatic_update", label="Axis auto update"),
         )
 
-    def __plot_data_default(self):
+    def _get_plot_data_default(self):
         """Extends plot data objects to add third dimension for color"""
-        plot_data = self._get_plot_data_default()
+        plot_data = super(Plot, self)._get_plot_data_default()
         plot_data.set_data("color_by", [])
         return plot_data
 
@@ -540,10 +540,7 @@ class Plot(BasePlot):
         x_title = self._plot.x_axis.title
         y_title = self._plot.y_axis.title
 
-        if self.color_plot:
-            self._plot = self.plot_cmap_scatter()
-        else:
-            self._plot = self.plot_scatter()
+        self._plot = self.plot_scatter()
 
         self._set_plot_range(*ranges)
         self._plot.x_axis.title = x_title
@@ -573,38 +570,55 @@ class Plot(BasePlot):
         )
         self.edit_traits(view=view)
 
-    def plot_cmap_scatter(self):
+    def plot_scatter(self):
         plot = ChacoPlot(self._plot_data)
 
-        cmap_scatter_plot = plot.plot(
-            ("x", "y", "color_by"),
-            type="cmap_scatter",
-            name="Plot",
-            marker="circle",
-            fill_alpha=0.8,
-            color_mapper=self._available_colormaps[self.colormap],
-            marker_size=4,
-            outline_color="black",
-            index_sort="ascending",
-            line_width=0,
-            bgcolor="white",
-        )[0]
+        if self.color_plot:
+            scatter_plot = plot.plot(
+                ("x", "y", "color_by"),
+                type="cmap_scatter",
+                name="Plot",
+                marker="circle",
+                fill_alpha=0.8,
+                color_mapper=self._available_colormaps[self.colormap],
+                marker_size=4,
+                outline_color="black",
+                index_sort="ascending",
+                line_width=0,
+                bgcolor="white",
+            )[0]
+        else:
+            scatter_plot = plot.plot(
+                ("x", "y"),
+                type="scatter",
+                name="Plot",
+                marker="circle",
+                index_sort="ascending",
+                color="green",
+                marker_size=4,
+                bgcolor="white",
+            )[0]
 
-        plot.trait_set(title="Plot", padding=75, line_width=1)
+        plot.trait_set(title=self.title, padding=75, line_width=1)
 
         # Add pan and zoom tools
-        cmap_scatter_plot.tools.append(PanTool(plot))
-        cmap_scatter_plot.overlays.append(ZoomTool(plot))
+        scatter_plot.tools.append(PanTool(plot))
+        scatter_plot.overlays.append(ZoomTool(plot))
+
+        # Set the scatterplot's default selection marker invisible as it
+        # lead to artifacts on axis when switching between plotted cols
+        scatter_plot.trait_set(
+            selection_color=(0, 0, 0, 0), selection_outline_color=(0, 0, 0, 0)
+        )
 
         # Add the selection tool
-        inspector, overlay = self._get_scatter_inspector_overlay(
-            cmap_scatter_plot
-        )
-        cmap_scatter_plot.tools.append(inspector)
-        cmap_scatter_plot.overlays.append(overlay)
+        inspector, overlay = self._get_scatter_inspector_overlay(scatter_plot)
+        scatter_plot.tools.append(inspector)
+        scatter_plot.overlays.append(overlay)
 
-        self._plot_index_datasource = cmap_scatter_plot.index
-        self._axis = cmap_scatter_plot
+        # Initialize plot datasource
+        self._plot_index_datasource = scatter_plot.index
+        self._axis = scatter_plot
 
         return plot
 
