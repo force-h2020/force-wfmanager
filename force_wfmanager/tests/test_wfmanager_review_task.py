@@ -101,14 +101,14 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
     def test_default_data_views(self):
         # Test of the data view selection feature within the task.
 
-        # A single default plot type
+        # Two default plot types
         self.assertEqual(
-            len(self.review_task.central_pane.available_data_views), 1
+            2, len(self.review_task.central_pane.available_data_views)
         )
 
         # Initial state
         self.assertEqual(
-            self.review_task.central_pane.data_view_selection, Plot
+            Plot, self.review_task.central_pane.data_view_selection
         )
         self.assertIsInstance(self.review_task.central_pane.data_view, Plot)
 
@@ -130,9 +130,9 @@ class TestWFManagerTasksWithPlugins(GuiTestAssistant, TestCase):
         )
 
     def test_discover_data_views(self):
-        # One default plot type plus three contributed
+        # Twp default plot types plus three contributed
         self.assertEqual(
-            4, len(self.review_task.central_pane.available_data_views),
+            5, len(self.review_task.central_pane.available_data_views),
         )
 
         # fire the button to populate descriptions
