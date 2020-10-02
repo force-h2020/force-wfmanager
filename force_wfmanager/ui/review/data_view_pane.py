@@ -87,7 +87,7 @@ class DataViewPane(TraitsTaskPane):
         to extract their custom data views.
 
         """
-        # "Plot" and "CurveScatterPlot" are added first as they serves as
+        # "Plot" and "CurveScatterPlot" are added first as they serve as
         # the default selection.
         available_data_views = [Plot, CurveScatterPlot]
         if self.task is not None and self.task.window is not None:

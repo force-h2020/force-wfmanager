@@ -4,6 +4,7 @@ from chaco.api import ArrayPlotData
 from chaco.api import Plot as ChacoPlot
 
 from force_wfmanager.model.analysis_model import AnalysisModel
+from force_wfmanager.ui.ui_utils import item_info_from_group
 from force_wfmanager.ui.review.curve_scatter_plot import CurveScatterPlot
 
 
@@ -32,6 +33,12 @@ class TestCurveScatterPlot(TestCase):
             [], self.plot._plot_data.get_data("y_curve").tolist())
         self.assertTrue(self.plot.plot_updater.active)
         self.assertTrue(self.plot.toggle_automatic_update)
+
+    def test_axis_hgroup_default(self):
+        self.assertListEqual(
+            ['x', 'y', 'toggle_automatic_update',
+             'toggle_display_curve', '_curve_error'],
+            item_info_from_group(self.plot.axis_hgroup.content))
 
     def test_add_curve(self):
         self.assertIsNone(self.plot._curve_axis)

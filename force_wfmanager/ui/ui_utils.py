@@ -27,7 +27,7 @@ def model_info(model):
     main_group_contents = current_view.content.content
 
     # Names of all traits with a representation in the view
-    view_info = _item_info_from_group(main_group_contents)
+    view_info = item_info_from_group(main_group_contents)
 
     # Remove any non-visible traits
     interactive_view_info = [
@@ -38,7 +38,7 @@ def model_info(model):
     return interactive_view_info
 
 
-def _item_info_from_group(group_contents, item_info=None):
+def item_info_from_group(group_contents, item_info=None):
     """Gets the item names from a list of groups (group_contents).
     Returns a list of trait names corresponding to the items in the group.
     """
@@ -46,7 +46,7 @@ def _item_info_from_group(group_contents, item_info=None):
         item_info = []
     for entity in group_contents:
         if isinstance(entity, Group):
-            item_info = _item_info_from_group(entity.content, item_info)
+            item_info = item_info_from_group(entity.content, item_info)
         elif isinstance(entity, Item):
             item_info.append(entity.name)
     return item_info
