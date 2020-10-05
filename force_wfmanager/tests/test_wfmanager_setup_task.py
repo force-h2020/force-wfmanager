@@ -12,6 +12,7 @@ from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from force_bdss.api import (
     DataValue,
     MCOProgressEvent,
+    MCORuntimeEvent,
     MCOStartEvent,
     WorkflowWriter,
     plugin_id,
@@ -263,11 +264,19 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             send_event(MCOStartEvent(parameter_names=["x"], kpi_names=["y"]))
 
         self.assertEqual(
-            len(self.setup_task.analysis_model.evaluation_steps), 0
+            0, len(self.setup_task.analysis_model.evaluation_steps)
         )
         self.assertEqual(
-            self.setup_task.analysis_model.header, ("x", "y")
+            0, len(self.setup_task.analysis_model.step_metadata)
         )
+        self.assertEqual(
+            ("x", "y"), self.setup_task.analysis_model.header
+        )
+
+        with self.event_loop():
+            send_event(
+                MCORuntimeEvent()
+            )
 
         with self.event_loop():
             send_event(
@@ -278,7 +287,10 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             )
 
         self.assertEqual(
-            len(self.setup_task.analysis_model.evaluation_steps), 1
+            1, len(self.setup_task.analysis_model.evaluation_steps)
+        )
+        self.assertEqual(
+            1, len(self.setup_task.analysis_model.step_metadata)
         )
 
     def test_initialize_finalize(self):

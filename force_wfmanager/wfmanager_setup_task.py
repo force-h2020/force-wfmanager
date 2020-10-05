@@ -423,9 +423,10 @@ class WfManagerSetupTask(Task):
         if isinstance(event, MCOStartEvent):
             self.analysis_model.clear()
             self.computation_running = True
-        if isinstance(
-            event, (MCOStartEvent, MCOProgressEvent, MCORuntimeEvent)
-        ):
+        if isinstance(event, MCORuntimeEvent):
+            event_data = event.serialize()
+            self.analysis_model.notify(event_data, metadata=True)
+        if isinstance(event, (MCOStartEvent, MCOProgressEvent)):
             event_data = event.serialize()
             self.analysis_model.notify(event_data)
 
