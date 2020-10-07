@@ -416,18 +416,19 @@ class WfManagerSetupTask(Task):
         Handles the event received by the server, dispatching its
         action appropriately according to the type.
         Note: All the decision making related to the AnalysisModel
-        should be done by the AnalysisModel, not the setup taks.
+        should be done by the AnalysisModel, not the setup task.
         The AnalysisModel should receive the event instance and process
         the events itself.
         """
         if isinstance(event, MCOStartEvent):
             self.analysis_model.clear()
             self.computation_running = True
+
+        event_data = event.serialize()
+
         if isinstance(event, MCORuntimeEvent):
-            event_data = event.serialize()
             self.analysis_model.notify(event_data, metadata=True)
-        if isinstance(event, (MCOStartEvent, MCOProgressEvent)):
-            event_data = event.serialize()
+        elif isinstance(event, (MCOStartEvent, MCOProgressEvent)):
             self.analysis_model.notify(event_data)
 
     # Error Display
