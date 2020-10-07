@@ -12,7 +12,6 @@ from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 from force_bdss.api import (
     DataValue,
     MCOProgressEvent,
-    MCORuntimeEvent,
     MCOStartEvent,
     WorkflowWriter,
     plugin_id,
@@ -26,8 +25,10 @@ from force_wfmanager.tests.dummy_classes.dummy_contributed_ui import (
     DummyContributedUI2,
 )
 from force_wfmanager.tests.dummy_classes.dummy_wfmanager import (
-    DummyUIWfManager,
+    DummyUIWfManager
 )
+from force_wfmanager.tests.dummy_classes.dummy_events import (
+    ProbeUIRuntimeEvent)
 from force_wfmanager.tests.utils import wait_condition
 
 from .mock_methods import (
@@ -275,7 +276,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
         with self.event_loop():
             send_event(
-                MCORuntimeEvent()
+                ProbeUIRuntimeEvent()
             )
 
         with self.event_loop():
