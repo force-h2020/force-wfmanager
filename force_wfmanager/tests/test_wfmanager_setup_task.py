@@ -292,7 +292,7 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
         )
         self.assertEqual(
             (1.0, 2.0),
-             self.setup_task.analysis_model.evaluation_steps[0]
+            self.setup_task.analysis_model.evaluation_steps[0]
         )
         self.assertEqual(
             1, len(self.setup_task.analysis_model.step_metadata)
