@@ -14,6 +14,16 @@ from force_wfmanager.model.analysis_model import AnalysisModel
 class TestAnalysisModel(TestCase):
     def setUp(self):
         self.model = AnalysisModel()
+        self.header = ("a", "b", "c")
+        self.data = ((1, 2, 3), (4, 5, 6))
+        self.metadata = ({}, {'d': 10})
+        self.state_dict = {
+            "header": self.header,
+            "1": {'data': self.data[0],
+                  'metadata': self.metadata[0]},
+            "2": {'data': self.data[1],
+                  'metadata': self.metadata[1]}
+        }
 
     def test_initialize(self):
         self.assertEqual(tuple(), self.model.header)
@@ -24,10 +34,10 @@ class TestAnalysisModel(TestCase):
         self.assertDictEqual(self.model._row_data, {})
 
     def test__add_header(self):
-        header = ("a", "b", "c")
-        self.model._add_header(header)
-        self.assertTupleEqual(self.model.header, header)
-        self.assertDictEqual(self.model._row_data, dict.fromkeys(header))
+        self.model._add_header(self.header)
+        self.assertTupleEqual(self.header, self.model.header)
+        self.assertDictEqual(
+            dict.fromkeys(self.header), self.model._row_data)
 
         wrong_header = 1
         log_error = (
@@ -42,19 +52,16 @@ class TestAnalysisModel(TestCase):
         )
 
     def test_header_update(self):
-        header = ("a", "b", "c")
-        data = ((1, 2, 3), (4, 5, 6))
-        state_dict = {"header": header, "1": data[0], "2": data[1]}
-        self.model.from_json(state_dict)
+        self.model.from_json(self.state_dict)
 
-        self.assertTupleEqual(self.model.header, header)
+        self.assertTupleEqual(self.model.header, self.header)
         self.model.header = ("new", )
         self.assertTupleEqual(self.model.header, ("new", ))
         self.assertEqual([], self.model.evaluation_steps)
+        self.assertEqual([], self.model.step_metadata)
 
     def test__add_cell(self):
-        header = ("a", "b", "c")
-        self.model._add_header(header)
+        self.model._add_header(self.header)
 
         self.model._add_cell(label="a", value="1")
         self.assertEqual("1", self.model._row_data["a"])
@@ -80,8 +87,7 @@ class TestAnalysisModel(TestCase):
         self.assertIsNone(self.model._row_data["c"])
 
     def test__add_cells(self):
-        header = ("a", "b", "c")
-        self.model._add_header(header)
+        self.model._add_header(self.header)
 
         data = []
         self.model._add_cells(data)
@@ -102,26 +108,40 @@ class TestAnalysisModel(TestCase):
         self.assertEqual(3, self.model._row_data["c"])
 
     def test_finalize_row(self):
-        header = ("a", "b", "c")
-        self.model._add_header(header)
+        self.model._add_header(self.header)
         data = (1, 2, 3)
         self.model._add_cells(data)
 
         self.model._finalize_row()
         self.assertEqual(1, len(self.model.evaluation_steps))
-        self.assertTupleEqual(self.model.evaluation_steps[0], data)
+        self.assertEqual(1, len(self.model.step_metadata))
+
+        self.assertTupleEqual(data, self.model.evaluation_steps[0])
+        self.assertDictEqual({}, self.model.step_metadata[0])
+
         self.assertDictEqual(
             self.model._row_data, self.model._row_data_default()
+        )
+        self.assertDictEqual(
+            self.model._row_metadata, self.model._row_metadata_default()
         )
 
         data = (1, 2)
         self.model._add_cells(data)
+        self.model._add_metadata({'extra': 7})
 
         self.model._finalize_row()
         self.assertEqual(2, len(self.model.evaluation_steps))
-        self.assertTupleEqual(self.model.evaluation_steps[1], (1, 2, None))
+        self.assertEqual(2, len(self.model.step_metadata))
+
+        self.assertTupleEqual((1, 2, None), self.model.evaluation_steps[1])
+        self.assertDictEqual({'extra': 7}, self.model.step_metadata[1])
+
         self.assertDictEqual(
             self.model._row_data, self.model._row_data_default()
+        )
+        self.assertDictEqual(
+            self.model._row_metadata, self.model._row_metadata_default()
         )
 
     def test__add_data(self):
@@ -138,15 +158,30 @@ class TestAnalysisModel(TestCase):
             model._add_data(["data", "entries"])
         mock_cells.assert_called_with(["data", "entries"])
 
-        header = ("a", "b", "c")
-        self.model._add_header(header)
+        self.model._add_header(self.header)
         self.model._add_data({"a": 1})
         self.model._add_data({"c": 2})
         self.model._add_data([3, 4])
         self.assertEqual(1, len(self.model.evaluation_steps))
-        self.assertTupleEqual(self.model.evaluation_steps[0], (3, 4, 2))
+        self.assertTupleEqual((3, 4, 2), self.model.evaluation_steps[0])
         self.assertDictEqual(
             self.model._row_data, self.model._row_data_default()
+        )
+
+    def test__add_metadata(self):
+        self.model._add_metadata({"a": 1})
+        self.assertDictEqual(
+            {"a": 1}, self.model._row_metadata
+        )
+
+        self.model._add_metadata({"a": 1, "c": 2})
+        self.assertDictEqual(
+            {"a": 1, "c": 2}, self.model._row_metadata
+        )
+
+        self.model._add_metadata([(3, 2, 5)])
+        self.assertDictEqual(
+            {"a": 1, "c": 2}, self.model._row_metadata
         )
 
     def test__add_evaluation_step(self):
@@ -179,6 +214,8 @@ class TestAnalysisModel(TestCase):
         with mock.patch.object(
             AnalysisModel, "_add_header"
         ) as mock_header, mock.patch.object(
+            AnalysisModel, "_add_metadata"
+        ) as mock_metadata, mock.patch.object(
             AnalysisModel, "_add_data"
         ) as mock_data:
             model = AnalysisModel()
@@ -186,15 +223,14 @@ class TestAnalysisModel(TestCase):
             # This line is necessary because the header must be set
             # in order to add data to the model.
             model.header = ("",)
+            model.notify(None, metadata=True)
             model.notify(None)
         mock_header.assert_called_once()
+        mock_metadata.assert_called_once()
         mock_data.assert_called_once()
 
     def test_column(self):
-        header = ("a", "b", "c")
-        data = ((1, 2, 3), (4, 5, 6))
-        state_dict = {"header": header, "1": data[0], "2": data[1]}
-        self.model.from_json(state_dict)
+        self.model.from_json(self.state_dict)
 
         column_by_id = self.model.column(0)
         column_by_label = self.model.column("a")
@@ -222,41 +258,42 @@ class TestAnalysisModel(TestCase):
 
     def test_is_empty(self):
         self.assertTrue(self.model.is_empty)
-
-        header = ("a", "b", "c")
-        data = ((1, 2, 3), (4, 5, 6))
-        state_dict = {"header": header, "1": data[0], "2": data[1]}
-        self.model.from_json(state_dict)
+        self.model.from_json(self.state_dict)
 
         self.assertFalse(self.model.is_empty)
 
     def test___getstate__(self):
-        header = ("a", "b", "c")
-        data = ((1, 2, 3), (4, 5, 6))
-        state_dict = {"header": header, 1: data[0], 2: data[1]}
-        self.model.notify(header)
-        for entry in data:
+        self.model.notify(self.header)
+        for entry, meta in zip(self.data, self.metadata):
+            self.model.notify(meta, metadata=True)
             self.model.notify(entry)
 
         state = self.model.__getstate__()
-        self.assertDictEqual(state, state_dict)
+        self.assertDictEqual({
+            "header": self.header,
+            1: {'data': self.data[0],
+                'metadata': self.metadata[0]},
+            2: {'data': self.data[1],
+                'metadata': self.metadata[1]}},
+            state
+        )
 
         with mock.patch.object(AnalysisModel, "__getstate__") as mock_getstate:
             AnalysisModel().to_json()
         mock_getstate.assert_called_once()
 
     def test_json(self):
-        header = ("a", "b", "c")
-        data = ((1, 2, 3), (4, 5, 6))
-        state_dict = {"header": header, "1": data[0], "2": data[1]}
-
         error = (
             "AnalysisModel can't be instantiated from a data dictionary"
             " that does not contain a header."
         )
         with LogCapture() as capture:
             with self.assertRaisesRegex(KeyError, error):
-                AnalysisModel().from_json({"1": data[0], "2": data[1]})
+                AnalysisModel().from_json(
+                    {"1": {'data': self.data[0],
+                           'metadata': self.metadata[0]},
+                     "2": {'data': self.data[1],
+                           'metadata': self.metadata[1]}})
         capture.check(
             (
                 "force_wfmanager.model.analysis_model",
@@ -268,14 +305,17 @@ class TestAnalysisModel(TestCase):
 
         with mock.patch.object(AnalysisModel, "clear") as mock_clear:
             model = AnalysisModel()
-            model.from_json(state_dict)
+            model.from_json(self.state_dict)
         mock_clear.assert_called_once()
 
-        self.model.from_json(state_dict)
-        self.assertTupleEqual(self.model.header, header)
+        self.model.from_json(self.state_dict)
+        self.assertTupleEqual(self.model.header, self.header)
         self.assertEqual(2, len(self.model.evaluation_steps))
-        self.assertTupleEqual(self.model.evaluation_steps[0], data[0])
-        self.assertTupleEqual(self.model.evaluation_steps[1], data[1])
+        self.assertEqual(2, len(self.model.step_metadata))
+        self.assertTupleEqual(self.data[0], self.model.evaluation_steps[0])
+        self.assertDictEqual(self.metadata[0], self.model.step_metadata[0])
+        self.assertTupleEqual(self.data[1], self.model.evaluation_steps[1])
+        self.assertDictEqual(self.metadata[1], self.model.step_metadata[1])
 
         tmp_file = tempfile.NamedTemporaryFile()
         filename = tmp_file.name
@@ -283,16 +323,24 @@ class TestAnalysisModel(TestCase):
         with open(filename) as f:
             json_data = json.load(f)
         self.assertDictEqual(
-            json_data,
-            {"header": list(header), "1": list(data[0]), "2": list(data[1])},
+            {"header": list(self.header),
+             "1": {'data': list(self.data[0]),
+                   'metadata': self.metadata[0]},
+             "2": {'data': list(self.data[1]),
+                   'metadata': self.metadata[1]}},
+            json_data
         )
 
         self.model._export_enabled = False
         self.assertFalse(self.model.dump_json(None))
 
-        header = ("a", "b", "c")
-        data = ((1, 2, 3), (4, 5, 6))
-        state_dict = {"header": header, "1": data[0], "3": data[1]}
+        state_dict = {
+            "header": self.header,
+            "1": {'data': self.data[0],
+                  'metadata': self.metadata[0]},
+            "3": {'data': self.data[1],
+                  'metadata': self.metadata[1]}
+        }
         with LogCapture() as capture:
             AnalysisModel().from_json(state_dict)
         capture.check(
@@ -304,11 +352,33 @@ class TestAnalysisModel(TestCase):
             )
         )
 
+        with self.subTest("Check deprecated formats"):
+            # TODO: This test can be removed when issue #414
+            #  is resolved
+            state_dict = {
+                "header": self.header,
+                "1": list(self.data[0])
+            }
+            with LogCapture() as capture:
+                model = AnalysisModel()
+                model.from_json(state_dict)
+            capture.check(
+                (
+                    "force_wfmanager.model.analysis_model",
+                    "WARNING",
+                    "Project file format is deprecated and will"
+                    " be removed in version 0.7.0",
+                )
+            )
+            self.assertDictEqual(
+                {
+                    "header": self.header,
+                    1: {"data": self.data[0],
+                        "metadata": {}}
+                }, model.__getstate__())
+
     def test_write_csv(self):
-        header = ("a", "b", "c")
-        data = ((1, 2, 3), (4, 5, 6))
-        state_dict = {"header": header, "1": data[0], "2": data[1]}
-        self.model.from_json(state_dict)
+        self.model.from_json(self.state_dict)
         tmp_file = tempfile.NamedTemporaryFile()
         filename = tmp_file.name
         self.model.dump_csv(filename)
@@ -334,33 +404,32 @@ class TestAnalysisModel(TestCase):
             AnalysisModel().write("filename.format")
 
     def test_clear(self):
-        header = ("a", "b", "c")
-        data = ((1, 2, 3), (4, 5, 6))
-        self.model.notify(header)
-        for entry in data:
+        self.model.notify(self.header)
+        for entry, meta in zip(self.data, self.metadata):
+            self.model.notify(meta, metadata=True)
             self.model.notify(entry)
 
         self.model.clear_steps()
         self.assertFalse(self.model.export_enabled)
         self.assertEqual([], self.model.evaluation_steps)
-        self.assertTupleEqual(self.model.header, header)
+        self.assertEqual([], self.model.step_metadata)
+        self.assertTupleEqual(self.model.header, self.header)
 
-        self.model.notify(header)
-        for entry in data:
+        self.model.notify(self.header)
+        for entry in self.data:
             self.model.notify(entry)
 
         self.model.clear()
         self.assertFalse(self.model.export_enabled)
         self.assertEqual([], self.model.evaluation_steps)
+        self.assertEqual([], self.model.step_metadata)
         self.assertTupleEqual(self.model.header, ())
 
     def test_selected_step_indices(self):
         self.assertIsNone(self.model.selected_step_indices)
 
-        header = ("a", "b", "c")
-        data = ((1, 2, 3), (4, 5, 6))
-        self.model.notify(header)
-        for entry in data:
+        self.model.notify(self.header)
+        for entry in self.data:
             self.model.notify(entry)
 
         self.assertIsNone(self.model.selected_step_indices)

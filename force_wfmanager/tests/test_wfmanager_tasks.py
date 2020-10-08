@@ -264,7 +264,11 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
             mock_file_dialog.side_effect = mock_dialog(FileDialog, OK)
             mock_json.return_value = {
-                "analysis_model": {"header": ["x", "y"], "1": [1, 2]},
+                "analysis_model": {
+                    "header": ["x", "y"],
+                    "1": {'data': [1, 2],
+                          'metadata': {'a': 7}}
+                },
                 "version": "1",
                 "workflow": {},
             }
@@ -300,10 +304,13 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
                 old_analysis.header, self.setup_task.analysis_model.header
             )
             self.assertEqual(
-                self.review_task.analysis_model.header, ("x", "y")
+                ("x", "y"), self.review_task.analysis_model.header
             )
             self.assertEqual(
-                self.review_task.analysis_model.evaluation_steps, [(1, 2)]
+                [(1, 2)], self.review_task.analysis_model.evaluation_steps,
+            )
+            self.assertEqual(
+                [{'a': 7}], self.review_task.analysis_model.step_metadata
             )
             self.assertEqual(
                 self.setup_task.analysis_model.header,

@@ -34,14 +34,23 @@ class AnalysisModel(HasStrictTraits):
     #: `_row_data` first, before the whole row is added to the model table.
     _row_data = Dict(key_trait=Str)
 
+    #: Storage for any metadata that is received along with the MCO data
+    _row_metadata = Dict(key_trait=Str)
+
     #: Private trait of the `evaluation_steps` property
     _evaluation_steps = List(Tuple())
+
+    #: Private trait of the `_step_metadata` property
+    _step_metadata = List(Dict())
 
     #: Evaluation steps, each evaluation step is a tuple of parameter values,
     #: received from the a single Workflow execution. The order of
     #: the parameters in each evaluation step must match the order of
     #: value_names
     evaluation_steps = Property(List(Tuple()), depends_on="_evaluation_steps")
+
+    #: Metadata associated with each evaluation step
+    step_metadata = Property(List(Dict()), depends_on="_step_metadata")
 
     #: Tracks whether the current state of AnalysisModel can be exported
     _export_enabled = Bool(False)
@@ -67,8 +76,14 @@ class AnalysisModel(HasStrictTraits):
     def _row_data_default(self):
         return dict.fromkeys(self.header)
 
+    def _row_metadata_default(self):
+        return {}
+
     def _get_export_enabled(self):
         return self._export_enabled
+
+    def _get_step_metadata(self):
+        return self._step_metadata
 
     def _get_evaluation_steps(self):
         return self._evaluation_steps
@@ -97,14 +112,17 @@ class AnalysisModel(HasStrictTraits):
     def _get_is_empty(self):
         return not bool(len(self.evaluation_steps))
 
-    def notify(self, data):
+    def notify(self, data, metadata=False):
         """ Public method to add `data` to the AnalysisModel.
         If no `header` is set up, the `data` is considered to be a
-        `header`. Otherwise, the `data` is treated as to be added to
-        the current row.
+        `header`. If the metadata keyword is set to True the `data` is
+        treated as metadata to be associated with the current row.
+        Otherwise, the `data` is treated as to be added to the current row.
         """
         if not self.header:
             self._add_header(data)
+        elif metadata:
+            self._add_metadata(data)
         else:
             self._add_data(data)
 
@@ -136,6 +154,16 @@ class AnalysisModel(HasStrictTraits):
             self._add_cells(data)
             self._finalize_row()
 
+    def _add_metadata(self, data):
+        """ For each evaluation step, add optional metadata. Expects
+        the `data` attribute to be a dictionary containing key value
+        pairs to be associated with the current row.
+        """
+        try:
+            self._row_metadata.update(data)
+        except (TraitError, TypeError, ValueError):
+            pass
+
     def _add_cell(self, label, value):
         """ Inserts a `value` into the column of the current row
         (self.row_data) with the `label` label."""
@@ -160,8 +188,12 @@ class AnalysisModel(HasStrictTraits):
         row_data = tuple(
             self._row_data.get(label, None) for label in self.header
         )
+
         self._add_evaluation_step(row_data)
+        self._step_metadata.append(self._row_metadata)
+
         self._row_data = self._row_data_default()
+        self._row_metadata = self._row_metadata_default()
 
     @on_trait_change("header")
     def clear_steps(self):
@@ -170,6 +202,7 @@ class AnalysisModel(HasStrictTraits):
         :attr:`value_names`
         """
         self._evaluation_steps[:] = []
+        self._step_metadata[:] = []
         self._selected_step_indices = None
         self._export_enabled = False
 
@@ -253,7 +286,17 @@ class AnalysisModel(HasStrictTraits):
                     f"be skipped in the AnalysisModel."
                 )
             else:
-                self.notify(step)
+                # TODO: This format is now deprecated and should be removed
+                #  in version 0.7.0
+                #  https://github.com/force-h2020/force-wfmanager/issues/414
+                if isinstance(step, list):
+                    log.warning(
+                        'Project file format is deprecated and will be removed'
+                        ' in version 0.7.0')
+                    self.notify(step)
+                else:
+                    self.notify(step['metadata'], metadata=True)
+                    self.notify(step['data'])
 
     def to_json(self):
         """ Returns a dictionary representation with column names as keys
@@ -272,7 +315,8 @@ class AnalysisModel(HasStrictTraits):
         """
         data = {"header": self.header}
         for index, row in enumerate(self.evaluation_steps, start=1):
-            data[index] = row
+            metadata = self.step_metadata[index-1]
+            data[index] = {'data': row, 'metadata': metadata}
 
         return data
 
@@ -287,7 +331,9 @@ class AnalysisModel(HasStrictTraits):
             )
 
     def dump_json(self, filename, *, mode="w"):
-        """ Writes the AnalysisModel to a `filename` file in json format."""
+        """ Writes the AnalysisModel to a `filename` file in json format,
+        including both data and metadata values. Can be used to save the
+        state of the analysis."""
         if not self.export_enabled:
             return False
 
@@ -296,7 +342,11 @@ class AnalysisModel(HasStrictTraits):
         return True
 
     def dump_csv(self, filename, *, mode="w"):
-        """ Writes the AnalysisModel to a `filename` file in csv format."""
+        """ Writes the AnalysisModel to a `filename` file in csv format,
+        but does not include metadata values. Should be only be used to
+        export MCO parameter and KPI data, rather than saving the state
+        of the analysis.
+        """
         if not self.export_enabled:
             return False
 

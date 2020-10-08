@@ -25,8 +25,10 @@ from force_wfmanager.tests.dummy_classes.dummy_contributed_ui import (
     DummyContributedUI2,
 )
 from force_wfmanager.tests.dummy_classes.dummy_wfmanager import (
-    DummyUIWfManager,
+    DummyUIWfManager
 )
+from force_wfmanager.tests.dummy_classes.dummy_events import (
+    ProbeUIRuntimeEvent)
 from force_wfmanager.tests.utils import wait_condition
 
 from .mock_methods import (
@@ -263,11 +265,19 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             send_event(MCOStartEvent(parameter_names=["x"], kpi_names=["y"]))
 
         self.assertEqual(
-            len(self.setup_task.analysis_model.evaluation_steps), 0
+            0, len(self.setup_task.analysis_model.evaluation_steps)
         )
         self.assertEqual(
-            self.setup_task.analysis_model.header, ("x", "y")
+            0, len(self.setup_task.analysis_model.step_metadata)
         )
+        self.assertEqual(
+            ("x", "y"), self.setup_task.analysis_model.header
+        )
+
+        with self.event_loop():
+            send_event(
+                ProbeUIRuntimeEvent()
+            )
 
         with self.event_loop():
             send_event(
@@ -278,7 +288,18 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             )
 
         self.assertEqual(
-            len(self.setup_task.analysis_model.evaluation_steps), 1
+            1, len(self.setup_task.analysis_model.evaluation_steps)
+        )
+        self.assertEqual(
+            (1.0, 2.0),
+            self.setup_task.analysis_model.evaluation_steps[0]
+        )
+        self.assertEqual(
+            1, len(self.setup_task.analysis_model.step_metadata)
+        )
+        self.assertDictEqual(
+            {'some_metadata': 0},
+            self.setup_task.analysis_model.step_metadata[0]
         )
 
     def test_initialize_finalize(self):
