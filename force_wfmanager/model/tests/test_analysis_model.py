@@ -19,8 +19,10 @@ class TestAnalysisModel(TestCase):
         self.metadata = ({}, {'d': 10})
         self.state_dict = {
             "header": self.header,
-            "1": (self.data[0], self.metadata[0]),
-            "2": (self.data[1], self.metadata[1])
+            "1": {'data': self.data[0],
+                  'metadata':self.metadata[0]},
+            "2": {'data': self.data[1],
+                  'metadata': self.metadata[1]}
         }
 
     def test_initialize(self):
@@ -269,8 +271,10 @@ class TestAnalysisModel(TestCase):
         state = self.model.__getstate__()
         self.assertDictEqual({
             "header": self.header,
-            1: (self.data[0], self.metadata[0]),
-            2: (self.data[1], self.metadata[1])},
+            1: {'data': self.data[0],
+                'metadata': self.metadata[0]},
+            2: {'data': self.data[1],
+                'metadata': self.metadata[1]}},
             state
         )
 
@@ -286,8 +290,10 @@ class TestAnalysisModel(TestCase):
         with LogCapture() as capture:
             with self.assertRaisesRegex(KeyError, error):
                 AnalysisModel().from_json(
-                    {"1": (self.data[0], self.metadata[0]),
-                     "2": (self.data[1], self.metadata[1])})
+                    {"1": {'data': self.data[0],
+                           'metadata': self.metadata[0]},
+                     "2": {'data': self.data[1],
+                           'metadata': self.metadata[1]}})
         capture.check(
             (
                 "force_wfmanager.model.analysis_model",
@@ -318,8 +324,10 @@ class TestAnalysisModel(TestCase):
             json_data = json.load(f)
         self.assertDictEqual(
             {"header": list(self.header),
-             "1": [list(self.data[0]), self.metadata[0]],
-             "2": [list(self.data[1]), self.metadata[1]]},
+             "1": {'data': list(self.data[0]),
+                   'metadata': self.metadata[0]},
+             "2": {'data': list(self.data[1]),
+                   'metadata': self.metadata[1]}},
             json_data
         )
 
@@ -328,8 +336,10 @@ class TestAnalysisModel(TestCase):
 
         state_dict = {
             "header": self.header,
-            "1": (self.data[0], self.metadata[0]),
-            "3": (self.data[1], self.metadata[1])
+            "1": {'data': self.data[0],
+                  'metadata': self.metadata[0]},
+            "3": {'data': self.data[1],
+                  'metadata': self.metadata[1]}
         }
         with LogCapture() as capture:
             AnalysisModel().from_json(state_dict)
@@ -341,6 +351,31 @@ class TestAnalysisModel(TestCase):
                 "be skipped in the AnalysisModel.",
             )
         )
+
+        with self.subTest("Check deprecated formats"):
+            # TODO: This test can be removed when issue #414
+            #  is resolved
+            state_dict = {
+                "header": self.header,
+                "1": list(self.data[0])
+            }
+            with LogCapture() as capture:
+                model = AnalysisModel()
+                model.from_json(state_dict)
+            capture.check(
+                (
+                    "force_wfmanager.model.analysis_model",
+                    "WARNING",
+                    "Project file format is deprecated and will"
+                    " be removed in version 0.7.0",
+                )
+            )
+            self.assertDictEqual(
+                {
+                    "header": self.header,
+                    "1": {"data": list(self.data[0]),
+                          "metadata": {}}
+                }, model.__getstate__())
 
     def test_write_csv(self):
         self.model.from_json(self.state_dict)

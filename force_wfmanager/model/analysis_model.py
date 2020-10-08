@@ -286,8 +286,17 @@ class AnalysisModel(HasStrictTraits):
                     f"be skipped in the AnalysisModel."
                 )
             else:
-                self.notify(step[1], metadata=True)
-                self.notify(step[0])
+                # TODO: This format is now deprecated and should be removed
+                #  in version 0.7.0
+                #  https://github.com/force-h2020/force-wfmanager/issues/414
+                if isinstance(step, list):
+                    log.warning(
+                        'Project file format is deprecated and will be removed'
+                        ' in version 0.7.0')
+                    self.notify(step)
+                else:
+                    self.notify(step['metadata'], metadata=True)
+                    self.notify(step['data'])
 
     def to_json(self):
         """ Returns a dictionary representation with column names as keys
@@ -307,7 +316,7 @@ class AnalysisModel(HasStrictTraits):
         data = {"header": self.header}
         for index, row in enumerate(self.evaluation_steps, start=1):
             metadata = self.step_metadata[index-1]
-            data[index] = (row, metadata)
+            data[index] = {'data': row, 'metadata': metadata}
 
         return data
 
