@@ -7,4 +7,4 @@ from force_bdss.api import MCORuntimeEvent, UIEventMixin
 class ProbeUIRuntimeEvent(MCORuntimeEvent, UIEventMixin):
 
     def serialize(self):
-        return []
+        return {'some_metadata': 0}

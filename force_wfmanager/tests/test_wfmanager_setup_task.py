@@ -291,7 +291,15 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             1, len(self.setup_task.analysis_model.evaluation_steps)
         )
         self.assertEqual(
+            (1.0, 2.0),
+             self.setup_task.analysis_model.evaluation_steps[0]
+        )
+        self.assertEqual(
             1, len(self.setup_task.analysis_model.step_metadata)
+        )
+        self.assertDictEqual(
+            {'some_metadata': 0},
+            self.setup_task.analysis_model.step_metadata[0]
         )
 
     def test_initialize_finalize(self):

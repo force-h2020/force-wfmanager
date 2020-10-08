@@ -424,12 +424,14 @@ class WfManagerSetupTask(Task):
             self.analysis_model.clear()
             self.computation_running = True
 
-        event_data = event.serialize()
-
-        if isinstance(event, MCORuntimeEvent):
-            self.analysis_model.notify(event_data, metadata=True)
-        elif isinstance(event, (MCOStartEvent, MCOProgressEvent)):
-            self.analysis_model.notify(event_data)
+        if isinstance(
+            event, (MCOStartEvent, MCOProgressEvent, MCORuntimeEvent)
+        ):
+            event_data = event.serialize()
+            self.analysis_model.notify(
+                event_data,
+                metadata=isinstance(event, MCORuntimeEvent)
+            )
 
     # Error Display
     def _show_error_dialog(self, message):
