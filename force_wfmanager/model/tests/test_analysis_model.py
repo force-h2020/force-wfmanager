@@ -20,7 +20,7 @@ class TestAnalysisModel(TestCase):
         self.state_dict = {
             "header": self.header,
             "1": {'data': self.data[0],
-                  'metadata':self.metadata[0]},
+                  'metadata': self.metadata[0]},
             "2": {'data': self.data[1],
                   'metadata': self.metadata[1]}
         }
