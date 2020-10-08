@@ -373,8 +373,8 @@ class TestAnalysisModel(TestCase):
             self.assertDictEqual(
                 {
                     "header": self.header,
-                    "1": {"data": list(self.data[0]),
-                          "metadata": {}}
+                    1: {"data": self.data[0],
+                        "metadata": {}}
                 }, model.__getstate__())
 
     def test_write_csv(self):

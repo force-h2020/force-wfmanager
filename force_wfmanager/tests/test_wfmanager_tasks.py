@@ -266,7 +266,8 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
             mock_json.return_value = {
                 "analysis_model": {
                     "header": ["x", "y"],
-                    "1": [[1, 2], {'a': 7}]
+                    "1": {'data': [1, 2],
+                          'metadata': {'a': 7}}
                 },
                 "version": "1",
                 "workflow": {},
