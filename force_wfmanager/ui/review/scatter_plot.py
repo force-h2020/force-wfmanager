@@ -2,7 +2,7 @@
 #  All rights reserved.
 """ This submodule implements the following :class:`BaseDataView` subclasses:
 
-* :class:`Scatter` extends :class:`BasePlot` to allow for an
+* :class:`ScatterPlot` extends :class:`BasePlot` to allow for an
   optional colourmap to be applied to a third variable.
 
 """

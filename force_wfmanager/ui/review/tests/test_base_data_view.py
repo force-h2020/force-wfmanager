@@ -40,6 +40,8 @@ class TestBaseDataView(BasePlotTestCase):
 
     def test_initialize(self):
         self.assertFalse(self.plot.is_active_view)
+        self.assertTrue(self.plot.plot_updater.active)
+        self.assertTrue(self.plot.update_required)
 
     def test_displayable_mask(self):
         self.assertTrue(self.plot.displayable_data_mask(1))
@@ -87,6 +89,17 @@ class TestBaseDataView(BasePlotTestCase):
                 self.analysis_model.notify((1.010, 101325))
 
             mock_update_plot.assert_called()
+            mock_update_plot.reset_mock()
+
+            self.plot.is_active_view = True
+
+            mock_update_plot.assert_called()
+            self.assertFalse(self.plot.update_required)
+            mock_update_plot.reset_mock()
+
+            self.plot.is_active_view = False
+            mock_update_plot.assert_not_called()
+            self.assertFalse(self.plot.plot_updater.active)
 
     def test_check_scheduled_updates(self):
         with mock.patch(

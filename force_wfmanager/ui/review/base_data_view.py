@@ -77,10 +77,9 @@ class BaseDataView(HasStrictTraits):
                 self.plot_updater.start()
             self.update_required = True
             self._check_scheduled_updates()
-        else:
-            if self.plot_updater.active:
-                self.plot_updater.stop()
-                log.warning("Stopped plot updater")
+        elif self.plot_updater.active:
+            self.plot_updater.stop()
+            log.warning("Stopped plot updater")
 
     def _update_displayable_value_names(self):
         """ This method is a part of the `_check_scheduled_updates`
