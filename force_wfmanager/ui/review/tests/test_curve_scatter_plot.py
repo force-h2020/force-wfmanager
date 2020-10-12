@@ -1,3 +1,6 @@
+#  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
+#  All rights reserved.
+
 from unittest import TestCase, mock
 
 from chaco.api import ArrayPlotData
@@ -52,7 +55,8 @@ class TestCurveScatterPlot(TestCase):
 
     def test_initialize_chaco_plots(self):
         self.assertIsNone(self.plot._curve_axis)
-        self.plot.plot_scatter()
+        # Trigger the lazy default loader
+        self.plot._plot = self.plot._plot
         self.assertIsNotNone(self.plot._curve_axis)
 
     def test_plot_data_default(self):
