@@ -50,5 +50,5 @@ class ProbeWfManager(WfManager):
 class ProbePlot(BasePlot):
 
     def add_plots(self, plot):
-        dummy_plot = plot.plot(('x', 'y', 'color_by'))[0]
+        dummy_plot = plot.plot(('x', 'y'))[0]
         self._axis = dummy_plot

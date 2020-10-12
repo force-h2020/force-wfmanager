@@ -13,22 +13,17 @@ import logging
 
 from chaco.api import Plot as ChacoPlot
 from chaco.api import ArrayPlotData, BaseXYPlot
-from chaco.default_colormaps import color_map_name_dict
 from chaco.tools.api import BetterSelectingZoom as ZoomTool
 from enable.api import Component, ComponentEditor
 from pyface.timer.api import do_later
 from traits.api import (
     Button,
     Bool,
-    Dict,
-    Enum,
-    List,
     Instance,
     on_trait_change,
     Str,
     Property
 )
-
 from traitsui.api import EnumEditor, HGroup, VGroup, Item, UItem, View
 
 from .base_data_view import BaseDataView
@@ -63,23 +58,6 @@ class BasePlot(BaseDataView):
     #: selected_step_indices>`
     _axis = Instance(BaseXYPlot)
 
-    # ------------------
-    # Regular Attributes
-    # ------------------
-
-    #: Whether or not to include individually colored data points
-    #: in displayed plot
-    use_color_plot = Bool(False)
-
-    #: Optional third parameter used to set colour of points
-    color_by = Enum(values="displayable_value_names")
-
-    #: Colour options button:
-    color_options = Button("Color...")
-
-    #: Available color maps provided by plotting backend
-    _available_color_maps = Dict(color_map_name_dict)
-
     # --------------------
     # Dependent Attributes
     # --------------------
@@ -92,22 +70,12 @@ class BasePlot(BaseDataView):
     #: Listens to: :attr:`x`, :attr:`y`
     _plot_data = Instance(ArrayPlotData)
 
-    #: Selectable color maps
-    colormap = Enum(
-        values="_available_color_map_names",
-        depends_on="_available_color_map_names",
-    )
-
     # ----------
     # Properties
     # ----------
 
     #: Boolean indicating whether the plot view can be reset or not.
     reset_enabled = Property(Bool(), depends_on="_plot_data")
-
-    #: Available color maps names provided by plotting backend
-    _available_color_map_names = Property(
-        List(Str), depends_on='_available_color_maps')
 
     # ----
     # View
@@ -122,19 +90,8 @@ class BasePlot(BaseDataView):
         return HGroup(
             Item("x", editor=EnumEditor(name="displayable_value_names")),
             Item("y", editor=EnumEditor(name="displayable_value_names")),
-            UItem("color_options"),
             Item("toggle_automatic_update", label="Axis auto update"),
         )
-
-    def _color_options_fired(self):
-        """ Event handler for :attr:`color_options` button. """
-        view = View(
-            Item("use_color_plot"),
-            Item("color_by", enabled_when="use_color_plot"),
-            Item("colormap", enabled_when="use_color_plot"),
-            kind="livemodal",
-        )
-        self.edit_traits(view=view)
 
     def default_traits_view(self):
         view = View(
@@ -165,7 +122,6 @@ class BasePlot(BaseDataView):
         plot_data = ArrayPlotData()
         plot_data.set_data("x", [])
         plot_data.set_data("y", [])
-        plot_data.set_data("color_by", [])
         self.add_plot_data(plot_data)
         return plot_data
 
@@ -179,13 +135,6 @@ class BasePlot(BaseDataView):
         if len(x_data) > 0:
             return True
         return False
-
-    def _get__available_color_map_names(self):
-        return ["viridis"] + [
-            cmap_name
-            for cmap_name in self._available_color_maps.keys()
-            if cmap_name != "viridis"
-        ]
 
     # ---------
     # Listeners
@@ -234,40 +183,6 @@ class BasePlot(BaseDataView):
         displayed data and resets the plot y axis."""
         self._update_plot_y_data()
         self._recenter_y_axis()
-
-    @on_trait_change("color_by")
-    def _update_color_plot(self):
-        if (
-            self.x == ""
-            or self.y == ""
-            or self.color_by is None
-            or self.analysis_model.is_empty
-        ):
-            self._plot_data.set_data("color_by", [])
-            return
-
-        self._plot_data.set_data(
-            "color_by", self.analysis_model.column(self.color_by)
-        )
-
-    @on_trait_change("colormap")
-    def _update_cmap(self):
-        cmap = self._available_color_maps[self.colormap]
-        if hasattr(self._axis, 'color_mapper'):
-            _range = self._axis.color_mapper.range
-            self._axis.color_mapper = cmap(_range)
-
-    @on_trait_change("use_color_plot")
-    def change_plot_style(self):
-        ranges = self._get_plot_range()
-        x_title = self._plot.x_axis.title
-        y_title = self._plot.y_axis.title
-
-        self._plot = self.__plot_default()
-
-        self._set_plot_range(*ranges)
-        self._plot.x_axis.title = x_title
-        self._plot.y_axis.title = y_title
 
     @on_trait_change("analysis_model:selected_step_indices")
     def update_selected_points(self):
@@ -363,13 +278,9 @@ class BasePlot(BaseDataView):
 
         self._update_plot_x_data()
         self._update_plot_y_data()
-        self._update_color_plot()
 
         if self.toggle_automatic_update:
             self.recenter_plot()
-
-        # Update any user added plot
-        self.update_added_plots()
 
     def _reset_plot_fired(self):
         """ Event handler for :attr:`reset_plot`"""
@@ -446,10 +357,6 @@ class BasePlot(BaseDataView):
         Can be overridden by inheriting classes to deal with more complex
         plot data.
         """
-        return
-
-    def update_added_plots(self):
-        return
 
     def update_data_view(self):
         """ Update the plot if an update was required. This function is a

@@ -6,7 +6,7 @@ import warnings
 
 from chaco.plot import Plot as ChacoPlot
 from force_wfmanager.tests.probe_classes import ProbePlot
-from traits.api import push_exception_handler, TraitError
+from traits.api import push_exception_handler
 
 from .test_base_data_view import BasePlotTestCase
 
@@ -22,11 +22,10 @@ class TestBasePlot(BasePlotTestCase):
         self.assertEqual(len(self.analysis_model.evaluation_steps), 0)
         self.assertEqual("", self.plot.x)
         self.assertEqual("", self.plot.y)
-        self.assertEqual("viridis", self.plot._available_color_map_names[0])
 
         self.plot._update_plot()
-        self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [])
-        self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [])
+        self.assertEqual([], self.plot._plot_data.get_data("x").tolist())
+        self.assertEqual([], self.plot._plot_data.get_data("y").tolist())
         self.assertTrue(self.plot.plot_updater.active)
         self.assertTrue(self.plot.toggle_automatic_update)
 
@@ -273,28 +272,3 @@ class TestBasePlot(BasePlotTestCase):
             (1.0 - 0.1 * (3.0 - 1.0), 3.0 + 0.1 * (3.0 - 1.0)),
             self.plot.calculate_axis_bounds(data),
         )
-
-    def test_cmapped_plot(self):
-        self.analysis_model.header = ("density", "pressure", "color")
-        self.analysis_model.notify((1.010, 101325, 1))
-        self.check_update_is_requested_and_apply()
-        self.plot.use_color_plot = True
-        self.plot.color_by = "color"
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            self.assertEqual(self.plot.color_by, "color")
-            self.assertIsInstance(self.plot._plot, ChacoPlot)
-
-        with self.assertRaises(TraitError):
-            self.plot.colormap = "not_viridis"
-
-    def test_ranges_are_kept(self):
-        self.analysis_model.header = ("density", "pressure", "color")
-        self.analysis_model.notify((1.010, 101325, 1))
-        self.check_update_is_requested_and_apply()
-        self.plot._set_plot_range(0.5, 2, 100000, 103000)
-        self.plot.use_color_plot = True
-        self.plot.color_by = "color"
-        self.assertEqual(self.plot._get_plot_range(), (0.5, 2, 100000, 103000))
-        self.assertEqual(self.plot._plot.x_axis.title, "density")
-        self.assertEqual(self.plot._plot.y_axis.title, "pressure")
