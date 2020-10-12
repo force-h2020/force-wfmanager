@@ -11,14 +11,14 @@ from traits.api import Instance, on_trait_change, Str, Bool
 from traitsui.api import (
     HGroup, Item, UItem, VGroup, UReadonly, EnumEditor)
 
-from force_wfmanager.ui.review.plot import Plot
+from force_wfmanager.ui.review.scatter_plot import ScatterPlot
 
 log = logging.getLogger(__name__)
 
 _ERROR = 'Unable to interpolate curve through data points'
 
 
-class CurveScatterPlot(Plot):
+class CurveScatterPlot(ScatterPlot):
 
     #: Short description for the UI selection
     description = "Scatter plot with curve overlay"
@@ -46,13 +46,6 @@ class CurveScatterPlot(Plot):
                 UReadonly("_curve_error", visible_when="not _curve_status")
             )
         )
-
-    def _get_plot_data_default(self):
-        """Extends plot data objects to add a dimension for the curve"""
-        plot_data = super(CurveScatterPlot, self)._get_plot_data_default()
-        plot_data.set_data("x_curve", [])
-        plot_data.set_data("y_curve", [])
-        return plot_data
 
     @on_trait_change("toggle_display_curve")
     def _update_curve_plot(self):
@@ -98,9 +91,8 @@ class CurveScatterPlot(Plot):
         )[0]
         self._curve_axis = curve_plot
 
-    def _update_plot(self):
+    def update_added_plots(self):
         """Overloads the parent class method to update the curve plot"""
-        super(CurveScatterPlot, self)._update_plot()
         self._update_curve_plot()
 
     @on_trait_change("x")
@@ -115,8 +107,12 @@ class CurveScatterPlot(Plot):
         super(CurveScatterPlot, self)._update_plot_y_axis()
         self._update_curve_plot()
 
-    def plot_scatter(self):
-        """Overload the parent class method to add the curve plot"""
-        plot = super(CurveScatterPlot, self).plot_scatter()
+    def add_plots(self, plot):
+        self.plot_scatter(plot)
         self._add_curve(plot)
         return plot
+
+    def add_plot_data(self, plot_data):
+        """Extends plot data objects to add curve data objects"""
+        plot_data.set_data("x_curve", [])
+        plot_data.set_data("y_curve", [])
