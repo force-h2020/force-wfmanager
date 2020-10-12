@@ -1,6 +1,6 @@
 """ This submodule implements the following :class:`BaseDataView` subclasses:
 
-* :class:`BasePlot` provides a simple 2D color plot over the columns from
+* :class:`BasePlot` provides a simple 2D plot over the columns from
   the analysis model, with x and y selectable from a dropdown. It updates when
   new data is incoming, with a 1 second timer to avoid continuous updates.
   It is not selectable and is meant as a template for subclassing.
