@@ -1,60 +1,34 @@
 #  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
 #  All rights reserved.
 
-import mock
-import unittest
+from unittest import mock
 import warnings
 
-from chaco.api import Plot as ChacoPlot
-from chaco.api import ColormappedScatterPlot, ScatterPlot
-from chaco.abstract_colormap import AbstractColormap
-from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
+from chaco.plot import Plot as ChacoPlot
+from force_wfmanager.tests.probe_classes import ProbePlot
 from traits.api import push_exception_handler, TraitError
-from traits.testing.api import UnittestTools
 
-from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.review.plot import BasePlot, Plot
+from .test_base_data_view import BasePlotTestCase
 
 push_exception_handler(reraise_exceptions=True)
 
 
-class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
-    def setUp(self):
-        super().setUp()
-        self.analysis_model = AnalysisModel()
-        self.plot = BasePlot(analysis_model=self.analysis_model)
+class TestBasePlot(BasePlotTestCase):
 
-    def check_update_is_requested_and_apply(self):
-        """ Check that a plot update is requested (scheduled for the next
-        cycle of the timer) and that the timer is active, which means the
-        updates are going to happen.
-        Once that is assured, do the updates immediately instead of waiting
-        one cycle (that would slow down the test)
-        """
-        # check
-        self.assertTrue(self.plot.update_required)
-        self.assertTrue(self.plot.plot_updater.active)
-        # update
-        self.plot._check_scheduled_updates()
+    plot_cls = ProbePlot
 
     def test_init(self):
         self.assertEqual(len(self.analysis_model.header), 0)
         self.assertEqual(len(self.analysis_model.evaluation_steps), 0)
         self.assertEqual("", self.plot.x)
         self.assertEqual("", self.plot.y)
+        self.assertEqual("viridis", self.plot._available_color_map_names[0])
+
         self.plot._update_plot()
         self.assertEqual(self.plot._plot_data.get_data("x").tolist(), [])
         self.assertEqual(self.plot._plot_data.get_data("y").tolist(), [])
         self.assertTrue(self.plot.plot_updater.active)
         self.assertTrue(self.plot.toggle_automatic_update)
-
-    def test_plot(self):
-        self.analysis_model.header = ("density", "pressure")
-        self.analysis_model.notify((1.010, 101325))
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            self.assertIsInstance(self.plot._plot, ChacoPlot)
-            self.assertIsInstance(self.plot._axis, ScatterPlot)
 
     def test_plot_mixed_data(self):
         self.analysis_model.header = ("1", "2", "str")
@@ -84,27 +58,9 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         self.assertEqual("", self.plot.x)
         self.assertEqual("", self.plot.y)
 
-    def test_plot_updater(self):
-        self.assertTrue(self.plot.plot_updater.active)
-
+    def test_update_data_view(self):
         with mock.patch(
-            "force_wfmanager.ui.review.plot."
-            + self.plot.__class__.__name__
-            + "._update_plot"
-        ) as mock_update_plot:
-            with self.event_loop_until_condition(
-                lambda: not self.plot.update_required
-            ):
-                self.analysis_model.header = ("density", "pressure")
-                self.analysis_model.notify((1.010, 101325))
-
-            mock_update_plot.assert_called()
-
-    def test_check_scheduled_updates(self):
-        with mock.patch(
-            "force_wfmanager.ui.review.plot."
-            + self.plot.__class__.__name__
-            + "._update_plot"
+            self.mock_path + "._update_plot"
         ) as mock_update_plot:
             self.plot.update_required = False
             self.plot._check_scheduled_updates()
@@ -213,13 +169,9 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
         )
 
         with mock.patch(
-            "force_wfmanager.ui.review.plot."
-            + self.plot.__class__.__name__
-            + "._update_plot_y_data"
+            self.mock_path + "._update_plot_y_data"
         ) as mock_update_plot_y_data, mock.patch(
-            "force_wfmanager.ui.review.plot."
-            + self.plot.__class__.__name__
-            + ".recenter_y_axis"
+            self.mock_path + "._recenter_y_axis"
         ) as mock_recenter_y_axis:
             self.plot.y = "c"
             mock_update_plot_y_data.assert_called()
@@ -227,7 +179,7 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
 
         self.plot.toggle_automatic_update = True
         with mock.patch(
-            "force_wfmanager.ui.review.plot.BasePlot._update_plot"
+            self.mock_path + "._update_plot"
         ) as mock_update:
             self.plot._update_plot()
             mock_update.assert_called()
@@ -262,7 +214,7 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             warnings.simplefilter("ignore")
             self.assertIsInstance(self.plot._plot, ChacoPlot)
 
-        plot_metadata = self.plot._plot_index_datasource.metadata
+        plot_metadata = self.plot._axis.index.metadata
 
         # From plot to the model
         plot_metadata["selections"] = [1]
@@ -322,51 +274,26 @@ class TestBasePlot(GuiTestAssistant, unittest.TestCase, UnittestTools):
             self.plot.calculate_axis_bounds(data),
         )
 
-
-class TestPlot(TestBasePlot):
-    def setUp(self):
-        super().setUp()
-        self.plot = Plot(analysis_model=self.analysis_model)
-
     def test_cmapped_plot(self):
         self.analysis_model.header = ("density", "pressure", "color")
         self.analysis_model.notify((1.010, 101325, 1))
         self.check_update_is_requested_and_apply()
-        self.plot.color_plot = True
+        self.plot.use_color_plot = True
         self.plot.color_by = "color"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.assertEqual(self.plot.color_by, "color")
             self.assertIsInstance(self.plot._plot, ChacoPlot)
-            self.assertIsInstance(self.plot._axis, ColormappedScatterPlot)
-            self.assertIsInstance(
-                self.plot._axis.color_mapper, AbstractColormap
-            )
-            old_cmap = self.plot._axis.color_mapper
-            self.plot.colormap = "seismic"
-            self.assertIsInstance(
-                self.plot._axis.color_mapper, AbstractColormap
-            )
-            self.assertNotEqual(old_cmap, self.plot._axis.color_mapper)
-            self.assertEqual(
-                old_cmap.range, self.plot._axis.color_mapper.range
-            )
 
         with self.assertRaises(TraitError):
             self.plot.colormap = "not_viridis"
-
-        self.plot.colormap = "viridis"
-        self.plot.colormap = "CoolWarm"
-
-        self.plot.color_plot = False
-        self.assertIsInstance(self.plot._axis, ScatterPlot)
 
     def test_ranges_are_kept(self):
         self.analysis_model.header = ("density", "pressure", "color")
         self.analysis_model.notify((1.010, 101325, 1))
         self.check_update_is_requested_and_apply()
         self.plot._set_plot_range(0.5, 2, 100000, 103000)
-        self.plot.color_plot = True
+        self.plot.use_color_plot = True
         self.plot.color_by = "color"
         self.assertEqual(self.plot._get_plot_range(), (0.5, 2, 100000, 103000))
         self.assertEqual(self.plot._plot.x_axis.title, "density")
