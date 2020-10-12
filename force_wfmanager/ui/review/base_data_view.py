@@ -1,6 +1,9 @@
 #  (C) Copyright 2010-2020 Enthought, Inc., Austin, TX
 #  All rights reserved.
 
+import logging
+
+from pyface.timer.api import CallbackTimer
 from traits.api import (
     Bool,
     Instance,
@@ -8,12 +11,14 @@ from traits.api import (
     List,
     Callable,
     provides,
+    on_trait_change
 )
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 
-
 from .i_data_view import IDataView
+
+log = logging.getLogger(__name__)
 
 
 @provides(IDataView)
@@ -36,6 +41,14 @@ class BaseDataView(HasStrictTraits):
     #: can be displayed by the BasePlot instance.
     displayable_data_mask = Callable()
 
+    #: Timer to check on required updates
+    plot_updater = Instance(CallbackTimer)
+
+    #: Schedule a refresh of plot data and axes. Set to True
+    #: by default: the plot needs to be refreshed if the
+    #: MCO was started from the 'Setup' pane.
+    update_required = Bool(True)
+
     def _displayable_data_mask_default(self):
         """ Default mask for data coming from the analysis model.
         Verifies that the data entry is numerical value."""
@@ -44,6 +57,30 @@ class BaseDataView(HasStrictTraits):
             return isinstance(data_entry, (int, float))
 
         return is_numerical
+
+    def _plot_updater_default(self):
+        return CallbackTimer.timer(
+            interval=1, callback=self._check_scheduled_updates
+        )
+
+    @on_trait_change("analysis_model:evaluation_steps[]")
+    def request_update(self):
+        # Listens to the change in data points in the analysis model.
+        # Enables the plot update at the next cycle.
+        self.update_required = True
+
+    @on_trait_change("is_active_view")
+    def toggle_updater_with_visibility(self):
+        """Start/stop the update if this data view is not being used. """
+        if self.is_active_view:
+            if not self.plot_updater.active:
+                self.plot_updater.start()
+            self.update_required = True
+            self._check_scheduled_updates()
+        else:
+            if self.plot_updater.active:
+                self.plot_updater.stop()
+                log.warning("Stopped plot updater")
 
     def _update_displayable_value_names(self):
         """ This method is a part of the `_check_scheduled_updates`
@@ -89,3 +126,17 @@ class BaseDataView(HasStrictTraits):
         # displayable columns, we update the `self.numerical_value_names`.
         if len(self.displayable_value_names) != len(_displayable_value_names):
             self.displayable_value_names[:] = _displayable_value_names
+
+    def _check_scheduled_updates(self):
+        """ Update the data view if an update was required. This function
+        is a callback for the _plot_updater timer.
+        """
+        if self.update_required:
+            self._update_displayable_value_names()
+            self.update_data_view()
+            self.update_required = False
+
+    def update_data_view(self):
+        """Perform customized updates for data view. Should be made into
+        an abstract method in later versions
+        """

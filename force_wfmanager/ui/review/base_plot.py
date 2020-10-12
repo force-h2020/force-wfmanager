@@ -16,7 +16,7 @@ from chaco.api import ArrayPlotData, BaseXYPlot
 from chaco.default_colormaps import color_map_name_dict
 from chaco.tools.api import BetterSelectingZoom as ZoomTool
 from enable.api import Component, ComponentEditor
-from pyface.timer.api import do_later, CallbackTimer
+from pyface.timer.api import do_later
 from traits.api import (
     Button,
     Bool,
