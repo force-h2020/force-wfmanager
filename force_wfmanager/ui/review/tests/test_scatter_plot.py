@@ -6,6 +6,7 @@ import warnings
 from chaco.api import Plot as ChacoPlot
 from chaco.api import ScatterPlot as ChacoScatterPlot
 from chaco.api import ColormappedScatterPlot
+from chaco.tools.api import BetterSelectingZoom as ZoomTool
 from chaco.abstract_colormap import AbstractColormap
 from traits.api import push_exception_handler, TraitError
 
@@ -79,3 +80,11 @@ class TestScatterPlot(BasePlotTestCase):
         self.assertEqual(self.plot._get_plot_range(), (0.5, 2, 100000, 103000))
         self.assertEqual(self.plot._plot.x_axis.title, "density")
         self.assertEqual(self.plot._plot.y_axis.title, "pressure")
+
+    def test_reset_zoomtool(self):
+        old_tool = ZoomTool(self.plot._plot)
+        self.plot._plot.overlays.append(old_tool)
+
+        self.plot._reset_zoomtool()
+        self.assertEqual(3, len(self.plot._plot.overlays))
+        self.assertIsNot(old_tool, self.plot._plot.overlays[2])

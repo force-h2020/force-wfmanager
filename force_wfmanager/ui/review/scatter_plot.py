@@ -10,8 +10,8 @@
 from chaco.default_colormaps import color_map_name_dict
 from chaco.api import Plot as ChacoPlot
 from chaco.api import ScatterInspectorOverlay
+from chaco.tools.api import ScatterInspector, PanTool
 from chaco.tools.api import BetterSelectingZoom as ZoomTool
-from chaco.tools.api import PanTool, ScatterInspector
 from enable.api import KeySpec
 from traits.api import (
     Button,
@@ -141,11 +141,6 @@ class ScatterPlot(BasePlot):
         self._plot.x_axis.title = x_title
         self._plot.y_axis.title = y_title
 
-    def _add_plot_tools(self, plot):
-        """Add pan and zoom tools"""
-        plot.tools.append(PanTool(plot))
-        plot.overlays.append(ZoomTool(plot))
-
     def _add_scatter_inspector_overlay(self, scatter_plot):
 
         inspector = ScatterInspector(
@@ -198,7 +193,8 @@ class ScatterPlot(BasePlot):
         plot.trait_set(title=self.title, padding=75, line_width=1)
 
         # Add pan and zoom tools
-        self._add_plot_tools(scatter_plot)
+        scatter_plot.tools.append(PanTool(plot))
+        scatter_plot.overlays.append(ZoomTool(plot))
 
         # Add the selection tool
         self._add_scatter_inspector_overlay(scatter_plot)
@@ -223,3 +219,4 @@ class ScatterPlot(BasePlot):
 
     def update_data_view(self):
         self._update_color_plot()
+        self._reset_zoomtool()
