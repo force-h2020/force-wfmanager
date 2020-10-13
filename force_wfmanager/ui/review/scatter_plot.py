@@ -212,11 +212,19 @@ class ScatterPlot(BasePlot):
         return plot
 
     def add_plots(self, plot):
+        """Contributes a Chaco scatter plot to display the MCO data"""
         self.plot_scatter(plot)
 
     def add_plot_data(self, plot_data):
+        """Includes an additional data dimension to allow each scatter point
+        to be individually colored
+        """
         plot_data.set_data("color_by", [])
 
     def update_data_view(self):
+        """Updates the color plot and zoom tool elements alongside parent class
+        updates.
+        """
+        super(ScatterPlot, self).update_data_view()
         self._update_color_plot()
         self._reset_zoomtool()
