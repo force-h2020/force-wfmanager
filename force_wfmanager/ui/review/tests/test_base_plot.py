@@ -5,8 +5,9 @@ from unittest import mock
 import warnings
 
 from chaco.plot import Plot as ChacoPlot
-from force_wfmanager.tests.probe_classes import ProbePlot
 from traits.api import push_exception_handler
+
+from force_wfmanager.tests.probe_classes import ProbePlot
 
 from .test_base_data_view import BasePlotTestCase
 
@@ -22,6 +23,7 @@ class TestBasePlot(BasePlotTestCase):
         self.assertEqual(len(self.analysis_model.evaluation_steps), 0)
         self.assertEqual("", self.plot.x)
         self.assertEqual("", self.plot.y)
+        self.assertEqual(self.plot._plot, self.plot._component)
 
         self.plot._update_plot()
         self.assertEqual([], self.plot._plot_data.get_data("x").tolist())

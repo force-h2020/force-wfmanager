@@ -22,6 +22,7 @@ from traits.api import (
     Instance,
     on_trait_change,
     Str,
+    Dict,
     Property
 )
 from traitsui.api import EnumEditor, HGroup, VGroup, Item, UItem, View
@@ -32,8 +33,8 @@ log = logging.getLogger(__name__)
 
 
 class BasePlot(BaseDataView):
-    """Simple 2D plot with optional color view. Expected to be expanded
-    upon when handling more complex data sets (see module-level doc).
+    """Base class for 2D Chaco plot with optional color view. Expected to be
+    expanded upon when handling more complex data sets (see module-level doc).
     """
 
     # -------------------
@@ -58,13 +59,20 @@ class BasePlot(BaseDataView):
     #: selected_step_indices>`
     _axis = Instance(BaseXYPlot)
 
+    #: Container for referencing additional axes that are not hooked
+    #: up to the data table
+    _sub_axes = Dict(Str, BaseXYPlot)
+
     # --------------------
     # Dependent Attributes
     # --------------------
 
-    #: The 2D plot
+    #: Reference to the Chaco component to be displayed in the TraitsUI view
+    _component = Instance(Component)
+
+    #: The Chaco Component object representing the plot to be displayed
     #: Listens to: :attr:`x`, :attr:`y`
-    _plot = Instance(Component)
+    _plot = Instance(ChacoPlot)
 
     #: The plot data. This is the model of the actual Chaco plot.
     #: Listens to: :attr:`x`, :attr:`y`
@@ -97,7 +105,7 @@ class BasePlot(BaseDataView):
         view = View(
             VGroup(
                 self.axis_hgroup,
-                UItem("_plot", editor=ComponentEditor()),
+                UItem("_component", editor=ComponentEditor()),
                 VGroup(UItem("reset_plot", enabled_when="reset_enabled")),
             )
         )
@@ -107,9 +115,16 @@ class BasePlot(BaseDataView):
     # Defaults and getters
     # --------------------
 
+    def __component_default(self):
+        """The _plot trait containing a 2D view of the MCO data is chosen
+        to be the TraitsUI view by default. This may be overridden in the
+        create_plot method for more complicated layouts.
+        """
+        return self._plot
+
     def __plot_default(self):
         plot = ChacoPlot(self._plot_data)
-        self.add_plots(plot)
+        self.customize_plot(plot)
         # recenter_plot() requires self._plot to be defined
         do_later(self.recenter_plot)
         return plot
@@ -117,12 +132,13 @@ class BasePlot(BaseDataView):
     def __plot_data_default(self):
         """ Default trait setter for _plot_data. Creates empty plot data
         in three columns: x, y and color_by. Any additional data to be
-        plotted can be introduced in the add_plot_data method
+        plotted can be introduced by extending the customize_plot_data
+        method
         """
         plot_data = ArrayPlotData()
-        plot_data.set_data("x", [])
-        plot_data.set_data("y", [])
-        self.add_plot_data(plot_data)
+        for data in ['x', 'y']:
+            plot_data.set_data(data, [])
+        self.customize_plot_data(plot_data)
         return plot_data
 
     # ----------
@@ -287,6 +303,7 @@ class BasePlot(BaseDataView):
         self.recenter_plot()
 
     def _set_plot_x_range(self, lower_bound, upper_bound):
+        """Will reset the plot range"""
         self._plot.range2d.x_range.low_setting = lower_bound
         self._plot.range2d.x_range.high_setting = upper_bound
 
@@ -344,18 +361,37 @@ class BasePlot(BaseDataView):
     #  Public Methods
     # ----------------
 
-    def add_plots(self, plot):
+    def customize_plot(self, plot):
         """Create all overlayed plots required for the data view.
-        Assigning a BaseXYPlot instance to the self._axis attribute
-        allows for synchronization between the selected points in the
-        data table and those on the plot.
-        """
-        raise NotImplementedError()
 
-    def add_plot_data(self, plot_data):
+        There are three additional attributes that may be assigned during this
+        method:
+
+        _component: A reference to the Chaco Component object that will be
+            displayed in the TraitsUI view. This can be the same as the _plot
+            trait if a single plot is being viewed
+        _axis: A reference to the Chaco BaseXYPlot object that holds the data
+            points to be synchronized with selection of rows in the MCO data
+            table
+        _sub_axes: Dictionary containing additional references to overlayed
+            plot axes that are not hooked up to the MCO data table
+
+        Parameters
+        ----------
+        plot: ChacoPlot
+            A reference to the Chaco Plot object that displays the data
+            returned by the MCO in a 2D X and Y plot.
+        """
+
+    def customize_plot_data(self, plot_data):
         """Auxiliary method used to include more data sets in the plot.
         Can be overridden by inheriting classes to deal with more complex
         plot data.
+
+        Parameters
+        ----------
+        plot_data: ArrayPlotData
+            List of strings that refer to variables in the plot data
         """
 
     def update_data_view(self):

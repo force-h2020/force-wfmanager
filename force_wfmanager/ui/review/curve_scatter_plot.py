@@ -6,8 +6,7 @@ import logging
 import numpy as np
 from scipy import interpolate
 
-from chaco.api import BaseXYPlot
-from traits.api import Instance, on_trait_change, Str, Bool
+from traits.api import on_trait_change, Str, Bool
 from traitsui.api import (
     HGroup, Item, UItem, VGroup, UReadonly, EnumEditor)
 
@@ -25,8 +24,6 @@ class CurveScatterPlot(ScatterPlot):
 
     #: Toggle to determine whether to overlay curve in the display
     toggle_display_curve = Bool()
-
-    _curve_axis = Instance(BaseXYPlot)
 
     #: Whether the curve interpolation is successful or not with the
     #: displayed data
@@ -84,15 +81,15 @@ class CurveScatterPlot(ScatterPlot):
 
     def _add_curve(self, plot):
         """Adds a curve line plot to the ChacoPlot"""
-        curve_plot = plot.plot(
+        self._sub_axes['curve_plot'] = plot.plot(
             ("x_curve", "y_curve"),
             type="line",
             color="red"
         )[0]
-        self._curve_axis = curve_plot
 
-    def update_added_plots(self):
+    def update_data_view(self):
         """Overloads the parent class method to update the curve plot"""
+        super(CurveScatterPlot, self).update_data_view()
         self._update_curve_plot()
 
     @on_trait_change("x")
@@ -107,12 +104,11 @@ class CurveScatterPlot(ScatterPlot):
         super(CurveScatterPlot, self)._update_plot_y_axis()
         self._update_curve_plot()
 
-    def add_plots(self, plot):
-        self.plot_scatter(plot)
+    def customize_plot(self, plot):
+        super(CurveScatterPlot, self).customize_plot(plot)
         self._add_curve(plot)
-        return plot
 
-    def add_plot_data(self, plot_data):
-        """Extends plot data objects to add curve data objects"""
-        plot_data.set_data("x_curve", [])
-        plot_data.set_data("y_curve", [])
+    def customize_plot_data(self, plot_data):
+        super(CurveScatterPlot, self).customize_plot_data(plot_data)
+        for data in ['x_curve', 'y_curve']:
+            plot_data.set_data(data, [])

@@ -49,6 +49,6 @@ class ProbeWfManager(WfManager):
 
 class ProbePlot(BasePlot):
 
-    def add_plots(self, plot):
+    def customize_plot(self, plot):
         dummy_plot = plot.plot(('x', 'y'))[0]
         self._axis = dummy_plot

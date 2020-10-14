@@ -135,7 +135,7 @@ class ScatterPlot(BasePlot):
         y_title = self._plot.y_axis.title
 
         self._plot = ChacoPlot(self._plot_data)
-        self.add_plots(self._plot)
+        self.customize_plot(self._plot)
 
         self._set_plot_range(*ranges)
         self._plot.x_axis.title = x_title
@@ -211,11 +211,11 @@ class ScatterPlot(BasePlot):
 
         return plot
 
-    def add_plots(self, plot):
+    def customize_plot(self, plot):
         """Contributes a Chaco scatter plot to display the MCO data"""
         self.plot_scatter(plot)
 
-    def add_plot_data(self, plot_data):
+    def customize_plot_data(self, plot_data):
         """Includes an additional data dimension to allow each scatter point
         to be individually colored
         """
