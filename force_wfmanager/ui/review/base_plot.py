@@ -216,7 +216,7 @@ class BasePlot(BaseDataView):
                 "selections"
             ] = self.analysis_model.selected_step_indices
 
-    @on_trait_change("_axis.index.metadata_changed")
+    @on_trait_change("_axis:index.metadata_changed")
     def update_model(self):
         """ Updates the model according to the selected point in the plot """
         selected_indices = self._axis.index.metadata.get(
