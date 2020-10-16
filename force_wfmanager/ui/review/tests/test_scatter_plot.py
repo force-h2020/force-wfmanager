@@ -85,6 +85,6 @@ class TestScatterPlot(BasePlotTestCase):
         old_tool = ZoomTool(self.plot._plot)
         self.plot._plot.overlays.append(old_tool)
 
-        self.plot._reset_zoomtool()
+        self.plot._reset_zoomtool(self.plot._plot)
         self.assertEqual(3, len(self.plot._plot.overlays))
         self.assertIsNot(old_tool, self.plot._plot.overlays[2])

@@ -111,6 +111,14 @@ class BasePlot(BaseDataView):
         )
         return view
 
+    def __init__(self, **traits):
+        super(BasePlot, self).__init__(**traits)
+        # Customize plot data and main plot based on any method
+        # implementations provided by subclasses. Must be performed
+        # after _plot_data and _plot default traits are assigned
+        self.customize_plot_data(self._plot_data)
+        self.customize_plot(self._plot)
+
     # --------------------
     # Defaults and getters
     # --------------------
@@ -124,7 +132,6 @@ class BasePlot(BaseDataView):
 
     def __plot_default(self):
         plot = ChacoPlot(self._plot_data)
-        self.customize_plot(plot)
         # recenter_plot() requires self._plot to be defined
         do_later(self.recenter_plot)
         return plot
@@ -138,7 +145,6 @@ class BasePlot(BaseDataView):
         plot_data = ArrayPlotData()
         for data in ['x', 'y']:
             plot_data.set_data(data, [])
-        self.customize_plot_data(plot_data)
         return plot_data
 
     # ----------
@@ -234,8 +240,8 @@ class BasePlot(BaseDataView):
         else:
             data = self._plot_data.get_data("x")
             bounds = self.calculate_axis_bounds(data)
-        self._set_plot_x_range(*bounds)
-        self._reset_zoomtool()
+        self._set_plot_x_range(self._plot, *bounds)
+        self._reset_zoomtool(self._plot)
         return bounds
 
     def _recenter_y_axis(self):
@@ -247,9 +253,8 @@ class BasePlot(BaseDataView):
         else:
             data = self._plot_data.get_data("y")
             bounds = self.calculate_axis_bounds(data)
-
-        self._set_plot_y_range(*bounds)
-        self._reset_zoomtool()
+        self._set_plot_y_range(self._plot, *bounds)
+        self._reset_zoomtool(self._plot)
         return bounds
 
     def _update_plot_x_data(self):
@@ -302,14 +307,14 @@ class BasePlot(BaseDataView):
         """ Event handler for :attr:`reset_plot`"""
         self.recenter_plot()
 
-    def _set_plot_x_range(self, lower_bound, upper_bound):
+    def _set_plot_x_range(self, plot, lower_bound, upper_bound):
         """Will reset the plot range"""
-        self._plot.range2d.x_range.low_setting = lower_bound
-        self._plot.range2d.x_range.high_setting = upper_bound
+        plot.range2d.x_range.low_setting = lower_bound
+        plot.range2d.x_range.high_setting = upper_bound
 
-    def _set_plot_y_range(self, lower_bound, upper_bound):
-        self._plot.range2d.y_range.low_setting = lower_bound
-        self._plot.range2d.y_range.high_setting = upper_bound
+    def _set_plot_y_range(self, plot, lower_bound, upper_bound):
+        plot.range2d.y_range.low_setting = lower_bound
+        plot.range2d.y_range.high_setting = upper_bound
 
     def _set_plot_range(self, x_low, x_high, y_low, y_high):
         """ Helper method to set the size of the current _plot
@@ -325,8 +330,8 @@ class BasePlot(BaseDataView):
         y_high: Float
             Maximum value for y range of plot
         """
-        self._set_plot_x_range(x_low, x_high)
-        self._set_plot_y_range(y_low, y_high)
+        self._set_plot_x_range(self._plot, x_low, x_high)
+        self._set_plot_y_range(self._plot, y_low, y_high)
 
     def _get_plot_range(self):
         """ Helper method to get the size of the current _plot
@@ -349,13 +354,13 @@ class BasePlot(BaseDataView):
             self._plot.range2d.y_range.high_setting,
         )
 
-    def _reset_zoomtool(self):
+    def _reset_zoomtool(self, plot):
         # Replace the old ZoomTool as retaining the same one can lead
         # to issues where the zoom out/in limit is not reset on
         # resizing the plot.
-        for idx, overlay in enumerate(self._plot.overlays):
+        for idx, overlay in enumerate(plot.overlays):
             if isinstance(overlay, ZoomTool):
-                self._plot.overlays[idx] = ZoomTool(self._plot)
+                plot.overlays[idx] = ZoomTool(plot)
 
     # ----------------
     #  Public Methods
@@ -399,7 +404,7 @@ class BasePlot(BaseDataView):
         callback for the _plot_updater timer.
         """
         self._update_plot()
-        self._reset_zoomtool()
+        self._reset_zoomtool(self._plot)
 
     @staticmethod
     def calculate_axis_bounds(data):

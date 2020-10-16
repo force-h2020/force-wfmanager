@@ -54,8 +54,6 @@ class TestCurveScatterPlot(TestCase):
         self.assertIn('curve_plot', self.plot._sub_axes)
 
     def test_initialize_chaco_plots(self):
-        self.assertDictEqual({}, self.plot._sub_axes)
-        # Trigger the lazy default loader
         self.plot._plot = self.plot._plot
         self.assertEqual(1, len(self.plot._sub_axes))
         self.assertIn('curve_plot', self.plot._sub_axes)

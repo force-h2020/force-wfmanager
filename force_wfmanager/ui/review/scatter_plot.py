@@ -227,4 +227,4 @@ class ScatterPlot(BasePlot):
         """
         super(ScatterPlot, self).update_data_view()
         self._update_color_plot()
-        self._reset_zoomtool()
+        self._reset_zoomtool(self._plot)
