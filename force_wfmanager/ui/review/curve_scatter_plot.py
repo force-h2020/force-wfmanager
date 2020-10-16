@@ -6,27 +6,24 @@ import logging
 import numpy as np
 from scipy import interpolate
 
-from chaco.api import BaseXYPlot
-from traits.api import Instance, on_trait_change, Str, Bool
+from traits.api import on_trait_change, Str, Bool
 from traitsui.api import (
     HGroup, Item, UItem, VGroup, UReadonly, EnumEditor)
 
-from force_wfmanager.ui.review.plot import Plot
+from force_wfmanager.ui.review.scatter_plot import ScatterPlot
 
 log = logging.getLogger(__name__)
 
 _ERROR = 'Unable to interpolate curve through data points'
 
 
-class CurveScatterPlot(Plot):
+class CurveScatterPlot(ScatterPlot):
 
     #: Short description for the UI selection
     description = "Scatter plot with curve overlay"
 
     #: Toggle to determine whether to overlay curve in the display
     toggle_display_curve = Bool()
-
-    _curve_axis = Instance(BaseXYPlot)
 
     #: Whether the curve interpolation is successful or not with the
     #: displayed data
@@ -46,13 +43,6 @@ class CurveScatterPlot(Plot):
                 UReadonly("_curve_error", visible_when="not _curve_status")
             )
         )
-
-    def _get_plot_data_default(self):
-        """Extends plot data objects to add a dimension for the curve"""
-        plot_data = super(CurveScatterPlot, self)._get_plot_data_default()
-        plot_data.set_data("x_curve", [])
-        plot_data.set_data("y_curve", [])
-        return plot_data
 
     @on_trait_change("toggle_display_curve")
     def _update_curve_plot(self):
@@ -91,16 +81,15 @@ class CurveScatterPlot(Plot):
 
     def _add_curve(self, plot):
         """Adds a curve line plot to the ChacoPlot"""
-        curve_plot = plot.plot(
+        self._sub_axes['curve_plot'] = plot.plot(
             ("x_curve", "y_curve"),
             type="line",
             color="red"
         )[0]
-        self._curve_axis = curve_plot
 
-    def _update_plot(self):
+    def update_data_view(self):
         """Overloads the parent class method to update the curve plot"""
-        super(CurveScatterPlot, self)._update_plot()
+        super(CurveScatterPlot, self).update_data_view()
         self._update_curve_plot()
 
     @on_trait_change("x")
@@ -115,8 +104,11 @@ class CurveScatterPlot(Plot):
         super(CurveScatterPlot, self)._update_plot_y_axis()
         self._update_curve_plot()
 
-    def plot_scatter(self):
-        """Overload the parent class method to add the curve plot"""
-        plot = super(CurveScatterPlot, self).plot_scatter()
+    def customize_plot(self, plot):
+        super(CurveScatterPlot, self).customize_plot(plot)
         self._add_curve(plot)
-        return plot
+
+    def customize_plot_data(self, plot_data):
+        super(CurveScatterPlot, self).customize_plot_data(plot_data)
+        for data in ['x_curve', 'y_curve']:
+            plot_data.set_data(data, [])

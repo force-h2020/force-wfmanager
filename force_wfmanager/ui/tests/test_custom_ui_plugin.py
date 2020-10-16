@@ -15,9 +15,9 @@ from force_bdss.core_plugins.factory_registry_plugin import \
 from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
 from force_wfmanager.tests.dummy_classes.dummy_factory import DummyFactory
 from force_wfmanager.ui import (
-    ContributedUI, IContributedUI, BasePlot, IBasePlot)
-
+    ContributedUI, IContributedUI, IDataView)
 from force_wfmanager.wfmanager import WfManager
+from force_wfmanager.tests.probe_classes import ProbePlot
 
 
 class ExampleCustomUIPlugin(ServiceOfferExtensionPlugin):
@@ -37,11 +37,11 @@ class ExampleCustomUIPlugin(ServiceOfferExtensionPlugin):
         return [ContributedUI, ContributedUI]
 
     def get_base_plots(self):
-        return [BasePlot, BasePlot]
+        return [ProbePlot, ProbePlot]
 
     def get_service_offer_factories(self):
         return [
-            (IBasePlot, self.get_base_plots()),
+            (IDataView, self.get_base_plots()),
             (IContributedUI, self.get_contributed_uis())
         ]
 
@@ -57,4 +57,4 @@ class TestContributedUIPlugin(unittest.TestCase):
         wfmanager.plugin_manager.start()
 
         self.assertEqual(len(wfmanager.get_services(IContributedUI)), 2)
-        self.assertEqual(len(wfmanager.get_services(IBasePlot)), 2)
+        self.assertEqual(len(wfmanager.get_services(IDataView)), 2)

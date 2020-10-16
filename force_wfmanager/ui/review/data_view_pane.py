@@ -15,7 +15,7 @@ from traits.api import (
 from traitsui.api import EnumEditor, HGroup, UItem, VGroup, View
 
 from force_wfmanager.model.analysis_model import AnalysisModel
-from force_wfmanager.ui.review.plot import Plot
+from force_wfmanager.ui.review.scatter_plot import ScatterPlot
 from force_wfmanager.ui.review.curve_scatter_plot import CurveScatterPlot
 from force_wfmanager.ui.review.base_data_view import BaseDataView
 from force_wfmanager.ui.ui_utils import class_description
@@ -78,7 +78,7 @@ class DataViewPane(TraitsTaskPane):
     )
 
     def _data_view_default(self):
-        plot_data_view = Plot(analysis_model=self.analysis_model)
+        plot_data_view = ScatterPlot(analysis_model=self.analysis_model)
         plot_data_view.is_active_view = True
         return plot_data_view
 
@@ -89,7 +89,7 @@ class DataViewPane(TraitsTaskPane):
         """
         # "Plot" and "CurveScatterPlot" are added first as they serve as
         # the default selection.
-        available_data_views = [Plot, CurveScatterPlot]
+        available_data_views = [ScatterPlot, CurveScatterPlot]
         if self.task is not None and self.task.window is not None:
             # This is skipped if the current class is instantiated outside
             # of an application (e.g. specific tests)

@@ -7,6 +7,7 @@ from envisage.ui.tasks.tasks_plugin import TasksPlugin
 from force_bdss.tests.probe_classes.factory_registry import (
     ProbeFactoryRegistry
 )
+from force_wfmanager.ui import BasePlot
 
 from force_wfmanager.wfmanager import WfManager
 from force_wfmanager.plugins.wfmanager_plugin import WfManagerPlugin
@@ -44,3 +45,10 @@ class ProbeWfManager(WfManager):
 
         # 'Run' the application by creating windows without an event loop
         self.run = self._create_windows
+
+
+class ProbePlot(BasePlot):
+
+    def customize_plot(self, plot):
+        dummy_plot = plot.plot(('x', 'y'))[0]
+        self._axis = dummy_plot

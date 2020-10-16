@@ -7,7 +7,7 @@ from pyface.constant import OK
 from pyface.file_dialog import FileDialog
 from pyface.ui.qt4.util.gui_test_assistant import GuiTestAssistant
 
-from force_wfmanager.ui.review.plot import Plot
+from force_wfmanager.ui.review.scatter_plot import ScatterPlot
 
 from .dummy_classes.dummy_data_view import DummyDataView1
 from .dummy_classes.dummy_wfmanager import DummyWfManagerWithPlugins
@@ -108,16 +108,18 @@ class TestWFManagerTasks(GuiTestAssistant, TestCase):
 
         # Initial state
         self.assertEqual(
-            Plot, self.review_task.central_pane.data_view_selection
+            ScatterPlot, self.review_task.central_pane.data_view_selection
         )
-        self.assertIsInstance(self.review_task.central_pane.data_view, Plot)
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, ScatterPlot)
 
         # The "change" button needs to be fired to populate the descriptions
         with mock.patch(DATA_VIEW_PANE_EDIT_TRAITS_PATH) as mock_edit_traits:
             self.review_task.central_pane.change_view = True
             mock_edit_traits.assert_called_with(view="selection_changer")
         self.assertIn(
-            "Plot with colormap (force_wfmanager.ui.review.plot.Plot)",
+            "Scatter plot with colormap "
+            "(force_wfmanager.ui.review.scatter_plot.ScatterPlot)",
             self.review_task.central_pane.data_view_descriptions.values(),
         )
 
@@ -157,9 +159,11 @@ class TestWFManagerTasksWithPlugins(GuiTestAssistant, TestCase):
     def test_change_data_view(self):
         # check the initial state
         self.assertEqual(
-            self.review_task.central_pane.data_view_selection, Plot
+            ScatterPlot,
+            self.review_task.central_pane.data_view_selection
         )
-        self.assertIsInstance(self.review_task.central_pane.data_view, Plot)
+        self.assertIsInstance(
+            self.review_task.central_pane.data_view, ScatterPlot)
 
         # then change data view
         self.review_task.central_pane.data_view_selection = DummyDataView1
@@ -170,11 +174,11 @@ class TestWFManagerTasksWithPlugins(GuiTestAssistant, TestCase):
     def test_data_views_not_reinstantiated(self):
         # two data views are visited once
         initial = self.review_task.central_pane.data_view
-        self.assertIsInstance(initial, Plot)
+        self.assertIsInstance(initial, ScatterPlot)
         self.review_task.central_pane.data_view_selection = DummyDataView1
         other = self.review_task.central_pane.data_view
         # they should be the same instance when visited again
-        self.review_task.central_pane.data_view_selection = Plot
+        self.review_task.central_pane.data_view_selection = ScatterPlot
         self.assertTrue(self.review_task.central_pane.data_view is initial)
         self.review_task.central_pane.data_view_selection = DummyDataView1
         self.assertTrue(self.review_task.central_pane.data_view is other)

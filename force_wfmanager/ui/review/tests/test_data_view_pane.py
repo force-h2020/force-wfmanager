@@ -6,7 +6,7 @@ import unittest
 
 from force_wfmanager.model.analysis_model import AnalysisModel
 from force_wfmanager.ui.review.data_view_pane import DataViewPane
-from force_wfmanager.ui.review.plot import Plot
+from force_wfmanager.ui.review.scatter_plot import ScatterPlot
 from force_wfmanager.ui.review.curve_scatter_plot import CurveScatterPlot
 
 
@@ -48,7 +48,7 @@ class TestDataViewPane(unittest.TestCase):
         # This test class doesn't test the application, so there is no
         # plugin discovery. Two default plots will be found as they are the
         # only ones that are automatically populated.
-        self.assertIn(Plot, self.pane.available_data_views)
+        self.assertIn(ScatterPlot, self.pane.available_data_views)
         self.assertIn(CurveScatterPlot, self.pane.available_data_views)
         self.assertEqual(len(self.pane.available_data_views), 2)
 
@@ -57,6 +57,7 @@ class TestDataViewPane(unittest.TestCase):
         with mock.patch(DATA_VIEW_PANE_EDIT_TRAITS_PATH):
             self.pane.change_view = True
         self.assertIn(
-            "Plot with colormap (force_wfmanager.ui.review.plot.Plot)",
+            "Scatter plot with colormap "
+            "(force_wfmanager.ui.review.scatter_plot.ScatterPlot)",
             self.pane.data_view_descriptions.values(),
         )
