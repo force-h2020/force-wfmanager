@@ -128,7 +128,7 @@ class ScatterPlot(BasePlot):
             _range = self._axis.color_mapper.range
             self._axis.color_mapper = cmap(_range)
 
-    @on_trait_change("use_color_plot")
+    @on_trait_change("use_color_plot", post_init=True)
     def change_plot_style(self):
         ranges = self._get_plot_range()
         x_title = self._plot.x_axis.title

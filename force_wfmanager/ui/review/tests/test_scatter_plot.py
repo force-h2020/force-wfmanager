@@ -88,3 +88,10 @@ class TestScatterPlot(BasePlotTestCase):
         self.plot._reset_zoomtool(self.plot._plot)
         self.assertEqual(3, len(self.plot._plot.overlays))
         self.assertIsNot(old_tool, self.plot._plot.overlays[2])
+
+    def test_color_plot_init(self):
+        with self.subTest(
+                'Check that the scatter plot class can be '
+                'initialized as a color plot'):
+            plot = self.plot_cls(use_color_plot=True)
+            self.assertIsNotNone(plot._plot)
