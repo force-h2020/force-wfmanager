@@ -100,7 +100,16 @@ class WfManagerGlobalTask(TaskExtension):
                     name="About WorkflowManager...",
                     method="setup_task.open_about"
                 ),
-                name="&Help",  id='Help'
+                TaskAction(
+                    name="Online Documentation",
+                    method="setup_task.open_documentation"
+                ),
+                TaskAction(
+                    name="BDSS Tutorial",
+                    method="setup_task.open_tutorial"
+                ),
+                name="&Help",
+                id='Help'
             )
 
     def run_tools(self):

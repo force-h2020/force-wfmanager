@@ -53,6 +53,7 @@ from force_wfmanager.ui.setup.side_pane import SidePane
 from force_wfmanager.ui.setup.system_state import SystemState
 
 from force_wfmanager.wfmanager import TaskToggleGroupAccelerator
+from force_wfmanager.utils.url_link import open_url
 from force_wfmanager.io.project_io import load_analysis_model
 
 log = logging.getLogger(__name__)
@@ -734,3 +735,11 @@ class WfManagerSetupTask(Task):
             ),
             "About WorkflowManager",
         )
+
+    def open_documentation(self):
+        """Opens link to ReadTheDocs WfManager documentation in web browser"""
+        open_url('https://force-workflow-manager.readthedocs.io')
+
+    def open_tutorial(self):
+        """Opens link to ReadTheDocs BDSS Tutorial documentation in web browser"""
+        open_url('https://force-tutorial.readthedocs.io')
