@@ -741,5 +741,7 @@ class WfManagerSetupTask(Task):
         open_url('https://force-workflow-manager.readthedocs.io')
 
     def open_tutorial(self):
-        """Opens link to ReadTheDocs BDSS Tutorial documentation in web browser"""
+        """Opens link to ReadTheDocs BDSS Tutorial documentation in web
+        browser
+        """
         open_url('https://force-tutorial.readthedocs.io')
