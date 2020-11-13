@@ -7,6 +7,7 @@ import logging
 import subprocess
 import tempfile
 import textwrap
+import webbrowser
 from subprocess import SubprocessError
 
 
@@ -734,3 +735,13 @@ class WfManagerSetupTask(Task):
             ),
             "About WorkflowManager",
         )
+
+    def open_documentation(self):
+        """Opens link to ReadTheDocs WfManager documentation in web browser"""
+        webbrowser.open_new('https://force-workflow-manager.readthedocs.io')
+
+    def open_tutorial(self):
+        """Opens link to ReadTheDocs BDSS Tutorial documentation in web
+        browser
+        """
+        webbrowser.open_new('https://force-tutorial.readthedocs.io')
