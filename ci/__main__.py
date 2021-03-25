@@ -13,12 +13,12 @@ ADDITIONAL_CORE_DEPS = [
     "pyface==7.0.1-2",
     "pygments==2.2.0-1",
     "pyqt5==5.14.2-3",
-    "sip==4.17-4",
+    "sip>=4.17-4",
     "traits==6.1.1-1",
     "traitsui==7.0.1-2",
     "numpy>=1.15.4-2",
     "chaco>=4.8.0-1",
-    "pyzmq==16.0.0-7",
+    "pyzmq>=16.0.0-7",
     "mock==2.0.0-3"
 ]
 
